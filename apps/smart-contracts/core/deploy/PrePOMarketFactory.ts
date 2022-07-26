@@ -19,8 +19,8 @@ const deployFunction: DeployFunction = async function ({
   console.log('Running PrePOMarketFactory deployment script with', deployer, 'as the deployer')
   const currentChain = await getChainId()
   /**
-   * Make sure this script is not accidentally targeted towards a production environment,
-   * this can be removed once we deploy to prod.
+   * Make sure this script is not accidentally targeted towards a production environment.
+   * This can be temporarily removed if deploying to prod.
    */
   assertIsTestnetChain(currentChain as unknown as ChainId)
   // Fetch existing Collateral deployment from local .env

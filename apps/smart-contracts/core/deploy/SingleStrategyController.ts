@@ -21,8 +21,8 @@ const deployFunction: DeployFunction = async function ({
   )
   const currentChain = await getChainId()
   /**
-   * Make sure this script is not accidentally targeted towards a production environment,
-   * this can be removed once we deploy to prod.
+   * Make sure this script is not accidentally targeted towards a production environment.
+   * This can be temporarily removed if deploying to prod.
    */
   assertIsTestnetChain(currentChain as unknown as ChainId)
   // Retrieve existing non-upgradeable deployments using hardhat-deploy
