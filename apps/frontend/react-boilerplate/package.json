@@ -19,7 +19,8 @@
     "mst-gql:generate": "./internals/mst-gql-generate.bash"
   },
   "dependencies": {
-    "@lingui/react": "3.13.3",
+    "@lingui/react": "3.14.0",
+    "@lingui/core": "3.14.0",
     "@sentry/nextjs": "6.19.6",
     "antd": "4.20.7",
     "clone-deep": "4.0.1",
@@ -46,10 +47,9 @@
   },
   "devDependencies": {
     "@babel/core": "7.17.10",
-    "@lingui/core": "3.13.3",
-    "@lingui/cli": "3.13.3",
-    "@lingui/loader": "3.13.3",
-    "@lingui/macro": "3.13.3",
+    "@lingui/cli": "3.14.0",
+    "@lingui/loader": "3.14.0",
+    "@lingui/macro": "3.14.0",
     "@typechain/ethers-v5": "10.0.0",
     "@types/react": "17.0.45",
     "@types/react-copy-to-clipboard": "5.0.2",
