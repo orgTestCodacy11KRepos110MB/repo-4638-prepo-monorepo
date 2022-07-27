@@ -1,10 +1,14 @@
-import { expect } from 'chai'
+import chai, { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { ZERO_ADDRESS, JUNK_ADDRESS } from 'prepo-constants'
+import { FakeContract, smock } from '@defi-wonderland/smock'
+import { Contract } from 'ethers'
 import { ppoFixture } from './fixtures/PPOFixtures'
 import { MAX_UINT256 } from '../utils'
 import { PPO } from '../types/generated'
+
+chai.use(smock.matchers)
 
 describe('=> PPO', () => {
   let deployer: SignerWithAddress
@@ -12,6 +16,7 @@ describe('=> PPO', () => {
   let user1: SignerWithAddress
   let user2: SignerWithAddress
   let ppo: PPO
+  let fakeTransferHook: FakeContract<Contract>
 
   const deployPPO = async (): Promise<void> => {
     ;[deployer, owner, user1, user2] = await ethers.getSigners()
@@ -21,6 +26,12 @@ describe('=> PPO', () => {
   const setupPPO = async (): Promise<void> => {
     await deployPPO()
     await ppo.connect(owner).acceptOwnership()
+  }
+
+  const setupPPOAndFakeTransferHook = async (): Promise<void> => {
+    await setupPPO()
+    fakeTransferHook = await smock.fake('BlocklistTransferHook')
+    await ppo.connect(owner).setTransferHook(fakeTransferHook.address)
   }
 
   describe('initial state', () => {
@@ -62,7 +73,7 @@ describe('=> PPO', () => {
     })
   })
 
-  describe('#setTransferHook', () => {
+  describe('# setTransferHook', () => {
     beforeEach(async () => {
       await setupPPO()
     })
@@ -108,7 +119,25 @@ describe('=> PPO', () => {
 
   describe('# mint', () => {
     beforeEach(async () => {
-      await setupPPO()
+      await setupPPOAndFakeTransferHook()
+    })
+
+    it('reverts if transfer hook not set', async () => {
+      await ppo.connect(owner).setTransferHook(ZERO_ADDRESS)
+
+      await expect(ppo.connect(owner).mint(user1.address, 1)).revertedWith('Transfer hook not set')
+    })
+
+    it('reverts if transfer hook reverts', async () => {
+      fakeTransferHook.hook.reverts()
+
+      await expect(ppo.connect(owner).mint(user1.address, 1)).to.be.reverted
+    })
+
+    it('calls transfer hook with correct parameters', async () => {
+      await ppo.connect(owner).mint(user1.address, 1)
+
+      expect(fakeTransferHook.hook).to.have.been.calledWith(ZERO_ADDRESS, user1.address, 1)
     })
 
     it('reverts if not owner', async () => {
@@ -201,8 +230,26 @@ describe('=> PPO', () => {
 
   describe('# burn', () => {
     beforeEach(async () => {
-      await setupPPO()
+      await setupPPOAndFakeTransferHook()
       await ppo.connect(owner).mint(user1.address, 10)
+    })
+
+    it('reverts if transfer hook not set', async () => {
+      await ppo.connect(owner).setTransferHook(ZERO_ADDRESS)
+
+      await expect(ppo.connect(user1).burn(1)).revertedWith('Transfer hook not set')
+    })
+
+    it('reverts if transfer hook reverts', async () => {
+      fakeTransferHook.hook.reverts()
+
+      await expect(ppo.connect(user1).burn(1)).to.be.reverted
+    })
+
+    it('calls transfer hook with correct parameters', async () => {
+      await ppo.connect(user1).burn(1)
+
+      expect(fakeTransferHook.hook).to.have.been.calledWith(user1.address, ZERO_ADDRESS, 1)
     })
 
     it('reverts if amount > balance', async () => {
@@ -272,8 +319,32 @@ describe('=> PPO', () => {
 
   describe('# burnFrom', () => {
     beforeEach(async () => {
-      await setupPPO()
+      await setupPPOAndFakeTransferHook()
       await ppo.connect(owner).mint(user1.address, 10)
+    })
+
+    it('reverts if transfer hook not set', async () => {
+      await ppo.connect(owner).setTransferHook(ZERO_ADDRESS)
+      await ppo.connect(user1).approve(user2.address, 1)
+
+      await expect(ppo.connect(user2).burnFrom(user1.address, 1)).revertedWith(
+        'Transfer hook not set'
+      )
+    })
+
+    it('reverts if transfer hook reverts', async () => {
+      fakeTransferHook.hook.reverts()
+      await ppo.connect(user1).approve(user2.address, 1)
+
+      await expect(ppo.connect(user2).burnFrom(user1.address, 1)).to.be.reverted
+    })
+
+    it('calls transfer hook with correct parameters', async () => {
+      await ppo.connect(user1).approve(user2.address, 1)
+
+      await ppo.connect(user2).burnFrom(user1.address, 1)
+
+      expect(fakeTransferHook.hook).to.have.been.calledWith(user1.address, ZERO_ADDRESS, 1)
     })
 
     it('reverts if burn from zero address', async () => {
@@ -359,6 +430,64 @@ describe('=> PPO', () => {
       await expect(tx)
         .to.emit(ppo, 'Transfer(address,address,uint256)')
         .withArgs(user1.address, ZERO_ADDRESS, 1)
+    })
+  })
+
+  describe('# transfer', () => {
+    beforeEach(async () => {
+      await setupPPOAndFakeTransferHook()
+      await ppo.connect(owner).mint(user1.address, 10)
+    })
+
+    it('reverts if transfer hook not set', async () => {
+      await ppo.connect(owner).setTransferHook(ZERO_ADDRESS)
+
+      await expect(ppo.connect(user1).transfer(user2.address, 1)).revertedWith(
+        'Transfer hook not set'
+      )
+    })
+
+    it('reverts if transfer hook reverts', async () => {
+      fakeTransferHook.hook.reverts()
+
+      await expect(ppo.connect(user1).transfer(user2.address, 1)).to.be.reverted
+    })
+
+    it('calls transfer hook with correct parameters', async () => {
+      await ppo.connect(user1).transfer(user2.address, 1)
+
+      expect(fakeTransferHook.hook).to.have.been.calledWith(user1.address, user2.address, 1)
+    })
+  })
+
+  describe('# transferFrom', () => {
+    beforeEach(async () => {
+      await setupPPOAndFakeTransferHook()
+      await ppo.connect(owner).mint(user1.address, 10)
+    })
+
+    it('reverts if transfer hook not set', async () => {
+      await ppo.connect(owner).setTransferHook(ZERO_ADDRESS)
+      await ppo.connect(user1).approve(user2.address, 1)
+
+      await expect(ppo.connect(user2).transferFrom(user1.address, user2.address, 1)).revertedWith(
+        'Transfer hook not set'
+      )
+    })
+
+    it('reverts if transfer hook reverts', async () => {
+      fakeTransferHook.hook.reverts()
+      await ppo.connect(user1).approve(user2.address, 1)
+
+      await expect(ppo.connect(user2).transferFrom(user1.address, user2.address, 1)).to.be.reverted
+    })
+
+    it('calls transfer hook with correct parameters', async () => {
+      await ppo.connect(user1).approve(user2.address, 1)
+
+      await ppo.connect(user2).transferFrom(user1.address, user2.address, 1)
+
+      expect(fakeTransferHook.hook).to.have.been.calledWith(user1.address, user2.address, 1)
     })
   })
 })
