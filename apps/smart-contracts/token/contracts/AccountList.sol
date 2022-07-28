@@ -30,6 +30,7 @@ contract AccountList is IAccountList, SafeOwnable {
     }
   }
 
+  //TODO remove
   function getResetIndex() external view override returns (uint256) {
     return _resetIndex;
   }
