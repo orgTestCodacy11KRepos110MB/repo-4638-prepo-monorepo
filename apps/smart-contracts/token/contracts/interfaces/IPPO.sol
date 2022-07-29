@@ -2,12 +2,13 @@
 pragma solidity =0.8.7;
 
 import "./ITransferHook.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-IERC20PermitUpgradeable.sol";
 
-///@notice The prePO ERC20 token.
-interface IPPO {
+interface IPPO is IERC20Upgradeable, IERC20PermitUpgradeable {
   /**
-   * @notice Sets the external `ITransferHook` contract to be called before any
-   * PPO transfer.
+   * @notice Sets the external `ITransferHook` contract to be called before
+   * any PPO transfer.
    * @dev The transfer hook's `hook()` function will be called within
    * `_beforeTokenTransfer()`.
    *
