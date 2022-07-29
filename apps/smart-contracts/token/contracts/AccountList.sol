@@ -30,11 +30,6 @@ contract AccountList is IAccountList, SafeOwnable {
     }
   }
 
-  //TODO remove
-  function getResetIndex() external view override returns (uint256) {
-    return _resetIndex;
-  }
-
   function isIncluded(address _account) external view override returns (bool) {
     return _resetIndexToAccountToIncluded[_resetIndex][_account];
   }

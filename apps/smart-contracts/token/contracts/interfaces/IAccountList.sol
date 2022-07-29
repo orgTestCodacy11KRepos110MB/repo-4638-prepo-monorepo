@@ -27,9 +27,6 @@ interface IAccountList {
    */
   function reset(address[] calldata newIncludedAccounts) external;
 
-  //TODO remove
-  function getResetIndex() external view returns (uint256);
-
   /**
    * @param account Address to check inclusion for
    * @return Whether `account` is included
