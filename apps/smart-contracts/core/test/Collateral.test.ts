@@ -251,7 +251,7 @@ describe('=> Collateral', () => {
       expect(await baseToken.allowance(user.address, collateral.address)).to.eq(0)
 
       await expect(collateral.connect(user).deposit(TEST_ACCOUNT_DEPOSIT_CAP)).revertedWith(
-        revertReason('ERC20: transfer amount exceeds allowance')
+        revertReason('ERC20: insufficient allowance')
       )
     })
 

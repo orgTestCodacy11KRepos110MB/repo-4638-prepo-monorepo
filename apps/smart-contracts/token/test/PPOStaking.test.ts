@@ -198,7 +198,7 @@ describe('PPOStaking', () => {
 
               await expect(
                 ppoStaking.connect(staker).stake(recipient.address, testAmountToStake)
-              ).to.be.revertedWith('ERC20: transfer amount exceeds allowance')
+              ).to.be.revertedWith('ERC20: insufficient allowance')
             })
 
             it('transfers PPO from msg.sender to staking contract', async () => {

@@ -702,7 +702,7 @@ describe('TokenShop', () => {
       mockERC721.ownerOf.whenCalledWith(2).returns(user1.address)
 
       await expect(tokenShop.connect(owner).withdrawERC721(mockERC721.address, 2)).revertedWith(
-        'ERC721: transfer caller is not owner nor approved'
+        'ERC721: caller is not token owner nor approved'
       )
     })
 

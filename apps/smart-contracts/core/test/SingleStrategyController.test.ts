@@ -184,7 +184,7 @@ describe('=> SingleStrategyController', () => {
       await strategyController.migrate(mockStrategy2.address)
 
       expect(await baseToken.allowance(strategyController.address, mockStrategy2.address)).to.eq(
-        ethers.constants.MaxUint256.sub(await mockStrategy.totalValue())
+        ethers.constants.MaxUint256
       )
     })
 
