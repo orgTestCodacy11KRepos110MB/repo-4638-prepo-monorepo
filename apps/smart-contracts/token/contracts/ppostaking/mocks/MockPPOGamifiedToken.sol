@@ -14,7 +14,7 @@ contract MockPPOGamifiedToken is PPOGamifiedToken {
     string memory _newName,
     string memory _newSymbol,
     address _newRewardsDistributor
-  ) public {
+  ) public initializer {
     __PPOGamifiedToken_init(_newName, _newSymbol, _newRewardsDistributor);
   }
 

@@ -74,7 +74,7 @@ abstract contract PPOGamifiedToken is
     string memory _nameArg,
     string memory _symbolArg,
     address _rewardsDistributorArg
-  ) internal initializer {
+  ) internal {
     __Context_init_unchained();
     _name = _nameArg;
     _symbol = _symbolArg;

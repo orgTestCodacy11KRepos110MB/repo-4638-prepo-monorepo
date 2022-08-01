@@ -361,7 +361,7 @@ describe('=> PPO', () => {
 
     it('reverts if burn from zero address', async () => {
       await expect(ppo.connect(user1).burnFrom(ZERO_ADDRESS, 1)).revertedWith(
-        'ERC20: burn amount exceeds allowance'
+        'ERC20: insufficient allowance'
       )
     })
 
@@ -371,7 +371,7 @@ describe('=> PPO', () => {
 
       await expect(
         ppo.connect(user2).burnFrom(user1.address, user1PPOBalanceBefore)
-      ).to.revertedWith('ERC20: burn amount exceeds allowance')
+      ).to.revertedWith('ERC20: insufficient allowance')
     })
 
     it('reverts if amount > balance', async () => {

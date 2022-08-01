@@ -60,7 +60,7 @@ abstract contract PPOGamifiedVotingToken is Initializable, PPOGamifiedToken {
     address _achievementsManager
   ) PPOGamifiedToken(_nexus, _rewardsToken, _achievementsManager) {}
 
-  function __PPOGamifiedVotingToken_init() internal initializer {}
+  function __PPOGamifiedVotingToken_init() internal {}
 
   /**
    * @dev
