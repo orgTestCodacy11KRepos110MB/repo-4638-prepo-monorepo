@@ -1,8 +1,8 @@
 import { BigNumber, providers, Contract } from 'ethers'
 import { parse, stringify } from 'envfile'
 import { ChainId, NETWORKS } from 'prepo-constants'
-import { readFileSync, writeFileSync } from 'fs'
 import { hexZeroPad } from 'ethers/lib/utils'
+import { readFileSync, writeFileSync } from 'fs'
 
 function expandToDecimals(n: number, decimals: number): BigNumber {
   return BigNumber.from(n).mul(BigNumber.from(10).pow(decimals))

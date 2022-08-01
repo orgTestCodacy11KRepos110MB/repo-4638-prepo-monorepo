@@ -1,14 +1,19 @@
-// eslint-disable no-console
+/* eslint-disable no-console */
 import { DeployFunction } from 'hardhat-deploy/types'
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
-import { ChainId, IMPORTANT_ADDRESSES } from 'prepo-constants'
+import { ChainId, getPrePOAddressForNetwork } from 'prepo-constants'
 import { utils } from 'prepo-hardhat'
 import { getNetworkByChainId } from 'prepo-utils'
 import { HardhatUpgrades } from '@openzeppelin/hardhat-upgrades'
+import dotenv from 'dotenv'
+
+dotenv.config({
+  path: '../.env',
+})
 
 const { assertIsTestnetChain } = utils
 
-const ensureProxyOwnedByGovernance = async function (
+async function ensureProxyOwnedByGovernance(
   upgrades: HardhatUpgrades,
   governanceAddress: string
 ): Promise<void> {
@@ -16,26 +21,19 @@ const ensureProxyOwnedByGovernance = async function (
   console.log('ProxyAdmin exists at:', manifestAdmin.address)
   const adminOwner = await manifestAdmin.owner()
   console.log('Current ProxyAdmin owned by:', adminOwner)
-  if (governanceAddress !== undefined) {
-    if (adminOwner !== governanceAddress) {
-      console.log(
-        'ProxyAdmin not owned by governance, transferring ownership to',
-        governanceAddress
-      )
-      await upgrades.admin.transferProxyAdminOwnership(governanceAddress)
-    }
-  } else {
-    throw new Error('Governance not defined for the current network')
+  if (adminOwner !== governanceAddress) {
+    console.log('ProxyAdmin not owned by governance, transferring ownership to', governanceAddress)
+    await upgrades.admin.transferProxyAdminOwnership(governanceAddress)
   }
 }
 
-const deployFunction: DeployFunction = async function ({
+const deployFunction: DeployFunction = async function deployPPO({
   deployments,
   getChainId,
   ethers,
   upgrades,
   defender,
-}: HardhatRuntimeEnvironment) {
+}: HardhatRuntimeEnvironment): Promise<void> {
   const { save, getOrNull, getArtifact } = deployments
   const deployer = (await ethers.getSigners())[0]
   console.log('Running PPO deployment script with', deployer.address, 'as the deployer')
@@ -53,7 +51,11 @@ const deployFunction: DeployFunction = async function ({
    * This can be temporarily removed if deploying to prod.
    */
   assertIsTestnetChain(currentChain)
-  const governanceAddress = IMPORTANT_ADDRESSES.GOVERNANCE[currentNetwork.name]
+  const governanceAddress = getPrePOAddressForNetwork(
+    'GOVERNANCE',
+    currentNetwork.name,
+    process.env.GOVERNANCE
+  )
   console.log('Governance for the current network is at:', governanceAddress)
   const ppoTokenFactory = await ethers.getContractFactory('PPO')
   const existingDeployment = await getOrNull('PPO')
@@ -62,7 +64,7 @@ const deployFunction: DeployFunction = async function ({
     const newDeployment = await upgrades.deployProxy(ppoTokenFactory, [
       'prePO Token',
       'PPO',
-      deployer.address,
+      governanceAddress,
     ])
     console.log('Deployed PPO at', newDeployment.address)
     const deploymentReceipt = await newDeployment.deployTransaction.wait()

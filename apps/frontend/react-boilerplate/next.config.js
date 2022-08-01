@@ -30,6 +30,8 @@ const nextConfig = {
       react: path.resolve(root, '../../../node_modules', 'react'),
     }
 
+    config.resolve.fallback = { fs: false }
+
     // Important: return the modified config
     return config
   },

@@ -4,7 +4,12 @@
 const root = process.cwd()
 const { withSentryConfig } = require('@sentry/nextjs')
 const path = require('path')
-const withTM = require('next-transpile-modules')(['prepo-constants', 'prepo-utils', 'prepo-ui', 'prepo-stores'])
+const withTM = require('next-transpile-modules')([
+  'prepo-constants',
+  'prepo-utils',
+  'prepo-ui',
+  'prepo-stores',
+])
 
 const nextConfig = {
   experimental: { esmExternals: 'loose' },
@@ -12,7 +17,7 @@ const nextConfig = {
     // ssr and displayName are configured by default
     styledComponents: true,
   },
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
     config.resolve.alias = {
       ...config.resolve.alias,
       'styled-components': path.resolve(root, '../../../node_modules', 'styled-components'),
@@ -21,6 +26,8 @@ const nextConfig = {
       // https://reactjs.org/warnings/invalid-hook-call-warning.html#duplicate-react
       react: path.resolve(root, '../../../node_modules', 'react'),
     }
+
+    config.resolve.fallback = { fs: false }
 
     // Important: return the modified config
     return config
