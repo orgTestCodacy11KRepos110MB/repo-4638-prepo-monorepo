@@ -27,7 +27,9 @@ function getZeroPadHexFromAddress(address: string): string {
   return hexZeroPad(address, 32)
 }
 
-async function getLastTimestamp(provider: providers.Web3Provider): Promise<number> {
+async function getLastTimestamp(
+  provider: providers.Web3Provider | providers.JsonRpcProvider
+): Promise<number> {
   /**
    * Changed this from ethers.provider.getBlockNumber since if evm_revert is used to return
    * to a snapshot, getBlockNumber will still return the last mined block rather than the
@@ -38,7 +40,7 @@ async function getLastTimestamp(provider: providers.Web3Provider): Promise<numbe
 }
 
 async function setNextTimestamp(
-  provider: providers.Web3Provider,
+  provider: providers.Web3Provider | providers.JsonRpcProvider,
   timestamp: number
 ): Promise<void> {
   await provider.send('evm_setNextBlockTimestamp', [timestamp])

@@ -6,7 +6,6 @@ import { parseEther } from 'ethers/lib/utils'
 import { MockContract, smock } from '@defi-wonderland/smock'
 import { ZERO_ADDRESS, JUNK_ADDRESS } from 'prepo-constants'
 import { utils } from 'prepo-hardhat'
-import { Web3Provider } from '@ethersproject/providers'
 import { mockPPOGamifiedTokenDeployFixture } from './fixtures/PPOGamifiedTokenFixture'
 import { smockSteppedTimeMultiplierV1Fixture } from './fixtures/MultiplierCalculatorFixtures'
 import { smockMockAchievementsManagerFixture } from './fixtures/MockAchievementsManagerFixtures'
@@ -384,7 +383,7 @@ describe('PPOGamifiedToken', () => {
     })
 
     it('uses configured time multiplier calculator', async () => {
-      const lastBlockTime = await utils.getLastTimestamp(ethers.provider as Web3Provider)
+      const lastBlockTime = await utils.getLastTimestamp(ethers.provider)
       await gamifiedToken.writeBalance(user1.address, {
         ...defaultBalanceData,
         timeMultiplier: 1,
@@ -409,7 +408,7 @@ describe('PPOGamifiedToken', () => {
     })
 
     it('uses configured time multiplier calculator', async () => {
-      const lastBlockTime = await utils.getLastTimestamp(ethers.provider as Web3Provider)
+      const lastBlockTime = await utils.getLastTimestamp(ethers.provider)
       await gamifiedToken.writeBalance(user1.address, {
         ...defaultBalanceData,
         weightedTimestamp: lastBlockTime,
@@ -438,7 +437,7 @@ describe('PPOGamifiedToken', () => {
     })
 
     it('uses configured time multiplier calculator', async () => {
-      const lastBlockTime = await utils.getLastTimestamp(ethers.provider as Web3Provider)
+      const lastBlockTime = await utils.getLastTimestamp(ethers.provider)
       await gamifiedToken.writeBalance(user1.address, {
         ...defaultBalanceData,
         weightedTimestamp: lastBlockTime,
@@ -467,7 +466,7 @@ describe('PPOGamifiedToken', () => {
     })
 
     it('uses configured time multiplier calculator', async () => {
-      const lastBlockTime = await utils.getLastTimestamp(ethers.provider as Web3Provider)
+      const lastBlockTime = await utils.getLastTimestamp(ethers.provider)
       await gamifiedToken.writeBalance(user1.address, {
         ...defaultBalanceData,
         weightedTimestamp: lastBlockTime,
@@ -498,7 +497,7 @@ describe('PPOGamifiedToken', () => {
     })
 
     it('uses configured time multiplier calculator', async () => {
-      const lastBlockTime = await utils.getLastTimestamp(ethers.provider as Web3Provider)
+      const lastBlockTime = await utils.getLastTimestamp(ethers.provider)
       await gamifiedToken.writeBalance(user1.address, {
         ...defaultBalanceData,
         weightedTimestamp: lastBlockTime,
@@ -527,7 +526,7 @@ describe('PPOGamifiedToken', () => {
     })
 
     it('uses configured time multiplier calculator', async () => {
-      const lastBlockTime = await utils.getLastTimestamp(ethers.provider as Web3Provider)
+      const lastBlockTime = await utils.getLastTimestamp(ethers.provider)
       await gamifiedToken.writeBalance(user1.address, {
         ...defaultBalanceData,
         weightedTimestamp: lastBlockTime,

@@ -6,7 +6,6 @@ import { formatEther, parseEther } from 'ethers/lib/utils'
 import { MockContract, smock } from '@defi-wonderland/smock'
 import { ZERO_ADDRESS, JUNK_ADDRESS } from 'prepo-constants'
 import { utils } from 'prepo-hardhat'
-import { Web3Provider } from '@ethersproject/providers'
 import { smockMockAchievementsManagerFixture } from './fixtures/MockAchievementsManagerFixtures'
 import { smockSteppedTimeMultiplierV1Fixture } from './fixtures/MultiplierCalculatorFixtures'
 import { mockPPOStakingDeployFixture } from './fixtures/PPOStakingFixtures'
@@ -307,9 +306,7 @@ describe('PPOStaking', () => {
 
               await ppoStaking.connect(staker).stake(recipient.address, testAmountToStake)
 
-              const initialStakingTime = await utils.getLastTimestamp(
-                ethers.provider as Web3Provider
-              )
+              const initialStakingTime = await utils.getLastTimestamp(ethers.provider)
               const recipientBalanceDataAfter = await ppoStaking.balanceData(recipient.address)
               expect(recipientBalanceDataAfter.weightedTimestamp).to.eq(initialStakingTime)
             })
@@ -328,7 +325,7 @@ describe('PPOStaking', () => {
         testAmountToStake = parseEther('1000')
         await ppoToken.connect(staker).approve(ppoStaking.address, testAmountToStake)
         await ppoStaking.connect(staker).stake(recipient.address, testAmountToStake)
-        initialStakingTime = await utils.getLastTimestamp(ethers.provider as Web3Provider)
+        initialStakingTime = await utils.getLastTimestamp(ethers.provider)
         await ppoToken.connect(staker).approve(ppoStaking.address, testAmountToStake)
       })
 
@@ -479,7 +476,7 @@ describe('PPOStaking', () => {
             it("doesn't end cooldown if time passed < cooldown period + unstaking window", async () => {
               await ppoStaking.connect(recipient).startCooldown(amountToCooldown)
               const cooldownStartTime = BigNumber.from(
-                await utils.getLastTimestamp(ethers.provider as Web3Provider)
+                await utils.getLastTimestamp(ethers.provider)
               )
               const recipientBalanceDataBefore = await ppoStaking.balanceData(recipient.address)
               expect(recipientBalanceDataBefore.cooldownTimestamp).to.eq(cooldownStartTime)
@@ -490,10 +487,7 @@ describe('PPOStaking', () => {
                 .add(COOLDOWN_SECONDS)
                 .add(UNSTAKE_WINDOW)
                 .toNumber()
-              await utils.setNextTimestamp(
-                ethers.provider as Web3Provider,
-                cooldownAndUnstakeEndTime - 1
-              )
+              await utils.setNextTimestamp(ethers.provider, cooldownAndUnstakeEndTime - 1)
 
               const tx = await ppoStaking
                 .connect(staker)
@@ -513,7 +507,7 @@ describe('PPOStaking', () => {
             it("doesn't end cooldown if time passed = cooldown period + unstaking window", async () => {
               await ppoStaking.connect(recipient).startCooldown(amountToCooldown)
               const cooldownStartTime = BigNumber.from(
-                await utils.getLastTimestamp(ethers.provider as Web3Provider)
+                await utils.getLastTimestamp(ethers.provider)
               )
               const recipientBalanceDataBefore = await ppoStaking.balanceData(recipient.address)
               expect(recipientBalanceDataBefore.cooldownTimestamp).to.eq(cooldownStartTime)
@@ -524,10 +518,7 @@ describe('PPOStaking', () => {
                 .add(COOLDOWN_SECONDS)
                 .add(UNSTAKE_WINDOW)
                 .toNumber()
-              await utils.setNextTimestamp(
-                ethers.provider as Web3Provider,
-                cooldownAndUnstakeEndTime
-              )
+              await utils.setNextTimestamp(ethers.provider, cooldownAndUnstakeEndTime)
 
               const tx = await ppoStaking
                 .connect(staker)
@@ -547,7 +538,7 @@ describe('PPOStaking', () => {
             it('ends cooldown if time passed > cooldown period + unstaking window', async () => {
               await ppoStaking.connect(recipient).startCooldown(amountToCooldown)
               const cooldownStartTime = BigNumber.from(
-                await utils.getLastTimestamp(ethers.provider as Web3Provider)
+                await utils.getLastTimestamp(ethers.provider)
               )
               const recipientBalanceDataBefore = await ppoStaking.balanceData(recipient.address)
               expect(recipientBalanceDataBefore.cooldownTimestamp).to.eq(cooldownStartTime)
@@ -558,10 +549,7 @@ describe('PPOStaking', () => {
                 .add(COOLDOWN_SECONDS)
                 .add(UNSTAKE_WINDOW)
                 .toNumber()
-              await utils.setNextTimestamp(
-                ethers.provider as Web3Provider,
-                cooldownAndUnstakeEndTime + 1
-              )
+              await utils.setNextTimestamp(ethers.provider, cooldownAndUnstakeEndTime + 1)
 
               const tx = await ppoStaking
                 .connect(staker)
@@ -591,11 +579,11 @@ describe('PPOStaking', () => {
           testAmountToStake,
           true
         )
-        await utils.setNextTimestamp(ethers.provider as Web3Provider, timeToStake)
+        await utils.setNextTimestamp(ethers.provider, timeToStake)
 
         await ppoStaking.connect(staker).stake(recipient.address, testAmountToStake)
 
-        const subsequentStakingTime = await utils.getLastTimestamp(ethers.provider as Web3Provider)
+        const subsequentStakingTime = await utils.getLastTimestamp(ethers.provider)
         const recipientDataAfter = await snapshotUserStakingData(recipient.address)
         const newWeightedTimestamp = calcWeightedTimestamp(
           initialStakingTime,
@@ -622,11 +610,11 @@ describe('PPOStaking', () => {
           testAmountToStake,
           true
         )
-        await utils.setNextTimestamp(ethers.provider as Web3Provider, timeToStake)
+        await utils.setNextTimestamp(ethers.provider, timeToStake)
 
         await ppoStaking.connect(staker).stake(recipient.address, testAmountToStake)
 
-        const subsequentStakingTime = await utils.getLastTimestamp(ethers.provider as Web3Provider)
+        const subsequentStakingTime = await utils.getLastTimestamp(ethers.provider)
         const recipientDataAfter = await snapshotUserStakingData(recipient.address)
         const newWeightedTimestamp = calcWeightedTimestamp(
           initialStakingTime,
@@ -663,11 +651,11 @@ describe('PPOStaking', () => {
           testAmountToStake,
           true
         )
-        await utils.setNextTimestamp(ethers.provider as Web3Provider, timeToStake)
+        await utils.setNextTimestamp(ethers.provider, timeToStake)
 
         await ppoStaking.connect(staker).stake(recipient.address, testAmountToStake)
 
-        const subsequentStakingTime = await utils.getLastTimestamp(ethers.provider as Web3Provider)
+        const subsequentStakingTime = await utils.getLastTimestamp(ethers.provider)
         const recipientDataAfter = await snapshotUserStakingData(recipient.address)
         const newWeightedTimestamp = calcWeightedTimestamp(
           initialStakingTime,

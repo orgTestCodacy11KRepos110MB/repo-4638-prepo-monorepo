@@ -80,7 +80,7 @@ describe('=> PPO', () => {
        * though the network provider designates 31337 for hardhat networks.
        */
       expect(await ppo.DOMAIN_SEPARATOR()).to.eq(
-        generateDomainSeparator('prePO Token', '1', 0, ppo.address)
+        generateDomainSeparator('prePO Token', '1', 31337, ppo.address)
       )
     })
   })
