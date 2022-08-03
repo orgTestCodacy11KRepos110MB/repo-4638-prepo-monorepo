@@ -5,7 +5,7 @@ import ExploreMarkets from '../features/explore-markets/ExploreMarkets'
 const Markets: NextPage = () => (
   <>
     <SEO
-      title="Core dApp | prePO"
+      title="Markets | prePO"
       description="The decentralized Pre-IPO & Pre-Token trading platform"
       ogImageUrl="/prepo-og-image.png"
     />
