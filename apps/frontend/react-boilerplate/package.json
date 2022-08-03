@@ -26,7 +26,7 @@
     "clone-deep": "4.0.1",
     "configcat-js-ssr": "3.10.0",
     "ethereum-multicall": "2.10.0",
-    "ethers": "5.6.8",
+    "ethers": "5.6.9",
     "graphql": "16.3.0",
     "graphql-tag": "2.12.6",
     "mobx": "6.6.0",

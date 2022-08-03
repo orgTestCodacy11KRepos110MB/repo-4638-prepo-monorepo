@@ -15,7 +15,7 @@
     "build:watch": "yarn build --watch"
   },
   "dependencies": {
-    "ethers": "5.6.8",
+    "ethers": "5.6.9",
     "prepo-constants": "*"
   },
   "devDependencies": {
