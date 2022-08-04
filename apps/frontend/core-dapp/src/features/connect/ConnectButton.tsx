@@ -1,6 +1,7 @@
 import { observer } from 'mobx-react-lite'
 import styled from 'styled-components'
 import { centered, spacingIncrement, Button } from 'prepo-ui'
+import { Trans } from '@lingui/macro'
 import Identicon from './Identicon'
 import AccountModal from './AccountModal'
 import WalletAddressCard from './WalletAddressCard'
@@ -58,7 +59,7 @@ const ConnectButton: React.FC = () => {
           </WalletAddressCard>
         ) : (
           <StyledButton type="primary" onClick={onClickLogin} size="sm">
-            Connect Wallet
+            <Trans>Connect Wallet</Trans>
           </StyledButton>
         )}
       </Flex>

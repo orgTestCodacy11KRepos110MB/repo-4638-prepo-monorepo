@@ -10,14 +10,23 @@ const withTM = require('next-transpile-modules')([
   'prepo-ui',
   'prepo-stores',
 ])
+const { locales, sourceLocale } = require('./lingui.config.js')
 
 const nextConfig = {
   experimental: { esmExternals: 'loose' },
+  i18n: {
+    locales,
+    defaultLocale: sourceLocale,
+  },
   compiler: {
     // ssr and displayName are configured by default
     styledComponents: true,
   },
   webpack: (config, { isServer }) => {
+    config.module.rules.push({
+      test: /\.po/,
+      use: ['@lingui/loader'],
+    })
     config.resolve.alias = {
       ...config.resolve.alias,
       'styled-components': path.resolve(root, '../../../node_modules', 'styled-components'),

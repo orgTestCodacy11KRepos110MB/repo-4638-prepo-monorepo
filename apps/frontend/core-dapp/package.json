@@ -2,7 +2,9 @@
   "name": "core-dapp",
   "version": "1.0.0",
   "scripts": {
-    "postinstall": "yarn generate",
+    "postinstall": "yarn generate-types && yarn mst-gql:generate && yarn i18n:compile",
+    "extract": "NODE_ENV=development lingui extract",
+    "compile": "lingui compile",
     "generate": "yarn generate-types && yarn mst-gql:generate",
     "generate-types": "typechain --target=ethers-v5 'abi/*.json' --out-dir generated/typechain",
     "dev": "npx next",
@@ -13,11 +15,16 @@
     "pre-commit": "lint-staged",
     "lint": "eslint . --ext .tsx,.ts",
     "lint:fix": "eslint . --ext .tsx,.ts --fix",
+    "i18n:extract": "NODE_ENV=development lingui extract --locale en",
+    "i18n:compile": "yarn i18n:extract && lingui compile",
     "mst-gql:generate": "./internals/mst-gql-generate.bash"
   },
   "keywords": [],
   "author": "",
   "dependencies": {
+    "@lingui/react": "3.14.0",
+    "@lingui/core": "3.14.0",
+    "@lingui/macro": "3.14.0",
     "@panelbear/panelbear-nextjs": "1.0.3",
     "@sentry/nextjs": "6.17.6",
     "@uniswap/sdk": "3.0.3",
@@ -60,7 +67,12 @@
     "styled-system": "5.1.5"
   },
   "devDependencies": {
+    "@babel/core": "7.18.10",
+    "@lingui/cli": "3.14.0",
+    "@lingui/loader": "3.14.0",
+    "babel-plugin-macros": "3.1.0",
     "@typechain/ethers-v5": "9.0.0",
+    "babel-plugin-styled-components": "2.0.7",
     "@types/d3": "7.1.0",
     "@types/jest": "27.4.0",
     "@types/react": "17.0.45",

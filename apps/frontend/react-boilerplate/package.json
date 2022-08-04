@@ -21,6 +21,7 @@
   "dependencies": {
     "@lingui/react": "3.14.0",
     "@lingui/core": "3.14.0",
+    "@lingui/macro": "3.14.0",
     "@sentry/nextjs": "6.19.6",
     "antd": "4.21.6",
     "clone-deep": "4.0.1",
@@ -46,10 +47,9 @@
     "styled-components": "5.3.5"
   },
   "devDependencies": {
-    "@babel/core": "7.17.10",
+    "@babel/core": "7.18.10",
     "@lingui/cli": "3.14.0",
     "@lingui/loader": "3.14.0",
-    "@lingui/macro": "3.14.0",
     "@typechain/ethers-v5": "10.0.0",
     "@types/react": "17.0.45",
     "@types/react-copy-to-clipboard": "5.0.2",

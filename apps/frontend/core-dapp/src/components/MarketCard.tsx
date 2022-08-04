@@ -4,6 +4,7 @@ import styled from 'styled-components'
 import { centered, spacingIncrement, media, Icon } from 'prepo-ui'
 import { observer } from 'mobx-react-lite'
 import Skeleton from 'react-loading-skeleton'
+import { Trans } from '@lingui/macro'
 import Link from './Link'
 import MarketIconTitle from './MarketIconTitle'
 import { MarketEntity } from '../stores/entities/MarketEntity'
@@ -106,7 +107,9 @@ const MarketCard: React.FC<Props> = ({ id, market }) => {
         </Row>
         <Row>
           <InfoCol xs={12} md={12}>
-            <Subtitle>Estimated Valuation</Subtitle>
+            <Subtitle>
+              <Trans>Estimated Valuation</Trans>
+            </Subtitle>
             {market.estimatedValuation === undefined ? (
               <Skeleton height={30} width={160} />
             ) : (
@@ -114,7 +117,9 @@ const MarketCard: React.FC<Props> = ({ id, market }) => {
             )}
           </InfoCol>
           <InfoCol xs={12} md={12}>
-            <Subtitle>Valuation Range</Subtitle>
+            <Subtitle>
+              <Trans>Valuation Range</Trans>
+            </Subtitle>
             {market.valuationRange === undefined ? (
               <Skeleton height={30} width={160} />
             ) : (
@@ -127,7 +132,9 @@ const MarketCard: React.FC<Props> = ({ id, market }) => {
         </Row>
         <Row>
           <InfoCol xs={12} md={12}>
-            <Subtitle>Volume</Subtitle>
+            <Subtitle>
+              <Trans>Volume</Trans>
+            </Subtitle>
             {market.tradingVolume !== undefined ? (
               <PrimaryText>${significantDigits(market.tradingVolume.value)}</PrimaryText>
             ) : (
@@ -135,7 +142,9 @@ const MarketCard: React.FC<Props> = ({ id, market }) => {
             )}
           </InfoCol>
           <InfoCol xs={12} md={12}>
-            <Subtitle>Liquidity</Subtitle>
+            <Subtitle>
+              <Trans>Liquidity</Trans>
+            </Subtitle>
             {market.liquidity === undefined ? (
               <Skeleton height={30} width={160} />
             ) : (
@@ -144,7 +153,10 @@ const MarketCard: React.FC<Props> = ({ id, market }) => {
           </InfoCol>
         </Row>
         <Cta align="middle">
-          <div>Invest in {market.name}</div>
+          <div>
+            <Trans>Invest in</Trans>&nbsp;
+            {market.name}
+          </div>
           <ArrowWrapper mouseOver={mouseOver}>
             <IconWrapper name="arrow-right" color="primary" />
           </ArrowWrapper>

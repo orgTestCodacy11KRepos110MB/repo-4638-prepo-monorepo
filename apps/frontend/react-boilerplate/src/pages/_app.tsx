@@ -2,7 +2,6 @@ import { configure } from 'mobx'
 import { AppProps } from 'next/app'
 import { I18nProvider } from '@lingui/react'
 import { i18n } from '@lingui/core'
-import { en, sv } from 'make-plural/plurals'
 import { useRouter } from 'next/router'
 import { useEffect } from 'react'
 import { DEFAULT_LANGUAGE } from 'prepo-constants'
@@ -12,9 +11,6 @@ import Layout from '../components/layout'
 
 import 'antd/dist/antd.css'
 import '../styles/default.css'
-
-i18n.loadLocaleData('en', { plurals: en })
-i18n.loadLocaleData('sv', { plurals: sv })
 
 // mobx config
 configure({

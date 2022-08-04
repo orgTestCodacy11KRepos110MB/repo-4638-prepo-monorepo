@@ -2,6 +2,7 @@ import { Col, Row } from 'antd'
 import styled from 'styled-components'
 import { observer } from 'mobx-react-lite'
 import { spacingIncrement, media } from 'prepo-ui'
+import { t, Trans } from '@lingui/macro'
 import Heading from '../../components/Heading'
 import Tabs from '../../components/Tabs'
 import MarketCard from '../../components/MarketCard'
@@ -114,7 +115,7 @@ const ExploreMarkets: React.FC = () => {
       <WrongNetworkAlert />
       <Col xs={24}>
         <Heading type="h1" color="secondary">
-          Explore Markets
+          <Trans>Explore Markets</Trans>
         </Heading>
       </Col>
       <Col xs={24}>
@@ -122,12 +123,12 @@ const ExploreMarkets: React.FC = () => {
           tabBarExtraContent={
             <MarketSearch
               onChange={setSearchQuery}
-              placeholder="Search for Pre-IPO and Pre-IDO Markets"
+              placeholder={t`Search for Pre-IPO and Pre-IDO Markets`}
             />
           }
           type="card"
           tab={[
-            { heading: 'All', content: <MarketContent id="all" markets={filteredMarkets} /> },
+            { heading: t`All`, content: <MarketContent id="all" markets={filteredMarkets} /> },
             {
               heading: 'Pre-IPO',
               content: <MarketContent id="pre-ipo" markets={filteredIpoMarkets} />,

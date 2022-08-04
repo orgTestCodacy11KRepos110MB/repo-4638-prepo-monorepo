@@ -2,9 +2,15 @@ import { configure } from 'mobx'
 import { AppProps } from 'next/app'
 import Script from 'next/script'
 import { usePanelbear } from '@panelbear/panelbear-nextjs'
-import { RootStoreProvider } from '../context/RootStoreProvider'
-import AppBootstrap from '../components/AppBootstrap'
+import { i18n } from '@lingui/core'
+import { I18nProvider } from '@lingui/react'
+import { useRouter } from 'next/router'
+import { DEFAULT_LANGUAGE } from 'prepo-constants'
+import { useEffect } from 'react'
+
 import Layout from '../components/layout/Layout'
+import AppBootstrap from '../components/AppBootstrap'
+import { RootStoreProvider } from '../context/RootStoreProvider'
 
 import 'antd/dist/antd.css'
 import 'react-loading-skeleton/dist/skeleton.css'
@@ -23,17 +29,32 @@ configure({
 
 const App = ({ Component, pageProps }: AppProps): React.ReactElement => {
   usePanelbear(config.PANELBEAR_SDK_KEY)
+  const { locale = DEFAULT_LANGUAGE } = useRouter()
+
+  useEffect(() => {
+    async function load(localeCode: string): Promise<void> {
+      const { messages } = await import(`../locale/${localeCode}/messages.po`)
+
+      i18n.load(localeCode, messages)
+      i18n.activate(localeCode)
+    }
+
+    load(locale)
+  }, [locale])
+
   return (
     <RootStoreProvider>
-      <LightWeightChartProvider>
-        <AppBootstrap>
-          <Layout>
-            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-            <Component {...pageProps} />
-          </Layout>
-        </AppBootstrap>
-        <Script src="/scripts/userback.js" />
-      </LightWeightChartProvider>
+      <I18nProvider i18n={i18n}>
+        <LightWeightChartProvider>
+          <AppBootstrap>
+            <Layout>
+              {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+              <Component {...pageProps} />
+            </Layout>
+          </AppBootstrap>
+          <Script src="/scripts/userback.js" />
+        </LightWeightChartProvider>
+      </I18nProvider>
     </RootStoreProvider>
   )
 }

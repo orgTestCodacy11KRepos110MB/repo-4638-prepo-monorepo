@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { observer } from 'mobx-react-lite'
 import { centered, spacingIncrement, IconName, Icon, media } from 'prepo-ui'
 import { useEffect, useRef } from 'react'
+import { Trans } from '@lingui/macro'
 import Link from './Link'
 import Tooltip from './Tooltip'
 import PpoDropdown from './PpoDropdown'
@@ -152,7 +153,11 @@ export const NavigationItem: React.FC<NavigationItemProps> = ({
   const component = (
     <NavigationItemWrapper disabled={Boolean(disabledTooltip)}>
       <Icon name={iconName} color={iconColor} height={iconSize.height} width={iconSize.width} />
-      {Boolean(name) && <Name active={isActive}>{name}</Name>}
+      {Boolean(name) && (
+        <Name active={isActive}>
+          <Trans id={name} />
+        </Name>
+      )}
     </NavigationItemWrapper>
   )
 

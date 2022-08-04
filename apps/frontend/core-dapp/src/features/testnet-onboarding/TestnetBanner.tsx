@@ -1,6 +1,7 @@
 import { Typography } from 'prepo-ui'
 import { observer } from 'mobx-react-lite'
 import styled from 'styled-components'
+import { Trans } from '@lingui/macro'
 import { useRootStore } from '../../context/RootStoreProvider'
 
 const StyledText = styled(Typography)`
@@ -20,7 +21,7 @@ const TestnetBanner: React.FC = () => {
 
   return (
     <StyledText variant="text-regular-base" background="warning" color="white" py={6}>
-      Connected to Testnet (Goerli)
+      <Trans>Connected to Testnet (Goerli)</Trans>
     </StyledText>
   )
 }
