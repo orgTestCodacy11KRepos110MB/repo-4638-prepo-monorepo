@@ -1,4 +1,4 @@
-import { BigNumber, providers, Contract } from 'ethers'
+import { BigNumber, providers, Contract, ContractTransaction } from 'ethers'
 import { parse, stringify } from 'envfile'
 import { ChainId, NETWORKS } from 'prepo-constants'
 import { hexZeroPad } from 'ethers/lib/utils'
@@ -44,6 +44,10 @@ async function setNextTimestamp(
   timestamp: number
 ): Promise<void> {
   await provider.send('evm_setNextBlockTimestamp', [timestamp])
+}
+
+export async function sendTxAndWait(transaction: ContractTransaction): Promise<void> {
+  await transaction.wait()
 }
 
 function assertIsTestnetChain(chainId: ChainId): void {
@@ -94,6 +98,7 @@ export const utils = {
   getZeroPadHexFromAddress,
   getLastTimestamp,
   setNextTimestamp,
+  sendTxAndWait,
   assertIsTestnetChain,
   recordDeployment,
   mineBlocks,
