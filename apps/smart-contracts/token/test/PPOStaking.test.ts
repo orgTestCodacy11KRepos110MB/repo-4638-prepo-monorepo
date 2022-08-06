@@ -6,9 +6,11 @@ import { formatEther, parseEther } from 'ethers/lib/utils'
 import { MockContract, smock } from '@defi-wonderland/smock'
 import { ZERO_ADDRESS, JUNK_ADDRESS } from 'prepo-constants'
 import { utils } from 'prepo-hardhat'
-import { smockMockAchievementsManagerFixture } from './fixtures/MockAchievementsManagerFixtures'
-import { smockSteppedTimeMultiplierV1Fixture } from './fixtures/MultiplierCalculatorFixtures'
-import { mockPPOStakingDeployFixture } from './fixtures/PPOStakingFixtures'
+import {
+  smockMockAchievementsManagerFixture,
+  smockSteppedTimeMultiplierV1Fixture,
+  mockPPOStakingDeployFixture,
+} from './fixtures/PPOStakingFixtures'
 import { calcTimeToStakeAt, calcWeightedTimestamp, MAX_UINT128, ONE, ONE_WEEK } from '../utils'
 import { UserStakingData } from '../types/ppoStaking'
 import {

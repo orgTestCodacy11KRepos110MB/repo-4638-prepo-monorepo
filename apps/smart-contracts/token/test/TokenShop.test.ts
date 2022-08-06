@@ -1,15 +1,17 @@
 /* eslint-disable no-await-in-loop */
-import { expect } from 'chai'
+import chai, { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { FakeContract, MockContract, smock } from '@defi-wonderland/smock'
 import { Contract } from 'ethers'
 import { parseEther } from 'ethers/lib/utils'
 import { ZERO_ADDRESS, JUNK_ADDRESS } from 'prepo-constants'
-import { tokenShopFixture } from './fixtures/TokenShopFixtures'
+import { tokenShopFixture, fakePurchaseHookFixture } from './fixtures/TokenShopFixtures'
 import { mockERC20Fixture } from './fixtures/MockERC20Fixtures'
 import { ZERO } from '../utils'
 import { TokenShop, MockERC20 } from '../types/generated'
+
+chai.use(smock.matchers)
 
 describe('TokenShop', () => {
   let deployer: SignerWithAddress
@@ -252,16 +254,16 @@ describe('TokenShop', () => {
   })
 
   describe('# purchase', () => {
-    let mockPurchaseHook: FakeContract<Contract>
+    let fakePurchaseHook: FakeContract<Contract>
 
     beforeEach(async () => {
       await setupTokenShop()
       await setupMockContracts()
-      mockPurchaseHook = await smock.fake('PurchaseHook')
+      fakePurchaseHook = await fakePurchaseHookFixture()
       tokenContracts = [mockERC1155.address, mockERC721.address]
       await mockERC1155.mint(tokenShop.address, erc1155Id1, erc1155Id1Amount)
       await mockERC721.mint(tokenShop.address, erc721Id1)
-      await tokenShop.connect(owner).setPurchaseHook(mockPurchaseHook.address)
+      await tokenShop.connect(owner).setPurchaseHook(fakePurchaseHook.address)
       await tokenShop.connect(owner).setContractToIdToPrice(tokenContracts, tokenIds, itemPrices)
       await paymentToken.connect(owner).transfer(user1.address, parseEther('10'))
     })
@@ -335,14 +337,14 @@ describe('TokenShop', () => {
     })
 
     it('reverts if ERC1155 hook reverts', async () => {
-      mockPurchaseHook.hookERC1155.reverts()
+      fakePurchaseHook.hookERC1155.reverts()
 
       await expect(tokenShop.connect(user1).purchase(tokenContracts, tokenIds, amounts)).to.be
         .reverted
     })
 
     it('reverts if ERC721 hook reverts', async () => {
-      mockPurchaseHook.hookERC721.reverts()
+      fakePurchaseHook.hookERC721.reverts()
 
       await expect(tokenShop.connect(user1).purchase(tokenContracts, tokenIds, amounts)).to.be
         .reverted
@@ -357,8 +359,8 @@ describe('TokenShop', () => {
         .connect(user1)
         .purchase([mockERC1155.address], [erc1155Id1], [erc1155Id1Amount])
 
-      expect(mockPurchaseHook.hookERC1155).to.have.been.called
-      expect(mockPurchaseHook.hookERC721).to.not.have.been.called
+      expect(fakePurchaseHook.hookERC1155).to.have.been.called
+      expect(fakePurchaseHook.hookERC721).to.not.have.been.called
     })
 
     it("doesn't call ERC1155 hook if only purchasing ERC721 item", async () => {
@@ -366,8 +368,8 @@ describe('TokenShop', () => {
 
       await tokenShop.connect(user1).purchase([mockERC721.address], [erc721Id1], [erc721Id1Amount])
 
-      expect(mockPurchaseHook.hookERC721).to.have.been.called
-      expect(mockPurchaseHook.hookERC1155).to.not.have.been.called
+      expect(fakePurchaseHook.hookERC721).to.have.been.called
+      expect(fakePurchaseHook.hookERC1155).to.not.have.been.called
     })
 
     it('transfers to user if single ERC1155 item', async () => {

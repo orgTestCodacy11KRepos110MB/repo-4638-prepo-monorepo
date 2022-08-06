@@ -2,7 +2,7 @@ import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { ZERO_ADDRESS } from 'prepo-constants'
-import { withdrawalRightsFixture } from './fixtures/WithdrawalRightsFixtures'
+import { withdrawalRightsFixture } from './fixtures/PPOStakingFixtures'
 import { revertReason } from '../utils'
 import { WithdrawalRights } from '../types/generated'
 

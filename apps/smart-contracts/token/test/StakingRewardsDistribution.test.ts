@@ -6,7 +6,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-wit
 import { MerkleTree } from 'merkletreejs'
 import { parseEther } from 'ethers/lib/utils'
 import { ZERO_ADDRESS, JUNK_ADDRESS } from 'prepo-constants'
-import { stakingRewardsDistributionFixture } from './fixtures/StakingRewardsDistributionFixtures'
+import { stakingRewardsDistributionFixture } from './fixtures/PPOStakingFixtures'
 import {
   ZERO_HASH,
   ONE,

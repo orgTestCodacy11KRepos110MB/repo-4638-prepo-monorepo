@@ -6,9 +6,11 @@ import { parseEther } from 'ethers/lib/utils'
 import { MockContract, smock } from '@defi-wonderland/smock'
 import { ZERO_ADDRESS, JUNK_ADDRESS } from 'prepo-constants'
 import { utils } from 'prepo-hardhat'
-import { mockPPOGamifiedTokenDeployFixture } from './fixtures/PPOGamifiedTokenFixture'
-import { smockSteppedTimeMultiplierV1Fixture } from './fixtures/MultiplierCalculatorFixtures'
-import { smockMockAchievementsManagerFixture } from './fixtures/MockAchievementsManagerFixtures'
+import {
+  mockPPOGamifiedTokenDeployFixture,
+  smockSteppedTimeMultiplierV1Fixture,
+  smockMockAchievementsManagerFixture,
+} from './fixtures/PPOStakingFixtures'
 import { MAX_INT64, MAX_UINT64, MIN_INT64, revertReason } from '../utils'
 import {
   MockERC20,

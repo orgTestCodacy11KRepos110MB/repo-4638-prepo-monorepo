@@ -2,7 +2,7 @@
 pragma solidity =0.8.7;
 
 import "./IPurchaseHook.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 //TODO natspec
 interface IMiniSales {
@@ -27,9 +27,9 @@ interface IMiniSales {
 
   function setPurchaseHook(IPurchaseHook newPurchaseHook) external;
 
-  function getSaleToken() external view returns (IERC20);
+  function getSaleToken() external view returns (IERC20Metadata);
 
-  function getPaymentToken() external view returns (IERC20);
+  function getPaymentToken() external view returns (IERC20Metadata);
 
   function getPrice() external view returns (uint256);
 

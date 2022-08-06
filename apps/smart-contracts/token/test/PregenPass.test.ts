@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
-import { mockPregenPassFixture } from './fixtures/PregenPassFixtures'
+import { mockPregenPassFixture } from './fixtures/PregenesisFixtures'
 import { revertReason } from '../utils'
 import { MockPregenPass } from '../types/generated'
 

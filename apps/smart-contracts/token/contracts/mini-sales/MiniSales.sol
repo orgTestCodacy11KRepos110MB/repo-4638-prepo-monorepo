@@ -6,42 +6,54 @@ import "prepo-shared-contracts/contracts/SafeOwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 contract MiniSales is IMiniSales, SafeOwnableUpgradeable, ReentrancyGuardUpgradeable {
-  IERC20 private immutable _saleToken;
-  IERC20 private immutable _paymentToken;
+  IERC20Metadata private immutable _saleToken;
+  IERC20Metadata private immutable _paymentToken;
+  uint256 private _saleTokenDecimals;
   uint256 private _price;
   IPurchaseHook private _purchaseHook;
 
   constructor(address _newSaleToken, address _newPaymentToken) {
-    _saleToken = IERC20(_newSaleToken);
-    _paymentToken = IERC20(_newPaymentToken);
+    _saleToken = IERC20Metadata(_newSaleToken);
+    _paymentToken = IERC20Metadata(_newPaymentToken);
   }
 
   function initialize(address _nominatedOwner) public initializer {
     __Ownable_init();
     transferOwnership(_nominatedOwner);
+    // TODO add to natspec that this assumes decimals will not change
+    _saleTokenDecimals = 10**_saleToken.decimals();
   }
 
   function purchase(
     address _recipient,
-    uint256 _amount,
-    uint256 _price
-  ) external override {}
+    uint256 _saleTokenAmount,
+    uint256 _purchasePrice
+  ) external override nonReentrant {
+    require(_purchasePrice == _price, "Price mismatch");
+    if (address(_purchaseHook) != address(0)) {
+      _purchaseHook.hook(_msgSender(), _recipient, _saleTokenAmount, _purchasePrice);
+    }
+    uint256 _paymentTokenAmount = (_saleTokenAmount * _price) / _saleTokenDecimals;
+    _paymentToken.transferFrom(_msgSender(), address(this), _paymentTokenAmount);
+    _saleToken.transfer(_recipient, _saleTokenAmount);
+    emit Purchase(_msgSender(), _recipient, _saleTokenAmount, _price);
+  }
 
   function setPrice(uint256 _newPrice) external override onlyOwner {
-    //TODO add event
     _price = _newPrice;
+    emit PriceChange(_newPrice);
   }
 
   function setPurchaseHook(IPurchaseHook _newPurchaseHook) external override onlyOwner {
-    //TODO add event
     _purchaseHook = _newPurchaseHook;
+    emit PurchaseHookChange(_newPurchaseHook);
   }
 
-  function getSaleToken() external view override returns (IERC20) {
+  function getSaleToken() external view override returns (IERC20Metadata) {
     return _saleToken;
   }
 
-  function getPaymentToken() external view override returns (IERC20) {
+  function getPaymentToken() external view override returns (IERC20Metadata) {
     return _paymentToken;
   }
 

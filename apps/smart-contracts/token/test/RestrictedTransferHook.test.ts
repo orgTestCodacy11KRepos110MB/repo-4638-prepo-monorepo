@@ -4,8 +4,7 @@ import { Contract } from 'ethers'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { MockContract } from '@defi-wonderland/smock'
 import { ZERO_ADDRESS, JUNK_ADDRESS } from 'prepo-constants'
-import { restrictedTransferHookFixture } from './fixtures/TransferHookFixtures'
-import { smockAccountListFixture } from './fixtures/AccountListFixtures'
+import { restrictedTransferHookFixture, smockAccountListFixture } from './fixtures/PPOFixtures'
 import { RestrictedTransferHook } from '../types/generated'
 
 describe('RestrictedTransferHook', () => {
