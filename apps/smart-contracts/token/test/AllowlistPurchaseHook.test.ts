@@ -1,0 +1,145 @@
+import chai, { expect } from 'chai'
+import { ethers } from 'hardhat'
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
+import { ZERO_ADDRESS, JUNK_ADDRESS } from 'prepo-constants'
+import { FakeContract, smock } from '@defi-wonderland/smock'
+import { Contract } from 'ethers'
+import { allowlistPurchaseHookFixture, fakeAccountListFixture } from './fixtures/MiniSalesFixtures'
+import { AllowlistPurchaseHook } from '../types/generated'
+
+chai.use(smock.matchers)
+
+describe('AllowlistPurchaseHook', () => {
+  let deployer: SignerWithAddress
+  let owner: SignerWithAddress
+  let user1: SignerWithAddress
+  let user2: SignerWithAddress
+  let allowedContract: SignerWithAddress
+  let allowlistPurchaseHook: AllowlistPurchaseHook
+  let allowedAccounts: FakeContract<Contract>
+
+  const deployHook = async (): Promise<void> => {
+    ;[deployer, owner, user1, user2, allowedContract] = await ethers.getSigners()
+    allowlistPurchaseHook = await allowlistPurchaseHookFixture(owner.address)
+  }
+
+  const setupHook = async (): Promise<void> => {
+    await deployHook()
+    await allowlistPurchaseHook.connect(owner).acceptOwnership()
+  }
+
+  const setupHookAndList = async (): Promise<void> => {
+    await setupHook()
+    allowedAccounts = await fakeAccountListFixture()
+    await allowlistPurchaseHook.connect(owner).setAllowlist(allowedAccounts.address)
+  }
+
+  describe('initial state', () => {
+    beforeEach(async () => {
+      await deployHook()
+    })
+
+    it('sets nominee from initialize', async () => {
+      expect(await allowlistPurchaseHook.getNominee()).to.not.eq(deployer.address)
+      expect(await allowlistPurchaseHook.getNominee()).to.eq(owner.address)
+    })
+
+    it('sets owner to deployer', async () => {
+      expect(await allowlistPurchaseHook.owner()).to.eq(deployer.address)
+    })
+
+    it('sets allowlist to zero address', async () => {
+      expect(await allowlistPurchaseHook.getAllowlist()).to.eq(ZERO_ADDRESS)
+    })
+  })
+
+  describe('# hook', () => {
+    let purchaser: SignerWithAddress
+    let recipient: SignerWithAddress
+
+    beforeEach(async () => {
+      await setupHookAndList()
+      purchaser = user1
+      recipient = user2
+    })
+
+    it('reverts if recipient not allowed', async () => {
+      allowedAccounts.isIncluded.whenCalledWith(recipient.address).returns(false)
+
+      await expect(
+        allowlistPurchaseHook
+          .connect(allowedContract)
+          .hook(purchaser.address, recipient.address, 1, 1)
+      ).to.be.revertedWith('Recipient not allowed')
+    })
+
+    it('succeeds if recipient allowed', async () => {
+      allowedAccounts.isIncluded.whenCalledWith(recipient.address).returns(true)
+
+      await expect(
+        allowlistPurchaseHook
+          .connect(allowedContract)
+          .hook(purchaser.address, recipient.address, 1, 1)
+      ).to.not.reverted
+    })
+
+    it('calls isIncluded with correct parameters', async () => {
+      allowedAccounts.isIncluded.whenCalledWith(recipient.address).returns(true)
+      await allowlistPurchaseHook
+        .connect(allowedContract)
+        .hook(purchaser.address, recipient.address, 1, 1)
+
+      expect(allowedAccounts.isIncluded).to.have.been.calledWith(recipient.address)
+    })
+  })
+
+  describe('# setAllowlist', () => {
+    beforeEach(async () => {
+      await setupHook()
+    })
+
+    it('reverts if not owner', async () => {
+      expect(await allowlistPurchaseHook.owner()).to.not.eq(user1.address)
+
+      await expect(allowlistPurchaseHook.connect(user1).setAllowlist(JUNK_ADDRESS)).revertedWith(
+        'Ownable: caller is not the owner'
+      )
+    })
+
+    it('sets to non-zero address', async () => {
+      expect(await allowlistPurchaseHook.getAllowlist()).to.not.eq(JUNK_ADDRESS)
+
+      await allowlistPurchaseHook.connect(owner).setAllowlist(JUNK_ADDRESS)
+
+      expect(await allowlistPurchaseHook.getAllowlist()).to.eq(JUNK_ADDRESS)
+      expect(await allowlistPurchaseHook.getAllowlist()).to.not.eq(ZERO_ADDRESS)
+    })
+
+    it('sets to zero address', async () => {
+      await allowlistPurchaseHook.connect(owner).setAllowlist(JUNK_ADDRESS)
+      expect(await allowlistPurchaseHook.getAllowlist()).to.not.eq(ZERO_ADDRESS)
+
+      await allowlistPurchaseHook.connect(owner).setAllowlist(ZERO_ADDRESS)
+
+      expect(await allowlistPurchaseHook.getAllowlist()).to.eq(ZERO_ADDRESS)
+    })
+
+    it('is idempotent', async () => {
+      expect(await allowlistPurchaseHook.getAllowlist()).to.not.eq(JUNK_ADDRESS)
+
+      await allowlistPurchaseHook.connect(owner).setAllowlist(JUNK_ADDRESS)
+
+      expect(await allowlistPurchaseHook.getAllowlist()).to.eq(JUNK_ADDRESS)
+
+      await allowlistPurchaseHook.connect(owner).setAllowlist(JUNK_ADDRESS)
+
+      expect(await allowlistPurchaseHook.getAllowlist()).to.eq(JUNK_ADDRESS)
+    })
+
+    it('emits AllowlistChange', async () => {
+      const tx = await allowlistPurchaseHook.connect(owner).setAllowlist(JUNK_ADDRESS)
+
+      await expect(tx).to.emit(allowlistPurchaseHook, 'AllowlistChange').withArgs(JUNK_ADDRESS)
+    })
+  })
+})

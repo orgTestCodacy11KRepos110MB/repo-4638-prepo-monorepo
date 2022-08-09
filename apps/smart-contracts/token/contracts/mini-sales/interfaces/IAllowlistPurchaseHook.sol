@@ -6,6 +6,8 @@ import "../../ppo/interfaces/IAccountList.sol";
 
 //TODO natspec
 interface IAllowlistPurchaseHook is IPurchaseHook {
+  event AllowlistChange(IAccountList newAllowList);
+
   function setAllowlist(IAccountList newAllowlist) external;
 
   function getAllowlist() external view returns (IAccountList);
