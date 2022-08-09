@@ -8,7 +8,7 @@ abstract contract SafeOwnableUpgradeable is ISafeOwnable, OwnableUpgradeable {
   address private _nominee;
 
   modifier onlyNominee() {
-    require(_msgSender() == _nominee, "SafeOwnable: sender must be nominee");
+    require(_msgSender() == _nominee, "msg.sender != nominee");
     _;
   }
 

@@ -3,7 +3,7 @@ pragma solidity =0.8.7;
 
 import "../SafeOwnableUpgradeable.sol";
 
-contract DeployableSafeOwnableUpgradeable is SafeOwnableUpgradeable {
+contract SafeOwnableUpgradeableTest is SafeOwnableUpgradeable {
   function initialize() public initializer {
     __Ownable_init();
   }

@@ -2,8 +2,8 @@ import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { ZERO_ADDRESS } from 'prepo-constants'
-import { deployableSafeOwnableUpgradeableFixture } from './fixtures/DeployableSafeOwnableUpgradeableFixture'
-import { DeployableSafeOwnableUpgradeable } from '../types/generated'
+import { safeOwnableUpgradeableTestFixture } from './fixtures/SafeOwnableFixtures'
+import { SafeOwnableUpgradeableTest } from '../types/generated'
 
 describe('SafeOwnableUpgradeable', () => {
   let deployer: SignerWithAddress
@@ -11,12 +11,12 @@ describe('SafeOwnableUpgradeable', () => {
   let user1: SignerWithAddress
   let user2: SignerWithAddress
   let nominee: SignerWithAddress
-  let safeOwnable: DeployableSafeOwnableUpgradeable
+  let safeOwnable: SafeOwnableUpgradeableTest
 
   const setupSafeOwnableUpgradeable = async (): Promise<void> => {
     ;[deployer, user1, user2] = await ethers.getSigners()
     owner = deployer
-    safeOwnable = await deployableSafeOwnableUpgradeableFixture()
+    safeOwnable = await safeOwnableUpgradeableTestFixture()
   }
 
   describe('initial state', () => {
@@ -106,18 +106,14 @@ describe('SafeOwnableUpgradeable', () => {
       expect(await safeOwnable.getNominee()).to.not.eq(user2.address)
       expect(await safeOwnable.owner()).to.not.eq(user2.address)
 
-      expect(safeOwnable.connect(user2).acceptOwnership()).revertedWith(
-        'SafeOwnable: sender must be nominee'
-      )
+      expect(safeOwnable.connect(user2).acceptOwnership()).revertedWith('msg.sender != nominee')
     })
 
     it('reverts if owner but not nominee', async () => {
       expect(await safeOwnable.owner()).to.eq(owner.address)
       expect(await safeOwnable.getNominee()).to.not.eq(owner.address)
 
-      expect(safeOwnable.connect(owner).acceptOwnership()).revertedWith(
-        'SafeOwnable: sender must be nominee'
-      )
+      expect(safeOwnable.connect(owner).acceptOwnership()).revertedWith('msg.sender != nominee')
     })
 
     it('sets owner to nominee', async () => {

@@ -3,7 +3,7 @@ import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { ZERO_ADDRESS } from 'prepo-constants'
-import { safeOwnableFixture } from './fixtures/SafeOwnableFixture'
+import { safeOwnableFixture } from './fixtures/SafeOwnableFixtures'
 import { SafeOwnable } from '../types/generated'
 
 chai.use(solidity)
@@ -109,18 +109,14 @@ describe('SafeOwnable', () => {
       expect(await safeOwnable.getNominee()).to.not.eq(user2.address)
       expect(await safeOwnable.owner()).to.not.eq(user2.address)
 
-      expect(safeOwnable.connect(user2).acceptOwnership()).revertedWith(
-        'SafeOwnable: sender must be nominee'
-      )
+      expect(safeOwnable.connect(user2).acceptOwnership()).revertedWith('msg.sender != nominee')
     })
 
     it('reverts if owner but not nominee', async () => {
       expect(await safeOwnable.owner()).to.eq(owner.address)
       expect(await safeOwnable.getNominee()).to.not.eq(owner.address)
 
-      expect(safeOwnable.connect(owner).acceptOwnership()).revertedWith(
-        'SafeOwnable: sender must be nominee'
-      )
+      expect(safeOwnable.connect(owner).acceptOwnership()).revertedWith('msg.sender != nominee')
     })
 
     it('sets owner to nominee', async () => {

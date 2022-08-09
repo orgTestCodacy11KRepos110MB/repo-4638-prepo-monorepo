@@ -3,6 +3,6 @@ pragma solidity =0.8.7;
 
 import "../Pausable.sol";
 
-contract PausableWrapper is Pausable {
+contract PausableTest is Pausable {
   function testWhenNotPaused() external whenNotPaused {}
 }
