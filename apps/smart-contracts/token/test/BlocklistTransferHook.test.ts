@@ -46,56 +46,8 @@ describe('BlocklistTransferHook', () => {
       expect(await blocklistTransferHook.owner()).to.eq(deployer.address)
     })
 
-    it('sets token to zero address', async () => {
-      expect(await blocklistTransferHook.getToken()).to.eq(ZERO_ADDRESS)
-    })
-
     it('sets blocklist to zero address', async () => {
       expect(await blocklistTransferHook.getBlocklist()).to.eq(ZERO_ADDRESS)
-    })
-  })
-
-  describe('# setToken', () => {
-    beforeEach(async () => {
-      await setupHook()
-    })
-
-    it('reverts if not owner', async () => {
-      expect(await blocklistTransferHook.owner()).to.not.eq(user1.address)
-
-      await expect(blocklistTransferHook.connect(user1).setToken(JUNK_ADDRESS)).revertedWith(
-        'Ownable: caller is not the owner'
-      )
-    })
-
-    it('sets to non-zero address', async () => {
-      expect(await blocklistTransferHook.getToken()).to.not.eq(JUNK_ADDRESS)
-
-      await blocklistTransferHook.connect(owner).setToken(JUNK_ADDRESS)
-
-      expect(await blocklistTransferHook.getToken()).to.eq(JUNK_ADDRESS)
-      expect(await blocklistTransferHook.getToken()).to.not.eq(ZERO_ADDRESS)
-    })
-
-    it('sets to zero address', async () => {
-      await blocklistTransferHook.connect(owner).setToken(JUNK_ADDRESS)
-      expect(await blocklistTransferHook.getToken()).to.not.eq(ZERO_ADDRESS)
-
-      await blocklistTransferHook.connect(owner).setToken(ZERO_ADDRESS)
-
-      expect(await blocklistTransferHook.getToken()).to.eq(ZERO_ADDRESS)
-    })
-
-    it('is idempotent', async () => {
-      expect(await blocklistTransferHook.getToken()).to.not.eq(JUNK_ADDRESS)
-
-      await blocklistTransferHook.connect(owner).setToken(JUNK_ADDRESS)
-
-      expect(await blocklistTransferHook.getToken()).to.eq(JUNK_ADDRESS)
-
-      await blocklistTransferHook.connect(owner).setToken(JUNK_ADDRESS)
-
-      expect(await blocklistTransferHook.getToken()).to.eq(JUNK_ADDRESS)
     })
   })
 
@@ -141,6 +93,12 @@ describe('BlocklistTransferHook', () => {
 
       expect(await blocklistTransferHook.getBlocklist()).to.eq(JUNK_ADDRESS)
     })
+
+    it('emits BlocklistChange', async () => {
+      const tx = await blocklistTransferHook.connect(owner).setBlocklist(JUNK_ADDRESS)
+
+      await expect(tx).to.emit(blocklistTransferHook, 'BlocklistChange').withArgs(JUNK_ADDRESS)
+    })
   })
 
   describe('hook', () => {
@@ -149,17 +107,8 @@ describe('BlocklistTransferHook', () => {
 
     beforeEach(async () => {
       await setupHookAndList()
-      await blocklistTransferHook.connect(owner).setToken(ppoToken.address)
       sender = user1
       recipient = user2
-    })
-
-    it('reverts if caller is not token', async () => {
-      expect(await blocklistTransferHook.getToken()).to.not.eq(user1.address)
-
-      await expect(
-        blocklistTransferHook.connect(user1).hook(sender.address, recipient.address, 1)
-      ).to.be.revertedWith('msg.sender != token')
     })
 
     it('reverts if sender blocked', async () => {

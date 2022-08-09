@@ -54,10 +54,6 @@ describe('RestrictedTransferHook', () => {
       expect(await restrictedTransferHook.owner()).to.eq(deployer.address)
     })
 
-    it('sets token to zero address', async () => {
-      expect(await restrictedTransferHook.getToken()).to.eq(ZERO_ADDRESS)
-    })
-
     it('sets source allowlist to zero address', async () => {
       expect(await restrictedTransferHook.getSourceAllowlist()).to.eq(ZERO_ADDRESS)
     })
@@ -109,6 +105,14 @@ describe('RestrictedTransferHook', () => {
 
       expect(await restrictedTransferHook.getSourceAllowlist()).to.eq(JUNK_ADDRESS)
     })
+
+    it('emits SourceAllowlistChange', async () => {
+      const tx = await restrictedTransferHook.connect(owner).setSourceAllowlist(JUNK_ADDRESS)
+
+      await expect(tx)
+        .to.emit(restrictedTransferHook, 'SourceAllowlistChange')
+        .withArgs(JUNK_ADDRESS)
+    })
   })
 
   describe('# setDestinationAllowlist', () => {
@@ -153,6 +157,14 @@ describe('RestrictedTransferHook', () => {
 
       expect(await restrictedTransferHook.getDestinationAllowlist()).to.eq(JUNK_ADDRESS)
     })
+
+    it('emits DestinationAllowlistChange', async () => {
+      const tx = await restrictedTransferHook.connect(owner).setDestinationAllowlist(JUNK_ADDRESS)
+
+      await expect(tx)
+        .to.emit(restrictedTransferHook, 'DestinationAllowlistChange')
+        .withArgs(JUNK_ADDRESS)
+    })
   })
 
   describe('# hook', () => {
@@ -161,17 +173,8 @@ describe('RestrictedTransferHook', () => {
 
     beforeEach(async () => {
       await setupHookAndLists()
-      await restrictedTransferHook.connect(owner).setToken(ppoToken.address)
       sender = user1
       recipient = user2
-    })
-
-    it('reverts if caller is not token', async () => {
-      expect(await restrictedTransferHook.getToken()).to.not.eq(user1.address)
-
-      await expect(
-        restrictedTransferHook.connect(user1).hook(sender.address, recipient.address, 1)
-      ).to.be.revertedWith('msg.sender != token')
     })
 
     describe('if sender blocked', () => {

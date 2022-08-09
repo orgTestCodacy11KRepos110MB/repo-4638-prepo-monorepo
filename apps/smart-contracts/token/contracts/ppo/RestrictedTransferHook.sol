@@ -15,14 +15,15 @@ contract RestrictedTransferHook is IRestrictedTransferHook, BlocklistTransferHoo
     address _from,
     address _to,
     uint256 _amount
-  ) public virtual override(BlocklistTransferHook, ITransferHook) onlyToken {
+  ) public virtual override(BlocklistTransferHook, ITransferHook) {
     super.hook(_from, _to, _amount);
     if (_sourceAllowlist.isIncluded(_from)) return;
     require(_destinationAllowlist.isIncluded(_to), "Destination not allowed");
   }
 
-  function setSourceAllowlist(IAccountList _newAllowedSources) external override onlyOwner {
-    _sourceAllowlist = _newAllowedSources;
+  function setSourceAllowlist(IAccountList _newSourceAllowlist) external override onlyOwner {
+    _sourceAllowlist = _newSourceAllowlist;
+    emit SourceAllowlistChange(_newSourceAllowlist);
   }
 
   function setDestinationAllowlist(IAccountList _newDestinationAllowlist)
@@ -31,6 +32,7 @@ contract RestrictedTransferHook is IRestrictedTransferHook, BlocklistTransferHoo
     onlyOwner
   {
     _destinationAllowlist = _newDestinationAllowlist;
+    emit DestinationAllowlistChange(_newDestinationAllowlist);
   }
 
   function getSourceAllowlist() external view override returns (IAccountList) {

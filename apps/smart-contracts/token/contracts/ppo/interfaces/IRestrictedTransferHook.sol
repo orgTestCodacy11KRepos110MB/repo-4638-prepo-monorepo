@@ -16,6 +16,18 @@ import "./IAccountList.sol";
  * Blocklisted addresses cannot send or receive tokens, even if allowlisted.
  */
 interface IRestrictedTransferHook is IBlocklistTransferHook {
+  /** 
+   * @dev Emitted via `setSourceAllowlist()`.
+   * @param newSourceAllowlist Address of the `IAccountList` contract
+   */
+  event SourceAllowlistChange(IAccountList newSourceAllowlist);
+
+  /**
+   * @dev Emitted via `setDestinationAllowlist()`.
+   * @param newDestinationAllowlist Address of the `IAccountList` contract
+   */
+  event DestinationAllowlistChange(IAccountList newDestinationAllowlist);
+
   /**
    * @notice Sets the external `IAccountList` contract that specifies the
    * allowlisted source addresses.

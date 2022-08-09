@@ -10,6 +10,12 @@ import "./IAccountList.sol";
  */
 interface IBlocklistTransferHook is ITransferHook {
   /**
+   * @dev Emitted via `setBlocklist()`.
+   * @param newBlocklist Address of the `IAccountList` contract
+   */
+  event BlocklistChange(IAccountList newBlocklist);
+
+  /**
    * @notice Sets the `IAccountList` contract that specifies the addresses to
    * block.
    * @param newBlocklist Address of the `IAccountList` contract
