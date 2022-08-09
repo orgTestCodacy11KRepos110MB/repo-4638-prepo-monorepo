@@ -13,8 +13,13 @@ export class StakeStore {
   }
 
   get isCurrentStakingValueValid(): boolean {
-    const balance = this.root.ppoTokenStore.tokenBalance ?? 0
-    return Boolean(this.currentStakingValue) && this.currentStakingValue <= balance
+    const { tokenBalanceRaw } = this.root.ppoTokenStore
+    // TODO: parseEther(`${this.currentStakingValue}`) when SC
+    return (
+      tokenBalanceRaw !== undefined &&
+      this.currentStakingValue > 0 &&
+      tokenBalanceRaw.gte(this.currentStakingValue)
+    )
   }
 
   setCurrentStakingValue(value?: number | string): void {
@@ -25,19 +30,14 @@ export class StakeStore {
     this.showDelegate = show
   }
 
-  stake(): {
+  stake(): Promise<{
     success: boolean
     error?: string | undefined
-  } {
-    const balance = this.getBalance()
-    if (this.currentStakingValue > balance) {
-      return { success: false }
+  }> {
+    if (!this.isCurrentStakingValueValid) {
+      return Promise.resolve({ success: false })
     }
-    return { success: true }
-  }
-
-  private getBalance(): number {
-    return this.root.ppoTokenStore?.tokenBalance ?? 0
+    return this.root.ppoStakingStore.stake(this.currentStakingValue)
   }
 
   private subscribe(): void {

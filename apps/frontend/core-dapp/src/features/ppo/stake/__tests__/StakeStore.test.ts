@@ -1,4 +1,8 @@
+/**
+ * @jest-environment jsdom
+ */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { BigNumber } from 'ethers'
 import { configure } from 'mobx'
 
 // This is needed to be able to mock mobx properties on a class
@@ -11,8 +15,8 @@ let spyInstance: jest.SpyInstance
 
 beforeAll(() => {
   spyInstance = jest
-    .spyOn(rootStore.ppoTokenStore, 'tokenBalance', 'get')
-    .mockReturnValue(PPO_BALANCE)
+    .spyOn(rootStore.ppoTokenStore, 'tokenBalanceRaw', 'get')
+    .mockReturnValue(BigNumber.from(PPO_BALANCE))
 })
 
 afterAll(() => {

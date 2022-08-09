@@ -7,6 +7,7 @@ import StakeUnstakeNavigationButtons from './StakeUnstakeNavigationButtons'
 import StakeWarning, { MessageType } from './StakeWarning'
 import { LearnMore } from './StakeWarningMessages'
 import { useRootStore } from '../../../context/RootStoreProvider'
+import useFeatureFlag, { FeatureFlag } from '../../../hooks/useFeatureFlag'
 
 const ControlPanel = styled.div`
   border: 1px solid ${({ theme }): string => theme.color.neutral6};
@@ -46,21 +47,21 @@ const StakeUnstakeLayout: React.FC<{
   const theme = useTheme()
   const {
     delegateStore: { selectedDelegate: delegate },
-    stakeStore: { isCurrentStakingValueValid },
+    stakeStore: { isCurrentStakingValueValid, stake },
     unstakeStore: { isCurrentUnstakingValueValid },
+    ppoStakingStore: { staking },
     uiStore: { disableMocks },
   } = useRootStore()
-  const loading = delegate && !delegate.delegateAddress
+  const { enabled } = useFeatureFlag(FeatureFlag.enableStakingLocally)
+  const loading = staking || (delegate && !delegate.delegateAddress)
 
   const isStake = tab === 'stake'
   const content = pageMap[tab]
 
   const buttonDisabled =
-    disableMocks ||
-    loading ||
-    !(isStake ? isCurrentStakingValueValid : isCurrentUnstakingValueValid)
+    !enabled || loading || !(isStake ? isCurrentStakingValueValid : isCurrentUnstakingValueValid)
   const buttonText = isStake ? 'Stake PPO' : 'Unstake PPO'
-  const comingSoonText = disableMocks ? 'Coming Soon' : buttonText
+  const onClick = isStake ? stake : (): void => {} // withdraw function, will be added later
 
   return (
     <Box mx="auto">
@@ -122,8 +123,14 @@ const StakeUnstakeLayout: React.FC<{
               {children}
             </ControlPanel>
             <StakeWarning messages={messages} />
-            <Button type="primary" block disabled={buttonDisabled} loading={loading}>
-              {comingSoonText}
+            <Button
+              type="primary"
+              block
+              disabled={buttonDisabled}
+              loading={loading}
+              onClick={onClick}
+            >
+              {enabled ? buttonText : 'Coming Soon'}
             </Button>
           </Flex>
         </Flex>

@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export enum FeatureFlag {
   enableCoreDapp = 'enableCoreDapp',
+  enableStakingLocally = 'enableStakingLocally',
 }
 
 type UseFeatureFlag = {
@@ -10,10 +11,18 @@ type UseFeatureFlag = {
   error: boolean
 }
 
+const LOCALHOST = 'http://localhost'
+
 const fetchFunction = async (featureName: FeatureFlag, userAddress?: string): Promise<boolean> => {
   const body = {
     featureName,
     userAddress,
+  }
+  if (featureName === FeatureFlag.enableStakingLocally) {
+    if (!window) {
+      return false
+    }
+    return window.origin.startsWith(LOCALHOST)
   }
 
   const result = await fetch('/api/application', {
@@ -35,31 +44,6 @@ const useFeatureFlag = (
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<boolean>(false)
 
-  const fetchData = useCallback(async (): Promise<void> => {
-    try {
-      const body = {
-        featureName: featureFlagName,
-        userAddress,
-      }
-
-      const result = await fetch('/api/application', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      })
-
-      const isEnabled = await result.json()
-
-      setEnabled(isEnabled)
-    } catch (e) {
-      setError(true)
-    } finally {
-      setLoading(false)
-    }
-  }, [userAddress, featureFlagName])
-
   useEffect(() => {
     setError(false)
     setLoading(true)
@@ -78,7 +62,7 @@ const useFeatureFlag = (
     return (): void => {
       isActive = false
     }
-  }, [featureFlagName, fetchData, userAddress])
+  }, [featureFlagName, userAddress])
 
   return { enabled, loading, error }
 }
