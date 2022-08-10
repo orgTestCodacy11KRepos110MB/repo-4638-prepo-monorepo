@@ -2,20 +2,39 @@ import { observer } from 'mobx-react'
 import { Button, Flex } from 'prepo-ui'
 import { customStyles } from './StakeUnstakeNavigationButtons'
 import { useRootStore } from '../../../context/RootStoreProvider'
+import useFeatureFlag, { FeatureFlag } from '../../../hooks/useFeatureFlag'
 
 const UnstakeButtons: React.FC = () => {
   const {
-    unstakeStore: { isCurrentUnstakingValueValid, confirm, startCooldown },
+    unstakeStore: { isCurrentUnstakingValueValid, confirm, startCooldown, withdraw },
     ppoStakingStore: {
       startingCooldown,
       endingCooldown,
       isCooldownActive,
+      withdrawing,
       fee,
       endCooldown,
       isWithdrawWindowActive,
     },
   } = useRootStore()
-  const loading = startingCooldown || endingCooldown
+  const { enabled } = useFeatureFlag(FeatureFlag.enableStakingLocally)
+
+  if (!enabled) {
+    return (
+      <Button type="primary" block disabled>
+        Coming Soon
+      </Button>
+    )
+  }
+  const loading = startingCooldown || endingCooldown || withdrawing
+  const confirmUnstaking = (): Promise<{
+    success: boolean
+    error?: string | undefined
+  }> => withdraw(false)
+  const unstakeImmediately = (): Promise<{
+    success: boolean
+    error?: string | undefined
+  }> => withdraw(true)
 
   if (isCooldownActive) {
     return (
@@ -24,6 +43,7 @@ const UnstakeButtons: React.FC = () => {
           type="primary"
           disabled={loading}
           block
+          onClick={unstakeImmediately}
           customColors={{
             background: 'error',
             border: 'error',
@@ -52,7 +72,13 @@ const UnstakeButtons: React.FC = () => {
         <Button type="primary" block onClick={endCooldown} disabled={loading} loading={loading}>
           Cancel Unstaking
         </Button>
-        <Button type="default" customColors={customStyles} block disabled={loading}>
+        <Button
+          type="default"
+          block
+          customColors={customStyles}
+          onClick={confirmUnstaking}
+          disabled={loading}
+        >
           Confirm Unstaking
         </Button>
       </Flex>
@@ -60,7 +86,7 @@ const UnstakeButtons: React.FC = () => {
   }
 
   const text = confirm ? 'Unstake PPO' : 'Begin Cooldown'
-  const onClick = confirm ? (): void => {} : startCooldown
+  const onClick = confirm ? unstakeImmediately : startCooldown
   return (
     <Button
       type={confirm ? 'primary' : 'default'}

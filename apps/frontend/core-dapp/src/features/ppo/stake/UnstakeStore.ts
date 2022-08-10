@@ -1,4 +1,5 @@
 import { CheckboxChangeEvent } from 'antd/lib/checkbox'
+import { BigNumber } from 'ethers'
 import { makeAutoObservable } from 'mobx'
 import { TRANSACTION_SETTING } from '../../../lib/constants'
 import { RootStore } from '../../../stores/RootStore'
@@ -37,10 +38,30 @@ export class UnstakeStore {
     success: boolean
     error?: string | undefined
   }> {
-    const { balanceData } = this.root.ppoStakingStore
-    if (balanceData === undefined || balanceData.raw.lt(this.currentUnstakingValue)) {
+    if (!this.valid) {
       return Promise.resolve({ success: false })
     }
     return this.root.ppoStakingStore.startCooldown(this.currentUnstakingValue)
+  }
+
+  get valid(): boolean {
+    const { balanceData } = this.root.ppoStakingStore
+    return (
+      balanceData !== undefined &&
+      this.currentUnstakingValue > 0 &&
+      BigNumber.from(balanceData.raw).gte(this.currentUnstakingValue)
+    )
+  }
+
+  withdraw = (
+    immediate: boolean
+  ): Promise<{
+    success: boolean
+    error?: string | undefined
+  }> => {
+    if (!this.valid) {
+      return Promise.resolve({ success: false })
+    }
+    return this.root.ppoStakingStore.withdraw(this.currentUnstakingValue, immediate)
   }
 }

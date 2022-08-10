@@ -60,15 +60,20 @@ const StakePage: React.FC = () => {
   const {
     ppoTokenStore: { tokenBalance },
     unstakeStore: { confirm, setConfirm, currentUnstakingValue, setCurrentUnstakingValue },
-    ppoStakingStore: { balanceData },
+    ppoStakingStore: { balanceData, isWithdrawWindowActive },
     stakeStore,
     web3Store: { connected },
   } = useRootStore()
   const { currentStakingValue, setCurrentStakingValue } = stakeStore
   const { isDesktop } = useResponsive()
   const size = isDesktop ? '24' : '16'
+
   // TODO: parseEther(balanceData.raw) when SC
-  const stakedPPO = balanceData ? BigNumber.from(balanceData.raw).toNumber() : undefined
+  const cooldownUnits = balanceData?.cooldownUnits
+    ? BigNumber.from(balanceData.cooldownUnits).toNumber()
+    : undefined
+  const stakedPPO = balanceData?.raw ? BigNumber.from(balanceData.raw).toNumber() : undefined
+  const unitsToUse = isWithdrawWindowActive ? cooldownUnits : stakedPPO
 
   const pageMap = {
     stake: {
@@ -104,12 +109,11 @@ const StakePage: React.FC = () => {
           <TokenInput
             alignInput="right"
             disableClickBalance
-            balance={stakedPPO}
+            balance={unitsToUse}
             connected={connected}
             iconName="ppo-logo"
-            max={stakedPPO}
-            label="Amount to Unstake"
-            balanceLabel="Staked"
+            max={unitsToUse}
+            label="Amount"
             onChange={setCurrentUnstakingValue}
             symbol="PPO"
             value={currentUnstakingValue}
