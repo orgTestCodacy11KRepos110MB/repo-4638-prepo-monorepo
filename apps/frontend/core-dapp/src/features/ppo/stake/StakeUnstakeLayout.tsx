@@ -6,6 +6,7 @@ import StakeTitle from './StakeTitle'
 import StakeUnstakeNavigationButtons from './StakeUnstakeNavigationButtons'
 import StakeWarning, { MessageType } from './StakeWarning'
 import { LearnMore } from './StakeWarningMessages'
+import UnstakeButtons from './UnstakeButtons'
 import { useRootStore } from '../../../context/RootStoreProvider'
 import useFeatureFlag, { FeatureFlag } from '../../../hooks/useFeatureFlag'
 
@@ -48,7 +49,6 @@ const StakeUnstakeLayout: React.FC<{
   const {
     delegateStore: { selectedDelegate: delegate },
     stakeStore: { isCurrentStakingValueValid, stake },
-    unstakeStore: { isCurrentUnstakingValueValid },
     ppoStakingStore: { staking },
     uiStore: { disableMocks },
   } = useRootStore()
@@ -57,11 +57,6 @@ const StakeUnstakeLayout: React.FC<{
 
   const isStake = tab === 'stake'
   const content = pageMap[tab]
-
-  const buttonDisabled =
-    !enabled || loading || !(isStake ? isCurrentStakingValueValid : isCurrentUnstakingValueValid)
-  const buttonText = isStake ? 'Stake PPO' : 'Unstake PPO'
-  const onClick = isStake ? stake : (): void => {} // withdraw function, will be added later
 
   return (
     <Box mx="auto">
@@ -123,15 +118,19 @@ const StakeUnstakeLayout: React.FC<{
               {children}
             </ControlPanel>
             <StakeWarning messages={messages} />
-            <Button
-              type="primary"
-              block
-              disabled={buttonDisabled}
-              loading={loading}
-              onClick={onClick}
-            >
-              {enabled ? buttonText : 'Coming Soon'}
-            </Button>
+            {isStake ? (
+              <Button
+                type="primary"
+                block
+                disabled={loading || !isCurrentStakingValueValid || !enabled}
+                loading={loading}
+                onClick={stake}
+              >
+                {enabled ? 'Stake PPO' : 'Coming Soon'}
+              </Button>
+            ) : (
+              <UnstakeButtons />
+            )}
           </Flex>
         </Flex>
       </Flex>

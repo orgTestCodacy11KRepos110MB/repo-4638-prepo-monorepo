@@ -12,7 +12,13 @@ export class UnstakeStore {
   fee = FEE_MOCK
 
   get isCurrentUnstakingValueValid(): boolean {
-    return Boolean(this.currentUnstakingValue) // TODO: add staked value check
+    const stakedPPO = this.root.ppoStakingStore.balanceData?.raw
+
+    if (!stakedPPO) return false
+    return (
+      // TODO: parseEther with real SC
+      stakedPPO.gte(this.currentUnstakingValue) && this.currentUnstakingValue !== 0
+    )
   }
 
   constructor(private root: RootStore) {
@@ -24,6 +30,17 @@ export class UnstakeStore {
   }
 
   setCurrentUnstakingValue(value: number | string): void {
-    this.currentUnstakingValue = validateNumber(+value) // TODO: compare with staked value from SC
+    this.currentUnstakingValue = validateNumber(+value)
+  }
+
+  startCooldown(): Promise<{
+    success: boolean
+    error?: string | undefined
+  }> {
+    const { balanceData } = this.root.ppoStakingStore
+    if (balanceData === undefined || balanceData.raw.lt(this.currentUnstakingValue)) {
+      return Promise.resolve({ success: false })
+    }
+    return this.root.ppoStakingStore.startCooldown(this.currentUnstakingValue)
   }
 }
