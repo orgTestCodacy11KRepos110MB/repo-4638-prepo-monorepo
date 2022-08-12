@@ -5,7 +5,15 @@ import { useState } from 'react'
 import { BigNumber } from 'ethers'
 import StakeUnstakeLayout from './StakeUnstakeLayout'
 import StakeDelegate from './StakeDelegate'
-import { CooldownPeriod } from './StakeWarningMessages'
+import {
+  CooldownEnds,
+  CooldownPeriod,
+  UnstakeRequest,
+  UnstakingFee,
+  UnstakingPeriod,
+  UnstakingPartially,
+  FeeForAllUnstaking,
+} from './StakeWarningMessages'
 import { MessageType } from './StakeWarning'
 import TimeMultiplierChart from '../timeMultiplier/TimeMultiplierChart'
 import Input, { LabelWrapper } from '../../../components/Input'
@@ -60,7 +68,13 @@ const StakePage: React.FC = () => {
   const {
     ppoTokenStore: { tokenBalance },
     unstakeStore: { confirm, setConfirm, currentUnstakingValue, setCurrentUnstakingValue },
-    ppoStakingStore: { balanceData, isWithdrawWindowActive },
+    ppoStakingStore: {
+      balanceData,
+      isWithdrawWindowActive,
+      fee,
+      isCooldownActive,
+      withdrawWindowStarted,
+    },
     stakeStore,
     web3Store: { connected },
   } = useRootStore()
@@ -74,6 +88,43 @@ const StakePage: React.FC = () => {
     : undefined
   const stakedPPO = balanceData?.raw ? BigNumber.from(balanceData.raw).toNumber() : undefined
   const unitsToUse = isWithdrawWindowActive ? cooldownUnits : stakedPPO
+
+  const unstakedMessages: MessageType[] = []
+  if (isCooldownActive) {
+    unstakedMessages.push({
+      type: 'warning',
+      key: 'UnstakeRequest',
+      message: <UnstakeRequest fee={fee} unstakePpo={currentUnstakingValue} />,
+    })
+
+    unstakedMessages.push({
+      type: 'warning',
+      key: 'CooldownEnds',
+      message: <CooldownEnds ends={withdrawWindowStarted} />,
+    })
+  } else if (isWithdrawWindowActive) {
+    unstakedMessages.push({ type: 'warning', key: 'UnstakingPeriod', message: <UnstakingPeriod /> })
+    unstakedMessages.push({
+      type: 'warning',
+      key: 'UnstakingPartially',
+      message: <UnstakingPartially unstakePpo={(currentUnstakingValue * fee) / 100} />,
+    })
+    unstakedMessages.push({ type: 'warning', key: 'UnstakingPeriod', message: <UnstakingPeriod /> })
+    unstakedMessages.push({
+      type: 'warning',
+      key: 'FeeForAllUnstaking',
+      message: <FeeForAllUnstaking />,
+    })
+  } else {
+    unstakedMessages.push({ type: 'warning', key: 'CooldownPeriod', message: <CooldownPeriod /> })
+    if (connected) {
+      unstakedMessages.push({
+        type: 'warning',
+        key: 'UnstakingFee',
+        message: <UnstakingFee fee={fee} />,
+      })
+    }
+  }
 
   const pageMap = {
     stake: {
@@ -100,10 +151,7 @@ const StakePage: React.FC = () => {
     },
     unstake: {
       chart: <UnstakingFeeChart />,
-      messages: [
-        { type: 'warning', key: 'cooldown', message: <CooldownPeriod /> },
-        // { type: 'warning', key: 'fee', message: <UnstakingFee fee={fee} /> }, // Example on how to load messages dynamically
-      ] as MessageType[],
+      messages: unstakedMessages,
       body: (
         <>
           <TokenInput

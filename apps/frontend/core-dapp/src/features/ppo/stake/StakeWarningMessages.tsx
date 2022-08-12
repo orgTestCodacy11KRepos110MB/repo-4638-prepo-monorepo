@@ -1,3 +1,4 @@
+import { differenceInMinutes } from 'date-fns'
 import { Icon } from 'prepo-ui'
 import styled from 'styled-components'
 import useResponsive from '../../../hooks/useResponsive'
@@ -126,8 +127,20 @@ export const UnstakingPartially: React.FC<{ unstakePpo: number }> = ({ unstakePp
   </span>
 )
 
-export const CooldownEnds: React.FC<{ cooldown: string }> = ({ cooldown }) => (
-  <span>
-    Cooldown period ends in: <InfoText>{cooldown}.</InfoText>
-  </span>
-)
+const DAY = 24 * 60
+const HOUR = 60
+
+export const CooldownEnds: React.FC<{ ends: Date | undefined }> = ({ ends }) => {
+  if (!ends) {
+    return null
+  }
+  const totalMinutes = differenceInMinutes(ends, new Date())
+  const days = Math.floor(totalMinutes / DAY)
+  const hours = Math.floor((totalMinutes - days * DAY) / HOUR)
+  const minutes = totalMinutes - days * DAY - hours * HOUR
+  return (
+    <span>
+      Cooldown period ends in: <InfoText>{`${days}d ${hours}h ${minutes}m.`}</InfoText>
+    </span>
+  )
+}
