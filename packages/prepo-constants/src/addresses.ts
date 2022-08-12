@@ -5,7 +5,7 @@ export type ImportantAddress = {
   [key in SupportedNetworks]?: string
 }
 
-export type ImportantKeywords = 'GOVERNANCE'
+export type ImportantKeywords = 'GOVERNANCE' | 'USDC'
 
 export type ImportantAddresses = {
   [key in ImportantKeywords]?: ImportantAddress
@@ -14,6 +14,11 @@ export type ImportantAddresses = {
 export const PREPO_ADDRESSES: ImportantAddresses = {
   GOVERNANCE: {
     arbitrumTestnet: '0x054CcD68A2aC152fCFB93a15b6F75Eea53DCD9E0',
+    // TODO replace this with our production multisig address
+    arbitrumOne: '0x596e5940a47169f244fDD2DC269bCeA735635b53',
+  },
+  USDC: {
+    arbitrumOne: '0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8',
   },
 }
 

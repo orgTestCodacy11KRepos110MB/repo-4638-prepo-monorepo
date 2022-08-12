@@ -6,13 +6,16 @@ import { PurchaseHook } from '../../types/generated/contracts/mini-sales/Purchas
 export async function miniSalesFixture(
   saleTokenAddress: string,
   paymentTokenAddress: string,
+  saleTokenDecimals: number,
   nominatedOwnerAddress: string
 ): Promise<MiniSales> {
   const Factory = await ethers.getContractFactory('MiniSales')
-  return (await upgrades.deployProxy(Factory, [nominatedOwnerAddress], {
-    unsafeAllow: ['state-variable-immutable', 'constructor'],
-    constructorArgs: [saleTokenAddress, paymentTokenAddress],
-  })) as MiniSales
+  return (await Factory.deploy(
+    saleTokenAddress,
+    paymentTokenAddress,
+    saleTokenDecimals,
+    nominatedOwnerAddress
+  )) as MiniSales
 }
 
 export async function purchaseHookFixture(): Promise<PurchaseHook> {

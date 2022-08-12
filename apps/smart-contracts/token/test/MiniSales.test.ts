@@ -1,5 +1,5 @@
 import chai, { expect } from 'chai'
-import { ethers, upgrades } from 'hardhat'
+import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { ZERO_ADDRESS, JUNK_ADDRESS } from 'prepo-constants'
 import { parseUnits } from 'ethers/lib/utils'
@@ -41,8 +41,12 @@ describe('=> MiniSales', () => {
       owner.address,
       parseUnits('10000', paymentTokenDecimals)
     )
-    upgrades.silenceWarnings()
-    miniSales = await miniSalesFixture(saleToken.address, paymentToken.address, owner.address)
+    miniSales = await miniSalesFixture(
+      saleToken.address,
+      paymentToken.address,
+      saleTokenDecimals,
+      owner.address
+    )
   }
 
   const setupMiniSales = async (): Promise<void> => {
@@ -65,11 +69,11 @@ describe('=> MiniSales', () => {
       expect(await miniSales.owner()).to.eq(deployer.address)
     })
 
-    it('sets sale token from initialize', async () => {
+    it('sets sale token from constructor', async () => {
       expect(await miniSales.getSaleToken()).to.eq(saleToken.address)
     })
 
-    it('sets payment token from initialize', async () => {
+    it('sets payment token from constructor', async () => {
       expect(await miniSales.getPaymentToken()).to.eq(paymentToken.address)
     })
 

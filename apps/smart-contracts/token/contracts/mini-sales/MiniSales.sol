@@ -2,26 +2,26 @@
 pragma solidity =0.8.7;
 
 import "./interfaces/IMiniSales.sol";
-import "prepo-shared-contracts/contracts/SafeOwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "prepo-shared-contracts/contracts/WithdrawERC20.sol";
 
-contract MiniSales is IMiniSales, SafeOwnableUpgradeable, ReentrancyGuardUpgradeable {
+contract MiniSales is IMiniSales, WithdrawERC20 {
   IERC20Metadata private immutable _saleToken;
   IERC20Metadata private immutable _paymentToken;
-  uint256 private _saleTokenDecimals;
+  uint256 private immutable _saleTokenDecimals;
   uint256 private _price;
   IPurchaseHook private _purchaseHook;
 
-  constructor(address _newSaleToken, address _newPaymentToken) {
+  constructor(
+    address _newSaleToken,
+    address _newPaymentToken,
+    uint256 _newSaleTokenDecimals,
+    address _nominatedOwner
+  ) {
     _saleToken = IERC20Metadata(_newSaleToken);
     _paymentToken = IERC20Metadata(_newPaymentToken);
-  }
-
-  function initialize(address _nominatedOwner) public initializer {
-    __Ownable_init();
-    transferOwnership(_nominatedOwner);
     // TODO add to natspec that this assumes decimals will not change
-    _saleTokenDecimals = 10**_saleToken.decimals();
+    _saleTokenDecimals = 10**_newSaleTokenDecimals;
+    transferOwnership(_nominatedOwner);
   }
 
   function purchase(
