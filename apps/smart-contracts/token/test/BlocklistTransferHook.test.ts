@@ -28,7 +28,7 @@ describe('BlocklistTransferHook', () => {
 
   const setupHookAndList = async (): Promise<void> => {
     await setupHook()
-    blockedAccounts = await smockAccountListFixture(owner.address)
+    blockedAccounts = await smockAccountListFixture()
     await blocklistTransferHook.connect(owner).setBlocklist(blockedAccounts.address)
   }
 

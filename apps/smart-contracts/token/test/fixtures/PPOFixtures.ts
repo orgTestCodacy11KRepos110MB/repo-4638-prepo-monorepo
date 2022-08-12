@@ -16,9 +16,9 @@ export async function ppoFixture(
   return (await upgrades.deployProxy(Factory, [name, symbol, nominatedOwnerAddress])) as PPO
 }
 
-export async function accountListFixture(nominatedOwnerAddress: string): Promise<AccountList> {
+export async function accountListFixture(): Promise<AccountList> {
   const Factory = await ethers.getContractFactory('AccountList')
-  return (await Factory.deploy(nominatedOwnerAddress)) as AccountList
+  return (await Factory.deploy()) as AccountList
 }
 
 export async function restrictedTransferHookFixture(
@@ -35,9 +35,7 @@ export async function blocklistTransferHookFixture(
   return (await Factory.deploy(nominatedOwnerAddress)) as BlocklistTransferHook
 }
 
-export async function smockAccountListFixture(
-  nominatedOwnerAddress: string
-): Promise<MockContract> {
+export async function smockAccountListFixture(): Promise<MockContract> {
   const smockAccountListFactory = await smock.mock('AccountList')
-  return (await smockAccountListFactory.deploy(nominatedOwnerAddress)) as MockContract
+  return (await smockAccountListFactory.deploy()) as MockContract
 }

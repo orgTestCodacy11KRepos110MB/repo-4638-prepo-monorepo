@@ -33,7 +33,7 @@ describe('=> AccountList', () => {
       newIncludedUser1,
       newIncludedUser2,
     ] = await ethers.getSigners()
-    accountList = await accountListFixture(owner.address)
+    accountList = await accountListFixture()
   }
 
   const setupAccountList = async (): Promise<void> => {
@@ -41,6 +41,7 @@ describe('=> AccountList', () => {
     includedUsersArray = [includedUser1.address, includedUser2.address]
     unincludedUsersArray = [unincludedUser1.address, unincludedUser2.address]
     newIncludedUsersArray = [newIncludedUser1.address, newIncludedUser2.address]
+    await accountList.connect(deployer).transferOwnership(owner.address)
     await accountList.connect(owner).acceptOwnership()
   }
 
@@ -49,9 +50,8 @@ describe('=> AccountList', () => {
       await deployAccountList()
     })
 
-    it('sets nominee from initialize', async () => {
-      expect(await accountList.getNominee()).to.not.eq(deployer.address)
-      expect(await accountList.getNominee()).to.eq(owner.address)
+    it('sets nominee to zero address', async () => {
+      expect(await accountList.getNominee()).to.eq(ZERO_ADDRESS)
     })
 
     it('sets owner to deployer', async () => {

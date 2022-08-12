@@ -30,13 +30,13 @@ describe('RestrictedTransferHook', () => {
 
   const setupHookAndLists = async (): Promise<void> => {
     await setupHook()
-    sourceAllowlist = await smockAccountListFixture(owner.address)
+    sourceAllowlist = await smockAccountListFixture()
     await restrictedTransferHook.connect(owner).setSourceAllowlist(sourceAllowlist.address)
-    destinationAllowlist = await smockAccountListFixture(owner.address)
+    destinationAllowlist = await smockAccountListFixture()
     await restrictedTransferHook
       .connect(owner)
       .setDestinationAllowlist(destinationAllowlist.address)
-    blocklist = await smockAccountListFixture(owner.address)
+    blocklist = await smockAccountListFixture()
     await restrictedTransferHook.connect(owner).setBlocklist(blocklist.address)
   }
 

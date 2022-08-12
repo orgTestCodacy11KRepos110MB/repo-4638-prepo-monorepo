@@ -8,9 +8,7 @@ contract AccountList is IAccountList, SafeOwnable {
   uint256 private _resetIndex;
   mapping(uint256 => mapping(address => bool)) private _resetIndexToAccountToIncluded;
 
-  constructor(address _nominatedOwner) {
-    transferOwnership(_nominatedOwner);
-  }
+  constructor() {}
 
   function set(address[] calldata _accounts, bool[] calldata _included)
     external
