@@ -17,13 +17,13 @@ Run `yarn`
 
 ### Commands
 
-Prettify Contracts: `yarn sl`<br/>
-Check Contract Styling: `yarn sh`<br/>
-Check Contract Sizes: `yarn size`<br/>
-Compile Contracts: `yarn c`<br/>
-Run Tests: `yarn t`<br/>
-Run Tests w/ Code Coverage: `yarn t:coverage`<br/>
-Prettify TypeScript files: `yarn l`<br/>
+- Prettify Contracts: `yarn sl`
+- Check Contract Styling: `yarn sh`
+- Check Contract Sizes: `yarn size`
+- Compile Contracts: `yarn c`
+- Run Tests: `yarn t`
+- Run Tests w/ Code Coverage: `yarn t:coverage`
+- Prettify TypeScript files: `yarn l`
 
 ### Run Contract Tests & Get Callstacks
 
@@ -33,7 +33,10 @@ Then in another run `yarn t`
 
 ### Configuration
 
-Edit `hardhat.config.ts` to setup connections to different networks. Add your Infura API key and mnemonic to `.env`
+- Edit `hardhat.config.ts` to setup connections to different networks
+- Add your Infura API key and mnemonic to `.env`
+
+## Deploy
 
 ### Deploy Locally
 
@@ -70,36 +73,16 @@ A mock strategy can be deployed as well for testing purposes with the `MockStrat
                                  PrePOMarketFactory     MockStrategy
                                                          (optional)
 
-### Deploy to Ethereum
+### Deploy to Network
 
 The following command will allow you to specify an external Ethereum network to deploy your contract on:
 
-`yarn hardhat --network <networkName> deploy`
+`yarn hardhat --network <networkName> deploy --tags <tagName>`
 
-### Verify on Etherscan
+### Verify on Blockchain Explorer
 
 Add your Etherscan API key using ETHERSCAN_API_KEY in `.env`, then run:
 
-`yarn hardhat verify <CONTRACT_ADDRESS> --network mainnet "PARAM 1" "PARAM 2"...`
+`yarn hardhat verify <contractAddress> --network <networkName> "PARAM 1" "PARAM 2"...`
 
-### Verify on Polygonscan
-
-Add your Polygonscan API key using POLYGONSCAN_API_KEY in `.env`, then run:
-
-`yarn hardhat verify <CONTRACT_ADDRESS> --network matic "PARAM 1" "PARAM 2"...`
-
-### The Graph
-
-1. https://thegraph.com/docs/deploy-a-subgraph#create-a-graph-explorer-account
-
-2. https://thegraph.com/docs/deploy-a-subgraph#store-the-access-token
-
-3. https://thegraph.com/docs/deploy-a-subgraph#create-the-subgraph (subgraph name could be `project-name-v1`)
-
-4. Update `repository`, `address` and `startBlock` (set to just before contract deployment block) in `subgraph.yaml`
-
-5. Code generation (run after changes to GraphQL schema or contract ABIs): `yarn graph codegen`
-
-6. Build (final step before deployment): `yarn graph build`
-
-7. Run `graph deploy <SUBGRAPH_NAME> --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/`
+Polygonscan and Arbiscan are also recognized via POLYGONSCAN_API_KEY and ARBISCAN_API_KEY in `.env`
