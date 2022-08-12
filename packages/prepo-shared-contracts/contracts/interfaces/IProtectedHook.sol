@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity =0.8.7;
 
-// TODO: add natspec comments
+// TODO: remove in favor of SafeMultiOwnable
 interface IProtectedHook {
   event AllowedContractChange(address newAllowedContract);
 
