@@ -17,7 +17,7 @@ export const userHistoricalEventsQueryString = gql`
     historicalEvents(where: { ownerAddress: $address }, orderBy: createdAtTimestamp, orderDirection: desc) {
       ${selectFromHistoricalEvent()
         .id.amountUSD.createdAtTimestamp.event.hash.txCount.longShortToken(({ id }) =>
-          id.market().token(({ name }) => name.id.symbol)
+          id.market(undefined).token(({ name }) => name.id.symbol)
         )
         .collateralToken(({ id }) =>
           id
@@ -26,8 +26,10 @@ export const userHistoricalEventsQueryString = gql`
         )
         .transactions((transaction) =>
           transaction.id.amountUSD.action.createdAtTimestamp.event.hash
-            .collateralToken(({ id }) => id.baseToken().token(({ name }) => name.id.symbol))
-            .longShortToken(({ id }) => id.market().token(({ name }) => name.id.symbol))
+            .collateralToken(({ id }) =>
+              id.baseToken(undefined).token(({ name }) => name.id.symbol)
+            )
+            .longShortToken(({ id }) => id.market(undefined).token(({ name }) => name.id.symbol))
         )}
     }
   }
