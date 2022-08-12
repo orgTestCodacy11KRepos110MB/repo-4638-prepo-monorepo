@@ -1,12 +1,9 @@
-import chai, { expect } from 'chai'
-import { solidity } from 'ethereum-waffle'
+import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { ZERO_ADDRESS } from 'prepo-constants'
 import { safeOwnableFixture } from './fixtures/SafeOwnableFixtures'
 import { SafeOwnable } from '../types/generated'
-
-chai.use(solidity)
 
 describe('SafeOwnable', () => {
   let deployer: SignerWithAddress

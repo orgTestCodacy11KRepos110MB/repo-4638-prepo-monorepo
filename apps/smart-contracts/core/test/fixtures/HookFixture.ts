@@ -1,10 +1,6 @@
-import chai from 'chai'
-import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
 import { MockContract, smock } from '@defi-wonderland/smock'
 import { DepositHook, WithdrawHook } from '../../typechain'
-
-chai.use(solidity)
 
 export async function depositHookFixture(depositRecordAddress: string): Promise<DepositHook> {
   const depositHook = await ethers.getContractFactory('DepositHook')

@@ -1,5 +1,4 @@
-import chai, { expect } from 'chai'
-import { solidity } from 'ethereum-waffle'
+import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { utils } from 'prepo-hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
@@ -16,8 +15,6 @@ import { PrePOMarketFactory } from '../typechain/PrePOMarketFactory'
 import { MockERC20 } from '../typechain/MockERC20'
 
 const { nowPlusMonths, revertReason } = utils
-
-chai.use(solidity)
 
 describe('=> PrePOMarketFactory', () => {
   let prePOMarketFactory: PrePOMarketFactory

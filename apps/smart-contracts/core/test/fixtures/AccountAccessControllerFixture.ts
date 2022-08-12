@@ -1,10 +1,6 @@
-import chai from 'chai'
-import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
 import { MockContract, smock } from '@defi-wonderland/smock'
 import { AccountAccessController, MockAccountAccessController } from '../../typechain'
-
-chai.use(solidity)
 
 export async function accountAccessControllerFixture(): Promise<AccountAccessController> {
   const accountAccessController = await ethers.getContractFactory('AccountAccessController')

@@ -1,5 +1,4 @@
 import chai, { expect } from 'chai'
-import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { BigNumber, Contract } from 'ethers'
@@ -7,6 +6,7 @@ import { parseEther } from 'ethers/lib/utils'
 import { MockContract, smock } from '@defi-wonderland/smock'
 import { ZERO_ADDRESS } from 'prepo-constants'
 import { utils } from 'prepo-hardhat'
+import { PANIC_CODES } from '@nomicfoundation/hardhat-chai-matchers/panic'
 import { mockERC20Fixture } from './fixtures/MockERC20Fixture'
 import { testCollateralFixture } from './fixtures/CollateralFixture'
 import { singleStrategyControllerFixture } from './fixtures/SingleStrategyControllerFixture'
@@ -42,7 +42,6 @@ import {
 
 const { setNextTimestamp, mineBlocks, mineBlock, revertReason } = utils
 
-chai.use(solidity)
 chai.use(smock.matchers)
 
 describe('=> Collateral', () => {
@@ -530,16 +529,16 @@ describe('=> Collateral', () => {
     it('should not allow zero as a withdrawal amount when supply is 0', async () => {
       expect(await collateral.totalSupply()).to.eq(0)
 
-      await expect(collateral.connect(user).withdraw(0)).revertedWith(
-        'panic code 0x12 (Division or modulo division by zero)'
+      await expect(collateral.connect(user).withdraw(0)).revertedWithPanic(
+        PANIC_CODES.DIVISION_BY_ZERO
       )
     })
 
     it('should not allow a non-zero withdrawal amount when supply is 0', async () => {
       expect(await collateral.totalSupply()).to.eq(0)
 
-      await expect(collateral.connect(user).withdraw(TEST_ACCOUNT_DEPOSIT_CAP)).revertedWith(
-        'panic code 0x12 (Division or modulo division by zero)'
+      await expect(collateral.connect(user).withdraw(TEST_ACCOUNT_DEPOSIT_CAP)).revertedWithPanic(
+        PANIC_CODES.DIVISION_BY_ZERO
       )
     })
 
@@ -690,8 +689,8 @@ describe('=> Collateral', () => {
       await collateral.connect(user).initiateWithdrawal(0)
       expect(await collateral.totalSupply()).to.eq(0)
 
-      await expect(collateral.connect(user).withdraw(0)).revertedWith(
-        'panic code 0x12 (Division or modulo division by zero)'
+      await expect(collateral.connect(user).withdraw(0)).revertedWithPanic(
+        PANIC_CODES.DIVISION_BY_ZERO
       )
     })
 

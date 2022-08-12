@@ -1,11 +1,7 @@
-import chai from 'chai'
-import { solidity } from 'ethereum-waffle'
 import { BigNumber } from 'ethers'
 import { ethers } from 'hardhat'
 import { MockContract, smock } from '@defi-wonderland/smock'
 import { CollateralDepositRecord } from '../../typechain'
-
-chai.use(solidity)
 
 export async function collateralDepositRecordFixture(
   globalDepositCap: BigNumber,

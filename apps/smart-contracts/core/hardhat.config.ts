@@ -1,6 +1,6 @@
 import '@nomiclabs/hardhat-ethers'
 import '@nomiclabs/hardhat-etherscan'
-import '@nomiclabs/hardhat-waffle'
+import '@nomicfoundation/hardhat-chai-matchers'
 import '@typechain/ethers-v5'
 import '@typechain/hardhat'
 import '@openzeppelin/hardhat-defender'

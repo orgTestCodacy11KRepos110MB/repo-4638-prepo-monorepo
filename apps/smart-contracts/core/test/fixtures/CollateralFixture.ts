@@ -1,9 +1,5 @@
-import chai from 'chai'
-import { solidity } from 'ethereum-waffle'
 import { ethers, upgrades } from 'hardhat'
 import { Collateral, TestCollateral } from '../../typechain'
-
-chai.use(solidity)
 
 export async function collateralFixture(
   tokenAddress: string,

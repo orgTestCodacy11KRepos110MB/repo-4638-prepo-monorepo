@@ -1,5 +1,4 @@
-import chai, { expect } from 'chai'
-import { solidity } from 'ethereum-waffle'
+import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { utils } from 'prepo-hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
@@ -13,8 +12,6 @@ import {
 import { CollateralDepositRecord } from '../typechain'
 
 const { revertReason } = utils
-
-chai.use(solidity)
 
 describe('=> CollateralDepositRecord', () => {
   let depositRecord: CollateralDepositRecord

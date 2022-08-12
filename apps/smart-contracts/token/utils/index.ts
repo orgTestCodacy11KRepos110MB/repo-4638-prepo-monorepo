@@ -3,7 +3,7 @@ import { BigNumber, BigNumberish } from 'ethers'
 import { MerkleTree } from 'merkletreejs'
 import keccak256 from 'keccak256'
 import { solidityKeccak256, formatBytes32String } from 'ethers/lib/utils'
-import { TypedDataUtils } from 'eth-sig-util'
+import { TypedDataUtils, SignTypedDataVersion } from '@metamask/eth-sig-util'
 
 export const MAX_UINT64 = BigNumber.from(2).pow(64).sub(1)
 export const MAX_INT64 = BigNumber.from(2).pow(63).sub(1)
@@ -153,6 +153,7 @@ export function generateDomainSeparator(
   return `0x${TypedDataUtils.hashStruct(
     'EIP712Domain',
     { name, version, chainId, verifyingContract },
-    { EIP712Domain }
+    { EIP712Domain },
+    SignTypedDataVersion.V4
   ).toString('hex')}`
 }

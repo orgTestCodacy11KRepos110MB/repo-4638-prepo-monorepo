@@ -1,9 +1,5 @@
-import chai from 'chai'
-import { solidity } from 'ethereum-waffle'
 import { ethers } from 'hardhat'
 import { LongShortToken } from '../../typechain'
-
-chai.use(solidity)
 
 export async function LongShortTokenFixture(
   tokenName: string,

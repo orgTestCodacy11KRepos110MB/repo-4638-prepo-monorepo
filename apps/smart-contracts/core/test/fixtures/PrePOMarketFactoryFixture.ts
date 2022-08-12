@@ -1,12 +1,8 @@
-import chai from 'chai'
-import { solidity } from 'ethereum-waffle'
 import { ethers, upgrades } from 'hardhat'
 import { BigNumber } from 'ethers'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { PrePOMarketFactory } from '../../typechain/PrePOMarketFactory'
 import { getMarketAddedEvent } from '../events'
-
-chai.use(solidity)
 
 export type CreateMarketParams = {
   caller: SignerWithAddress

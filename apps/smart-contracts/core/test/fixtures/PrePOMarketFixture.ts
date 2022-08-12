@@ -1,10 +1,6 @@
-import chai from 'chai'
-import { solidity } from 'ethereum-waffle'
 import { BigNumber } from 'ethers'
 import { ethers } from 'hardhat'
 import { PrePOMarket } from '../../typechain/PrePOMarket'
-
-chai.use(solidity)
 
 export async function prePOMarketFixture(
   governance: string,

@@ -1,5 +1,4 @@
-import chai, { expect } from 'chai'
-import { solidity } from 'ethereum-waffle'
+import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { parseEther } from 'ethers/lib/utils'
@@ -11,8 +10,6 @@ import { getWithdrawHookVaultChangedEvent } from './events'
 import { CollateralDepositRecord, WithdrawHook } from '../typechain'
 
 const { revertReason } = utils
-
-chai.use(solidity)
 
 describe('=> WithdrawHook', () => {
   let withdrawHook: WithdrawHook

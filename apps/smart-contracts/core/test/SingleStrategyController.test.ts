@@ -1,5 +1,4 @@
-import chai, { expect } from 'chai'
-import { solidity } from 'ethereum-waffle'
+import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { ZERO_ADDRESS } from 'prepo-constants'
 import { utils } from 'prepo-hardhat'
@@ -14,8 +13,6 @@ import { MockStrategy } from '../typechain/MockStrategy'
 import { MockERC20 } from '../typechain/MockERC20'
 
 const { revertReason } = utils
-
-chai.use(solidity)
 
 describe('=> SingleStrategyController', () => {
   let strategyController: SingleStrategyController

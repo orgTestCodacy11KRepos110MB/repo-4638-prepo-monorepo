@@ -1,5 +1,4 @@
-import chai, { expect } from 'chai'
-import { solidity } from 'ethereum-waffle'
+import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { BigNumber } from 'ethers'
@@ -15,8 +14,6 @@ import { MockStrategy } from '../typechain/MockStrategy'
 import { MockERC20 } from '../typechain/MockERC20'
 
 const { setNextTimestamp, revertReason } = utils
-
-chai.use(solidity)
 
 describe('=> MockStrategy', () => {
   let mockStrategy: MockStrategy

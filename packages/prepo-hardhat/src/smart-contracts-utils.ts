@@ -87,7 +87,7 @@ function mineBlock(provider: providers.Web3Provider, timestamp: number): Promise
 }
 
 function revertReason(reason: string): string {
-  return `VM Exception while processing transaction: reverted with reason string '${reason}'`
+  return reason
 }
 
 export const utils = {
