@@ -1,8 +1,19 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity =0.8.7;
 
-//TODO natspec
+/**
+ * @notice Hook to be called when a user makes a `MiniSales` purchase.
+ * @dev A hook could contain purchase restriction logic and/or update
+ * auxiliary data.
+ */
 interface IPurchaseHook {
+  /**
+   * @notice Hook to be called when a user makes a `MiniSales` purchase.
+   * @param purchaser Address that payment token was taken from
+   * @param recipient Address that sale token was delivered to
+   * @param amount Amount of sale token purchased
+   * @param price Sale token price in terms of payment token
+   */
   function hook(
     address purchaser,
     address recipient,
