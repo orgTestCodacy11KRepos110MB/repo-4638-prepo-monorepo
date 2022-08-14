@@ -45,11 +45,14 @@
     "esbuild": "0.14.36",
     "esbuild-jest": "0.5.0",
     "eslint": "8.13.0",
+    "hardhat-contract-sizer": "2.1.1",
+    "hardhat-gas-reporter": "1.0.4",
     "husky": "7.0.4",
     "is-ci": "3.0.1",
     "jest": "28.1.1",
     "lint-staged": "12.3.7",
     "prettier": "2.6.2",
+    "solidity-coverage": "0.7.21",
     "ts-jest": "28.0.5",
     "ts-node": "10.8.1",
     "turbo": "1.2.5",
@@ -64,9 +67,7 @@
     "@openzeppelin/hardhat-defender": "1.7.0",
     "defender-relay-client": "1.27.1",
     "hardhat": "2.10.1",
-    "hardhat-deploy": "0.11.10",
-    "hardhat-contract-sizer": "2.1.1",
-    "hardhat-gas-reporter": "1.0.4"
+    "hardhat-deploy": "0.11.10"
   },
   "config": {
     "commitizen": {
