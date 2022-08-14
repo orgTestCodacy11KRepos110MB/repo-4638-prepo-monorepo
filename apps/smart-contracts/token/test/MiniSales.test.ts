@@ -5,7 +5,7 @@ import { ZERO_ADDRESS, JUNK_ADDRESS } from 'prepo-constants'
 import { parseUnits } from 'ethers/lib/utils'
 import { FakeContract, smock } from '@defi-wonderland/smock'
 import { Contract, BigNumber } from 'ethers'
-import { miniSalesFixture, fakePurchaseHookFixture } from './fixtures/MiniSalesFixtures'
+import { miniSalesFixture, fakeAllowlistPurchaseHookFixture } from './fixtures/MiniSalesFixtures'
 import { mockERC20Fixture } from './fixtures/MockERC20Fixtures'
 import { MiniSales, MockERC20 } from '../types/generated'
 
@@ -19,7 +19,7 @@ describe('=> MiniSales', () => {
   let miniSales: MiniSales
   let paymentToken: MockERC20
   let saleToken: MockERC20
-  let fakePurchaseHook: FakeContract<Contract>
+  let fakeAllowlistPurchaseHook: FakeContract<Contract>
   const saleTokenDecimals = 18 // PPO is 18 decimal
   const paymentTokenDecimals = 6 // USDC is 6 decimal
   const testPrice = parseUnits('1.234', paymentTokenDecimals)
@@ -52,7 +52,7 @@ describe('=> MiniSales', () => {
   const setupMiniSales = async (): Promise<void> => {
     await deployMiniSales()
     await miniSales.connect(owner).acceptOwnership()
-    fakePurchaseHook = await fakePurchaseHookFixture()
+    fakeAllowlistPurchaseHook = await fakeAllowlistPurchaseHookFixture()
   }
 
   describe('initial state', () => {
@@ -96,7 +96,7 @@ describe('=> MiniSales', () => {
     beforeEach(async () => {
       await setupMiniSales()
       await miniSales.connect(owner).setPrice(testPrice)
-      await miniSales.connect(owner).setPurchaseHook(fakePurchaseHook.address)
+      await miniSales.connect(owner).setPurchaseHook(fakeAllowlistPurchaseHook.address)
       await saleToken
         .connect(owner)
         .transfer(miniSales.address, parseUnits('100', saleTokenDecimals))
@@ -119,12 +119,12 @@ describe('=> MiniSales', () => {
 
     it('reverts if purchase hook reverts', async () => {
       expect(await miniSales.getPrice()).to.eq(testPrice)
-      fakePurchaseHook.hook.reverts()
+      fakeAllowlistPurchaseHook.hook.reverts()
 
       await expect(
         miniSales.connect(purchaser).purchase(recipient.address, saleTokenAmount, testPrice)
       ).to.be.reverted
-      expect(fakePurchaseHook.hook).to.have.been.calledOnce
+      expect(fakeAllowlistPurchaseHook.hook).to.have.been.calledOnce
     })
 
     it('reverts if insufficient sale token in contract', async () => {
@@ -172,7 +172,7 @@ describe('=> MiniSales', () => {
 
       await miniSales.connect(purchaser).purchase(recipient.address, saleTokenAmount, testPrice)
 
-      expect(fakePurchaseHook.hook).to.not.have.been.called
+      expect(fakeAllowlistPurchaseHook.hook).to.not.have.been.called
     })
 
     it('calls hook with correct parameters', async () => {
@@ -182,7 +182,7 @@ describe('=> MiniSales', () => {
 
       await miniSales.connect(purchaser).purchase(recipient.address, saleTokenAmount, testPrice)
 
-      expect(fakePurchaseHook.hook).to.have.been.calledWith(
+      expect(fakeAllowlistPurchaseHook.hook).to.have.been.calledWith(
         purchaser.address,
         recipient.address,
         saleTokenAmount,
