@@ -78,7 +78,7 @@ describe('Vesting', () => {
     it('reverts if not owner', async () => {
       expect(await vesting.owner()).to.not.eq(user1.address)
 
-      expect(vesting.connect(user1).setToken(mockERC20Token.address)).revertedWith(
+      await expect(vesting.connect(user1).setToken(mockERC20Token.address)).revertedWith(
         'Ownable: caller is not the owner'
       )
     })
@@ -126,7 +126,7 @@ describe('Vesting', () => {
     it('reverts if not owner', async () => {
       expect(await vesting.owner()).to.not.eq(user1.address)
 
-      expect(vesting.connect(user1).setVestingStartTime(vestingStartTime)).revertedWith(
+      await expect(vesting.connect(user1).setVestingStartTime(vestingStartTime)).revertedWith(
         'Ownable: caller is not the owner'
       )
     })
@@ -135,18 +135,18 @@ describe('Vesting', () => {
       const invalidVestingStartTime = vestingEndTime + 1
       expect(await vesting.getVestingEndTime()).to.be.equals(vestingEndTime)
 
-      expect(vesting.connect(owner).setVestingStartTime(invalidVestingStartTime)).revertedWith(
-        'Vesting start time >= end time'
-      )
+      await expect(
+        vesting.connect(owner).setVestingStartTime(invalidVestingStartTime)
+      ).revertedWith('Vesting start time >= end time')
     })
 
     it('reverts if start time = end time', async () => {
       const invalidVestingStartTime = vestingEndTime
       expect(await vesting.getVestingEndTime()).to.be.equals(vestingEndTime)
 
-      expect(vesting.connect(owner).setVestingStartTime(invalidVestingStartTime)).revertedWith(
-        'Vesting start time >= end time'
-      )
+      await expect(
+        vesting.connect(owner).setVestingStartTime(invalidVestingStartTime)
+      ).revertedWith('Vesting start time >= end time')
     })
 
     it('sets to future time', async () => {
@@ -224,7 +224,7 @@ describe('Vesting', () => {
     it('reverts if not owner', async () => {
       expect(await vesting.owner()).to.not.eq(user1.address)
 
-      expect(vesting.connect(user1).setVestingEndTime(vestingEndTime)).revertedWith(
+      await expect(vesting.connect(user1).setVestingEndTime(vestingEndTime)).revertedWith(
         'Ownable: caller is not the owner'
       )
     })
@@ -236,7 +236,7 @@ describe('Vesting', () => {
       expect(await vesting.getVestingStartTime()).to.be.equal(vestingStartTime)
       const invalidVestingEndTime = vestingStartTime - 1
 
-      expect(vesting.connect(owner).setVestingEndTime(invalidVestingEndTime)).revertedWith(
+      await expect(vesting.connect(owner).setVestingEndTime(invalidVestingEndTime)).revertedWith(
         'Vesting end time <= start time'
       )
     })
@@ -248,7 +248,7 @@ describe('Vesting', () => {
       expect(await vesting.getVestingStartTime()).to.be.equal(vestingStartTime)
       const invalidVestingEndTime = vestingStartTime
 
-      expect(vesting.connect(owner).setVestingEndTime(invalidVestingEndTime)).revertedWith(
+      await expect(vesting.connect(owner).setVestingEndTime(invalidVestingEndTime)).revertedWith(
         'Vesting end time <= start time'
       )
     })
@@ -1008,7 +1008,7 @@ describe('Vesting', () => {
       const amountToWithdraw = parseEther('1')
       expect(await vesting.owner()).to.not.eq(user1.address)
 
-      expect(
+      await expect(
         vesting.connect(user1).withdrawERC20(externalERC20Token.address, amountToWithdraw)
       ).revertedWith('Ownable: caller is not the owner')
     })
@@ -1017,7 +1017,7 @@ describe('Vesting', () => {
       const contractBalanceBefore = await ethers.provider.getBalance(vesting.address)
       const amountToWithdraw = contractBalanceBefore.add(1)
 
-      expect(
+      await expect(
         vesting.connect(owner).withdrawERC20(externalERC20Token.address, amountToWithdraw)
       ).revertedWith('ERC20: transfer amount exceeds balance')
     })

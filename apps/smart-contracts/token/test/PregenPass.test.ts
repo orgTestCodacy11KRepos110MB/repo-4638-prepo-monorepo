@@ -56,8 +56,8 @@ describe('PregenPass', () => {
       await setupPregenPass()
     })
 
-    it('reverts if not owner', () => {
-      expect(pregenPass.connect(user).setURI(URI_2)).revertedWith(
+    it('reverts if not owner', async () => {
+      await expect(pregenPass.connect(user).setURI(URI_2)).revertedWith(
         'Ownable: caller is not the owner'
       )
     })
@@ -96,8 +96,8 @@ describe('PregenPass', () => {
       await setupPregenPass()
     })
 
-    it('reverts if not owner', () => {
-      expect(pregenPass.connect(user).mint(user.address)).revertedWith(
+    it('reverts if not owner', async () => {
+      await expect(pregenPass.connect(user).mint(user.address)).revertedWith(
         'Ownable: caller is not the owner'
       )
     })
@@ -124,8 +124,8 @@ describe('PregenPass', () => {
       await setupPregenPass()
     })
 
-    it('reverts if not owner', () => {
-      expect(pregenPass.connect(user).mintBatch([user.address, user2.address])).revertedWith(
+    it('reverts if not owner', async () => {
+      await expect(pregenPass.connect(user).mintBatch([user.address, user2.address])).revertedWith(
         'Ownable: caller is not the owner'
       )
     })
@@ -172,16 +172,14 @@ describe('PregenPass', () => {
       await setupPregenPass()
     })
 
-    it('reverts if not owner', () => {
-      expect(pregenPass.connect(user).mint(user.address)).revertedWith(
+    it('reverts if not owner', async () => {
+      await expect(pregenPass.connect(user).mint(user.address)).revertedWith(
         'Ownable: caller is not the owner'
       )
     })
 
-    it('reverts if nonexistent token', () => {
-      expect(pregenPass.connect(owner).burn(1)).revertedWith(
-        'ERC721: owner query for nonexistent token'
-      )
+    it('reverts if nonexistent token', async () => {
+      await expect(pregenPass.connect(owner).burn(1)).revertedWith('ERC721: invalid token ID')
     })
 
     it('decrements user balance by 1', async () => {
@@ -199,9 +197,7 @@ describe('PregenPass', () => {
 
       await pregenPass.connect(owner).burn(0)
 
-      expect(pregenPass.connect(owner).ownerOf(0)).revertedWith(
-        'ERC721: owner query for nonexistent token'
-      )
+      await expect(pregenPass.connect(owner).ownerOf(0)).revertedWith('ERC721: invalid token ID')
     })
   })
 
@@ -214,14 +210,14 @@ describe('PregenPass', () => {
       await pregenPass.connect(owner).mint(user.address)
       await pregenPass.connect(owner).mint(user2.address)
 
-      expect(pregenPass.connect(user).burnBatch([0, 1])).revertedWith(
+      await expect(pregenPass.connect(user).burnBatch([0, 1])).revertedWith(
         'Ownable: caller is not the owner'
       )
     })
 
-    it('reverts if non existent token', () => {
-      expect(pregenPass.connect(owner).burnBatch([1, 2])).revertedWith(
-        'ERC721: owner query for nonexistent token'
+    it('reverts if non existent token', async () => {
+      await expect(pregenPass.connect(owner).burnBatch([1, 2])).revertedWith(
+        'ERC721: invalid token ID'
       )
     })
 
@@ -254,12 +250,8 @@ describe('PregenPass', () => {
 
       await pregenPass.connect(owner).burnBatch([0, 1])
 
-      expect(pregenPass.connect(owner).ownerOf(0)).revertedWith(
-        'ERC721: owner query for nonexistent token'
-      )
-      expect(pregenPass.connect(owner).ownerOf(1)).revertedWith(
-        'ERC721: owner query for nonexistent token'
-      )
+      await expect(pregenPass.connect(owner).ownerOf(0)).revertedWith('ERC721: invalid token ID')
+      await expect(pregenPass.connect(owner).ownerOf(1)).revertedWith('ERC721: invalid token ID')
     })
   })
 
@@ -268,8 +260,8 @@ describe('PregenPass', () => {
       await setupPregenPass()
     })
 
-    it('reverts if not owner', () => {
-      expect(
+    it('reverts if not owner', async () => {
+      await expect(
         pregenPass.connect(user).beforeTokenTransfer(user.address, user2.address, 0)
       ).revertedWith('Ownable: caller is not the owner')
     })
@@ -280,9 +272,9 @@ describe('PregenPass', () => {
       expect(await pregenPass.balanceOf(user.address)).to.eq(1)
       expect(await pregenPass.owner()).to.not.eq(user.address)
 
-      expect(pregenPass.connect(user).transferFrom(user.address, user2.address, 0)).revertedWith(
-        'Ownable: caller is not the owner'
-      )
+      await expect(
+        pregenPass.connect(user).transferFrom(user.address, user2.address, 0)
+      ).revertedWith('Ownable: caller is not the owner')
     })
 
     it('succeeds if owner', async () => {

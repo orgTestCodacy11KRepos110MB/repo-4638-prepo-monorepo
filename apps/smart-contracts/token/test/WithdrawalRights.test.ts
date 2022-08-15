@@ -56,7 +56,7 @@ describe('WithdrawalRights', () => {
     it('reverts if not owner', async () => {
       expect(await withdrawalRights.owner()).to.not.eq(user1.address)
 
-      expect(withdrawalRights.connect(user1).setURI(testURI)).revertedWith(
+      await expect(withdrawalRights.connect(user1).setURI(testURI)).revertedWith(
         'Ownable: caller is not the owner'
       )
     })
@@ -101,7 +101,7 @@ describe('WithdrawalRights', () => {
     it('reverts if not owner', async () => {
       expect(await withdrawalRights.owner()).to.not.eq(user1.address)
 
-      expect(withdrawalRights.connect(user1).setPPOStaking(ppoStaking.address)).revertedWith(
+      await expect(withdrawalRights.connect(user1).setPPOStaking(ppoStaking.address)).revertedWith(
         'Ownable: caller is not the owner'
       )
     })
@@ -147,7 +147,7 @@ describe('WithdrawalRights', () => {
     it('reverts if not PPOStaking', async () => {
       expect(await withdrawalRights.getPPOStaking()).to.not.eq(user1.address)
 
-      expect(withdrawalRights.connect(user1).mint(user1.address)).revertedWith(
+      await expect(withdrawalRights.connect(user1).mint(user1.address)).revertedWith(
         'msg.sender != PPOStaking'
       )
     })
