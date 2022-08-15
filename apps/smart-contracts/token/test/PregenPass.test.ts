@@ -24,7 +24,7 @@ describe('PregenPass', () => {
     await pregenPass.connect(owner).acceptOwnership()
   }
 
-  describe('constructor', () => {
+  describe('initial state', () => {
     before(async () => {
       await deployPregenPass()
     })
@@ -33,11 +33,11 @@ describe('PregenPass', () => {
       expect(await pregenPass.tokenURI(0)).to.eq(URI)
     })
 
-    it('initializes name at deployment', async () => {
+    it('sets name from constructor', async () => {
       expect(await pregenPass.name()).to.eq('Pregen Pass')
     })
 
-    it('initializes symbol at deployment', async () => {
+    it('sets symbol from constructor', async () => {
       expect(await pregenPass.symbol()).to.eq('PREGENPASS')
     })
 

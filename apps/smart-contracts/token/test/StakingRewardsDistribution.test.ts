@@ -48,7 +48,7 @@ describe('StakingRewardsDistribution', () => {
     merkleTree = generateAccountAmountMerkleTree(eligibleNodes)
   }
 
-  describe('# initial state', () => {
+  describe('initial state', () => {
     beforeEach(async () => {
       await setupStakingRewardsDistribution()
     })

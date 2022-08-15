@@ -55,12 +55,12 @@ describe('Vesting', () => {
     )
   }
 
-  describe('# initialize', () => {
+  describe('initial state', () => {
     before(async () => {
       await deployVesting()
     })
 
-    it('sets nominee from initialize', async () => {
+    it('sets nominee from constructor', async () => {
       expect(await vesting.getNominee()).to.not.eq(deployer.address)
       expect(await vesting.getNominee()).to.eq(owner.address)
     })
@@ -990,6 +990,7 @@ describe('Vesting', () => {
   })
 
   describe('# withdrawERC20', () => {
+    // Adding minimal test to just ensure function reverts and is callable.
     beforeEach(async () => {
       await setupVesting()
       const externalERC20Recipient = user1.address
@@ -1008,18 +1009,9 @@ describe('Vesting', () => {
       const amountToWithdraw = parseEther('1')
       expect(await vesting.owner()).to.not.eq(user1.address)
 
-      await expect(
-        vesting.connect(user1).withdrawERC20(externalERC20Token.address, amountToWithdraw)
+      expect(
+        vesting.connect(user1).withdrawERC20([externalERC20Token.address], [amountToWithdraw])
       ).revertedWith('Ownable: caller is not the owner')
-    })
-
-    it('reverts if amount > contract balance', async () => {
-      const contractBalanceBefore = await ethers.provider.getBalance(vesting.address)
-      const amountToWithdraw = contractBalanceBefore.add(1)
-
-      await expect(
-        vesting.connect(owner).withdrawERC20(externalERC20Token.address, amountToWithdraw)
-      ).revertedWith('ERC20: transfer amount exceeds balance')
     })
 
     it('transfers if amount = contract balance', async () => {
@@ -1028,23 +1020,7 @@ describe('Vesting', () => {
       const ownerBalanceBefore = await externalERC20Token.balanceOf(owner.address)
       const amountToWithdraw = contractBalanceBefore
 
-      await vesting.connect(owner).withdrawERC20(externalERC20Token.address, amountToWithdraw)
-
-      expect(await externalERC20Token.balanceOf(owner.address)).to.be.equal(
-        ownerBalanceBefore.add(amountToWithdraw)
-      )
-      expect(await externalERC20Token.balanceOf(vesting.address)).to.be.equal(
-        contractBalanceBefore.sub(amountToWithdraw)
-      )
-    })
-
-    it('transfers if amount < contract balance', async () => {
-      await externalERC20Token.connect(user1).transfer(vesting.address, parseEther('1'))
-      const contractBalanceBefore = await externalERC20Token.balanceOf(vesting.address)
-      const ownerBalanceBefore = await externalERC20Token.balanceOf(owner.address)
-      const amountToWithdraw = contractBalanceBefore.sub(1)
-
-      await vesting.connect(owner).withdrawERC20(externalERC20Token.address, amountToWithdraw)
+      await vesting.connect(owner).withdrawERC20([externalERC20Token.address], [amountToWithdraw])
 
       expect(await externalERC20Token.balanceOf(owner.address)).to.be.equal(
         ownerBalanceBefore.add(amountToWithdraw)

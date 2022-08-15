@@ -37,7 +37,7 @@ describe('BlocklistTransferHook', () => {
       await deployHook()
     })
 
-    it('sets nominee from initialize', async () => {
+    it('sets nominee from constructor', async () => {
       expect(await blocklistTransferHook.getNominee()).to.not.eq(deployer.address)
       expect(await blocklistTransferHook.getNominee()).to.eq(owner.address)
     })

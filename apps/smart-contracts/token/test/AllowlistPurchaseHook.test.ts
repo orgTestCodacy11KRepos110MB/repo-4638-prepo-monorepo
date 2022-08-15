@@ -39,7 +39,7 @@ describe('AllowlistPurchaseHook', () => {
       await deployHook()
     })
 
-    it('sets nominee from initialize', async () => {
+    it('sets nominee from constructor', async () => {
       expect(await allowlistPurchaseHook.getNominee()).to.not.eq(deployer.address)
       expect(await allowlistPurchaseHook.getNominee()).to.eq(owner.address)
     })

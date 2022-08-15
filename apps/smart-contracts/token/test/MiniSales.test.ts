@@ -60,7 +60,7 @@ describe('=> MiniSales', () => {
       await deployMiniSales()
     })
 
-    it('sets nominee from initialize', async () => {
+    it('sets nominee from constructor', async () => {
       expect(await miniSales.getNominee()).to.not.eq(deployer.address)
       expect(await miniSales.getNominee()).to.eq(owner.address)
     })

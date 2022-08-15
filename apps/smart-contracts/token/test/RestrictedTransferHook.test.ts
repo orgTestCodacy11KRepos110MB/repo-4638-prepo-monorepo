@@ -45,7 +45,7 @@ describe('RestrictedTransferHook', () => {
       await deployHook()
     })
 
-    it('sets nominee from initialize', async () => {
+    it('sets nominee from constructor', async () => {
       expect(await restrictedTransferHook.getNominee()).to.not.eq(deployer.address)
       expect(await restrictedTransferHook.getNominee()).to.eq(owner.address)
     })

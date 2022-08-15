@@ -95,12 +95,4 @@ interface IVesting {
    * @return Amount of tokens vested till now for the recipient
    */
   function getVestedAmount(address recipient) external view returns (uint256);
-
-  /**
-   * @notice Withdraws any ERC20 token from the contract to the owner.
-   * @dev Only callable by `owner()`.
-   * @param erc20Token Address of the token to be withdrawn
-   * @param amount The amount to be withdrawn
-   */
-  function withdrawERC20(address erc20Token, uint256 amount) external;
 }

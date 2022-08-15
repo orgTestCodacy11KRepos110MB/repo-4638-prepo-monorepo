@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity =0.8.7;
 
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./interfaces/IVesting.sol";
-import "prepo-shared-contracts/contracts/SafeOwnable.sol";
 import "prepo-shared-contracts/contracts/Pausable.sol";
+import "prepo-shared-contracts/contracts/WithdrawERC20.sol";
 
-contract Vesting is IVesting, SafeOwnable, ReentrancyGuard, Pausable {
+contract Vesting is IVesting, Pausable, WithdrawERC20 {
   using SafeERC20 for IERC20;
 
   IERC20 private _token;
@@ -37,10 +36,6 @@ contract Vesting is IVesting, SafeOwnable, ReentrancyGuard, Pausable {
     _vestingEndTime = _newVestingEndTime;
   }
 
-  /**
-   * @dev Ensure to separately calculate max array length that can be
-   * passed in to `setAllocations()`, using stress test.
-   */
   function setAllocations(address[] calldata _recipients, uint256[] calldata _amounts)
     external
     override
@@ -122,14 +117,5 @@ contract Vesting is IVesting, SafeOwnable, ReentrancyGuard, Pausable {
 
   function getClaimedAmount(address _recipient) external view override returns (uint256) {
     return _recipientToClaimedAmount[_recipient];
-  }
-
-  function withdrawERC20(address _erc20Token, uint256 _amount)
-    external
-    override
-    onlyOwner
-    nonReentrant
-  {
-    IERC20(_erc20Token).safeTransfer(owner(), _amount);
   }
 }
