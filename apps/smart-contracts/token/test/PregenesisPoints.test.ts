@@ -9,7 +9,6 @@ import {
   AccountAmountLeafNode,
   hashAccountAmountLeafNode,
   generateAccountAmountMerkleTree,
-  revertReason,
 } from '../utils'
 import { PregenesisPoints } from '../types/generated'
 
@@ -84,7 +83,7 @@ describe('PregenesisPoints', () => {
     it('reverts if not owner', async () => {
       expect(await points.owner()).to.not.eq(user1.address)
       await expect(points.connect(user1).setShop(JUNK_ADDRESS)).revertedWith(
-        revertReason('Ownable: caller is not the owner')
+        'Ownable: caller is not the owner'
       )
     })
 
@@ -128,7 +127,7 @@ describe('PregenesisPoints', () => {
       expect(await points.owner()).to.not.eq(user1.address)
 
       await expect(points.connect(user1).setMerkleTreeRoot(merkleTree.getHexRoot())).revertedWith(
-        revertReason('Ownable: caller is not the owner')
+        'Ownable: caller is not the owner'
       )
     })
 
@@ -173,7 +172,7 @@ describe('PregenesisPoints', () => {
       expect(await points.owner()).to.not.eq(user1.address)
 
       await expect(points.connect(user1).mint(user1.address, ONE)).revertedWith(
-        revertReason('Ownable: caller is not the owner')
+        'Ownable: caller is not the owner'
       )
     })
 
@@ -181,13 +180,13 @@ describe('PregenesisPoints', () => {
       expect(await points.owner()).to.not.eq(shop.address)
 
       await expect(points.connect(shop).mint(user1.address, ONE)).revertedWith(
-        revertReason('Ownable: caller is not the owner')
+        'Ownable: caller is not the owner'
       )
     })
 
     it('reverts if minting to zero address', async () => {
       await expect(points.connect(owner).mint(ZERO_ADDRESS, ONE)).revertedWith(
-        revertReason('ERC20: mint to the zero address')
+        'ERC20: mint to the zero address'
       )
     })
 
@@ -224,7 +223,7 @@ describe('PregenesisPoints', () => {
       expect(await points.balanceOf(user1.address)).to.be.gte(ONE)
 
       await expect(points.connect(user1).burn(user1.address, ONE)).revertedWith(
-        revertReason('Ownable: caller is not the owner')
+        'Ownable: caller is not the owner'
       )
     })
 
@@ -234,13 +233,13 @@ describe('PregenesisPoints', () => {
       expect(await points.owner()).to.not.eq(shop.address)
 
       await expect(points.connect(shop).burn(user1.address, ONE)).revertedWith(
-        revertReason('Ownable: caller is not the owner')
+        'Ownable: caller is not the owner'
       )
     })
 
     it('reverts if burn from zero address', async () => {
       await expect(points.connect(owner).burn(ZERO_ADDRESS, ONE)).revertedWith(
-        revertReason('ERC20: burn from the zero address')
+        'ERC20: burn from the zero address'
       )
     })
 
@@ -249,7 +248,7 @@ describe('PregenesisPoints', () => {
       const userPPBalance = await points.balanceOf(user1.address)
 
       await expect(points.connect(owner).burn(user1.address, userPPBalance.add(ONE))).revertedWith(
-        revertReason('ERC20: burn amount exceeds balance')
+        'ERC20: burn amount exceeds balance'
       )
     })
 
@@ -284,7 +283,7 @@ describe('PregenesisPoints', () => {
       expect(await points.hasClaimed(eligibleNode1.account)).to.be.eq(true)
 
       await expect(points.connect(user1).claim(eligibleNode1.amount, proof)).revertedWith(
-        revertReason('Already claimed')
+        'Already claimed'
       )
     })
 
@@ -297,7 +296,7 @@ describe('PregenesisPoints', () => {
       const proof = merkleTree.getHexProof(hashAccountAmountLeafNode(ineligibleNode))
 
       await expect(points.connect(user1).claim(ineligibleNode.amount, proof)).revertedWith(
-        revertReason('Invalid claim')
+        'Invalid claim'
       )
     })
 
@@ -310,7 +309,7 @@ describe('PregenesisPoints', () => {
       const proof = merkleTree.getHexProof(hashAccountAmountLeafNode(ineligibleNode))
 
       await expect(points.connect(user1).claim(ineligibleNode.amount, proof)).revertedWith(
-        revertReason('Invalid claim')
+        'Invalid claim'
       )
     })
 

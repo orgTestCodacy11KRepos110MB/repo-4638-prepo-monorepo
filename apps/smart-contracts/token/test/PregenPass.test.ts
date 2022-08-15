@@ -2,7 +2,6 @@ import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { mockPregenPassFixture } from './fixtures/PregenesisFixtures'
-import { revertReason } from '../utils'
 import { MockPregenPass } from '../types/generated'
 
 describe('PregenPass', () => {
@@ -59,7 +58,7 @@ describe('PregenPass', () => {
 
     it('reverts if not owner', () => {
       expect(pregenPass.connect(user).setURI(URI_2)).revertedWith(
-        revertReason('Ownable: caller is not the owner')
+        'Ownable: caller is not the owner'
       )
     })
 
@@ -99,7 +98,7 @@ describe('PregenPass', () => {
 
     it('reverts if not owner', () => {
       expect(pregenPass.connect(user).mint(user.address)).revertedWith(
-        revertReason('Ownable: caller is not the owner')
+        'Ownable: caller is not the owner'
       )
     })
 
@@ -127,7 +126,7 @@ describe('PregenPass', () => {
 
     it('reverts if not owner', () => {
       expect(pregenPass.connect(user).mintBatch([user.address, user2.address])).revertedWith(
-        revertReason('Ownable: caller is not the owner')
+        'Ownable: caller is not the owner'
       )
     })
 
@@ -175,13 +174,13 @@ describe('PregenPass', () => {
 
     it('reverts if not owner', () => {
       expect(pregenPass.connect(user).mint(user.address)).revertedWith(
-        revertReason('Ownable: caller is not the owner')
+        'Ownable: caller is not the owner'
       )
     })
 
     it('reverts if nonexistent token', () => {
       expect(pregenPass.connect(owner).burn(1)).revertedWith(
-        revertReason('ERC721: owner query for nonexistent token')
+        'ERC721: owner query for nonexistent token'
       )
     })
 
@@ -201,7 +200,7 @@ describe('PregenPass', () => {
       await pregenPass.connect(owner).burn(0)
 
       expect(pregenPass.connect(owner).ownerOf(0)).revertedWith(
-        revertReason('ERC721: owner query for nonexistent token')
+        'ERC721: owner query for nonexistent token'
       )
     })
   })
@@ -216,13 +215,13 @@ describe('PregenPass', () => {
       await pregenPass.connect(owner).mint(user2.address)
 
       expect(pregenPass.connect(user).burnBatch([0, 1])).revertedWith(
-        revertReason('Ownable: caller is not the owner')
+        'Ownable: caller is not the owner'
       )
     })
 
     it('reverts if non existent token', () => {
       expect(pregenPass.connect(owner).burnBatch([1, 2])).revertedWith(
-        revertReason('ERC721: owner query for nonexistent token')
+        'ERC721: owner query for nonexistent token'
       )
     })
 
@@ -256,10 +255,10 @@ describe('PregenPass', () => {
       await pregenPass.connect(owner).burnBatch([0, 1])
 
       expect(pregenPass.connect(owner).ownerOf(0)).revertedWith(
-        revertReason('ERC721: owner query for nonexistent token')
+        'ERC721: owner query for nonexistent token'
       )
       expect(pregenPass.connect(owner).ownerOf(1)).revertedWith(
-        revertReason('ERC721: owner query for nonexistent token')
+        'ERC721: owner query for nonexistent token'
       )
     })
   })
@@ -272,7 +271,7 @@ describe('PregenPass', () => {
     it('reverts if not owner', () => {
       expect(
         pregenPass.connect(user).beforeTokenTransfer(user.address, user2.address, 0)
-      ).revertedWith(revertReason('Ownable: caller is not the owner'))
+      ).revertedWith('Ownable: caller is not the owner')
     })
 
     it('reverts token transfer if not owner', async () => {
@@ -282,7 +281,7 @@ describe('PregenPass', () => {
       expect(await pregenPass.owner()).to.not.eq(user.address)
 
       expect(pregenPass.connect(user).transferFrom(user.address, user2.address, 0)).revertedWith(
-        revertReason('Ownable: caller is not the owner')
+        'Ownable: caller is not the owner'
       )
     })
 

@@ -26,10 +26,6 @@ export type AccountAmountLeafNode = {
   amount: BigNumber
 }
 
-export function revertReason(reason: string): string {
-  return reason
-}
-
 export function hashIOUPPOLeafNode(leaf: IOUPPOLeafNode): Buffer {
   /**
    * slice(2) removes '0x' from the hash

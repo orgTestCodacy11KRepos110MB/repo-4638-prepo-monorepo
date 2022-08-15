@@ -14,7 +14,6 @@ import {
   AccountAmountLeafNode,
   hashAccountAmountLeafNode,
   generateAccountAmountMerkleTree,
-  revertReason,
 } from '../utils'
 import { StakingRewardsDistribution } from '../types/generated'
 
@@ -81,7 +80,7 @@ describe('StakingRewardsDistribution', () => {
 
       await expect(
         stakingRewardsDistribution.connect(user1).setPPOStaking(JUNK_ADDRESS)
-      ).revertedWith(revertReason('Ownable: caller is not the owner'))
+      ).revertedWith('Ownable: caller is not the owner')
     })
 
     it('sets to non-zero address', async () => {
@@ -125,7 +124,7 @@ describe('StakingRewardsDistribution', () => {
 
       await expect(
         stakingRewardsDistribution.connect(user1).setMerkleTreeRoot(merkleTree.getHexRoot())
-      ).revertedWith(revertReason('Ownable: caller is not the owner'))
+      ).revertedWith('Ownable: caller is not the owner')
     })
 
     it('sets root to non-zero hash', async () => {
@@ -203,7 +202,7 @@ describe('StakingRewardsDistribution', () => {
         stakingRewardsDistribution
           .connect(user1)
           .claim(eligibleNode1.account, eligibleNode1.amount, proof)
-      ).revertedWith(revertReason('Already claimed'))
+      ).revertedWith('Already claimed')
     })
 
     it("reverts if node doesn't exist (amount exists, but incorrect account)", async () => {
@@ -219,7 +218,7 @@ describe('StakingRewardsDistribution', () => {
         stakingRewardsDistribution
           .connect(user1)
           .claim(ineligibleNode.account, ineligibleNode.amount, proof)
-      ).revertedWith(revertReason('Invalid claim'))
+      ).revertedWith('Invalid claim')
     })
 
     it("reverts if node doesn't exist (account exists, but incorrect amount)", async () => {
@@ -235,7 +234,7 @@ describe('StakingRewardsDistribution', () => {
         stakingRewardsDistribution
           .connect(user1)
           .claim(ineligibleNode.account, ineligibleNode.amount, proof)
-      ).revertedWith(revertReason('Invalid claim'))
+      ).revertedWith('Invalid claim')
     })
 
     it("reverts if node doesn't exist (account and amount both incorrect)", async () => {
@@ -252,7 +251,7 @@ describe('StakingRewardsDistribution', () => {
         stakingRewardsDistribution
           .connect(user1)
           .claim(ineligibleNode.account, ineligibleNode.amount, proof)
-      ).revertedWith(revertReason('Invalid claim'))
+      ).revertedWith('Invalid claim')
     })
 
     it('calls stake from ppoStaking', async () => {

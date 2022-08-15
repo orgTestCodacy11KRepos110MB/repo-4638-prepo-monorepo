@@ -11,7 +11,7 @@ import {
   smockSteppedTimeMultiplierV1Fixture,
   smockMockAchievementsManagerFixture,
 } from './fixtures/PPOStakingFixtures'
-import { MAX_INT64, MAX_UINT64, MIN_INT64, revertReason } from '../utils'
+import { MAX_INT64, MAX_UINT64, MIN_INT64 } from '../utils'
 import {
   MockERC20,
   MockERC20__factory,
@@ -131,7 +131,7 @@ describe('PPOGamifiedToken', () => {
 
       await expect(
         gamifiedToken.connect(user1).setTimeMultiplierCalculator(mockSteppedTimeMultiplier.address)
-      ).to.be.revertedWith(revertReason('Only governor can execute'))
+      ).to.be.revertedWith('Only governor can execute')
     })
 
     it('sets new calculator to non-zero address', async () => {
@@ -201,7 +201,7 @@ describe('PPOGamifiedToken', () => {
 
       await expect(
         gamifiedToken.connect(user1).setMaxMultiplier(MAX_MULTIPLIER)
-      ).to.be.revertedWith(revertReason('Only governor can execute'))
+      ).to.be.revertedWith('Only governor can execute')
     })
 
     it('sets new max to value > 0', async () => {

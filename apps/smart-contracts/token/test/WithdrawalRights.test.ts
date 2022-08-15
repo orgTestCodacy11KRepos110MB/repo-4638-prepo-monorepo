@@ -3,7 +3,6 @@ import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { ZERO_ADDRESS } from 'prepo-constants'
 import { withdrawalRightsFixture } from './fixtures/PPOStakingFixtures'
-import { revertReason } from '../utils'
 import { WithdrawalRights } from '../types/generated'
 
 describe('WithdrawalRights', () => {
@@ -58,7 +57,7 @@ describe('WithdrawalRights', () => {
       expect(await withdrawalRights.owner()).to.not.eq(user1.address)
 
       expect(withdrawalRights.connect(user1).setURI(testURI)).revertedWith(
-        revertReason('Ownable: caller is not the owner')
+        'Ownable: caller is not the owner'
       )
     })
 
@@ -103,7 +102,7 @@ describe('WithdrawalRights', () => {
       expect(await withdrawalRights.owner()).to.not.eq(user1.address)
 
       expect(withdrawalRights.connect(user1).setPPOStaking(ppoStaking.address)).revertedWith(
-        revertReason('Ownable: caller is not the owner')
+        'Ownable: caller is not the owner'
       )
     })
 
@@ -149,7 +148,7 @@ describe('WithdrawalRights', () => {
       expect(await withdrawalRights.getPPOStaking()).to.not.eq(user1.address)
 
       expect(withdrawalRights.connect(user1).mint(user1.address)).revertedWith(
-        revertReason('msg.sender != PPOStaking')
+        'msg.sender != PPOStaking'
       )
     })
 
