@@ -41,16 +41,12 @@ describe('=> MiniSales', () => {
       owner.address,
       parseUnits('10000', paymentTokenDecimals)
     )
-    miniSales = await miniSalesFixture(
-      saleToken.address,
-      paymentToken.address,
-      saleTokenDecimals,
-      owner.address
-    )
+    miniSales = await miniSalesFixture(saleToken.address, paymentToken.address, saleTokenDecimals)
   }
 
   const setupMiniSales = async (): Promise<void> => {
     await deployMiniSales()
+    await miniSales.connect(deployer).transferOwnership(owner.address)
     await miniSales.connect(owner).acceptOwnership()
     fakeAllowlistPurchaseHook = await fakeAllowlistPurchaseHookFixture()
   }
@@ -60,9 +56,8 @@ describe('=> MiniSales', () => {
       await deployMiniSales()
     })
 
-    it('sets nominee from constructor', async () => {
-      expect(await miniSales.getNominee()).to.not.eq(deployer.address)
-      expect(await miniSales.getNominee()).to.eq(owner.address)
+    it('sets nominee to zero address', async () => {
+      expect(await miniSales.getNominee()).to.eq(ZERO_ADDRESS)
     })
 
     it('sets owner to deployer', async () => {

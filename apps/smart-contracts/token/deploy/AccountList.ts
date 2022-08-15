@@ -28,7 +28,7 @@ const deployFunction: DeployFunction = async function deployAccountList({
    * This can be temporarily removed if deploying to prod.
    */
   assertIsTestnetChain(currentChain)
-  let nameOfAccountList: string
+  const nameOfAccountList = ''
   if (!nameOfAccountList) throw new Error('Name must be specified before deploying AccountList')
   const { address: accountListAddress, newlyDeployed: accountListNewlyDeployed } = await deploy(
     nameOfAccountList,

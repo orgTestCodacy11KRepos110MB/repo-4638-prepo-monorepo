@@ -43,7 +43,7 @@ const deployFunction: DeployFunction = async function deployVesting({
     from: deployer.address,
     contract: 'Vesting',
     deterministicDeployment: false,
-    args: [governanceAddress],
+    args: [],
     skipIfAlreadyDeployed: true,
   })
   if (vestingNewlyDeployed) {
@@ -55,6 +55,10 @@ const deployFunction: DeployFunction = async function deployVesting({
   if ((await vesting.getToken()) !== existingPPO.address) {
     console.log('Setting Vesting contract to use PPO token at', existingPPO.address)
     await sendTxAndWait(await vesting.connect(deployer).setToken(existingPPO.address))
+  }
+  if ((await vesting.owner()) !== governanceAddress) {
+    console.log('Transferring ownership to', governanceAddress)
+    await sendTxAndWait(await vesting.connect(deployer).transferOwnership(governanceAddress))
   }
   console.log('')
 }

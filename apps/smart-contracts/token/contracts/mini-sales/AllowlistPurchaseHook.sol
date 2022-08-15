@@ -8,9 +8,7 @@ import "prepo-shared-contracts/contracts/SafeOwnable.sol";
 contract AllowlistPurchaseHook is IAllowlistPurchaseHook, SafeOwnable {
   IAccountList private _allowlist;
 
-  constructor(address _nominatedOwner) {
-    transferOwnership(_nominatedOwner);
-  }
+  constructor() {}
 
   function hook(
     address _purchaser,

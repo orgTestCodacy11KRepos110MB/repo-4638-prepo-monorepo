@@ -50,9 +50,9 @@ export async function mockPPOGamifiedTokenDeployFixture(
   )) as unknown as MockPPOGamifiedToken
 }
 
-export async function withdrawalRightsFixture(governance: string): Promise<WithdrawalRights> {
+export async function withdrawalRightsFixture(): Promise<WithdrawalRights> {
   const Factory = await ethers.getContractFactory('WithdrawalRights')
-  return (await Factory.deploy(governance)) as unknown as WithdrawalRights
+  return (await Factory.deploy()) as unknown as WithdrawalRights
 }
 
 export async function stakingRewardsDistributionFixture(): Promise<StakingRewardsDistribution> {

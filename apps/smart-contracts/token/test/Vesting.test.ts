@@ -37,11 +37,12 @@ describe('Vesting', () => {
 
   const deployVesting = async (): Promise<void> => {
     ;[deployer, owner, user1, user2] = await ethers.getSigners()
-    vesting = await vestingFixture(owner.address)
+    vesting = await vestingFixture()
   }
 
   const setupVesting = async (): Promise<void> => {
     await deployVesting()
+    await vesting.connect(deployer).transferOwnership(owner.address)
     await vesting.connect(owner).acceptOwnership()
     const mockERC20Recipient = owner.address
     const mockERC20Decimal = 18
@@ -60,9 +61,8 @@ describe('Vesting', () => {
       await deployVesting()
     })
 
-    it('sets nominee from constructor', async () => {
-      expect(await vesting.getNominee()).to.not.eq(deployer.address)
-      expect(await vesting.getNominee()).to.eq(owner.address)
+    it('sets nominee to zero address', async () => {
+      expect(await vesting.getNominee()).to.eq(ZERO_ADDRESS)
     })
 
     it('sets owner to deployer', async () => {

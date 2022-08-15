@@ -19,7 +19,13 @@ describe('WithdrawalRights', () => {
   }
 
   const deployWithdrawalRights = async (): Promise<void> => {
-    withdrawalRights = await withdrawalRightsFixture(governance.address)
+    withdrawalRights = await withdrawalRightsFixture()
+  }
+
+  const setupWithdrawalRights = async (): Promise<void> => {
+    await deployWithdrawalRights()
+    await withdrawalRights.connect(deployer).transferOwnership(governance.address)
+    await withdrawalRights.connect(governance).acceptOwnership()
   }
 
   describe('initial state', () => {
@@ -36,9 +42,8 @@ describe('WithdrawalRights', () => {
       expect(await withdrawalRights.symbol()).to.eq('stkPPO-WR')
     })
 
-    it('sets nominee from constructor', async () => {
-      expect(await withdrawalRights.getNominee()).to.not.eq(deployer.address)
-      expect(await withdrawalRights.getNominee()).to.eq(governance.address)
+    it('sets nominee to zero address', async () => {
+      expect(await withdrawalRights.getNominee()).to.eq(ZERO_ADDRESS)
     })
 
     it('sets owner to deployer', async () => {
@@ -49,8 +54,7 @@ describe('WithdrawalRights', () => {
   describe('# setURI', () => {
     beforeEach(async () => {
       await setupAccounts()
-      await deployWithdrawalRights()
-      await withdrawalRights.connect(governance).acceptOwnership()
+      await setupWithdrawalRights()
     })
 
     it('reverts if not owner', async () => {
@@ -94,8 +98,7 @@ describe('WithdrawalRights', () => {
   describe('# setPPOStaking', () => {
     beforeEach(async () => {
       await setupAccounts()
-      await deployWithdrawalRights()
-      await withdrawalRights.connect(governance).acceptOwnership()
+      await setupWithdrawalRights()
     })
 
     it('reverts if not owner', async () => {
@@ -139,8 +142,7 @@ describe('WithdrawalRights', () => {
   describe('# mint', () => {
     beforeEach(async () => {
       await setupAccounts()
-      await deployWithdrawalRights()
-      await withdrawalRights.connect(governance).acceptOwnership()
+      await setupWithdrawalRights()
       await withdrawalRights.connect(governance).setPPOStaking(ppoStaking.address)
     })
 

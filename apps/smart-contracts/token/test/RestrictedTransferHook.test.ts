@@ -20,11 +20,12 @@ describe('RestrictedTransferHook', () => {
 
   const deployHook = async (): Promise<void> => {
     ;[deployer, owner, user1, user2, ppoToken] = await ethers.getSigners()
-    restrictedTransferHook = await restrictedTransferHookFixture(owner.address)
+    restrictedTransferHook = await restrictedTransferHookFixture()
   }
 
   const setupHook = async (): Promise<void> => {
     await deployHook()
+    await restrictedTransferHook.connect(deployer).transferOwnership(owner.address)
     await restrictedTransferHook.connect(owner).acceptOwnership()
   }
 
@@ -45,9 +46,8 @@ describe('RestrictedTransferHook', () => {
       await deployHook()
     })
 
-    it('sets nominee from constructor', async () => {
-      expect(await restrictedTransferHook.getNominee()).to.not.eq(deployer.address)
-      expect(await restrictedTransferHook.getNominee()).to.eq(owner.address)
+    it('sets nominee to zero address', async () => {
+      expect(await restrictedTransferHook.getNominee()).to.eq(ZERO_ADDRESS)
     })
 
     it('sets owner to deployer', async () => {

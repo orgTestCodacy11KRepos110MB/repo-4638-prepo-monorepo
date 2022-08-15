@@ -12,13 +12,7 @@ contract PregenesisPoints is IPregenesisPoints, SafeOwnable, ReentrancyGuard, ER
   bytes32 private _root;
   mapping(address => bool) private _userToClaim;
 
-  constructor(
-    address _nominatedOwner,
-    string memory _name,
-    string memory _symbol
-  ) ERC20(_name, _symbol) {
-    transferOwnership(_nominatedOwner);
-  }
+  constructor(string memory _name, string memory _symbol) ERC20(_name, _symbol) {}
 
   function setShop(address _newShop) external override onlyOwner {
     _shop = _newShop;

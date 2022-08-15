@@ -21,8 +21,7 @@ contract TokenShop is ITokenShop, SafeOwnable, ReentrancyGuard, Pausable {
   mapping(address => mapping(address => mapping(uint256 => uint256)))
     private _userToERC1155ToIdToPurchaseCount;
 
-  constructor(address _nominatedOwner, address _newPaymentToken) {
-    transferOwnership(_nominatedOwner);
+  constructor(address _newPaymentToken) {
     _paymentToken = IERC20(_newPaymentToken);
   }
 

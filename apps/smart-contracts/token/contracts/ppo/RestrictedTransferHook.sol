@@ -9,7 +9,7 @@ contract RestrictedTransferHook is IRestrictedTransferHook, BlocklistTransferHoo
   IAccountList private _sourceAllowlist;
   IAccountList private _destinationAllowlist;
 
-  constructor(address _nominatedOwner) BlocklistTransferHook(_nominatedOwner) {}
+  constructor() {}
 
   function hook(
     address _from,

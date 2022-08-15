@@ -7,13 +7,9 @@ import {
   BlocklistTransferHook,
 } from '../../types/generated'
 
-export async function ppoFixture(
-  name: string,
-  symbol: string,
-  nominatedOwnerAddress: string
-): Promise<PPO> {
+export async function ppoFixture(name: string, symbol: string): Promise<PPO> {
   const Factory = await ethers.getContractFactory('PPO')
-  return (await upgrades.deployProxy(Factory, [name, symbol, nominatedOwnerAddress])) as PPO
+  return (await upgrades.deployProxy(Factory, [name, symbol])) as PPO
 }
 
 export async function accountListFixture(): Promise<AccountList> {
@@ -21,18 +17,14 @@ export async function accountListFixture(): Promise<AccountList> {
   return (await Factory.deploy()) as AccountList
 }
 
-export async function restrictedTransferHookFixture(
-  nominatedOwnerAddress: string
-): Promise<RestrictedTransferHook> {
+export async function restrictedTransferHookFixture(): Promise<RestrictedTransferHook> {
   const Factory = await ethers.getContractFactory('RestrictedTransferHook')
-  return (await Factory.deploy(nominatedOwnerAddress)) as RestrictedTransferHook
+  return (await Factory.deploy()) as RestrictedTransferHook
 }
 
-export async function blocklistTransferHookFixture(
-  nominatedOwnerAddress: string
-): Promise<BlocklistTransferHook> {
+export async function blocklistTransferHookFixture(): Promise<BlocklistTransferHook> {
   const Factory = await ethers.getContractFactory('BlocklistTransferHook')
-  return (await Factory.deploy(nominatedOwnerAddress)) as BlocklistTransferHook
+  return (await Factory.deploy()) as BlocklistTransferHook
 }
 
 export async function smockAccountListFixture(): Promise<MockContract> {

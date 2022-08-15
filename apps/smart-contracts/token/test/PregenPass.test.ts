@@ -1,6 +1,7 @@
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
+import { ZERO_ADDRESS } from 'prepo-constants'
 import { mockPregenPassFixture } from './fixtures/PregenesisFixtures'
 import { MockPregenPass } from '../types/generated'
 
@@ -16,11 +17,12 @@ describe('PregenPass', () => {
 
   const deployPregenPass = async (): Promise<void> => {
     ;[deployer, owner, user, user2] = await ethers.getSigners()
-    pregenPass = await mockPregenPassFixture(owner.address, URI)
+    pregenPass = await mockPregenPassFixture(URI)
   }
 
   const setupPregenPass = async (): Promise<void> => {
     await deployPregenPass()
+    await pregenPass.connect(deployer).transferOwnership(owner.address)
     await pregenPass.connect(owner).acceptOwnership()
   }
 
@@ -41,9 +43,8 @@ describe('PregenPass', () => {
       expect(await pregenPass.symbol()).to.eq('PREGENPASS')
     })
 
-    it('sets nominee from constructor', async () => {
-      expect(await pregenPass.getNominee()).to.not.eq(deployer.address)
-      expect(await pregenPass.getNominee()).to.eq(owner.address)
+    it('sets nominee to zero address', async () => {
+      expect(await pregenPass.getNominee()).to.eq(ZERO_ADDRESS)
     })
 
     it('sets owner to deployer', async () => {

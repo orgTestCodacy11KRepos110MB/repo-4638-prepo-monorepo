@@ -57,7 +57,7 @@ describe('PurchaseHook', () => {
       mockERC20InitialSupply
     )
     const tokenShopFactory = await smock.mock('TokenShop')
-    tokenShop = await tokenShopFactory.deploy(owner.address, paymentToken.address)
+    tokenShop = await tokenShopFactory.deploy(paymentToken.address)
   }
 
   describe('initial state', () => {

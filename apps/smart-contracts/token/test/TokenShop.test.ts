@@ -51,11 +51,12 @@ describe('TokenShop', () => {
       mockERC20Recipient,
       mockERC20InitialSupply
     )
-    tokenShop = await tokenShopFixture(owner.address, paymentToken.address)
+    tokenShop = await tokenShopFixture(paymentToken.address)
   }
 
   const setupTokenShop = async (): Promise<void> => {
     await deployTokenShop()
+    await tokenShop.connect(deployer).transferOwnership(owner.address)
     await tokenShop.connect(owner).acceptOwnership()
   }
 
@@ -71,9 +72,8 @@ describe('TokenShop', () => {
       await deployTokenShop()
     })
 
-    it('sets nominee from constructor', async () => {
-      expect(await tokenShop.getNominee()).to.not.eq(deployer.address)
-      expect(await tokenShop.getNominee()).to.eq(owner.address)
+    it('sets nominee to zero address', async () => {
+      expect(await tokenShop.getNominee()).to.eq(ZERO_ADDRESS)
     })
 
     it('sets payment token from constructor', async () => {

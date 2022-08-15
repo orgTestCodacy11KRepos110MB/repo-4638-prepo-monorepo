@@ -20,11 +20,12 @@ describe('AllowlistPurchaseHook', () => {
 
   const deployHook = async (): Promise<void> => {
     ;[deployer, owner, user1, user2, allowedContract] = await ethers.getSigners()
-    allowlistPurchaseHook = await allowlistPurchaseHookFixture(owner.address)
+    allowlistPurchaseHook = await allowlistPurchaseHookFixture()
   }
 
   const setupHook = async (): Promise<void> => {
     await deployHook()
+    await allowlistPurchaseHook.connect(deployer).transferOwnership(owner.address)
     await allowlistPurchaseHook.connect(owner).acceptOwnership()
   }
 
@@ -39,9 +40,8 @@ describe('AllowlistPurchaseHook', () => {
       await deployHook()
     })
 
-    it('sets nominee from constructor', async () => {
-      expect(await allowlistPurchaseHook.getNominee()).to.not.eq(deployer.address)
-      expect(await allowlistPurchaseHook.getNominee()).to.eq(owner.address)
+    it('sets nominee to zero address', async () => {
+      expect(await allowlistPurchaseHook.getNominee()).to.eq(ZERO_ADDRESS)
     })
 
     it('sets owner to deployer', async () => {

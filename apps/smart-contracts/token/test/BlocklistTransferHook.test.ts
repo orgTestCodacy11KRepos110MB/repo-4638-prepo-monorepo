@@ -18,11 +18,12 @@ describe('BlocklistTransferHook', () => {
 
   const deployHook = async (): Promise<void> => {
     ;[deployer, owner, user1, user2, ppoToken] = await ethers.getSigners()
-    blocklistTransferHook = await blocklistTransferHookFixture(owner.address)
+    blocklistTransferHook = await blocklistTransferHookFixture()
   }
 
   const setupHook = async (): Promise<void> => {
     await deployHook()
+    await blocklistTransferHook.connect(deployer).transferOwnership(owner.address)
     await blocklistTransferHook.connect(owner).acceptOwnership()
   }
 
@@ -37,9 +38,8 @@ describe('BlocklistTransferHook', () => {
       await deployHook()
     })
 
-    it('sets nominee from constructor', async () => {
-      expect(await blocklistTransferHook.getNominee()).to.not.eq(deployer.address)
-      expect(await blocklistTransferHook.getNominee()).to.eq(owner.address)
+    it('sets nominee to zero address', async () => {
+      expect(await blocklistTransferHook.getNominee()).to.eq(ZERO_ADDRESS)
     })
 
     it('sets owner to deployer', async () => {

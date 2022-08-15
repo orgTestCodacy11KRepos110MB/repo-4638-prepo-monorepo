@@ -2,7 +2,7 @@
 import { DeployFunction } from 'hardhat-deploy/types'
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { ChainId, getPrePOAddressForNetwork } from 'prepo-constants'
-import { utils } from 'prepo-hardhat'
+import { sendTxAndWait, utils } from 'prepo-hardhat'
 import { getNetworkByChainId } from 'prepo-utils'
 import { HardhatUpgrades } from '@openzeppelin/hardhat-upgrades'
 import dotenv from 'dotenv'
@@ -61,11 +61,7 @@ const deployFunction: DeployFunction = async function deployPPO({
   const existingDeployment = await getOrNull('PPO')
   if (!existingDeployment) {
     console.log('Existing deployment not detected, deploying new contract')
-    const newDeployment = await upgrades.deployProxy(ppoTokenFactory, [
-      'prePO Token',
-      'PPO',
-      governanceAddress,
-    ])
+    const newDeployment = await upgrades.deployProxy(ppoTokenFactory, ['prePO Token', 'PPO'])
     console.log('Deployed PPO at', newDeployment.address)
     const deploymentReceipt = await newDeployment.deployTransaction.wait()
     await save('PPO', {
@@ -103,6 +99,16 @@ const deployFunction: DeployFunction = async function deployPPO({
       address: upgradeProposal.contract.address,
       receipt: upgradeProposalReceipt,
     })
+  }
+  /**
+   * Because this deployment was not conventionally deployed using `hardhat-deploy`,
+   * we cannot directly retrieve it using `ethers.getContract`.
+   */
+  const refetchedDeployment = await getOrNull('PPO')
+  const ppo = await ethers.getContractAt('PPO', refetchedDeployment.address)
+  if ((await ppo.owner()) !== governanceAddress) {
+    console.log('Transferring ownership to', governanceAddress)
+    await sendTxAndWait(await ppo.connect(deployer).transferOwnership(governanceAddress))
   }
   console.log('')
 }

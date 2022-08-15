@@ -5,23 +5,19 @@ import { MiniSales, AllowlistPurchaseHook } from '../../types/generated'
 export async function miniSalesFixture(
   saleTokenAddress: string,
   paymentTokenAddress: string,
-  saleTokenDecimals: number,
-  nominatedOwnerAddress: string
+  saleTokenDecimals: number
 ): Promise<MiniSales> {
   const Factory = await ethers.getContractFactory('MiniSales')
   return (await Factory.deploy(
     saleTokenAddress,
     paymentTokenAddress,
-    saleTokenDecimals,
-    nominatedOwnerAddress
+    saleTokenDecimals
   )) as MiniSales
 }
 
-export async function allowlistPurchaseHookFixture(
-  nominatedOwnerAddress: string
-): Promise<AllowlistPurchaseHook> {
+export async function allowlistPurchaseHookFixture(): Promise<AllowlistPurchaseHook> {
   const Factory = await ethers.getContractFactory('AllowlistPurchaseHook')
-  return (await Factory.deploy(nominatedOwnerAddress)) as AllowlistPurchaseHook
+  return (await Factory.deploy()) as AllowlistPurchaseHook
 }
 
 export async function fakeAllowlistPurchaseHookFixture(): Promise<FakeContract> {

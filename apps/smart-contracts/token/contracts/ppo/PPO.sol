@@ -9,15 +9,10 @@ import "prepo-shared-contracts/contracts/SafeOwnableUpgradeable.sol";
 contract PPO is IPPO, SafeOwnableUpgradeable, ERC20BurnableUpgradeable, ERC20PermitUpgradeable {
   ITransferHook private _transferHook;
 
-  function initialize(
-    string memory _name,
-    string memory _symbol,
-    address _nominatedOwner
-  ) public initializer {
+  function initialize(string memory _name, string memory _symbol) public initializer {
     __Ownable_init();
     __ERC20_init(_name, _symbol);
     __ERC20Permit_init(_name);
-    transferOwnership(_nominatedOwner);
   }
 
   function setTransferHook(ITransferHook _newTransferHook) external override onlyOwner {

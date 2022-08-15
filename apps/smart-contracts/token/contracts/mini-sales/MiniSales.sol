@@ -14,14 +14,12 @@ contract MiniSales is IMiniSales, WithdrawERC20 {
   constructor(
     address _newSaleToken,
     address _newPaymentToken,
-    uint256 _newSaleTokenDecimals,
-    address _nominatedOwner
+    uint256 _newSaleTokenDecimals
   ) {
     _saleToken = IERC20Metadata(_newSaleToken);
     _paymentToken = IERC20Metadata(_newPaymentToken);
     // TODO add to natspec that this assumes decimals will not change
     _saleTokenDecimals = 10**_newSaleTokenDecimals;
-    transferOwnership(_nominatedOwner);
   }
 
   function purchase(

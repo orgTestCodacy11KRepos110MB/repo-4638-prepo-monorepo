@@ -4,7 +4,7 @@ pragma solidity =0.8.7;
 import "../PregenPass.sol";
 
 contract MockPregenPass is PregenPass {
-  constructor(address _owner, string memory _newURI) PregenPass(_owner, _newURI) {}
+  constructor(string memory _newURI) PregenPass(_newURI) {}
 
   function beforeTokenTransfer(
     address _from,

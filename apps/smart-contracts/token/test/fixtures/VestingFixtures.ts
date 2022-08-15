@@ -1,9 +1,9 @@
 import { ethers } from 'hardhat'
 import { Vesting, MockVestingClaimer } from '../../types/generated'
 
-export async function vestingFixture(vestingOwner: string): Promise<Vesting> {
+export async function vestingFixture(): Promise<Vesting> {
   const Factory = await ethers.getContractFactory('Vesting')
-  return (await Factory.deploy(vestingOwner)) as unknown as Vesting
+  return (await Factory.deploy()) as unknown as Vesting
 }
 
 export async function mockVestingClaimerFixture(

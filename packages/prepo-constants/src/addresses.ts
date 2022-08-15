@@ -29,7 +29,8 @@ export function getPrePOAddressForNetwork(
 ): string {
   // Handle local network
   if (network === 'hardhat' || network === 'ganache') {
-    if (!localAddress) throw new Error('Local network detected, but no localAddress was provided')
+    if (!localAddress)
+      throw new Error(`Local network detected, but no local ${keyword} address was provided`)
     return getAddress(localAddress)
   }
   /**

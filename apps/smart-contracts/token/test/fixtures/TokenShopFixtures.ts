@@ -3,9 +3,9 @@ import { FakeContract, smock } from '@defi-wonderland/smock'
 import { TokenShop } from '../../types/generated'
 import { PurchaseHook } from '../../types/generated/contracts/token-shop/PurchaseHook'
 
-export async function tokenShopFixture(owner: string, paymentToken: string): Promise<TokenShop> {
+export async function tokenShopFixture(paymentToken: string): Promise<TokenShop> {
   const Factory = await ethers.getContractFactory('TokenShop')
-  return (await Factory.deploy(owner, paymentToken)) as unknown as TokenShop
+  return (await Factory.deploy(paymentToken)) as unknown as TokenShop
 }
 
 export async function purchaseHookFixture(): Promise<PurchaseHook> {

@@ -13,9 +13,7 @@ contract WithdrawalRights is SafeOwnable, ERC721 {
     _;
   }
 
-  constructor(address _nominatedOwner) ERC721("Staked PPO Withdrawal Rights", "stkPPO-WR") {
-    transferOwnership(_nominatedOwner);
-  }
+  constructor() ERC721("Staked PPO Withdrawal Rights", "stkPPO-WR") {}
 
   function setURI(string memory _newURI) external onlyOwner {
     _uri = _newURI;

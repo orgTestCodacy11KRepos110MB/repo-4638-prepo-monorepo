@@ -18,9 +18,7 @@ contract Vesting is IVesting, Pausable, WithdrawERC20 {
 
   uint256 private _totalAllocatedSupply;
 
-  constructor(address _nominatedOwner) {
-    transferOwnership(_nominatedOwner);
-  }
+  constructor() {}
 
   function setToken(address _newToken) external override onlyOwner {
     _token = IERC20(_newToken);

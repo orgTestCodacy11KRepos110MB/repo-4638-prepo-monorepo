@@ -20,11 +20,12 @@ describe('=> PPO', () => {
 
   const deployPPO = async (): Promise<void> => {
     ;[deployer, owner, user1, user2] = await ethers.getSigners()
-    ppo = await ppoFixture('prePO Token', 'PPO', owner.address)
+    ppo = await ppoFixture('prePO Token', 'PPO')
   }
 
   const setupPPO = async (): Promise<void> => {
     await deployPPO()
+    await ppo.connect(deployer).transferOwnership(owner.address)
     await ppo.connect(owner).acceptOwnership()
   }
 
@@ -39,9 +40,8 @@ describe('=> PPO', () => {
       await deployPPO()
     })
 
-    it('sets nominee from initialize', async () => {
-      expect(await ppo.getNominee()).to.not.eq(deployer.address)
-      expect(await ppo.getNominee()).to.eq(owner.address)
+    it('sets nominee to zero address', async () => {
+      expect(await ppo.getNominee()).to.eq(ZERO_ADDRESS)
     })
 
     it('sets name from initialize', async () => {

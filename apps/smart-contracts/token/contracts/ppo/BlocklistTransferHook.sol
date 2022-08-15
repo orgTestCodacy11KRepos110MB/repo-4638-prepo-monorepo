@@ -8,9 +8,7 @@ import "prepo-shared-contracts/contracts/SafeOwnable.sol";
 contract BlocklistTransferHook is IBlocklistTransferHook, SafeOwnable {
   IAccountList private _blocklist;
 
-  constructor(address _nominatedOwner) {
-    transferOwnership(_nominatedOwner);
-  }
+  constructor() {}
 
   function hook(
     address _from,

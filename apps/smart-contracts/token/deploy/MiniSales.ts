@@ -6,12 +6,13 @@ import { utils } from 'prepo-hardhat'
 import { getNetworkByChainId } from 'prepo-utils'
 import dotenv from 'dotenv'
 import { parseEther } from 'ethers/lib/utils'
+import { MiniSales } from '../types/generated'
 
 dotenv.config({
   path: '../.env',
 })
 
-const { assertIsTestnetChain } = utils
+const { assertIsTestnetChain, sendTxAndWait } = utils
 
 const deployFunction: DeployFunction = async function deployMiniSales({
   ethers,
@@ -46,7 +47,7 @@ const deployFunction: DeployFunction = async function deployMiniSales({
       from: deployer.address,
       contract: 'MiniSales',
       deterministicDeployment: false,
-      args: [existingPPO.address, usdcAddress, 18, governanceAddress],
+      args: [existingPPO.address, usdcAddress, 18],
       skipIfAlreadyDeployed: true,
     }
   )
@@ -54,6 +55,11 @@ const deployFunction: DeployFunction = async function deployMiniSales({
     console.log('Deployed MiniSales to', miniSalesAddress)
   } else {
     console.log('Existing MiniSales at', miniSalesAddress)
+  }
+  const miniSales = (await ethers.getContract('MiniSales')) as MiniSales
+  if ((await miniSales.owner()) !== governanceAddress) {
+    console.log('Transferring ownership to', governanceAddress)
+    await sendTxAndWait(await miniSales.connect(deployer).transferOwnership(governanceAddress))
   }
   console.log('')
 }

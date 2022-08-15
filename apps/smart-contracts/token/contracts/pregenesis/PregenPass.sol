@@ -8,8 +8,7 @@ contract PregenPass is SafeOwnable, ERC721Enumerable {
   uint256 private _id;
   string private _uri;
 
-  constructor(address _nominatedOwner, string memory _newURI) ERC721("Pregen Pass", "PREGENPASS") {
-    transferOwnership(_nominatedOwner);
+  constructor(string memory _newURI) ERC721("Pregen Pass", "PREGENPASS") {
     _uri = _newURI;
   }
 
