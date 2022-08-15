@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: AGPL-3.0
 pragma solidity =0.8.7;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "prepo-shared-contracts/contracts/SafeOwnable.sol";

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: AGPL-3.0
 pragma solidity =0.8.7;
 
 ///@notice External hook to be called before or after an ERC20 token transfer.
