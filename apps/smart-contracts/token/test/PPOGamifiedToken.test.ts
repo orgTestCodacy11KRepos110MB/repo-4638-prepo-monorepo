@@ -179,13 +179,13 @@ describe('PPOGamifiedToken', () => {
       )
     })
 
-    it('emits TimeMultiplierCalculatorChanged', async () => {
+    it('emits TimeMultiplierCalculatorChange', async () => {
       const tx = await gamifiedToken
         .connect(owner)
         .setTimeMultiplierCalculator(mockSteppedTimeMultiplier.address)
 
       await expect(tx)
-        .to.emit(gamifiedToken, 'TimeMultiplierCalculatorChanged(address)')
+        .to.emit(gamifiedToken, 'TimeMultiplierCalculatorChange(address)')
         .withArgs(mockSteppedTimeMultiplier.address)
     })
   })
@@ -233,11 +233,11 @@ describe('PPOGamifiedToken', () => {
       expect(await gamifiedToken.getMaxMultiplier()).to.eq(MAX_MULTIPLIER)
     })
 
-    it('emits MaxMultiplierChanged', async () => {
+    it('emits MaxMultiplierChange', async () => {
       const tx = await gamifiedToken.connect(owner).setMaxMultiplier(MAX_MULTIPLIER)
 
       await expect(tx)
-        .to.emit(gamifiedToken, 'MaxMultiplierChanged(uint256)')
+        .to.emit(gamifiedToken, 'MaxMultiplierChange(uint256)')
         .withArgs(MAX_MULTIPLIER)
     })
   })

@@ -764,6 +764,22 @@ describe('Vesting', () => {
         contractBalanceBefore.sub(expectedChangeInBalance)
       )
     })
+
+    it('emits Claim', async () => {
+      await mockERC20Token.connect(owner).transfer(vesting.address, amountsAllocated[0])
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mineBlock(ethers.provider as any, timeAfterVestingStarted)
+      expect(await utils.getLastTimestamp(ethers.provider)).to.be.eq(timeAfterVestingStarted)
+      const totalClaimedBefore = await vesting.getClaimedAmount(user1.address)
+
+      const tx = await vesting.connect(user1).claim()
+
+      const totalClaimedAfter = await vesting.getClaimedAmount(user1.address)
+      const claimedAmount = totalClaimedAfter.sub(totalClaimedBefore)
+      await expect(tx)
+        .to.emit(vesting, 'Claim(address,uint256)')
+        .withArgs(user1.address, claimedAmount)
+    })
   })
 
   describe('# getClaimableAmount', () => {

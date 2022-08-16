@@ -14,7 +14,7 @@ interface IVesting {
   /// @dev Emitted via `claim()`.
   /// @param recipient Address of the recipient of tokens
   /// @param amount Amount of tokens claimed by recipient
-  event Claimed(address recipient, uint256 amount);
+  event Claim(address recipient, uint256 amount);
 
   /**
    * @dev Only callable by `owner()`.

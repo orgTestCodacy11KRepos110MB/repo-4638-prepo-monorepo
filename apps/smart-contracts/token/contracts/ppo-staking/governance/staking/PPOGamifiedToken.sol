@@ -30,8 +30,8 @@ abstract contract PPOGamifiedToken is
   ContextUpgradeable,
   HeadlessStakingRewards
 {
-  event TimeMultiplierCalculatorChanged(address newCalculator);
-  event MaxMultiplierChanged(uint256 newMultiplier);
+  event TimeMultiplierCalculatorChange(address newCalculator);
+  event MaxMultiplierChange(uint256 newMultiplier);
 
   /// @notice name of this token (ERC20)
   string private _name;
@@ -91,12 +91,12 @@ abstract contract PPOGamifiedToken is
 
   function setTimeMultiplierCalculator(address _newCalculator) external onlyGovernor {
     _timeMultiplierCalculator = ITimeMultiplierCalculator(_newCalculator);
-    emit TimeMultiplierCalculatorChanged(_newCalculator);
+    emit TimeMultiplierCalculatorChange(_newCalculator);
   }
 
   function setMaxMultiplier(uint256 _newMaxMultiplier) external onlyGovernor {
     _maxMultiplier = _newMaxMultiplier;
-    emit MaxMultiplierChanged(_newMaxMultiplier);
+    emit MaxMultiplierChange(_newMaxMultiplier);
   }
 
   /***************************************

@@ -51,14 +51,14 @@ contract PPOStaking is PPOGamifiedVotingToken, InitializableReentrancyGuard {
   /// @notice Whitelisted smart contract integrations
   mapping(address => bool) public whitelistedWrappers;
 
-  event Staked(address indexed user, uint256 amount);
+  event Stake(address indexed user, uint256 amount);
   event Withdraw(address indexed user, address indexed to, uint256 amount);
   event Cooldown(address indexed user, uint256 percentage);
-  event CooldownExited(address indexed user);
-  event SlashRateChanged(uint256 newRate);
-  event Recollateralised();
-  event WrapperWhitelisted(address wallet);
-  event WrapperBlacklisted(address wallet);
+  event CooldownExit(address indexed user);
+  event SlashRateChange(uint256 newRate);
+  event Recollateralise();
+  event WrapperWhitelist(address wallet);
+  event WrapperBlacklist(address wallet);
 
   /***************************************
                     INIT
@@ -158,13 +158,13 @@ contract PPOStaking is PPOGamifiedVotingToken, InitializableReentrancyGuard {
     bool _exitCooldown = (_oldBalance.cooldownTimestamp > 0 &&
       block.timestamp > (_oldBalance.cooldownTimestamp + COOLDOWN_SECONDS + UNSTAKE_WINDOW));
     if (_exitCooldown) {
-      emit CooldownExited(_recipient);
+      emit CooldownExit(_recipient);
     }
 
     // 2. Settle the stake by depositing the STAKED_TOKEN and minting voting power
     _mintRaw(_recipient, _amount, _exitCooldown);
 
-    emit Staked(_recipient, _amount);
+    emit Stake(_recipient, _amount);
   }
 
   /**
@@ -269,7 +269,7 @@ contract PPOStaking is PPOGamifiedVotingToken, InitializableReentrancyGuard {
 
     _exitCooldownPeriod(_msgSender());
 
-    emit CooldownExited(_msgSender());
+    emit CooldownExit(_msgSender());
   }
 
   /**
@@ -310,7 +310,7 @@ contract PPOStaking is PPOGamifiedVotingToken, InitializableReentrancyGuard {
       (balance * safetyData.slashingPercentage) / 1e18
     );
     // 3. No functions should work anymore because the colRatio has changed
-    emit Recollateralised();
+    emit Recollateralise();
   }
 
   /**
@@ -327,7 +327,7 @@ contract PPOStaking is PPOGamifiedVotingToken, InitializableReentrancyGuard {
 
     safetyData.slashingPercentage = SafeCast.toUint128(_newRate);
 
-    emit SlashRateChanged(_newRate);
+    emit SlashRateChange(_newRate);
   }
 
   /**
@@ -338,7 +338,7 @@ contract PPOStaking is PPOGamifiedVotingToken, InitializableReentrancyGuard {
   function whitelistWrapper(address _wrapper) external onlyGovernor {
     whitelistedWrappers[_wrapper] = true;
 
-    emit WrapperWhitelisted(_wrapper);
+    emit WrapperWhitelist(_wrapper);
   }
 
   /**
@@ -348,7 +348,7 @@ contract PPOStaking is PPOGamifiedVotingToken, InitializableReentrancyGuard {
   function blackListWrapper(address _wrapper) external onlyGovernor {
     whitelistedWrappers[_wrapper] = false;
 
-    emit WrapperBlacklisted(_wrapper);
+    emit WrapperBlacklist(_wrapper);
   }
 
   /***************************************

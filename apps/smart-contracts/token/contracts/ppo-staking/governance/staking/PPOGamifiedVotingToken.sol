@@ -34,7 +34,7 @@ abstract contract PPOGamifiedVotingToken is Initializable, PPOGamifiedToken {
 
   IGovernanceHook private _governanceHook;
 
-  event GovernanceHookChanged(address indexed hook);
+  event GovernanceHookChange(address indexed hook);
 
   /**
    * @dev Emitted when an account changes their delegatee.
@@ -68,7 +68,7 @@ abstract contract PPOGamifiedVotingToken is Initializable, PPOGamifiedToken {
   function setGovernanceHook(address _newHook) external onlyGovernor {
     _governanceHook = IGovernanceHook(_newHook);
 
-    emit GovernanceHookChanged(_newHook);
+    emit GovernanceHookChange(_newHook);
   }
 
   /**

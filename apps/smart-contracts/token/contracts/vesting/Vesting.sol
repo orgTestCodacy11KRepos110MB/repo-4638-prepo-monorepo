@@ -71,7 +71,7 @@ contract Vesting is IVesting, Pausable, WithdrawERC20 {
     );
     _recipientToClaimedAmount[msg.sender] += _claimableAmount;
     _token.transfer(msg.sender, _claimableAmount);
-    emit Claimed(msg.sender, _claimableAmount);
+    emit Claim(msg.sender, _claimableAmount);
   }
 
   function getClaimableAmount(address _recipient) public view override returns (uint256) {

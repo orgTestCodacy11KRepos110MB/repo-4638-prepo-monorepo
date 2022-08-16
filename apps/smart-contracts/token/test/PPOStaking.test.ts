@@ -174,7 +174,7 @@ describe('PPOStaking', () => {
 
         await expect(tx).to.not.emit(ppoToken, 'Transfer')
         expect(await ppoToken.balanceOf(staker.address)).to.eq(stakerPPOBalanceBefore)
-        await expect(tx).to.not.emit(ppoStaking, 'Staked')
+        await expect(tx).to.not.emit(ppoStaking, 'Stake')
         expect(await ppoStaking.balanceOf(recipient.address)).to.eq(0)
       })
 
@@ -233,7 +233,7 @@ describe('PPOStaking', () => {
                 .stake(recipient.address, testAmountToStake)
 
               await expect(tx)
-                .to.emit(ppoStaking, 'Staked')
+                .to.emit(ppoStaking, 'Stake')
                 .withArgs(recipient.address, testAmountToStake)
               expect(await ppoStaking.balanceOf(recipient.address)).to.eq(
                 recipientStakingBalanceBefore.add(testAmountToStake)
@@ -340,7 +340,7 @@ describe('PPOStaking', () => {
 
         await expect(tx).to.not.emit(ppoToken, 'Transfer')
         expect(await ppoToken.balanceOf(staker.address)).to.eq(stakerPPOBalanceBefore)
-        await expect(tx).to.not.emit(ppoStaking, 'Staked')
+        await expect(tx).to.not.emit(ppoStaking, 'Stake')
         expect(await ppoStaking.balanceOf(recipient.address)).to.eq(recipientScaledBalanceBefore)
       })
 
@@ -373,9 +373,7 @@ describe('PPOStaking', () => {
 
         const tx = await ppoStaking.connect(staker).stake(recipient.address, testAmountToStake)
 
-        await expect(tx)
-          .to.emit(ppoStaking, 'Staked')
-          .withArgs(recipient.address, testAmountToStake)
+        await expect(tx).to.emit(ppoStaking, 'Stake').withArgs(recipient.address, testAmountToStake)
         expect(await ppoStaking.balanceOf(staker.address)).to.eq(stakerScaledBalanceBefore)
         expect(await ppoStaking.balanceOf(recipient.address)).to.eq(
           recipientScaledBalanceBefore.add(testAmountToStake)
@@ -495,7 +493,7 @@ describe('PPOStaking', () => {
                 .connect(staker)
                 .stake(recipient.address, secondAmountToStake)
 
-              expect(tx).to.not.emit(ppoStaking, 'CooldownExited')
+              expect(tx).to.not.emit(ppoStaking, 'CooldownExit')
               const recipientBalanceDataAfter = await ppoStaking.balanceData(recipient.address)
               expect(recipientBalanceDataAfter.raw).to.eq(
                 recipientBalanceDataBefore.raw.add(secondAmountToStake)
@@ -526,7 +524,7 @@ describe('PPOStaking', () => {
                 .connect(staker)
                 .stake(recipient.address, secondAmountToStake)
 
-              expect(tx).to.not.emit(ppoStaking, 'CooldownExited')
+              expect(tx).to.not.emit(ppoStaking, 'CooldownExit')
               const recipientBalanceDataAfter = await ppoStaking.balanceData(recipient.address)
               expect(recipientBalanceDataAfter.raw).to.eq(
                 recipientBalanceDataBefore.raw.add(secondAmountToStake)
@@ -557,7 +555,7 @@ describe('PPOStaking', () => {
                 .connect(staker)
                 .stake(recipient.address, secondAmountToStake)
 
-              expect(tx).to.emit(ppoStaking, 'CooldownExited').withArgs(recipient.address)
+              expect(tx).to.emit(ppoStaking, 'CooldownExit').withArgs(recipient.address)
               const recipientBalanceDataAfter = await ppoStaking.balanceData(recipient.address)
               expect(recipientBalanceDataAfter.raw).to.eq(
                 recipientBalanceDataBefore.raw.add(amountToCooldown).add(secondAmountToStake)
