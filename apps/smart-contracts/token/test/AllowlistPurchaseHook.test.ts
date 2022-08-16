@@ -73,6 +73,29 @@ describe('AllowlistPurchaseHook', () => {
       ).to.be.revertedWith('Recipient not allowed')
     })
 
+    it('reverts if allowlist not set', async () => {
+      await allowlistPurchaseHook.connect(owner).setAllowlist(ZERO_ADDRESS)
+      expect(await allowlistPurchaseHook.getAllowlist()).to.eq(ZERO_ADDRESS)
+
+      await expect(
+        allowlistPurchaseHook
+          .connect(allowedContract)
+          .hook(purchaser.address, recipient.address, 1, 1)
+      ).to.be.reverted
+    })
+
+    it('reverts if allowlist set to incompatible contract', async () => {
+      await allowlistPurchaseHook.connect(owner).setAllowlist(allowlistPurchaseHook.address)
+      expect(await allowlistPurchaseHook.getAllowlist()).to.eq(allowlistPurchaseHook.address)
+      expect(allowedAccounts.address).to.not.eq(allowlistPurchaseHook.address)
+
+      await expect(
+        allowlistPurchaseHook
+          .connect(allowedContract)
+          .hook(purchaser.address, recipient.address, 1, 1)
+      ).to.be.reverted
+    })
+
     it('succeeds if recipient allowed', async () => {
       allowedAccounts.isIncluded.whenCalledWith(recipient.address).returns(true)
 

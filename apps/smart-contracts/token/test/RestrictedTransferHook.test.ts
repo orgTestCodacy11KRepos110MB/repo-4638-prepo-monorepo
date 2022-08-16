@@ -177,6 +177,50 @@ describe('RestrictedTransferHook', () => {
       recipient = user2
     })
 
+    it('reverts if source allowlist not set', async () => {
+      await restrictedTransferHook.connect(owner).setSourceAllowlist(ZERO_ADDRESS)
+      expect(await restrictedTransferHook.getSourceAllowlist()).to.eq(ZERO_ADDRESS)
+
+      await expect(
+        restrictedTransferHook.connect(ppoToken).hook(sender.address, recipient.address, 1)
+      ).to.be.reverted
+    })
+
+    it('reverts if source allowlist set to incompatible contract', async () => {
+      await restrictedTransferHook.connect(owner).setSourceAllowlist(restrictedTransferHook.address)
+      expect(await restrictedTransferHook.getSourceAllowlist()).to.eq(
+        restrictedTransferHook.address
+      )
+      expect(sourceAllowlist.address).to.not.eq(restrictedTransferHook.address)
+
+      await expect(
+        restrictedTransferHook.connect(ppoToken).hook(sender.address, recipient.address, 1)
+      ).to.be.reverted
+    })
+
+    it('reverts if destination allowlist not set', async () => {
+      await restrictedTransferHook.connect(owner).setDestinationAllowlist(ZERO_ADDRESS)
+      expect(await restrictedTransferHook.getDestinationAllowlist()).to.eq(ZERO_ADDRESS)
+
+      await expect(
+        restrictedTransferHook.connect(ppoToken).hook(sender.address, recipient.address, 1)
+      ).to.be.reverted
+    })
+
+    it('reverts if destination allowlist set to incompatible contract', async () => {
+      await restrictedTransferHook
+        .connect(owner)
+        .setDestinationAllowlist(restrictedTransferHook.address)
+      expect(await restrictedTransferHook.getDestinationAllowlist()).to.eq(
+        restrictedTransferHook.address
+      )
+      expect(destinationAllowlist.address).to.not.eq(restrictedTransferHook.address)
+
+      await expect(
+        restrictedTransferHook.connect(ppoToken).hook(sender.address, recipient.address, 1)
+      ).to.be.reverted
+    })
+
     describe('if sender blocked', () => {
       beforeEach(() => {
         blocklist.isIncluded.whenCalledWith(sender.address).returns(true)

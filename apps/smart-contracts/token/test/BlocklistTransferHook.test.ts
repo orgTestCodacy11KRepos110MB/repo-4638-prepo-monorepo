@@ -136,6 +136,25 @@ describe('BlocklistTransferHook', () => {
       ).to.be.revertedWith('Sender blocked')
     })
 
+    it('reverts if blocklist not set', async () => {
+      await blocklistTransferHook.connect(owner).setBlocklist(ZERO_ADDRESS)
+      expect(await blocklistTransferHook.getBlocklist()).to.eq(ZERO_ADDRESS)
+
+      await expect(
+        blocklistTransferHook.connect(ppoToken).hook(sender.address, recipient.address, 1)
+      ).to.be.reverted
+    })
+
+    it('reverts if blocklist set to incompatible contract', async () => {
+      await blocklistTransferHook.connect(owner).setBlocklist(blocklistTransferHook.address)
+      expect(await blocklistTransferHook.getBlocklist()).to.eq(blocklistTransferHook.address)
+      expect(blockedAccounts.address).to.not.eq(blocklistTransferHook.address)
+
+      await expect(
+        blocklistTransferHook.connect(ppoToken).hook(sender.address, recipient.address, 1)
+      ).to.be.reverted
+    })
+
     it("doesn't revert if both sender and recipient not blocked", async () => {
       blockedAccounts.isIncluded.whenCalledWith(sender.address).returns(false)
       blockedAccounts.isIncluded.whenCalledWith(recipient.address).returns(false)
