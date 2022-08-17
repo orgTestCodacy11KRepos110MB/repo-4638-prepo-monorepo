@@ -11,7 +11,8 @@
       "options": {
         "singleQuote": false,
         "bracketSpacing": false,
-        "explicitTypes": "always"
+        "explicitTypes": "always",
+        "printWidth": 79
       }
     }
   ]

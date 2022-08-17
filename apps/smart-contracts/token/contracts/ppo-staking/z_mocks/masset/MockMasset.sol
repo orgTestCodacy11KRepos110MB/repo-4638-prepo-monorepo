@@ -32,7 +32,10 @@ contract MockMasset is MockERC20 {
     platformAmountToMint = _amount;
   }
 
-  function collectInterest() external returns (uint256 totalInterestGained, uint256 newSupply) {
+  function collectInterest()
+    external
+    returns (uint256 totalInterestGained, uint256 newSupply)
+  {
     _mint(msg.sender, amountToMint);
     totalInterestGained = amountToMint;
     newSupply = totalSupply();
@@ -97,7 +100,10 @@ contract MockMasset1 is MockERC20 {
     amountToMint = _amount;
   }
 
-  function collectInterest() external returns (uint256 totalInterestGained, uint256 newSupply) {
+  function collectInterest()
+    external
+    returns (uint256 totalInterestGained, uint256 newSupply)
+  {
     totalInterestGained = amountToMint;
     newSupply = totalSupply();
     // Set back to zero

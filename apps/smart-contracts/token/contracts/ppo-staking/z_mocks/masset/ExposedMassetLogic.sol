@@ -20,7 +20,8 @@ contract ExposedMassetLogic {
     uint256[] memory _rawInputs,
     InvariantConfig memory _config
   ) public pure returns (uint256 mintAmount) {
-    return MassetLogic.computeMintMulti(_bAssets, _indices, _rawInputs, _config);
+    return
+      MassetLogic.computeMintMulti(_bAssets, _indices, _rawInputs, _config);
   }
 
   function computeSwap(
@@ -31,7 +32,8 @@ contract ExposedMassetLogic {
     uint256 _feeRate,
     InvariantConfig memory _config
   ) public pure returns (uint256 bAssetOutputQuantity, uint256 scaledSwapFee) {
-    return MassetLogic.computeSwap(_bAssets, _i, _o, _rawInput, _feeRate, _config);
+    return
+      MassetLogic.computeSwap(_bAssets, _i, _o, _rawInput, _feeRate, _config);
   }
 
   function computeRedeem(
@@ -41,7 +43,14 @@ contract ExposedMassetLogic {
     InvariantConfig memory _config,
     uint256 _feeRate
   ) public pure returns (uint256 rawOutputUnits, uint256 scaledFee) {
-    return MassetLogic.computeRedeem(_bAssets, _o, _netMassetQuantity, _config, _feeRate);
+    return
+      MassetLogic.computeRedeem(
+        _bAssets,
+        _o,
+        _netMassetQuantity,
+        _config,
+        _feeRate
+      );
   }
 
   function computeRedeemExact(
@@ -51,7 +60,14 @@ contract ExposedMassetLogic {
     InvariantConfig memory _config,
     uint256 _feeRate
   ) public pure returns (uint256 grossMasset, uint256 fee) {
-    return MassetLogic.computeRedeemExact(_bAssets, _indices, _rawOutputs, _config, _feeRate);
+    return
+      MassetLogic.computeRedeemExact(
+        _bAssets,
+        _indices,
+        _rawOutputs,
+        _config,
+        _feeRate
+      );
   }
 
   function getK(BassetData[] memory _bAssets, InvariantConfig memory _config)

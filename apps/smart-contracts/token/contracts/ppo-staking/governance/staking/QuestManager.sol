@@ -17,7 +17,12 @@ import "./deps/GamifiedTokenStructs.sol";
  * @dev     VERSION: 1.0
  *          DATE:    2021-08-25
  */
-contract QuestManager is IQuestManager, Initializable, ContextUpgradeable, ImmutableModule {
+contract QuestManager is
+  IQuestManager,
+  Initializable,
+  ContextUpgradeable,
+  ImmutableModule
+{
   /// @notice Tracks the completion of each quest (user => questId => completion)
   mapping(address => mapping(uint256 => bool)) private _questCompletion;
 
@@ -48,7 +53,10 @@ contract QuestManager is IQuestManager, Initializable, ContextUpgradeable, Immut
    * @param _questMaster account that can sign user quests as completed
    * @param _questSignerArg account that can sign user quests as completed
    */
-  function initialize(address _questMaster, address _questSignerArg) external initializer {
+  function initialize(address _questMaster, address _questSignerArg)
+    external
+    initializer
+  {
     startTime = SafeCast.toUint32(block.timestamp);
     questMaster = _questMaster;
     _questSigner = _questSignerArg;
@@ -63,7 +71,10 @@ contract QuestManager is IQuestManager, Initializable, ContextUpgradeable, Immut
   }
 
   function _questMasterOrGovernor() internal view {
-    require(_msgSender() == questMaster || _msgSender() == _governor(), "Not verified");
+    require(
+      _msgSender() == questMaster || _msgSender() == _governor(),
+      "Not verified"
+    );
   }
 
   /***************************************
@@ -73,7 +84,12 @@ contract QuestManager is IQuestManager, Initializable, ContextUpgradeable, Immut
   /**
    * @notice Gets raw quest data
    */
-  function getQuest(uint256 _id) external view override returns (Quest memory) {
+  function getQuest(uint256 _id)
+    external
+    view
+    override
+    returns (Quest memory)
+  {
     return _quests[_id];
   }
 
@@ -83,14 +99,24 @@ contract QuestManager is IQuestManager, Initializable, ContextUpgradeable, Immut
    * @param _id Position of quest in array
    * @return bool with completion status
    */
-  function hasCompleted(address _account, uint256 _id) public view override returns (bool) {
+  function hasCompleted(address _account, uint256 _id)
+    public
+    view
+    override
+    returns (bool)
+  {
     return _questCompletion[_account][_id];
   }
 
   /**
    * @notice Raw quest balance
    */
-  function balanceData(address _account) external view override returns (QuestBalance memory) {
+  function balanceData(address _account)
+    external
+    view
+    override
+    returns (QuestBalance memory)
+  {
     return _balances[_account];
   }
 
@@ -101,7 +127,11 @@ contract QuestManager is IQuestManager, Initializable, ContextUpgradeable, Immut
   /**
    * @dev Sets the quest master that can administoer quests. eg add, expire and start seasons.
    */
-  function setQuestMaster(address _newQuestMaster) external override questMasterOrGovernor {
+  function setQuestMaster(address _newQuestMaster)
+    external
+    override
+    questMasterOrGovernor
+  {
     emit QuestMaster(questMaster, _newQuestMaster);
 
     questMaster = _newQuestMaster;
@@ -110,7 +140,11 @@ contract QuestManager is IQuestManager, Initializable, ContextUpgradeable, Immut
   /**
    * @dev Sets the quest signer that can sign user quests as being completed.
    */
-  function setQuestSigner(address _newQuestSigner) external override onlyGovernor {
+  function setQuestSigner(address _newQuestSigner)
+    external
+    override
+    onlyGovernor
+  {
     emit QuestSigner(_questSigner, _newQuestSigner);
 
     _questSigner = _newQuestSigner;
@@ -119,7 +153,11 @@ contract QuestManager is IQuestManager, Initializable, ContextUpgradeable, Immut
   /**
    * @dev Adds a new stakedToken
    */
-  function addStakedToken(address _stakedToken) external override onlyGovernor {
+  function addStakedToken(address _stakedToken)
+    external
+    override
+    onlyGovernor
+  {
     require(_stakedToken != address(0), "Invalid StakedToken");
 
     _stakedTokens.push(_stakedToken);
@@ -143,10 +181,18 @@ contract QuestManager is IQuestManager, Initializable, ContextUpgradeable, Immut
     uint32 _expiry
   ) external override questMasterOrGovernor {
     require(_expiry > block.timestamp + 1 days, "Quest window too small");
-    require(_multiplier > 0 && _multiplier <= 50, "Quest multiplier too large > 1.5x");
+    require(
+      _multiplier > 0 && _multiplier <= 50,
+      "Quest multiplier too large > 1.5x"
+    );
 
     _quests.push(
-      Quest({model: _model, multiplier: _multiplier, status: QuestStatus.ACTIVE, expiry: _expiry})
+      Quest({
+        model: _model,
+        multiplier: _multiplier,
+        status: QuestStatus.ACTIVE,
+        expiry: _expiry
+      })
     );
 
     emit QuestAdded(
@@ -166,7 +212,10 @@ contract QuestManager is IQuestManager, Initializable, ContextUpgradeable, Immut
    */
   function expireQuest(uint16 _id) external override questMasterOrGovernor {
     require(_id < _quests.length, "Quest does not exist");
-    require(_quests[_id].status == QuestStatus.ACTIVE, "Quest already expired");
+    require(
+      _quests[_id].status == QuestStatus.ACTIVE,
+      "Quest already expired"
+    );
 
     _quests[_id].status = QuestStatus.EXPIRED;
     if (block.timestamp < _quests[_id].expiry) {
@@ -184,15 +233,22 @@ contract QuestManager is IQuestManager, Initializable, ContextUpgradeable, Immut
    * A new season can only begin after 9 months has passed.
    */
   function startNewQuestSeason() external override questMasterOrGovernor {
-    require(block.timestamp > (startTime + 39 weeks), "First season has not elapsed");
-    require(block.timestamp > (seasonEpoch + 39 weeks), "Season has not elapsed");
+    require(
+      block.timestamp > (startTime + 39 weeks),
+      "First season has not elapsed"
+    );
+    require(
+      block.timestamp > (seasonEpoch + 39 weeks),
+      "Season has not elapsed"
+    );
 
     uint256 len = _quests.length;
     for (uint256 i = 0; i < len; i++) {
       Quest memory quest = _quests[i];
       if (quest.model == QuestType.SEASONAL) {
         require(
-          quest.status == QuestStatus.EXPIRED || block.timestamp > quest.expiry,
+          quest.status == QuestStatus.EXPIRED ||
+            block.timestamp > quest.expiry,
           "All seasonal quests must have expired"
         );
       }
@@ -248,7 +304,10 @@ contract QuestManager is IQuestManager, Initializable, ContextUpgradeable, Immut
 
     uint256 len2 = _stakedTokens.length;
     for (uint256 i = 0; i < len2; i++) {
-      IStakedToken(_stakedTokens[i]).applyQuestMultiplier(_account, questMultiplier);
+      IStakedToken(_stakedTokens[i]).applyQuestMultiplier(
+        _account,
+        questMultiplier
+      );
     }
 
     emit QuestCompleteQuests(_account, _ids);
@@ -278,7 +337,10 @@ contract QuestManager is IQuestManager, Initializable, ContextUpgradeable, Immut
 
     // For each user account
     for (uint256 i = 0; i < len; i++) {
-      require(!hasCompleted(_accounts[i], _questId), "Quest already completed");
+      require(
+        !hasCompleted(_accounts[i], _questId),
+        "Quest already completed"
+      );
 
       // store user quest has completed
       _questCompletion[_accounts[i]][_questId] = true;
@@ -296,7 +358,10 @@ contract QuestManager is IQuestManager, Initializable, ContextUpgradeable, Immut
 
       uint256 len2 = _stakedTokens.length;
       for (uint256 j = 0; j < len2; j++) {
-        IStakedToken(_stakedTokens[j]).applyQuestMultiplier(_accounts[i], questMultiplier);
+        IStakedToken(_stakedTokens[j]).applyQuestMultiplier(
+          _accounts[i],
+          questMultiplier
+        );
       }
     }
 
@@ -340,7 +405,11 @@ contract QuestManager is IQuestManager, Initializable, ContextUpgradeable, Immut
   /**
    * @dev Simple view fn to check if the users last action was before the starting of the current season
    */
-  function _hasFinishedSeason(uint32 _lastAction) internal view returns (bool) {
+  function _hasFinishedSeason(uint32 _lastAction)
+    internal
+    view
+    returns (bool)
+  {
     return _lastAction < seasonEpoch;
   }
 }

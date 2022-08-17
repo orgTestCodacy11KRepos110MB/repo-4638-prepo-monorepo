@@ -49,23 +49,37 @@ library SignatureVerifier {
     return recoverSigner(ethSignedMessageHash, signature) == signer;
   }
 
-  function getMessageHash(address account, uint256[] memory ids) internal pure returns (bytes32) {
+  function getMessageHash(address account, uint256[] memory ids)
+    internal
+    pure
+    returns (bytes32)
+  {
     return keccak256(abi.encodePacked(account, ids));
   }
 
-  function getMessageHash(uint256 id, address[] memory accounts) internal pure returns (bytes32) {
+  function getMessageHash(uint256 id, address[] memory accounts)
+    internal
+    pure
+    returns (bytes32)
+  {
     return keccak256(abi.encodePacked(id, accounts));
   }
 
-  function getEthSignedMessageHash(bytes32 messageHash) internal pure returns (bytes32) {
-    return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
-  }
-
-  function recoverSigner(bytes32 _ethSignedMessageHash, bytes memory _signature)
+  function getEthSignedMessageHash(bytes32 messageHash)
     internal
     pure
-    returns (address)
+    returns (bytes32)
   {
+    return
+      keccak256(
+        abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash)
+      );
+  }
+
+  function recoverSigner(
+    bytes32 _ethSignedMessageHash,
+    bytes memory _signature
+  ) internal pure returns (address) {
     (bytes32 r, bytes32 s, uint8 v) = splitSignature(_signature);
 
     return ecrecover(_ethSignedMessageHash, v, r, s);

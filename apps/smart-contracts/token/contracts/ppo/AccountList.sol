@@ -6,7 +6,8 @@ import "prepo-shared-contracts/contracts/SafeOwnable.sol";
 
 contract AccountList is IAccountList, SafeOwnable {
   uint256 private _resetIndex;
-  mapping(uint256 => mapping(address => bool)) private _resetIndexToAccountToIncluded;
+  mapping(uint256 => mapping(address => bool))
+    private _resetIndexToAccountToIncluded;
 
   constructor() {}
 
@@ -21,10 +22,16 @@ contract AccountList is IAccountList, SafeOwnable {
     }
   }
 
-  function reset(address[] calldata _newIncludedAccounts) external override onlyOwner {
+  function reset(address[] calldata _newIncludedAccounts)
+    external
+    override
+    onlyOwner
+  {
     _resetIndex++;
     for (uint256 i; i < _newIncludedAccounts.length; ++i) {
-      _resetIndexToAccountToIncluded[_resetIndex][_newIncludedAccounts[i]] = true;
+      _resetIndexToAccountToIncluded[_resetIndex][
+        _newIncludedAccounts[i]
+      ] = true;
     }
   }
 

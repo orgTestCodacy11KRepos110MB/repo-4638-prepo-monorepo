@@ -30,7 +30,11 @@ contract PublicStableMath {
     return x.mulTruncate(y);
   }
 
-  function mulTruncateCeil(uint256 x, uint256 y) external pure returns (uint256) {
+  function mulTruncateCeil(uint256 x, uint256 y)
+    external
+    pure
+    returns (uint256)
+  {
     return x.mulTruncateCeil(y);
   }
 
@@ -38,15 +42,27 @@ contract PublicStableMath {
     return x.divPrecisely(y);
   }
 
-  function mulRatioTruncate(uint256 x, uint256 ratio) external pure returns (uint256) {
+  function mulRatioTruncate(uint256 x, uint256 ratio)
+    external
+    pure
+    returns (uint256)
+  {
     return x.mulRatioTruncate(ratio);
   }
 
-  function mulRatioTruncateCeil(uint256 x, uint256 ratio) external pure returns (uint256) {
+  function mulRatioTruncateCeil(uint256 x, uint256 ratio)
+    external
+    pure
+    returns (uint256)
+  {
     return x.mulRatioTruncateCeil(ratio);
   }
 
-  function divRatioPrecisely(uint256 x, uint256 ratio) external pure returns (uint256) {
+  function divRatioPrecisely(uint256 x, uint256 ratio)
+    external
+    pure
+    returns (uint256)
+  {
     return x.divRatioPrecisely(ratio);
   }
 
@@ -58,7 +74,11 @@ contract PublicStableMath {
     return x.max(y);
   }
 
-  function clamp(uint256 x, uint256 upperBound) external pure returns (uint256) {
+  function clamp(uint256 x, uint256 upperBound)
+    external
+    pure
+    returns (uint256)
+  {
     return x.clamp(upperBound);
   }
 }

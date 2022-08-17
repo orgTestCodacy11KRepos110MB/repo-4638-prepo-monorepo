@@ -34,6 +34,11 @@ contract StakedTokenWrapper {
     bool _amountIncludesFee,
     bool _exitCooldown
   ) external {
-    stakedToken.withdraw(_amount, _recipient, _amountIncludesFee, _exitCooldown);
+    stakedToken.withdraw(
+      _amount,
+      _recipient,
+      _amountIncludesFee,
+      _exitCooldown
+    );
   }
 }

@@ -26,13 +26,29 @@ import {YieldValidator} from "../shared/YieldValidator.sol";
  * @dev     VERSION: 2.1
  *          DATE:    2021-11-25
  */
-contract SavingsContract is ISavingsContractV3, Initializable, InitializableToken, ImmutableModule {
+contract SavingsContract is
+  ISavingsContractV3,
+  Initializable,
+  InitializableToken,
+  ImmutableModule
+{
   using StableMath for uint256;
 
   // Core events for depositing and withdrawing
-  event ExchangeRateUpdated(uint256 newExchangeRate, uint256 interestCollected);
-  event SavingsDeposited(address indexed saver, uint256 savingsDeposited, uint256 creditsIssued);
-  event CreditsRedeemed(address indexed redeemer, uint256 creditsRedeemed, uint256 savingsCredited);
+  event ExchangeRateUpdated(
+    uint256 newExchangeRate,
+    uint256 interestCollected
+  );
+  event SavingsDeposited(
+    address indexed saver,
+    uint256 savingsDeposited,
+    uint256 creditsIssued
+  );
+  event CreditsRedeemed(
+    address indexed redeemer,
+    uint256 creditsRedeemed,
+    uint256 savingsCredited
+  );
 
   event AutomaticInterestCollectionSwitched(bool automationEnabled);
 
@@ -43,11 +59,19 @@ contract SavingsContract is ISavingsContractV3, Initializable, InitializableToke
   event ConnectorUpdated(address connector);
   event EmergencyUpdate();
 
-  event Poked(uint256 oldBalance, uint256 newBalance, uint256 interestDetected);
+  event Poked(
+    uint256 oldBalance,
+    uint256 newBalance,
+    uint256 interestDetected
+  );
   event PokedRaw();
 
   // Tracking events
-  event Referral(address indexed referrer, address beneficiary, uint256 amount);
+  event Referral(
+    address indexed referrer,
+    address beneficiary,
+    uint256 amount
+  );
 
   // Rate between 'savings credits' and underlying
   // e.g. 1 credit (1e17) mulTruncate(exchangeRate) = underlying, starts at 10:1
@@ -107,7 +131,10 @@ contract SavingsContract is ISavingsContractV3, Initializable, InitializableToke
 
   /** @dev Only the savings managaer (pulled from Nexus) can execute this */
   modifier onlySavingsManager() {
-    require(msg.sender == _savingsManager(), "Only savings manager can execute");
+    require(
+      msg.sender == _savingsManager(),
+      "Only savings manager can execute"
+    );
     _;
   }
 
@@ -120,7 +147,12 @@ contract SavingsContract is ISavingsContractV3, Initializable, InitializableToke
    * @param _user     Address of the user to check
    * @return balance  Units of underlying owned by the user. eg mUSD or mBTC
    */
-  function balanceOfUnderlying(address _user) external view override returns (uint256 balance) {
+  function balanceOfUnderlying(address _user)
+    external
+    view
+    override
+    returns (uint256 balance)
+  {
     (balance, ) = _creditsToUnderlying(balanceOf(_user));
   }
 
@@ -143,14 +175,24 @@ contract SavingsContract is ISavingsContractV3, Initializable, InitializableToke
    * @param _credits  Units of credits. eg imUSD or imBTC
    * @return amount   Units of underlying. eg mUSD or mBTC.
    */
-  function creditsToUnderlying(uint256 _credits) external view override returns (uint256 amount) {
+  function creditsToUnderlying(uint256 _credits)
+    external
+    view
+    override
+    returns (uint256 amount)
+  {
     (amount, ) = _creditsToUnderlying(_credits);
   }
 
   // Deprecated in favour of `balanceOf(address)`
   // Maintained for backwards compatibility
   // Returns the credit balance of a given user
-  function creditBalances(address _user) external view override returns (uint256) {
+  function creditBalances(address _user)
+    external
+    view
+    override
+    returns (uint256)
+  {
     return balanceOf(_user);
   }
 
@@ -165,11 +207,18 @@ contract SavingsContract is ISavingsContractV3, Initializable, InitializableToke
    *
    * @param _amount   Units of underlying to add to the savings vault
    */
-  function depositInterest(uint256 _amount) external override onlySavingsManager {
+  function depositInterest(uint256 _amount)
+    external
+    override
+    onlySavingsManager
+  {
     require(_amount > 0, "Must deposit something");
 
     // Transfer the interest from sender to here
-    require(underlying.transferFrom(msg.sender, address(this), _amount), "Must receive tokens");
+    require(
+      underlying.transferFrom(msg.sender, address(this), _amount),
+      "Must receive tokens"
+    );
 
     // Calc new exchange rate, protect against initialisation case
     uint256 totalCredits = totalSupply();
@@ -178,7 +227,10 @@ contract SavingsContract is ISavingsContractV3, Initializable, InitializableToke
       // _totalCredits * exchangeRate = totalSavings
       // exchangeRate = totalSavings/_totalCredits
       (uint256 totalCollat, ) = _creditsToUnderlying(totalCredits);
-      uint256 newExchangeRate = _calcExchangeRate(totalCollat + _amount, totalCredits);
+      uint256 newExchangeRate = _calcExchangeRate(
+        totalCollat + _amount,
+        totalCredits
+      );
       exchangeRate = newExchangeRate;
 
       emit ExchangeRateUpdated(newExchangeRate, _amount);
@@ -186,7 +238,10 @@ contract SavingsContract is ISavingsContractV3, Initializable, InitializableToke
   }
 
   /** @notice Enable or disable the automation of fee collection during deposit process */
-  function automateInterestCollectionFlag(bool _enabled) external onlyGovernor {
+  function automateInterestCollectionFlag(bool _enabled)
+    external
+    onlyGovernor
+  {
     automateInterestCollection = _enabled;
     emit AutomaticInterestCollectionSwitched(_enabled);
   }
@@ -205,7 +260,10 @@ contract SavingsContract is ISavingsContractV3, Initializable, InitializableToke
     external
     returns (uint256 creditsIssued)
   {
-    require(exchangeRate == startingRate, "Can only use this method before streaming begins");
+    require(
+      exchangeRate == startingRate,
+      "Can only use this method before streaming begins"
+    );
     return _deposit(_underlying, _beneficiary, false);
   }
 
@@ -217,7 +275,11 @@ contract SavingsContract is ISavingsContractV3, Initializable, InitializableToke
    * @param _underlying      Units of underlying to deposit into savings vault. eg mUSD or mBTC
    * @return creditsIssued   Units of credits issued. eg imUSD or imBTC
    */
-  function depositSavings(uint256 _underlying) external override returns (uint256 creditsIssued) {
+  function depositSavings(uint256 _underlying)
+    external
+    override
+    returns (uint256 creditsIssued)
+  {
     return _deposit(_underlying, msg.sender, true);
   }
 
@@ -268,11 +330,16 @@ contract SavingsContract is ISavingsContractV3, Initializable, InitializableToke
     // Collect recent interest generated by basket and update exchange rate
     IERC20 mAsset = underlying;
     if (_collectInterest) {
-      ISavingsManager(_savingsManager()).collectAndDistributeInterest(address(mAsset));
+      ISavingsManager(_savingsManager()).collectAndDistributeInterest(
+        address(mAsset)
+      );
     }
 
     // Transfer tokens from sender to here
-    require(mAsset.transferFrom(msg.sender, address(this), _underlying), "Must receive tokens");
+    require(
+      mAsset.transferFrom(msg.sender, address(this), _underlying),
+      "Must receive tokens"
+    );
 
     // Calc how many credits they receive based on currentRatio
     (creditsIssued, ) = _underlyingToCredits(_underlying);
@@ -291,14 +358,20 @@ contract SavingsContract is ISavingsContractV3, Initializable, InitializableToke
    * Maintaining backwards compatibility, this fn minimics the old redeem fn, in which
    * credits are redeemed but the interest from the underlying is not collected.
    */
-  function redeem(uint256 _credits) external override returns (uint256 massetReturned) {
+  function redeem(uint256 _credits)
+    external
+    override
+    returns (uint256 massetReturned)
+  {
     require(_credits > 0, "Must withdraw something");
 
     (, uint256 payout) = _redeem(_credits, true, true);
 
     // Collect recent interest generated by basket and update exchange rate
     if (automateInterestCollection) {
-      ISavingsManager(_savingsManager()).collectAndDistributeInterest(address(underlying));
+      ISavingsManager(_savingsManager()).collectAndDistributeInterest(
+        address(underlying)
+      );
     }
 
     return payout;
@@ -311,12 +384,18 @@ contract SavingsContract is ISavingsContractV3, Initializable, InitializableToke
    * @param _credits         Amount of credits to redeem
    * @return massetReturned  Units of underlying mAsset paid out
    */
-  function redeemCredits(uint256 _credits) external override returns (uint256 massetReturned) {
+  function redeemCredits(uint256 _credits)
+    external
+    override
+    returns (uint256 massetReturned)
+  {
     require(_credits > 0, "Must withdraw something");
 
     // Collect recent interest generated by basket and update exchange rate
     if (automateInterestCollection) {
-      ISavingsManager(_savingsManager()).collectAndDistributeInterest(address(underlying));
+      ISavingsManager(_savingsManager()).collectAndDistributeInterest(
+        address(underlying)
+      );
     }
 
     (, uint256 payout) = _redeem(_credits, true, true);
@@ -331,16 +410,26 @@ contract SavingsContract is ISavingsContractV3, Initializable, InitializableToke
    * @param _underlying     Amount of underlying to redeem
    * @return creditsBurned  Units of credits burned from sender
    */
-  function redeemUnderlying(uint256 _underlying) external override returns (uint256 creditsBurned) {
+  function redeemUnderlying(uint256 _underlying)
+    external
+    override
+    returns (uint256 creditsBurned)
+  {
     require(_underlying > 0, "Must withdraw something");
 
     // Collect recent interest generated by basket and update exchange rate
     if (automateInterestCollection) {
-      ISavingsManager(_savingsManager()).collectAndDistributeInterest(address(underlying));
+      ISavingsManager(_savingsManager()).collectAndDistributeInterest(
+        address(underlying)
+      );
     }
 
     // Ensure that the payout was sufficient
-    (uint256 credits, uint256 massetReturned) = _redeem(_underlying, false, true);
+    (uint256 credits, uint256 massetReturned) = _redeem(
+      _underlying,
+      false,
+      true
+    );
     require(massetReturned == _underlying, "Invalid output");
 
     return credits;
@@ -389,12 +478,17 @@ contract SavingsContract is ISavingsContractV3, Initializable, InitializableToke
 
     // Collect recent interest generated by basket and update exchange rate
     if (automateInterestCollection) {
-      ISavingsManager(_savingsManager()).collectAndDistributeInterest(address(underlying));
+      ISavingsManager(_savingsManager()).collectAndDistributeInterest(
+        address(underlying)
+      );
     }
 
     // Ensure that the payout was sufficient
     (creditsBurned, massetReturned) = _redeem(_amount, _isCreditAmt, false);
-    require(_isCreditAmt ? creditsBurned == _amount : massetReturned == _amount, "Invalid output");
+    require(
+      _isCreditAmt ? creditsBurned == _amount : massetReturned == _amount,
+      "Invalid output"
+    );
 
     // Approve wrapper to spend contract's underlying; just for this tx
     underlying.approve(unwrapper, massetReturned);
@@ -439,7 +533,10 @@ contract SavingsContract is ISavingsContractV3, Initializable, InitializableToke
 
     // Optionally, transfer tokens from here to sender
     if (_transferUnderlying) {
-      require(underlying.transfer(msg.sender, underlying_), "Must send tokens");
+      require(
+        underlying.transfer(msg.sender, underlying_),
+        "Must send tokens"
+      );
     }
 
     // If this withdrawal pushes the portion of stored collateral in the `connector` over a certain
@@ -447,7 +544,10 @@ contract SavingsContract is ISavingsContractV3, Initializable, InitializableToke
     // a situation in which there is a rush on withdrawals for some reason, causing the connector
     // balance to go up and thus having too large an exposure.
     CachedData memory cachedData = _cacheData();
-    ConnectorStatus memory status = _getConnectorStatus(cachedData, exchangeRate_);
+    ConnectorStatus memory status = _getConnectorStatus(
+      cachedData,
+      exchangeRate_
+    );
     if (status.inConnector > status.limit) {
       _poke(cachedData, false);
     }
@@ -480,7 +580,9 @@ contract SavingsContract is ISavingsContractV3, Initializable, InitializableToke
     // Max amount of underlying that can be held in the connector
     uint256 limit = totalCollat.mulTruncate(_data.fraction + 2e17);
     // Derives amount of underlying present in the connector
-    uint256 inConnector = _data.rawBalance >= totalCollat ? 0 : totalCollat - _data.rawBalance;
+    uint256 inConnector = _data.rawBalance >= totalCollat
+      ? 0
+      : totalCollat - _data.rawBalance;
 
     return ConnectorStatus(limit, inConnector);
   }
@@ -586,7 +688,10 @@ contract SavingsContract is ISavingsContractV3, Initializable, InitializableToke
     // 1. Verify that poke cadence is valid, unless this is a manual action by governance
     uint256 currentTime = uint256(block.timestamp);
     uint256 timeSinceLastPoke = currentTime - lastPoke;
-    require(_ignoreCadence || timeSinceLastPoke > POKE_CADENCE, "Not enough time elapsed");
+    require(
+      _ignoreCadence || timeSinceLastPoke > POKE_CADENCE,
+      "Not enough time elapsed"
+    );
     lastPoke = currentTime;
 
     // If there is a connector, check the balance and settle to the specified fraction %
@@ -657,7 +762,10 @@ contract SavingsContract is ISavingsContractV3, Initializable, InitializableToke
     (uint256 totalCredited, ) = _creditsToUnderlying(_totalCredits);
 
     // Require the amount of capital held to be greater than the previously credited units
-    require(_ignoreValidation || _realSum >= totalCredited, "ExchangeRate must increase");
+    require(
+      _ignoreValidation || _realSum >= totalCredited,
+      "ExchangeRate must increase"
+    );
     // Work out the new exchange rate based on the current capital
     uint256 newExchangeRate = _calcExchangeRate(_realSum, _totalCredits);
     exchangeRate = newExchangeRate;

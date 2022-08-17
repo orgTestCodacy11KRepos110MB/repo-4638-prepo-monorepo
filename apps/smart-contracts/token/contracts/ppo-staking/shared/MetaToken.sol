@@ -25,7 +25,11 @@ contract MintableToken is ERC20, GovernedMinterRole, ERC20Burnable {
    *
    * - the caller must have the {MinterRole}.
    */
-  function mint(address account, uint256 amount) public onlyMinter returns (bool) {
+  function mint(address account, uint256 amount)
+    public
+    onlyMinter
+    returns (bool)
+  {
     _mint(account, amount);
     return true;
   }

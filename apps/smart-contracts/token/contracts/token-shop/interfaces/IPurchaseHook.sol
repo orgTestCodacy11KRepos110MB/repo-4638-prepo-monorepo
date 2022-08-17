@@ -19,8 +19,10 @@ interface IPurchaseHook {
   ) external;
 
   //TODO: move this into a sub-interface
-  function setMaxERC721PurchasesPerUser(address[] memory contracts, uint256[] memory amounts)
-    external;
+  function setMaxERC721PurchasesPerUser(
+    address[] memory contracts,
+    uint256[] memory amounts
+  ) external;
 
   function setMaxERC1155PurchasesPerUser(
     address[] memory contracts,
@@ -30,7 +32,10 @@ interface IPurchaseHook {
 
   function setTokenShop(address newTokenShop) external;
 
-  function getMaxERC721PurchasesPerUser(address tokenContract) external view returns (uint256);
+  function getMaxERC721PurchasesPerUser(address tokenContract)
+    external
+    view
+    returns (uint256);
 
   function getMaxERC1155PurchasesPerUser(address tokenContract, uint256 id)
     external

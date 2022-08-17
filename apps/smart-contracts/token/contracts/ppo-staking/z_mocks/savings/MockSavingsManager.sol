@@ -26,7 +26,9 @@ contract MockSavingsManager {
     if (interestCollected > 0) {
       IERC20(_mAsset).approve(save, interestCollected);
 
-      ISavingsContractV1(save).depositInterest((interestCollected * rate) / 1e18);
+      ISavingsContractV1(save).depositInterest(
+        (interestCollected * rate) / 1e18
+      );
     }
   }
 

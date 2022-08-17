@@ -61,10 +61,17 @@ contract Nexus is INexus, DelayedClaimableGovernor {
    * @dev Initialises the Nexus and adds the core data to the Kernel (itself and governor)
    * @param _governorAddr Governor address
    */
-  constructor(address _governorAddr) DelayedClaimableGovernor(_governorAddr, UPGRADE_DELAY) {}
+  constructor(address _governorAddr)
+    DelayedClaimableGovernor(_governorAddr, UPGRADE_DELAY)
+  {}
 
   // FIXME can this function be avoided as it just calls the super function
-  function governor() public view override(Governable, INexus) returns (address) {
+  function governor()
+    public
+    view
+    override(Governable, INexus)
+    returns (address)
+  {
     return super.governor();
   }
 
@@ -108,7 +115,11 @@ contract Nexus is INexus, DelayedClaimableGovernor {
    * @param _key  Key of the module
    * @param _addr Address of the module
    */
-  function proposeModule(bytes32 _key, address _addr) external override onlyGovernor {
+  function proposeModule(bytes32 _key, address _addr)
+    external
+    override
+    onlyGovernor
+  {
     require(_key != bytes32(0x0), "Key must not be zero");
     require(_addr != address(0), "Module address must not be 0");
     require(!modules[_key].isLocked, "Module must be unlocked");
@@ -145,7 +156,11 @@ contract Nexus is INexus, DelayedClaimableGovernor {
    * @dev Accept and publish already proposed modules
    * @param _keys Keys array of the modules
    */
-  function acceptProposedModules(bytes32[] calldata _keys) external override onlyGovernor {
+  function acceptProposedModules(bytes32[] calldata _keys)
+    external
+    override
+    onlyGovernor
+  {
     uint256 len = _keys.length;
     require(len > 0, "Keys array empty");
 
@@ -177,7 +192,10 @@ contract Nexus is INexus, DelayedClaimableGovernor {
     address _addr,
     bool _isLocked
   ) internal {
-    require(addressToModule[_addr] == bytes32(0x0), "Modules must have unique addr");
+    require(
+      addressToModule[_addr] == bytes32(0x0),
+      "Modules must have unique addr"
+    );
     require(!modules[_key].isLocked, "Module must be unlocked");
     // Old no longer points to a moduleAddress
     address oldModuleAddr = modules[_key].addr;
@@ -249,7 +267,12 @@ contract Nexus is INexus, DelayedClaimableGovernor {
    * @param _key  Key of the module
    * @return addr Return the address of the module
    */
-  function getModule(bytes32 _key) external view override returns (address addr) {
+  function getModule(bytes32 _key)
+    external
+    view
+    override
+    returns (address addr)
+  {
     addr = modules[_key].addr;
   }
 
@@ -259,7 +282,8 @@ contract Nexus is INexus, DelayedClaimableGovernor {
    * @return              Return 'true' when delay is over, otherwise 'false'
    */
   function _isDelayOver(uint256 _timestamp) private view returns (bool) {
-    if (_timestamp > 0 && block.timestamp >= _timestamp + UPGRADE_DELAY) return true;
+    if (_timestamp > 0 && block.timestamp >= _timestamp + UPGRADE_DELAY)
+      return true;
     return false;
   }
 }

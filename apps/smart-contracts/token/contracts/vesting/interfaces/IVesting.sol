@@ -41,7 +41,10 @@ interface IVesting {
    * @param recipients List of recipient addresses
    * @param amounts Respective amount of tokens allocated to each recipient
    */
-  function setAllocations(address[] calldata recipients, uint256[] calldata amounts) external;
+  function setAllocations(
+    address[] calldata recipients,
+    uint256[] calldata amounts
+  ) external;
 
   /**
    * @notice Transfers vested amount of tokens to the caller.
@@ -71,7 +74,10 @@ interface IVesting {
    * @param recipient Address of the recipient of tokens
    * @return Amount of tokens allocated to recipient
    */
-  function getAmountAllocated(address recipient) external view returns (uint256);
+  function getAmountAllocated(address recipient)
+    external
+    view
+    returns (uint256);
 
   /**
    * @return Total amount of tokens allocated to all recipients
@@ -88,7 +94,10 @@ interface IVesting {
    * @param recipient Address of the recipient of tokens
    * @return Amount that can be claimed by the recipient
    */
-  function getClaimableAmount(address recipient) external view returns (uint256);
+  function getClaimableAmount(address recipient)
+    external
+    view
+    returns (uint256);
 
   /**
    * @param recipient Address of the recipient of tokens

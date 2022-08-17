@@ -45,7 +45,13 @@ contract ERC205 is Context, IERC20 {
   /**
    * @dev See {IERC20-balanceOf}.
    */
-  function balanceOf(address account) public view virtual override returns (uint256) {
+  function balanceOf(address account)
+    public
+    view
+    virtual
+    override
+    returns (uint256)
+  {
     return _balances[account];
   }
 
@@ -57,7 +63,12 @@ contract ERC205 is Context, IERC20 {
    * - `recipient` cannot be the zero address.
    * - the caller must have a balance of at least `amount`.
    */
-  function transfer(address recipient, uint256 amount) public virtual override returns (bool) {
+  function transfer(address recipient, uint256 amount)
+    public
+    virtual
+    override
+    returns (bool)
+  {
     _transfer(_msgSender(), recipient, amount);
     return true;
   }
@@ -82,7 +93,12 @@ contract ERC205 is Context, IERC20 {
    *
    * - `spender` cannot be the zero address.
    */
-  function approve(address spender, uint256 amount) public virtual override returns (bool) {
+  function approve(address spender, uint256 amount)
+    public
+    virtual
+    override
+    returns (bool)
+  {
     _approve(_msgSender(), spender, amount);
     return true;
   }
@@ -108,7 +124,10 @@ contract ERC205 is Context, IERC20 {
     _transfer(sender, recipient, amount);
 
     uint256 currentAllowance = _allowances[sender][_msgSender()];
-    require(currentAllowance >= amount, "ERC20: transfer amount exceeds allowance");
+    require(
+      currentAllowance >= amount,
+      "ERC20: transfer amount exceeds allowance"
+    );
     _approve(sender, _msgSender(), currentAllowance - amount);
 
     return true;
@@ -126,8 +145,16 @@ contract ERC205 is Context, IERC20 {
    *
    * - `spender` cannot be the zero address.
    */
-  function increaseAllowance(address spender, uint256 addedValue) public virtual returns (bool) {
-    _approve(_msgSender(), spender, _allowances[_msgSender()][spender] + addedValue);
+  function increaseAllowance(address spender, uint256 addedValue)
+    public
+    virtual
+    returns (bool)
+  {
+    _approve(
+      _msgSender(),
+      spender,
+      _allowances[_msgSender()][spender] + addedValue
+    );
     return true;
   }
 
@@ -151,7 +178,10 @@ contract ERC205 is Context, IERC20 {
     returns (bool)
   {
     uint256 currentAllowance = _allowances[_msgSender()][spender];
-    require(currentAllowance >= subtractedValue, "ERC20: decreased allowance below zero");
+    require(
+      currentAllowance >= subtractedValue,
+      "ERC20: decreased allowance below zero"
+    );
     _approve(_msgSender(), spender, currentAllowance - subtractedValue);
 
     return true;

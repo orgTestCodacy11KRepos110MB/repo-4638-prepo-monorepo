@@ -31,7 +31,10 @@ contract MockEmissionController is IGovernanceHook {
   address[] public stakingContractsArr;
 
   modifier onlyStakingContract() {
-    require(stakingContracts[msg.sender], "Must be whitelisted staking contract");
+    require(
+      stakingContracts[msg.sender],
+      "Must be whitelisted staking contract"
+    );
     _;
   }
 
@@ -79,7 +82,9 @@ contract MockEmissionController is IGovernanceHook {
     uint256 len = stakingContractsArr.length;
     uint256 votingPower = 0;
     for (uint256 i = 0; i < len; i++) {
-      votingPower += GamifiedVotingToken(stakingContractsArr[i]).getVotes(msg.sender);
+      votingPower += GamifiedVotingToken(stakingContractsArr[i]).getVotes(
+        msg.sender
+      );
     }
     // 2. Fetch old bitmap and reduce all based on old preference
     _moveVotingPower(_getPreferences(msg.sender), votingPower, _subtract);
@@ -100,7 +105,8 @@ contract MockEmissionController is IGovernanceHook {
       Preference memory pref = _preferenceData.prefs[i];
       // e.g. 5e17 * 1e18 / 1e18 * 100e18 / 1e18
       // = 50e18
-      uint256 amountToChange = (((pref.weight * 1e18) / _preferenceData.sum) * _amount) / 1e18;
+      uint256 amountToChange = (((pref.weight * 1e18) / _preferenceData.sum) *
+        _amount) / 1e18;
       dials[pref.id].votes = _op(dials[pref.id].votes, amountToChange);
     }
   }

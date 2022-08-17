@@ -6,7 +6,11 @@ import "../governance/staking/interfaces/IAchievementsManager.sol";
 contract MockAchievementsManager is IAchievementsManager {
   constructor() {}
 
-  function checkForSeasonFinish(address _account) external override returns (int64) {
+  function checkForSeasonFinish(address _account)
+    external
+    override
+    returns (int64)
+  {
     return 1e12;
   }
 }

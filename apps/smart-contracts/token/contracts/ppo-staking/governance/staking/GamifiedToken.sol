@@ -130,7 +130,11 @@ abstract contract GamifiedToken is
    * @dev Simply gets raw balance
    * @return raw balance for user
    */
-  function rawBalanceOf(address _account) public view returns (uint256, uint256) {
+  function rawBalanceOf(address _account)
+    public
+    view
+    returns (uint256, uint256)
+  {
     return (_balances[_account].raw, _balances[_account].cooldownUnits);
   }
 
@@ -157,7 +161,11 @@ abstract contract GamifiedToken is
   /**
    * @notice Raw staked balance without any multipliers
    */
-  function balanceData(address _account) external view returns (Balance memory) {
+  function balanceData(address _account)
+    external
+    view
+    returns (Balance memory)
+  {
     return _balances[_account];
   }
 
@@ -186,14 +194,22 @@ abstract contract GamifiedToken is
    * @param _account Address of user that should be updated
    * @param _newMultiplier New Quest Multiplier
    */
-  function applyQuestMultiplier(address _account, uint8 _newMultiplier) external onlyQuestManager {
+  function applyQuestMultiplier(address _account, uint8 _newMultiplier)
+    external
+    onlyQuestManager
+  {
     require(_account != address(0), "Invalid address");
 
     // 1. Get current balance & update questMultiplier, only if user has a balance
     Balance memory oldBalance = _balances[_account];
     uint256 oldScaledBalance = _getBalance(_account, oldBalance);
     if (oldScaledBalance > 0) {
-      _applyQuestMultiplier(_account, oldBalance, oldScaledBalance, _newMultiplier);
+      _applyQuestMultiplier(
+        _account,
+        oldBalance,
+        oldScaledBalance,
+        _newMultiplier
+      );
     }
   }
 
@@ -202,7 +218,11 @@ abstract contract GamifiedToken is
    * @param _ts WeightedTimestamp of a user
    * @return timeMultiplier Ranging from 20 (0.2x) to 60 (0.6x)
    */
-  function _timeMultiplier(uint32 _ts) internal view returns (uint8 timeMultiplier) {
+  function _timeMultiplier(uint32 _ts)
+    internal
+    view
+    returns (uint8 timeMultiplier)
+  {
     // If the user has no ts yet, they are not in the system
     if (_ts == 0) return 0;
 
@@ -252,7 +272,9 @@ abstract contract GamifiedToken is
     _balances[_account].questMultiplier = _newMultiplier;
 
     // 2. Take the opportunity to set weighted timestamp, if it changes
-    _balances[_account].timeMultiplier = _timeMultiplier(_oldBalance.weightedTimestamp);
+    _balances[_account].timeMultiplier = _timeMultiplier(
+      _oldBalance.weightedTimestamp
+    );
 
     // 3. Update scaled balance
     _settleScaledBalance(_account, _oldScaledBalance);
@@ -264,21 +286,33 @@ abstract contract GamifiedToken is
    * @param _account Address of user that should be cooled
    * @param _units Units to cooldown for
    */
-  function _enterCooldownPeriod(address _account, uint256 _units) internal updateReward(_account) {
+  function _enterCooldownPeriod(address _account, uint256 _units)
+    internal
+    updateReward(_account)
+  {
     require(_account != address(0), "Invalid address");
 
     // 1. Get current balance
-    (Balance memory oldBalance, uint256 oldScaledBalance) = _prepareOldBalance(_account);
+    (Balance memory oldBalance, uint256 oldScaledBalance) = _prepareOldBalance(
+      _account
+    );
     uint88 totalUnits = oldBalance.raw + oldBalance.cooldownUnits;
-    require(_units > 0 && _units <= totalUnits, "Must choose between 0 and 100%");
+    require(
+      _units > 0 && _units <= totalUnits,
+      "Must choose between 0 and 100%"
+    );
 
     // 2. Set weighted timestamp and enter cooldown
-    _balances[_account].timeMultiplier = _timeMultiplier(oldBalance.weightedTimestamp);
+    _balances[_account].timeMultiplier = _timeMultiplier(
+      oldBalance.weightedTimestamp
+    );
     // e.g. 1e18 / 1e16 = 100, 2e16 / 1e16 = 2, 1e15/1e16 = 0
     _balances[_account].raw = totalUnits - SafeCastExtended.toUint88(_units);
 
     // 3. Set cooldown data
-    _balances[_account].cooldownTimestamp = SafeCastExtended.toUint32(block.timestamp);
+    _balances[_account].cooldownTimestamp = SafeCastExtended.toUint32(
+      block.timestamp
+    );
     _balances[_account].cooldownUnits = SafeCastExtended.toUint88(_units);
 
     // 4. Update scaled balance
@@ -289,14 +323,21 @@ abstract contract GamifiedToken is
    * @dev Exiting the cooldown period explicitly resets the users cooldown window and their balance
    * @param _account Address of user that should be exited
    */
-  function _exitCooldownPeriod(address _account) internal updateReward(_account) {
+  function _exitCooldownPeriod(address _account)
+    internal
+    updateReward(_account)
+  {
     require(_account != address(0), "Invalid address");
 
     // 1. Get current balance
-    (Balance memory oldBalance, uint256 oldScaledBalance) = _prepareOldBalance(_account);
+    (Balance memory oldBalance, uint256 oldScaledBalance) = _prepareOldBalance(
+      _account
+    );
 
     // 2. Set weighted timestamp and exit cooldown
-    _balances[_account].timeMultiplier = _timeMultiplier(oldBalance.weightedTimestamp);
+    _balances[_account].timeMultiplier = _timeMultiplier(
+      oldBalance.weightedTimestamp
+    );
     _balances[_account].raw += oldBalance.cooldownUnits;
 
     // 3. Set cooldown data
@@ -312,15 +353,23 @@ abstract contract GamifiedToken is
    * to a better timeMultiplier. If not, it simply reverts as there is nothing to update.
    * @param _account Address of user that should be updated
    */
-  function _reviewWeightedTimestamp(address _account) internal updateReward(_account) {
+  function _reviewWeightedTimestamp(address _account)
+    internal
+    updateReward(_account)
+  {
     require(_account != address(0), "Invalid address");
 
     // 1. Get current balance
-    (Balance memory oldBalance, uint256 oldScaledBalance) = _prepareOldBalance(_account);
+    (Balance memory oldBalance, uint256 oldScaledBalance) = _prepareOldBalance(
+      _account
+    );
 
     // 2. Set weighted timestamp, if it changes
     uint8 newTimeMultiplier = _timeMultiplier(oldBalance.weightedTimestamp);
-    require(newTimeMultiplier != oldBalance.timeMultiplier, "Nothing worth poking here");
+    require(
+      newTimeMultiplier != oldBalance.timeMultiplier,
+      "Nothing worth poking here"
+    );
     _balances[_account].timeMultiplier = newTimeMultiplier;
 
     // 3. Update scaled balance
@@ -342,9 +391,13 @@ abstract contract GamifiedToken is
     require(_account != address(0), "ERC20: mint to the zero address");
 
     // 1. Get and update current balance
-    (Balance memory oldBalance, uint256 oldScaledBalance) = _prepareOldBalance(_account);
+    (Balance memory oldBalance, uint256 oldScaledBalance) = _prepareOldBalance(
+      _account
+    );
     uint88 totalRaw = oldBalance.raw + oldBalance.cooldownUnits;
-    _balances[_account].raw = oldBalance.raw + SafeCastExtended.toUint88(_rawAmount);
+    _balances[_account].raw =
+      oldBalance.raw +
+      SafeCastExtended.toUint88(_rawAmount);
 
     // 2. Exit cooldown if necessary
     if (_exitCooldown) {
@@ -356,15 +409,21 @@ abstract contract GamifiedToken is
     // 3. Set weighted timestamp
     //  i) For new _account, set up weighted timestamp
     if (oldBalance.weightedTimestamp == 0) {
-      _balances[_account].weightedTimestamp = SafeCastExtended.toUint32(block.timestamp);
+      _balances[_account].weightedTimestamp = SafeCastExtended.toUint32(
+        block.timestamp
+      );
       _mintScaled(_account, _getBalance(_account, _balances[_account]));
       return;
     }
     //  ii) For previous minters, recalculate time held
     //      Calc new weighted timestamp
-    uint256 oldWeightedSecondsHeld = (block.timestamp - oldBalance.weightedTimestamp) * totalRaw;
-    uint256 newSecondsHeld = oldWeightedSecondsHeld / (totalRaw + (_rawAmount / 2));
-    uint32 newWeightedTs = SafeCastExtended.toUint32(block.timestamp - newSecondsHeld);
+    uint256 oldWeightedSecondsHeld = (block.timestamp -
+      oldBalance.weightedTimestamp) * totalRaw;
+    uint256 newSecondsHeld = oldWeightedSecondsHeld /
+      (totalRaw + (_rawAmount / 2));
+    uint32 newWeightedTs = SafeCastExtended.toUint32(
+      block.timestamp - newSecondsHeld
+    );
     _balances[_account].weightedTimestamp = newWeightedTs;
 
     uint8 timeMultiplier = _timeMultiplier(newWeightedTs);
@@ -390,7 +449,9 @@ abstract contract GamifiedToken is
     require(_account != address(0), "ERC20: burn from zero address");
 
     // 1. Get and update current balance
-    (Balance memory oldBalance, uint256 oldScaledBalance) = _prepareOldBalance(_account);
+    (Balance memory oldBalance, uint256 oldScaledBalance) = _prepareOldBalance(
+      _account
+    );
     uint256 totalRaw = oldBalance.raw + oldBalance.cooldownUnits;
     // 1.1. If _finalise, move everything to cooldown
     if (_finalise) {
@@ -399,9 +460,14 @@ abstract contract GamifiedToken is
       oldBalance.cooldownUnits = SafeCastExtended.toUint88(totalRaw);
     }
     // 1.2. Update
-    require(oldBalance.cooldownUnits >= _rawAmount, "ERC20: burn amount > balance");
+    require(
+      oldBalance.cooldownUnits >= _rawAmount,
+      "ERC20: burn amount > balance"
+    );
     unchecked {
-      _balances[_account].cooldownUnits -= SafeCastExtended.toUint88(_rawAmount);
+      _balances[_account].cooldownUnits -= SafeCastExtended.toUint88(
+        _rawAmount
+      );
     }
 
     // 2. If we are exiting cooldown, reset the balance
@@ -418,7 +484,9 @@ abstract contract GamifiedToken is
       (totalRaw - (_rawAmount / 8));
     //      newWeightedTs = 937.5 / 100 = 93.75
     uint256 newSecondsHeld = secondsHeld / totalRaw;
-    uint32 newWeightedTs = SafeCastExtended.toUint32(block.timestamp - newSecondsHeld);
+    uint32 newWeightedTs = SafeCastExtended.toUint32(
+      block.timestamp - newSecondsHeld
+    );
     _balances[_account].weightedTimestamp = newWeightedTs;
 
     uint8 timeMultiplier = _timeMultiplier(newWeightedTs);
@@ -448,7 +516,9 @@ abstract contract GamifiedToken is
     oldBalance = _balances[_account];
     oldScaledBalance = _getBalance(_account, oldBalance);
     // Take the opportunity to check for season finish
-    _balances[_account].questMultiplier = questManager.checkForSeasonFinish(_account);
+    _balances[_account].questMultiplier = questManager.checkForSeasonFinish(
+      _account
+    );
     if (hasPriceCoeff) {
       _userPriceCoeff[_account] = SafeCastExtended.toUint16(_getPriceCoeff());
     }
@@ -462,7 +532,9 @@ abstract contract GamifiedToken is
    * @param _account Address of user that should be updated
    * @param _oldScaledBalance Previous scaled balance of the user
    */
-  function _settleScaledBalance(address _account, uint256 _oldScaledBalance) private {
+  function _settleScaledBalance(address _account, uint256 _oldScaledBalance)
+    private
+  {
     uint256 newScaledBalance = _getBalance(_account, _balances[_account]);
     if (newScaledBalance > _oldScaledBalance) {
       _mintScaled(_account, newScaledBalance - _oldScaledBalance);
@@ -506,13 +578,19 @@ abstract contract GamifiedToken is
    */
   function _claimRewardHook(address _account) internal override {
     uint8 newMultiplier = questManager.checkForSeasonFinish(_account);
-    bool priceCoeffChanged = hasPriceCoeff ? _getPriceCoeff() != _userPriceCoeff[_account] : false;
-    if (newMultiplier != _balances[_account].questMultiplier || priceCoeffChanged) {
+    bool priceCoeffChanged = hasPriceCoeff
+      ? _getPriceCoeff() != _userPriceCoeff[_account]
+      : false;
+    if (
+      newMultiplier != _balances[_account].questMultiplier || priceCoeffChanged
+    ) {
       // 1. Get current balance & trigger season finish
       uint256 oldScaledBalance = _getBalance(_account, _balances[_account]);
       _balances[_account].questMultiplier = newMultiplier;
       if (priceCoeffChanged) {
-        _userPriceCoeff[_account] = SafeCastExtended.toUint16(_getPriceCoeff());
+        _userPriceCoeff[_account] = SafeCastExtended.toUint16(
+          _getPriceCoeff()
+        );
       }
       // 3. Update scaled balance
       _settleScaledBalance(_account, oldScaledBalance);
@@ -532,7 +610,11 @@ abstract contract GamifiedToken is
                     Utils
     ****************************************/
 
-  function bytes32ToString(bytes32 _bytes32) internal pure returns (string memory) {
+  function bytes32ToString(bytes32 _bytes32)
+    internal
+    pure
+    returns (string memory)
+  {
     uint256 i = 0;
     while (i < 32 && _bytes32[i] != 0) {
       i++;

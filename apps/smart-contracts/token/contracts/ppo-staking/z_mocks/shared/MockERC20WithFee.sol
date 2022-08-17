@@ -112,7 +112,11 @@ contract ERC20WithFee is IERC20 {
    * - `recipient` cannot be the zero address.
    * - the caller must have a balance of at least `amount`.
    */
-  function transfer(address recipient, uint256 amount) public override returns (bool) {
+  function transfer(address recipient, uint256 amount)
+    public
+    override
+    returns (bool)
+  {
     _transfer(msg.sender, recipient, amount);
     return true;
   }
@@ -120,7 +124,12 @@ contract ERC20WithFee is IERC20 {
   /**
    * @dev See `IERC20.allowance`.
    */
-  function allowance(address owner, address spender) public view override returns (uint256) {
+  function allowance(address owner, address spender)
+    public
+    view
+    override
+    returns (uint256)
+  {
     return _allowances[owner][spender];
   }
 
@@ -131,7 +140,11 @@ contract ERC20WithFee is IERC20 {
    *
    * - `spender` cannot be the zero address.
    */
-  function approve(address spender, uint256 value) public override returns (bool) {
+  function approve(address spender, uint256 value)
+    public
+    override
+    returns (bool)
+  {
     _approve(msg.sender, spender, value);
     return true;
   }
@@ -170,8 +183,15 @@ contract ERC20WithFee is IERC20 {
    *
    * - `spender` cannot be the zero address.
    */
-  function increaseAllowance(address spender, uint256 addedValue) public returns (bool) {
-    _approve(msg.sender, spender, _allowances[msg.sender][spender] + addedValue);
+  function increaseAllowance(address spender, uint256 addedValue)
+    public
+    returns (bool)
+  {
+    _approve(
+      msg.sender,
+      spender,
+      _allowances[msg.sender][spender] + addedValue
+    );
     return true;
   }
 
@@ -189,8 +209,15 @@ contract ERC20WithFee is IERC20 {
    * - `spender` must have allowance for the caller of at least
    * `subtractedValue`.
    */
-  function decreaseAllowance(address spender, uint256 subtractedValue) public returns (bool) {
-    _approve(msg.sender, spender, _allowances[msg.sender][spender] - subtractedValue);
+  function decreaseAllowance(address spender, uint256 subtractedValue)
+    public
+    returns (bool)
+  {
+    _approve(
+      msg.sender,
+      spender,
+      _allowances[msg.sender][spender] - subtractedValue
+    );
     return true;
   }
 

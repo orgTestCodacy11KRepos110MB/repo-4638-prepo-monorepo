@@ -17,7 +17,8 @@ contract TokenShop is ITokenShop, SafeOwnable, ReentrancyGuard, Pausable {
   IERC20 private _paymentToken;
   IPurchaseHook private _purchaseHook;
   mapping(address => mapping(uint256 => uint256)) private _contractToIdToPrice;
-  mapping(address => mapping(address => uint256)) private _userToERC721ToPurchaseCount;
+  mapping(address => mapping(address => uint256))
+    private _userToERC721ToPurchaseCount;
   mapping(address => mapping(address => mapping(uint256 => uint256)))
     private _userToERC1155ToIdToPurchaseCount;
 
@@ -31,7 +32,8 @@ contract TokenShop is ITokenShop, SafeOwnable, ReentrancyGuard, Pausable {
     uint256[] memory _prices
   ) external override onlyOwner {
     require(
-      _tokenContracts.length == _prices.length && _ids.length == _prices.length,
+      _tokenContracts.length == _prices.length &&
+        _ids.length == _prices.length,
       "Array length mismatch"
     );
     for (uint256 i; i < _tokenContracts.length; ++i) {
@@ -39,7 +41,11 @@ contract TokenShop is ITokenShop, SafeOwnable, ReentrancyGuard, Pausable {
     }
   }
 
-  function setPurchaseHook(address _newPurchaseHook) external override onlyOwner {
+  function setPurchaseHook(address _newPurchaseHook)
+    external
+    override
+    onlyOwner
+  {
     _purchaseHook = IPurchaseHook(_newPurchaseHook);
   }
 
@@ -49,18 +55,37 @@ contract TokenShop is ITokenShop, SafeOwnable, ReentrancyGuard, Pausable {
     uint256[] memory _amounts
   ) external override nonReentrant whenNotPaused {
     require(
-      _tokenContracts.length == _amounts.length && _ids.length == _amounts.length,
+      _tokenContracts.length == _amounts.length &&
+        _ids.length == _amounts.length,
       "Array length mismatch"
     );
     require(address(_purchaseHook) != address(0), "Purchase hook not set");
     for (uint256 i; i < _tokenContracts.length; ++i) {
-      require(_contractToIdToPrice[_tokenContracts[i]][_ids[i]] != 0, "Non-purchasable item");
-      uint256 _totalPaymentAmount = _contractToIdToPrice[_tokenContracts[i]][_ids[i]] * _amounts[i];
-      _paymentToken.transferFrom(_msgSender(), address(this), _totalPaymentAmount);
-      bool _isERC1155 = IERC1155(_tokenContracts[i]).supportsInterface(type(IERC1155).interfaceId);
+      require(
+        _contractToIdToPrice[_tokenContracts[i]][_ids[i]] != 0,
+        "Non-purchasable item"
+      );
+      uint256 _totalPaymentAmount = _contractToIdToPrice[_tokenContracts[i]][
+        _ids[i]
+      ] * _amounts[i];
+      _paymentToken.transferFrom(
+        _msgSender(),
+        address(this),
+        _totalPaymentAmount
+      );
+      bool _isERC1155 = IERC1155(_tokenContracts[i]).supportsInterface(
+        type(IERC1155).interfaceId
+      );
       if (_isERC1155) {
-        _purchaseHook.hookERC1155(msg.sender, _tokenContracts[i], _ids[i], _amounts[i]);
-        _userToERC1155ToIdToPurchaseCount[msg.sender][_tokenContracts[i]][_ids[i]] += _amounts[i];
+        _purchaseHook.hookERC1155(
+          msg.sender,
+          _tokenContracts[i],
+          _ids[i],
+          _amounts[i]
+        );
+        _userToERC1155ToIdToPurchaseCount[msg.sender][_tokenContracts[i]][
+          _ids[i]
+        ] += _amounts[i];
         IERC1155(_tokenContracts[i]).safeTransferFrom(
           address(this),
           _msgSender(),
@@ -71,7 +96,11 @@ contract TokenShop is ITokenShop, SafeOwnable, ReentrancyGuard, Pausable {
       } else {
         _purchaseHook.hookERC721(msg.sender, _tokenContracts[i], _ids[i]);
         ++_userToERC721ToPurchaseCount[msg.sender][_tokenContracts[i]];
-        IERC721(_tokenContracts[i]).safeTransferFrom(address(this), _msgSender(), _ids[i]);
+        IERC721(_tokenContracts[i]).safeTransferFrom(
+          address(this),
+          _msgSender(),
+          _ids[i]
+        );
       }
     }
   }
@@ -99,10 +128,21 @@ contract TokenShop is ITokenShop, SafeOwnable, ReentrancyGuard, Pausable {
     uint256 _id,
     uint256 _amount
   ) external override onlyOwner nonReentrant {
-    IERC1155(_erc1155Token).safeTransferFrom(address(this), owner(), _id, _amount, "");
+    IERC1155(_erc1155Token).safeTransferFrom(
+      address(this),
+      owner(),
+      _id,
+      _amount,
+      ""
+    );
   }
 
-  function getPrice(address _tokenContract, uint256 _id) external view override returns (uint256) {
+  function getPrice(address _tokenContract, uint256 _id)
+    external
+    view
+    override
+    returns (uint256)
+  {
     return _contractToIdToPrice[_tokenContract][_id];
   }
 

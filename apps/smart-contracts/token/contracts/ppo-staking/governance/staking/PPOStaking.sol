@@ -89,17 +89,26 @@ contract PPOStaking is PPOGamifiedVotingToken, InitializableReentrancyGuard {
   /**
    * @param _rewardsDistributorArg mStable Rewards Distributor
    */
-  function __PPOStaking_init(address _rewardsDistributorArg) public initializer {
+  function __PPOStaking_init(address _rewardsDistributorArg)
+    public
+    initializer
+  {
     __PPOGamifiedToken_init("PPO Power", "pPPO", _rewardsDistributorArg);
     _initializeReentrancyGuard();
-    safetyData = SafetyData({collateralisationRatio: 1e18, slashingPercentage: 0});
+    safetyData = SafetyData({
+      collateralisationRatio: 1e18,
+      slashingPercentage: 0
+    });
   }
 
   /**
    * @dev Only the recollateralisation module, as specified in the mStable Nexus, can execute this
    */
   modifier onlyRecollateralisationModule() {
-    require(_msgSender() == _recollateraliser(), "Only Recollateralisation Module");
+    require(
+      _msgSender() == _recollateraliser(),
+      "Only Recollateralisation Module"
+    );
     _;
   }
 
@@ -112,7 +121,10 @@ contract PPOStaking is PPOGamifiedVotingToken, InitializableReentrancyGuard {
   }
 
   function _onlyBeforeRecollateralisation() internal view {
-    require(safetyData.collateralisationRatio == 1e18, "Only while fully collateralised");
+    require(
+      safetyData.collateralisationRatio == 1e18,
+      "Only while fully collateralised"
+    );
   }
 
   /**
@@ -146,7 +158,10 @@ contract PPOStaking is PPOGamifiedVotingToken, InitializableReentrancyGuard {
    * @param _recipient Recipient of staked position
    * @param _amount Units of STAKED_TOKEN to stake
    */
-  function stake(address _recipient, uint256 _amount) external assertNotContract {
+  function stake(address _recipient, uint256 _amount)
+    external
+    assertNotContract
+  {
     if (_amount == 0) return;
     STAKED_TOKEN.safeTransferFrom(_msgSender(), address(this), _amount);
 
@@ -156,7 +171,8 @@ contract PPOStaking is PPOGamifiedVotingToken, InitializableReentrancyGuard {
     //      If we have missed the unstake window, or the user has chosen to exit the cooldown,
     //      then reset the timestamp to 0
     bool _exitCooldown = (_oldBalance.cooldownTimestamp > 0 &&
-      block.timestamp > (_oldBalance.cooldownTimestamp + COOLDOWN_SECONDS + UNSTAKE_WINDOW));
+      block.timestamp >
+      (_oldBalance.cooldownTimestamp + COOLDOWN_SECONDS + UNSTAKE_WINDOW));
     if (_exitCooldown) {
       emit CooldownExit(_recipient);
     }
@@ -205,7 +221,10 @@ contract PPOStaking is PPOGamifiedVotingToken, InitializableReentrancyGuard {
       // 1. If recollateralisation has occured, the contract is finished and we can skip all checks
       _burnRaw(_msgSender(), _amount, false, true);
       // 2. Return a proportionate amount of tokens, based on the collateralisation ratio
-      STAKED_TOKEN.safeTransfer(_recipient, (_amount * safetyData.collateralisationRatio) / 1e18);
+      STAKED_TOKEN.safeTransfer(
+        _recipient,
+        (_amount * safetyData.collateralisationRatio) / 1e18
+      );
       emit Withdraw(_msgSender(), _recipient, _amount);
     } else {
       // 1. If no recollateralisation has occured, the user must be within their UNSTAKE_WINDOW period in order to withdraw
@@ -215,7 +234,8 @@ contract PPOStaking is PPOGamifiedVotingToken, InitializableReentrancyGuard {
         "INSUFFICIENT_COOLDOWN"
       );
       require(
-        block.timestamp - (oldBalance.cooldownTimestamp + COOLDOWN_SECONDS) <= UNSTAKE_WINDOW,
+        block.timestamp - (oldBalance.cooldownTimestamp + COOLDOWN_SECONDS) <=
+          UNSTAKE_WINDOW,
         "UNSTAKE_WINDOW_FINISHED"
       );
 
@@ -227,7 +247,9 @@ contract PPOStaking is PPOGamifiedVotingToken, InitializableReentrancyGuard {
       uint256 feeRate = calcRedemptionFeeRate(balance.weightedTimestamp);
       //      fee = amount * 1e18 / feeRate
       //      totalAmount = amount + fee
-      uint256 totalWithdraw = _amountIncludesFee ? _amount : (_amount * (1e18 + feeRate)) / 1e18;
+      uint256 totalWithdraw = _amountIncludesFee
+        ? _amount
+        : (_amount * (1e18 + feeRate)) / 1e18;
       uint256 userWithdrawal = (totalWithdraw * 1e18) / (1e18 + feeRate);
 
       //      Check for percentage withdrawal
@@ -365,7 +387,8 @@ contract PPOStaking is PPOGamifiedVotingToken, InitializableReentrancyGuard {
     view
     returns (uint256 _feeRate)
   {
-    uint256 weeksStaked = ((block.timestamp - _weightedTimestamp) * 1e18) / ONE_WEEK;
+    uint256 weeksStaked = ((block.timestamp - _weightedTimestamp) * 1e18) /
+      ONE_WEEK;
     if (weeksStaked > 3e18) {
       // e.g. weeks = 1  = sqrt(300e18) = 17320508075
       // e.g. weeks = 10 = sqrt(30e18) =   5477225575

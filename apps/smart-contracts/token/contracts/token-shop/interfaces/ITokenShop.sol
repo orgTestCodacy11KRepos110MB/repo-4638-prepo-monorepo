@@ -30,7 +30,10 @@ interface ITokenShop {
     uint256 amount
   ) external;
 
-  function getPrice(address tokenContract, uint256 id) external view returns (uint256);
+  function getPrice(address tokenContract, uint256 id)
+    external
+    view
+    returns (uint256);
 
   function getPaymentToken() external view returns (address);
 

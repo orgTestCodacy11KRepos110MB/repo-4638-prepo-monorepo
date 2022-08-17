@@ -99,14 +99,20 @@ contract StakedToken is GamifiedVotingToken, InitializableReentrancyGuard {
   ) public initializer {
     __GamifiedToken_init(_nameArg, _symbolArg, _rewardsDistributorArg);
     _initializeReentrancyGuard();
-    safetyData = SafetyData({collateralisationRatio: 1e18, slashingPercentage: 0});
+    safetyData = SafetyData({
+      collateralisationRatio: 1e18,
+      slashingPercentage: 0
+    });
   }
 
   /**
    * @dev Only the recollateralisation module, as specified in the mStable Nexus, can execute this
    */
   modifier onlyRecollateralisationModule() {
-    require(_msgSender() == _recollateraliser(), "Only Recollateralisation Module");
+    require(
+      _msgSender() == _recollateraliser(),
+      "Only Recollateralisation Module"
+    );
     _;
   }
 
@@ -119,7 +125,10 @@ contract StakedToken is GamifiedVotingToken, InitializableReentrancyGuard {
   }
 
   function _onlyBeforeRecollateralisation() internal view {
-    require(safetyData.collateralisationRatio == 1e18, "Only while fully collateralised");
+    require(
+      safetyData.collateralisationRatio == 1e18,
+      "Only while fully collateralised"
+    );
   }
 
   /**
@@ -210,7 +219,8 @@ contract StakedToken is GamifiedVotingToken, InitializableReentrancyGuard {
     //      then reset the timestamp to 0
     bool exitCooldown = _exitCooldown ||
       (oldBalance.cooldownTimestamp > 0 &&
-        block.timestamp > (oldBalance.cooldownTimestamp + COOLDOWN_SECONDS + UNSTAKE_WINDOW));
+        block.timestamp >
+        (oldBalance.cooldownTimestamp + COOLDOWN_SECONDS + UNSTAKE_WINDOW));
     if (exitCooldown) {
       emit CooldownExited(_msgSender());
     }
@@ -259,7 +269,10 @@ contract StakedToken is GamifiedVotingToken, InitializableReentrancyGuard {
       // 1. If recollateralisation has occured, the contract is finished and we can skip all checks
       _burnRaw(_msgSender(), _amount, false, true);
       // 2. Return a proportionate amount of tokens, based on the collateralisation ratio
-      STAKED_TOKEN.safeTransfer(_recipient, (_amount * safetyData.collateralisationRatio) / 1e18);
+      STAKED_TOKEN.safeTransfer(
+        _recipient,
+        (_amount * safetyData.collateralisationRatio) / 1e18
+      );
       emit Withdraw(_msgSender(), _recipient, _amount);
     } else {
       // 1. If no recollateralisation has occured, the user must be within their UNSTAKE_WINDOW period in order to withdraw
@@ -269,7 +282,8 @@ contract StakedToken is GamifiedVotingToken, InitializableReentrancyGuard {
         "INSUFFICIENT_COOLDOWN"
       );
       require(
-        block.timestamp - (oldBalance.cooldownTimestamp + COOLDOWN_SECONDS) <= UNSTAKE_WINDOW,
+        block.timestamp - (oldBalance.cooldownTimestamp + COOLDOWN_SECONDS) <=
+          UNSTAKE_WINDOW,
         "UNSTAKE_WINDOW_FINISHED"
       );
 
@@ -281,7 +295,9 @@ contract StakedToken is GamifiedVotingToken, InitializableReentrancyGuard {
       uint256 feeRate = calcRedemptionFeeRate(balance.weightedTimestamp);
       //      fee = amount * 1e18 / feeRate
       //      totalAmount = amount + fee
-      uint256 totalWithdraw = _amountIncludesFee ? _amount : (_amount * (1e18 + feeRate)) / 1e18;
+      uint256 totalWithdraw = _amountIncludesFee
+        ? _amount
+        : (_amount * (1e18 + feeRate)) / 1e18;
       uint256 userWithdrawal = (totalWithdraw * 1e18) / (1e18 + feeRate);
 
       //      Check for percentage withdrawal
@@ -443,7 +459,12 @@ contract StakedToken is GamifiedVotingToken, InitializableReentrancyGuard {
     }
     // Else withdraw all available
     else {
-      _withdraw(_balances[_msgSender()].cooldownUnits, _msgSender(), true, false);
+      _withdraw(
+        _balances[_msgSender()].cooldownUnits,
+        _msgSender(),
+        true,
+        false
+      );
     }
   }
 
@@ -456,8 +477,13 @@ contract StakedToken is GamifiedVotingToken, InitializableReentrancyGuard {
    * @param _weightedTimestamp The users weightedTimestamp
    * @return _feeRate where 1% == 1e16
    */
-  function calcRedemptionFeeRate(uint32 _weightedTimestamp) public view returns (uint256 _feeRate) {
-    uint256 weeksStaked = ((block.timestamp - _weightedTimestamp) * 1e18) / ONE_WEEK;
+  function calcRedemptionFeeRate(uint32 _weightedTimestamp)
+    public
+    view
+    returns (uint256 _feeRate)
+  {
+    uint256 weeksStaked = ((block.timestamp - _weightedTimestamp) * 1e18) /
+      ONE_WEEK;
     if (weeksStaked > 3e18) {
       // e.g. weeks = 1  = sqrt(300e18) = 17320508075
       // e.g. weeks = 10 = sqrt(30e18) =   5477225575

@@ -43,7 +43,10 @@ abstract contract ImmutableModule is ModuleKeys {
   }
 
   function _keeperOrGovernor() internal view {
-    require(msg.sender == _keeper() || msg.sender == _governor(), "Only keeper or governor");
+    require(
+      msg.sender == _keeper() || msg.sender == _governor(),
+      "Only keeper or governor"
+    );
   }
 
   /**

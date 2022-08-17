@@ -32,8 +32,8 @@ const deployFunction: DeployFunction = async function deployAllowlistPurchaseHoo
    * This can be temporarily removed if deploying to prod.
    */
   assertIsTestnetChain(currentChain)
-  // Check if there is an existing PurchaseAllowlist-AccountList deployment
-  const existingPurchaseAllowlist = await getOrNull('PurchaseAllowlist-AccountList')
+  // Check if there is an existing AccountList to serve as the purchase allowlist
+  const existingPurchaseAllowlist = await getOrNull('AllowlistPurchaseHook-AccountList')
   if (!existingPurchaseAllowlist) {
     throw new Error(
       `No existing AllowlistPurchaseHook-AccountList deployment exists for the ${currentNetwork.name} network`

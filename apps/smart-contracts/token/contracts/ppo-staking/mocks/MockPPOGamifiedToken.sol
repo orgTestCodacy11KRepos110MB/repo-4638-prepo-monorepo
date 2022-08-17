@@ -22,7 +22,11 @@ contract MockPPOGamifiedToken is PPOGamifiedToken {
     return 0;
   }
 
-  function getScaledBalance(Balance memory _balance) external view returns (uint256) {
+  function getScaledBalance(Balance memory _balance)
+    external
+    view
+    returns (uint256)
+  {
     return _scaleBalance(_balance);
   }
 
@@ -30,7 +34,9 @@ contract MockPPOGamifiedToken is PPOGamifiedToken {
     achievementsManager = IAchievementsManager(_newAchievementsManager);
   }
 
-  function writeBalance(address _account, Balance memory _newBalance) external {
+  function writeBalance(address _account, Balance memory _newBalance)
+    external
+  {
     _balances[_account] = _newBalance;
   }
 

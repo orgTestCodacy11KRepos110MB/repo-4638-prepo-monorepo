@@ -9,9 +9,12 @@ import {DialData} from "../emissions/EmissionsController.sol";
  * @dev Emissions Controller interface used for by RevenueBuyBack
  */
 interface IEmissionsController {
-  function getDialRecipient(uint256 dialId) external returns (address recipient);
+  function getDialRecipient(uint256 dialId)
+    external
+    returns (address recipient);
 
-  function donate(uint256[] memory _dialIds, uint256[] memory _amounts) external;
+  function donate(uint256[] memory _dialIds, uint256[] memory _amounts)
+    external;
 
   function stakingContracts(uint256 dialId) external returns (address);
 }

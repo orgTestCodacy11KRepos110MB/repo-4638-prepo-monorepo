@@ -24,21 +24,34 @@ contract Vesting is IVesting, Pausable, WithdrawERC20 {
     _token = IERC20(_newToken);
   }
 
-  function setVestingStartTime(uint256 _newVestingStartTime) external override onlyOwner {
-    require(_newVestingStartTime < _vestingEndTime, "Vesting start time >= end time");
-    _vestingStartTime = _newVestingStartTime;
-  }
-
-  function setVestingEndTime(uint256 _newVestingEndTime) external override onlyOwner {
-    require(_newVestingEndTime > _vestingStartTime, "Vesting end time <= start time");
-    _vestingEndTime = _newVestingEndTime;
-  }
-
-  function setAllocations(address[] calldata _recipients, uint256[] calldata _amounts)
+  function setVestingStartTime(uint256 _newVestingStartTime)
     external
     override
     onlyOwner
   {
+    require(
+      _newVestingStartTime < _vestingEndTime,
+      "Vesting start time >= end time"
+    );
+    _vestingStartTime = _newVestingStartTime;
+  }
+
+  function setVestingEndTime(uint256 _newVestingEndTime)
+    external
+    override
+    onlyOwner
+  {
+    require(
+      _newVestingEndTime > _vestingStartTime,
+      "Vesting end time <= start time"
+    );
+    _vestingEndTime = _newVestingEndTime;
+  }
+
+  function setAllocations(
+    address[] calldata _recipients,
+    uint256[] calldata _amounts
+  ) external override onlyOwner {
     require(_recipients.length == _amounts.length, "Array length mismatch");
     uint256 _newTotalAllocatedSupply = _totalAllocatedSupply;
     for (uint256 i; i < _recipients.length; ++i) {
@@ -74,7 +87,12 @@ contract Vesting is IVesting, Pausable, WithdrawERC20 {
     emit Claim(msg.sender, _claimableAmount);
   }
 
-  function getClaimableAmount(address _recipient) public view override returns (uint256) {
+  function getClaimableAmount(address _recipient)
+    public
+    view
+    override
+    returns (uint256)
+  {
     uint256 _vestedAmount = getVestedAmount(_recipient);
     uint256 _claimedTillNow = _recipientToClaimedAmount[_recipient];
     if (_vestedAmount > _claimedTillNow) {
@@ -84,12 +102,18 @@ contract Vesting is IVesting, Pausable, WithdrawERC20 {
     }
   }
 
-  function getVestedAmount(address _recipient) public view override returns (uint256) {
+  function getVestedAmount(address _recipient)
+    public
+    view
+    override
+    returns (uint256)
+  {
     uint256 _start = _vestingStartTime;
     uint256 _end = _vestingEndTime;
     uint256 _allocated = _recipientToAllocatedAmount[_recipient];
     if (block.timestamp < _start) return 0;
-    uint256 _vested = (_allocated * (block.timestamp - _start)) / (_end - _start);
+    uint256 _vested = (_allocated * (block.timestamp - _start)) /
+      (_end - _start);
     return _vested < _allocated ? _vested : _allocated;
   }
 
@@ -105,7 +129,12 @@ contract Vesting is IVesting, Pausable, WithdrawERC20 {
     return _vestingEndTime;
   }
 
-  function getAmountAllocated(address _recipient) external view override returns (uint256) {
+  function getAmountAllocated(address _recipient)
+    external
+    view
+    override
+    returns (uint256)
+  {
     return _recipientToAllocatedAmount[_recipient];
   }
 
@@ -113,7 +142,12 @@ contract Vesting is IVesting, Pausable, WithdrawERC20 {
     return _totalAllocatedSupply;
   }
 
-  function getClaimedAmount(address _recipient) external view override returns (uint256) {
+  function getClaimedAmount(address _recipient)
+    external
+    view
+    override
+    returns (uint256)
+  {
     return _recipientToClaimedAmount[_recipient];
   }
 }

@@ -26,6 +26,9 @@ contract PlatformTokenVendor {
    * Just incase for some reason approval has been reset.
    */
   function reApproveOwner() external {
-    MassetHelpers.safeInfiniteApprove(address(platformToken), parentStakingContract);
+    MassetHelpers.safeInfiniteApprove(
+      address(platformToken),
+      parentStakingContract
+    );
   }
 }

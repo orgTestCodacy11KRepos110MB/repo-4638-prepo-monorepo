@@ -86,7 +86,12 @@ abstract contract PPOGamifiedVotingToken is Initializable, PPOGamifiedToken {
   /**
    * @dev Get number of checkpoints for `account`.
    */
-  function numCheckpoints(address account) public view virtual returns (uint32) {
+  function numCheckpoints(address account)
+    public
+    view
+    virtual
+    returns (uint32)
+  {
     return SafeCast.toUint32(_checkpoints[account].length);
   }
 
@@ -115,7 +120,11 @@ abstract contract PPOGamifiedVotingToken is Initializable, PPOGamifiedToken {
    *
    * - `blockNumber` must have been already mined
    */
-  function getPastVotes(address account, uint256 blockNumber) public view returns (uint256) {
+  function getPastVotes(address account, uint256 blockNumber)
+    public
+    view
+    returns (uint256)
+  {
     require(blockNumber < block.number, "ERC20Votes: block not yet mined");
     return _checkpointsLookup(_checkpoints[account], blockNumber);
   }
@@ -128,7 +137,11 @@ abstract contract PPOGamifiedVotingToken is Initializable, PPOGamifiedToken {
    *
    * - `blockNumber` must have been already mined
    */
-  function getPastTotalSupply(uint256 blockNumber) public view returns (uint256) {
+  function getPastTotalSupply(uint256 blockNumber)
+    public
+    view
+    returns (uint256)
+  {
     require(blockNumber < block.number, "ERC20Votes: block not yet mined");
     return _checkpointsLookup(_totalSupplyCheckpoints, blockNumber);
   }
@@ -208,7 +221,11 @@ abstract contract PPOGamifiedVotingToken is Initializable, PPOGamifiedToken {
 
     // mint or burn, update total supply
     if (from == address(0) || to == address(0)) {
-      _writeCheckpoint(_totalSupplyCheckpoints, to == address(0) ? _subtract : _add, amount);
+      _writeCheckpoint(
+        _totalSupplyCheckpoints,
+        to == address(0) ? _subtract : _add,
+        amount
+      );
     }
 
     _moveVotingPower(delegates(from), delegates(to), amount);
@@ -230,7 +247,11 @@ abstract contract PPOGamifiedVotingToken is Initializable, PPOGamifiedToken {
       }
 
       if (dst != address(0)) {
-        (uint256 oldWeight, uint256 newWeight) = _writeCheckpoint(_checkpoints[dst], _add, amount);
+        (uint256 oldWeight, uint256 newWeight) = _writeCheckpoint(
+          _checkpoints[dst],
+          _add,
+          amount
+        );
         emit DelegateeVotesChange(dst, oldWeight, newWeight);
       }
 

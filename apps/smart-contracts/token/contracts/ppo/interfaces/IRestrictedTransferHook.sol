@@ -40,7 +40,8 @@ interface IRestrictedTransferHook is IBlocklistTransferHook {
    * allowlisted destination addresses.
    * @param newDestinationAllowlist Address of the `IAccountList` contract
    */
-  function setDestinationAllowlist(IAccountList newDestinationAllowlist) external;
+  function setDestinationAllowlist(IAccountList newDestinationAllowlist)
+    external;
 
   ///@return The source allowlist contract
   function getSourceAllowlist() external view returns (IAccountList);

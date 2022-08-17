@@ -30,7 +30,10 @@ abstract contract InitializableRewardsDistributionRecipient is
    * @dev Only the rewards distributor can notify about rewards
    */
   modifier onlyRewardsDistributor() {
-    require(msg.sender == rewardsDistributor, "Caller is not reward distributor");
+    require(
+      msg.sender == rewardsDistributor,
+      "Caller is not reward distributor"
+    );
     _;
   }
 
@@ -38,7 +41,10 @@ abstract contract InitializableRewardsDistributionRecipient is
    * @dev Change the rewardsDistributor - only called by mStable governor
    * @param _rewardsDistributor   Address of the new distributor
    */
-  function setRewardsDistribution(address _rewardsDistributor) external onlyGovernor {
+  function setRewardsDistribution(address _rewardsDistributor)
+    external
+    onlyGovernor
+  {
     rewardsDistributor = _rewardsDistributor;
   }
 }

@@ -19,7 +19,11 @@ contract AllowlistPurchaseHook is IAllowlistPurchaseHook, SafeOwnable {
     require(_allowlist.isIncluded(_recipient), "Recipient not allowed");
   }
 
-  function setAllowlist(IAccountList _newAllowlist) external override onlyOwner {
+  function setAllowlist(IAccountList _newAllowlist)
+    external
+    override
+    onlyOwner
+  {
     _allowlist = _newAllowlist;
     emit AllowlistChange(_newAllowlist);
   }

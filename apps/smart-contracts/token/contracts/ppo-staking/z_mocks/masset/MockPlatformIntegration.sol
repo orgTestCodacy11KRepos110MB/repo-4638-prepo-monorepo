@@ -90,13 +90,19 @@ contract MockPlatformIntegration is IPlatformIntegration, ImmutableModule {
    * @param _bAsset   Address for the bAsset
    * @param _pToken   Address for the corresponding platform token
    */
-  function setPTokenAddress(address _bAsset, address _pToken) external onlyGovernor {
+  function setPTokenAddress(address _bAsset, address _pToken)
+    external
+    onlyGovernor
+  {
     _setPTokenAddress(_bAsset, _pToken);
   }
 
   function _setPTokenAddress(address _bAsset, address _pToken) internal {
     require(bAssetToPToken[_bAsset] == address(0), "pToken already set");
-    require(_bAsset != address(0) && _pToken != address(0), "Invalid addresses");
+    require(
+      _bAsset != address(0) && _pToken != address(0),
+      "Invalid addresses"
+    );
 
     bAssetToPToken[_bAsset] = _pToken;
     bAssetsMapped.push(_bAsset);
@@ -228,7 +234,12 @@ contract MockPlatformIntegration is IPlatformIntegration, ImmutableModule {
    * @param _bAsset     Address of the bAsset
    * @return balance    Total value of the bAsset in the platform
    */
-  function checkBalance(address _bAsset) external view override returns (uint256 balance) {
+  function checkBalance(address _bAsset)
+    external
+    view
+    override
+    returns (uint256 balance)
+  {
     // balance is always with token aToken decimals
     IAaveATokenV2 aToken = _getATokenFor(_bAsset);
     return _checkBalance(aToken);
@@ -277,7 +288,8 @@ contract MockPlatformIntegration is IPlatformIntegration, ImmutableModule {
    * @return Current lending pool implementation
    */
   function _getLendingPool() internal view returns (IAaveLendingPoolV2) {
-    address lendingPool = ILendingPoolAddressesProviderV2(platformAddress).getLendingPool();
+    address lendingPool = ILendingPoolAddressesProviderV2(platformAddress)
+      .getLendingPool();
     require(lendingPool != address(0), "Lending pool does not exist");
     return IAaveLendingPoolV2(lendingPool);
   }
@@ -288,7 +300,11 @@ contract MockPlatformIntegration is IPlatformIntegration, ImmutableModule {
    * @param _bAsset  Address of the bAsset
    * @return aToken  Corresponding to this bAsset
    */
-  function _getATokenFor(address _bAsset) internal view returns (IAaveATokenV2) {
+  function _getATokenFor(address _bAsset)
+    internal
+    view
+    returns (IAaveATokenV2)
+  {
     address aToken = bAssetToPToken[_bAsset];
     require(aToken != address(0), "aToken does not exist");
     return IAaveATokenV2(aToken);
@@ -299,7 +315,11 @@ contract MockPlatformIntegration is IPlatformIntegration, ImmutableModule {
    * @param _aToken     aToken for which to check balance
    * @return balance    Total value of the bAsset in the platform
    */
-  function _checkBalance(IAaveATokenV2 _aToken) internal view returns (uint256 balance) {
+  function _checkBalance(IAaveATokenV2 _aToken)
+    internal
+    view
+    returns (uint256 balance)
+  {
     return _aToken.balanceOf(address(this));
   }
 

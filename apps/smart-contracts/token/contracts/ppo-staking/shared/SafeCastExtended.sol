@@ -29,7 +29,10 @@ library SafeCastExtended {
    * - input must fit into 224 bits
    */
   function toUint224(uint256 value) internal pure returns (uint224) {
-    require(value <= type(uint224).max, "SafeCast: value doesn't fit in 224 bits");
+    require(
+      value <= type(uint224).max,
+      "SafeCast: value doesn't fit in 224 bits"
+    );
     return uint224(value);
   }
 
@@ -44,7 +47,10 @@ library SafeCastExtended {
    * - input must fit into 128 bits
    */
   function toUint128(uint256 value) internal pure returns (uint128) {
-    require(value <= type(uint128).max, "SafeCast: value doesn't fit in 128 bits");
+    require(
+      value <= type(uint128).max,
+      "SafeCast: value doesn't fit in 128 bits"
+    );
     return uint128(value);
   }
 
@@ -59,7 +65,10 @@ library SafeCastExtended {
    * - input must fit into 96 bits
    */
   function toUint96(uint256 value) internal pure returns (uint96) {
-    require(value <= type(uint96).max, "SafeCast: value doesn't fit in 96 bits");
+    require(
+      value <= type(uint96).max,
+      "SafeCast: value doesn't fit in 96 bits"
+    );
     return uint96(value);
   }
 
@@ -74,7 +83,10 @@ library SafeCastExtended {
    * - input must fit into 88 bits
    */
   function toUint88(uint256 value) internal pure returns (uint88) {
-    require(value <= type(uint88).max, "SafeCast: value doesn't fit in 88 bits");
+    require(
+      value <= type(uint88).max,
+      "SafeCast: value doesn't fit in 88 bits"
+    );
     return uint88(value);
   }
 
@@ -89,7 +101,10 @@ library SafeCastExtended {
    * - input must fit into 64 bits
    */
   function toUint64(uint256 value) internal pure returns (uint64) {
-    require(value <= type(uint64).max, "SafeCast: value doesn't fit in 64 bits");
+    require(
+      value <= type(uint64).max,
+      "SafeCast: value doesn't fit in 64 bits"
+    );
     return uint64(value);
   }
 
@@ -104,7 +119,10 @@ library SafeCastExtended {
    * - input must fit into 32 bits
    */
   function toUint32(uint256 value) internal pure returns (uint32) {
-    require(value <= type(uint32).max, "SafeCast: value doesn't fit in 32 bits");
+    require(
+      value <= type(uint32).max,
+      "SafeCast: value doesn't fit in 32 bits"
+    );
     return uint32(value);
   }
 
@@ -119,7 +137,10 @@ library SafeCastExtended {
    * - input must fit into 16 bits
    */
   function toUint16(uint256 value) internal pure returns (uint16) {
-    require(value <= type(uint16).max, "SafeCast: value doesn't fit in 16 bits");
+    require(
+      value <= type(uint16).max,
+      "SafeCast: value doesn't fit in 16 bits"
+    );
     return uint16(value);
   }
 
@@ -264,7 +285,10 @@ library SafeCastExtended {
    */
   function toInt256(uint256 value) internal pure returns (int256) {
     // Note: Unsafe cast below is okay because `type(int256).max` is guaranteed to be positive
-    require(value <= uint256(type(int256).max), "SafeCast: value doesn't fit in an int256");
+    require(
+      value <= uint256(type(int256).max),
+      "SafeCast: value doesn't fit in an int256"
+    );
     return int256(value);
   }
 }

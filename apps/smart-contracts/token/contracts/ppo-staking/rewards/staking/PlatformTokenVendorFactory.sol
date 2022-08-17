@@ -22,7 +22,9 @@ library PlatformTokenVendorFactory {
    * @return address of the deployed PlatformTokenVendor contract
    */
   function create(IERC20 _rewardsToken) public returns (address) {
-    PlatformTokenVendor newPlatformTokenVendor = new PlatformTokenVendor(_rewardsToken);
+    PlatformTokenVendor newPlatformTokenVendor = new PlatformTokenVendor(
+      _rewardsToken
+    );
     return address(newPlatformTokenVendor);
   }
 }

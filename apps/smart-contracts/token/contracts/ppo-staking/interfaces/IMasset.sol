@@ -26,11 +26,10 @@ abstract contract IMasset {
     virtual
     returns (uint256 mintOutput);
 
-  function getMintMultiOutput(address[] calldata _inputs, uint256[] calldata _inputQuantities)
-    external
-    view
-    virtual
-    returns (uint256 mintOutput);
+  function getMintMultiOutput(
+    address[] calldata _inputs,
+    uint256[] calldata _inputQuantities
+  ) external view virtual returns (uint256 mintOutput);
 
   // Swaps
   function swap(
@@ -99,7 +98,10 @@ abstract contract IMasset {
   function getPrice() external view virtual returns (uint256 price, uint256 k);
 
   // SavingsManager
-  function collectInterest() external virtual returns (uint256 swapFeesGained, uint256 newSupply);
+  function collectInterest()
+    external
+    virtual
+    returns (uint256 swapFeesGained, uint256 newSupply);
 
   function collectPlatformInterest()
     external
@@ -113,5 +115,7 @@ abstract contract IMasset {
 
   function setTransferFeesFlag(address _bAsset, bool _flag) external virtual;
 
-  function migrateBassets(address[] calldata _bAssets, address _newIntegration) external virtual;
+  function migrateBassets(address[] calldata _bAssets, address _newIntegration)
+    external
+    virtual;
 }

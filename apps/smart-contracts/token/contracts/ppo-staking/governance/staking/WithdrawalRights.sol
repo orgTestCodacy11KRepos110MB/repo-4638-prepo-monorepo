@@ -28,7 +28,12 @@ contract WithdrawalRights is SafeOwnable, ERC721 {
   }
 
   // solhint-disable-next-line no-unused-vars
-  function tokenURI(uint256 _tokenId) public view override returns (string memory) {
+  function tokenURI(uint256 _tokenId)
+    public
+    view
+    override
+    returns (string memory)
+  {
     return _uri;
   }
 

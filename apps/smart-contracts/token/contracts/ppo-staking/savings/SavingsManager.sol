@@ -31,7 +31,10 @@ contract SavingsManager is ISavingsManager, PausableModule {
   // Core admin events
   event RevenueRecipientSet(address indexed mAsset, address recipient);
   event SavingsContractAdded(address indexed mAsset, address savingsContract);
-  event SavingsContractUpdated(address indexed mAsset, address savingsContract);
+  event SavingsContractUpdated(
+    address indexed mAsset,
+    address savingsContract
+  );
   event SavingsRateChanged(uint256 newSavingsRate);
   event StreamsFrozen();
   // Interest collection
@@ -43,7 +46,11 @@ contract SavingsManager is ISavingsManager, PausableModule {
     uint256 apy
   );
   event InterestDistributed(address indexed mAsset, uint256 amountSent);
-  event RevenueRedistributed(address indexed mAsset, address recipient, uint256 amount);
+  event RevenueRedistributed(
+    address indexed mAsset,
+    address recipient,
+    uint256 amount
+  );
 
   // Locations of each mAsset savings contract
   mapping(address => ISavingsContractV2) public savingsContracts;
@@ -87,12 +94,17 @@ contract SavingsManager is ISavingsManager, PausableModule {
     uint256 _duration
   ) PausableModule(_nexus) {
     uint256 len = _mAssets.length;
-    require(_savingsContracts.length == len && _revenueRecipients.length == len, "Invalid inputs");
+    require(
+      _savingsContracts.length == len && _revenueRecipients.length == len,
+      "Invalid inputs"
+    );
     for (uint256 i = 0; i < len; i++) {
       _updateSavingsContract(_mAssets[i], _savingsContracts[i]);
       emit SavingsContractAdded(_mAssets[i], _savingsContracts[i]);
 
-      revenueRecipients[_mAssets[i]] = IRevenueRecipient(_revenueRecipients[i]);
+      revenueRecipients[_mAssets[i]] = IRevenueRecipient(
+        _revenueRecipients[i]
+      );
       emit RevenueRecipientSet(_mAssets[i], _revenueRecipients[i]);
     }
     savingsRate = _savingsRate;
@@ -118,8 +130,14 @@ contract SavingsManager is ISavingsManager, PausableModule {
    * @param _mAsset           Address of underlying mAsset
    * @param _savingsContract  Address of the savings contract
    */
-  function addSavingsContract(address _mAsset, address _savingsContract) external onlyGovernor {
-    require(address(savingsContracts[_mAsset]) == address(0), "Savings contract already exists");
+  function addSavingsContract(address _mAsset, address _savingsContract)
+    external
+    onlyGovernor
+  {
+    require(
+      address(savingsContracts[_mAsset]) == address(0),
+      "Savings contract already exists"
+    );
     _updateSavingsContract(_mAsset, _savingsContract);
     emit SavingsContractAdded(_mAsset, _savingsContract);
   }
@@ -129,14 +147,25 @@ contract SavingsManager is ISavingsManager, PausableModule {
    * @param _mAsset           Address of underlying mAsset
    * @param _savingsContract  Address of the savings contract
    */
-  function updateSavingsContract(address _mAsset, address _savingsContract) external onlyGovernor {
-    require(address(savingsContracts[_mAsset]) != address(0), "Savings contract does not exist");
+  function updateSavingsContract(address _mAsset, address _savingsContract)
+    external
+    onlyGovernor
+  {
+    require(
+      address(savingsContracts[_mAsset]) != address(0),
+      "Savings contract does not exist"
+    );
     _updateSavingsContract(_mAsset, _savingsContract);
     emit SavingsContractUpdated(_mAsset, _savingsContract);
   }
 
-  function _updateSavingsContract(address _mAsset, address _savingsContract) internal {
-    require(_mAsset != address(0) && _savingsContract != address(0), "Must be valid address");
+  function _updateSavingsContract(address _mAsset, address _savingsContract)
+    internal
+  {
+    require(
+      _mAsset != address(0) && _savingsContract != address(0),
+      "Must be valid address"
+    );
     savingsContracts[_mAsset] = ISavingsContractV2(_savingsContract);
 
     IERC20(_mAsset).safeApprove(address(_savingsContract), 0);
@@ -157,7 +186,10 @@ contract SavingsManager is ISavingsManager, PausableModule {
    * @param _mAsset           Address of underlying mAsset
    * @param _recipient        Address of the recipient
    */
-  function setRevenueRecipient(address _mAsset, address _recipient) external onlyGovernor {
+  function setRevenueRecipient(address _mAsset, address _recipient)
+    external
+    onlyGovernor
+  {
     revenueRecipients[_mAsset] = IRevenueRecipient(_recipient);
 
     emit RevenueRecipientSet(_mAsset, _recipient);
@@ -169,7 +201,10 @@ contract SavingsManager is ISavingsManager, PausableModule {
    */
   function setSavingsRate(uint256 _savingsRate) external onlyGovernor {
     // Greater than 25% up to 100%
-    require(_savingsRate >= 25e16 && _savingsRate <= 1e18, "Must be a valid rate");
+    require(
+      _savingsRate >= 25e16 && _savingsRate <= 1e18,
+      "Must be a valid rate"
+    );
     savingsRate = _savingsRate;
     emit SavingsRateChanged(_savingsRate);
   }
@@ -191,10 +226,19 @@ contract SavingsManager is ISavingsManager, PausableModule {
     _collectAndDistributeInterest(_mAsset);
 
     // transfer liquidated mUSD to here
-    IERC20(_mAsset).safeTransferFrom(_liquidator(), address(this), _liquidated);
+    IERC20(_mAsset).safeTransferFrom(
+      _liquidator(),
+      address(this),
+      _liquidated
+    );
 
     uint256 leftover = _unstreamedRewards(_mAsset, StreamType.liquidator);
-    _initialiseStream(_mAsset, StreamType.liquidator, _liquidated + leftover, DURATION);
+    _initialiseStream(
+      _mAsset,
+      StreamType.liquidator,
+      _liquidated + leftover,
+      DURATION
+    );
 
     emit LiquidatorDeposited(_mAsset, _liquidated);
   }
@@ -216,11 +260,15 @@ contract SavingsManager is ISavingsManager, PausableModule {
     uint256 currentTime = block.timestamp;
     uint256 previousBatch = lastBatchCollected[_mAsset];
     uint256 timeSincePreviousBatch = currentTime - previousBatch;
-    require(timeSincePreviousBatch > 6 hours, "Cannot deposit twice in 6 hours");
+    require(
+      timeSincePreviousBatch > 6 hours,
+      "Cannot deposit twice in 6 hours"
+    );
     lastBatchCollected[_mAsset] = currentTime;
 
     // Batch collect
-    (uint256 interestCollected, uint256 totalSupply) = IMasset(_mAsset).collectPlatformInterest();
+    (uint256 interestCollected, uint256 totalSupply) = IMasset(_mAsset)
+      .collectPlatformInterest();
 
     if (interestCollected > 0) {
       // Validate APY
@@ -232,7 +280,12 @@ contract SavingsManager is ISavingsManager, PausableModule {
 
       // Get remaining rewards
       uint256 leftover = _unstreamedRewards(_mAsset, StreamType.yield);
-      _initialiseStream(_mAsset, StreamType.yield, interestCollected + leftover, ONE_DAY);
+      _initialiseStream(
+        _mAsset,
+        StreamType.yield,
+        interestCollected + leftover,
+        ONE_DAY
+      );
 
       emit InterestCollected(_mAsset, interestCollected, totalSupply, apy);
     } else {
@@ -286,7 +339,10 @@ contract SavingsManager is ISavingsManager, PausableModule {
     }
 
     // Reset pool data to enable lastCollection usage twice
-    require(lastCollection[_mAsset] == currentTime, "Stream data must be up to date");
+    require(
+      lastCollection[_mAsset] == currentTime,
+      "Stream data must be up to date"
+    );
   }
 
   /***************************************
@@ -299,13 +355,20 @@ contract SavingsManager is ISavingsManager, PausableModule {
    *      exceed the "MAX_APY" variable.
    * @param _mAsset       mAsset for which the interest should be collected
    */
-  function collectAndDistributeInterest(address _mAsset) external override whenNotPaused {
+  function collectAndDistributeInterest(address _mAsset)
+    external
+    override
+    whenNotPaused
+  {
     _collectAndDistributeInterest(_mAsset);
   }
 
   function _collectAndDistributeInterest(address _mAsset) internal {
     ISavingsContractV2 savingsContract = savingsContracts[_mAsset];
-    require(address(savingsContract) != address(0), "Must have a valid savings contract");
+    require(
+      address(savingsContract) != address(0),
+      "Must have a valid savings contract"
+    );
 
     // Get collection details
     uint256 recentPeriodStart = lastPeriodStart[_mAsset];
@@ -314,12 +377,19 @@ contract SavingsManager is ISavingsManager, PausableModule {
 
     // 1. Collect the new interest from the mAsset
     IMasset mAsset = IMasset(_mAsset);
-    (uint256 interestCollected, uint256 totalSupply) = mAsset.collectInterest();
+    (uint256 interestCollected, uint256 totalSupply) = mAsset
+      .collectInterest();
 
     // 2. Update all the time stamps
     //    Avoid division by 0 by adding a minimum elapsed time of 1 second
-    uint256 timeSincePeriodStart = StableMath.max(1, block.timestamp - recentPeriodStart);
-    uint256 timeSinceLastCollection = StableMath.max(1, block.timestamp - previousCollection);
+    uint256 timeSincePeriodStart = StableMath.max(
+      1,
+      block.timestamp - recentPeriodStart
+    );
+    uint256 timeSinceLastCollection = StableMath.max(
+      1,
+      block.timestamp - previousCollection
+    );
 
     uint256 inflationOperand = interestCollected;
     //    If it has been 30 mins since last collection, reset period data
@@ -343,7 +413,8 @@ contract SavingsManager is ISavingsManager, PausableModule {
     // 3. Validate that interest is collected correctly and does not exceed max APY
     if (interestCollected > 0 || newReward > 0) {
       require(
-        IERC20(_mAsset).balanceOf(address(this)) >= interestCollected + newReward,
+        IERC20(_mAsset).balanceOf(address(this)) >=
+          interestCollected + newReward,
         "Must receive mUSD"
       );
 
@@ -353,11 +424,18 @@ contract SavingsManager is ISavingsManager, PausableModule {
         timeSinceLastCollection
       );
 
-      emit InterestCollected(_mAsset, interestCollected, totalSupply, extrapolatedAPY);
+      emit InterestCollected(
+        _mAsset,
+        interestCollected,
+        totalSupply,
+        extrapolatedAPY
+      );
 
       // 4. Distribute the interest
       //    Calculate the share for savers (95e16 or 95%)
-      uint256 saversShare = (interestCollected + newReward).mulTruncate(savingsRate);
+      uint256 saversShare = (interestCollected + newReward).mulTruncate(
+        savingsRate
+      );
 
       //    Call depositInterest on contract
       savingsContract.depositInterest(saversShare);
@@ -380,11 +458,17 @@ contract SavingsManager is ISavingsManager, PausableModule {
     returns (uint256)
   {
     Stream memory liq = liqStream[_mAsset];
-    uint256 unclaimedSeconds_liq = _unclaimedSeconds(_previousCollection, liq.end);
+    uint256 unclaimedSeconds_liq = _unclaimedSeconds(
+      _previousCollection,
+      liq.end
+    );
     uint256 subtotal_liq = unclaimedSeconds_liq * liq.rate;
 
     Stream memory yield = yieldStream[_mAsset];
-    uint256 unclaimedSeconds_yield = _unclaimedSeconds(_previousCollection, yield.end);
+    uint256 unclaimedSeconds_yield = _unclaimedSeconds(
+      _previousCollection,
+      yield.end
+    );
     uint256 subtotal_yield = unclaimedSeconds_yield * yield.rate;
 
     return subtotal_liq + subtotal_yield;
@@ -396,7 +480,11 @@ contract SavingsManager is ISavingsManager, PausableModule {
    * @param _end End time of period
    * @return Seconds of stream that should be compensated
    */
-  function _unclaimedSeconds(uint256 _lastUpdate, uint256 _end) internal view returns (uint256) {
+  function _unclaimedSeconds(uint256 _lastUpdate, uint256 _end)
+    internal
+    view
+    returns (uint256)
+  {
     uint256 currentTime = block.timestamp;
     uint256 unclaimedSeconds = 0;
 

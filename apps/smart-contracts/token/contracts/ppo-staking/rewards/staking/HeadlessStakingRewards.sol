@@ -78,8 +78,14 @@ abstract contract HeadlessStakingRewards is
    *      To avoid variable shadowing appended `Arg` after arguments name.
    * @param _rewardsDistributorArg mStable Reward Distributor contract address
    */
-  function _initialize(address _rewardsDistributorArg) internal virtual override {
-    InitializableRewardsDistributionRecipient._initialize(_rewardsDistributorArg);
+  function _initialize(address _rewardsDistributorArg)
+    internal
+    virtual
+    override
+  {
+    InitializableRewardsDistributionRecipient._initialize(
+      _rewardsDistributorArg
+    );
     rewardTokenVendor = PlatformTokenVendorFactory.create(REWARDS_TOKEN);
   }
 
@@ -91,7 +97,10 @@ abstract contract HeadlessStakingRewards is
 
   function _updateReward(address _account) internal {
     // Setting of global vars
-    (uint256 newRewardPerToken, uint256 lastApplicableTime) = _rewardPerToken();
+    (
+      uint256 newRewardPerToken,
+      uint256 lastApplicableTime
+    ) = _rewardPerToken();
     // If statement protects against loss in initialisation case
     if (newRewardPerToken > 0) {
       globalData.rewardPerTokenStored = SafeCast.toUint96(newRewardPerToken);
@@ -185,9 +194,14 @@ abstract contract HeadlessStakingRewards is
       return (data.rewardPerTokenStored, lastApplicableTime);
     }
     // new reward units per token = (rewardUnitsToDistribute * 1e18) / totalTokens
-    uint256 unitsToDistributePerToken = rewardUnitsToDistribute.divPrecisely(supply);
+    uint256 unitsToDistributePerToken = rewardUnitsToDistribute.divPrecisely(
+      supply
+    );
     // return summed rate
-    return (data.rewardPerTokenStored + unitsToDistributePerToken, lastApplicableTime); // + 1 SLOAD
+    return (
+      data.rewardPerTokenStored + unitsToDistributePerToken,
+      lastApplicableTime
+    ); // + 1 SLOAD
   }
 
   /**
@@ -205,7 +219,8 @@ abstract contract HeadlessStakingRewards is
     returns (uint256)
   {
     // current rate per token - rate user previously received
-    uint256 userRewardDelta = _currentRewardPerToken - userData[_account].rewardPerTokenPaid; // + 1 SLOAD
+    uint256 userRewardDelta = _currentRewardPerToken -
+      userData[_account].rewardPerTokenPaid; // + 1 SLOAD
     // Short circuit if there is nothing new to distribute
     if (userRewardDelta == 0) {
       return userData[_account].rewards;
@@ -262,7 +277,9 @@ abstract contract HeadlessStakingRewards is
     else {
       uint256 remainingSeconds = globalData.periodFinish - currentTime;
       uint256 leftover = remainingSeconds * globalData.rewardRate;
-      globalData.rewardRate = SafeCast.toUint96((_reward + leftover) / DURATION);
+      globalData.rewardRate = SafeCast.toUint96(
+        (_reward + leftover) / DURATION
+      );
     }
 
     globalData.lastUpdateTime = SafeCast.toUint32(currentTime);
@@ -276,8 +293,14 @@ abstract contract HeadlessStakingRewards is
    *      Trusts that this is called honestly.
    * @param _additionalReward Units of additional RewardToken to add at the next notification
    */
-  function _notifyAdditionalReward(uint256 _additionalReward) internal virtual {
-    require(_additionalReward < 1e24, "Cannot notify with more than a million units");
+  function _notifyAdditionalReward(uint256 _additionalReward)
+    internal
+    virtual
+  {
+    require(
+      _additionalReward < 1e24,
+      "Cannot notify with more than a million units"
+    );
 
     pendingAdditionalReward += _additionalReward;
   }

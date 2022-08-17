@@ -2,28 +2,49 @@
 pragma solidity =0.8.7;
 
 import "./interfaces/IPPO.sol";
+//solhint-disable-next-line max-line-length
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20BurnableUpgradeable.sol";
+//solhint-disable-next-line max-line-length
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-ERC20PermitUpgradeable.sol";
 import "prepo-shared-contracts/contracts/SafeOwnableUpgradeable.sol";
 
-contract PPO is IPPO, SafeOwnableUpgradeable, ERC20BurnableUpgradeable, ERC20PermitUpgradeable {
+contract PPO is
+  IPPO,
+  SafeOwnableUpgradeable,
+  ERC20BurnableUpgradeable,
+  ERC20PermitUpgradeable
+{
   ITransferHook private _transferHook;
 
-  function initialize(string memory _name, string memory _symbol) public initializer {
+  function initialize(string memory _name, string memory _symbol)
+    public
+    initializer
+  {
     __Ownable_init();
     __ERC20_init(_name, _symbol);
     __ERC20Permit_init(_name);
   }
 
-  function setTransferHook(ITransferHook _newTransferHook) external override onlyOwner {
+  function setTransferHook(ITransferHook _newTransferHook)
+    external
+    override
+    onlyOwner
+  {
     _transferHook = _newTransferHook;
   }
 
-  function mint(address _recipient, uint256 _amount) external override onlyOwner {
+  function mint(address _recipient, uint256 _amount)
+    external
+    override
+    onlyOwner
+  {
     _mint(_recipient, _amount);
   }
 
-  function burn(uint256 _amount) public override(IPPO, ERC20BurnableUpgradeable) {
+  function burn(uint256 _amount)
+    public
+    override(IPPO, ERC20BurnableUpgradeable)
+  {
     super.burn(_amount);
   }
 

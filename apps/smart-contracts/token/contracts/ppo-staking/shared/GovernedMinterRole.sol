@@ -25,7 +25,10 @@ abstract contract GovernedMinterRole is ImmutableModule, AccessControl {
   }
 
   modifier onlyMinter() {
-    require(isMinter(msg.sender), "MinterRole: caller does not have the Minter role");
+    require(
+      isMinter(msg.sender),
+      "MinterRole: caller does not have the Minter role"
+    );
     _;
   }
 

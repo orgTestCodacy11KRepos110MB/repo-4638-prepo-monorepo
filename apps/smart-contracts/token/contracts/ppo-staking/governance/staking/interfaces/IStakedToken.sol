@@ -18,11 +18,17 @@ interface IStakedToken {
 
   function whitelistedWrappers(address) external view returns (bool);
 
-  function balanceData(address _account) external view returns (Balance memory);
+  function balanceData(address _account)
+    external
+    view
+    returns (Balance memory);
 
   function balanceOf(address _account) external view returns (uint256);
 
-  function rawBalanceOf(address _account) external view returns (uint256, uint256);
+  function rawBalanceOf(address _account)
+    external
+    view
+    returns (uint256, uint256);
 
   function calcRedemptionFeeRate(uint32 _weightedTimestamp)
     external
@@ -36,14 +42,21 @@ interface IStakedToken {
 
   function delegates(address account) external view returns (address);
 
-  function getPastTotalSupply(uint256 blockNumber) external view returns (uint256);
+  function getPastTotalSupply(uint256 blockNumber)
+    external
+    view
+    returns (uint256);
 
-  function getPastVotes(address account, uint256 blockNumber) external view returns (uint256);
+  function getPastVotes(address account, uint256 blockNumber)
+    external
+    view
+    returns (uint256);
 
   function getVotes(address account) external view returns (uint256);
 
   // HOOKS/PERMISSIONED
-  function applyQuestMultiplier(address _account, uint8 _newMultiplier) external;
+  function applyQuestMultiplier(address _account, uint8 _newMultiplier)
+    external;
 
   // ADMIN
   function whitelistWrapper(address _wrapper) external;

@@ -7,7 +7,11 @@ import "../../interfaces/IStakingRewardsDistribution.sol";
 import "../../governance/staking/interfaces/IPPOStaking.sol";
 import "prepo-shared-contracts/contracts/SafeOwnable.sol";
 
-contract StakingRewardsDistribution is IStakingRewardsDistribution, SafeOwnable, ReentrancyGuard {
+contract StakingRewardsDistribution is
+  IStakingRewardsDistribution,
+  SafeOwnable,
+  ReentrancyGuard
+{
   IPPOStaking private _ppoStaking;
   bytes32 private _root;
   mapping(uint256 => bool) private _userPeriodHashToClaimed;
@@ -27,7 +31,10 @@ contract StakingRewardsDistribution is IStakingRewardsDistribution, SafeOwnable,
     uint256 _amount,
     bytes32[] memory _proof
   ) external override nonReentrant {
-    require(!_userPeriodHashToClaimed[_getUserPeriodHash(_account)], "Already claimed");
+    require(
+      !_userPeriodHashToClaimed[_getUserPeriodHash(_account)],
+      "Already claimed"
+    );
     bytes32 _leaf = keccak256(abi.encodePacked(_account, _amount));
     bool _verified = MerkleProof.verify(_proof, _root, _leaf);
     require(_verified, "Invalid claim");

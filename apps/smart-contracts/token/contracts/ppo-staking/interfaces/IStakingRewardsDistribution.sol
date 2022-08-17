@@ -2,7 +2,11 @@
 pragma solidity =0.8.7;
 
 interface IStakingRewardsDistribution {
-  event RewardClaim(address indexed user, uint256 amount, uint256 periodNumber);
+  event RewardClaim(
+    address indexed user,
+    uint256 amount,
+    uint256 periodNumber
+  );
   event RootUpdate(bytes32 indexed newRoot, uint256 newPeriodNumber);
 
   function setPPOStaking(address newPPOStaking) external;

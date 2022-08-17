@@ -19,7 +19,11 @@ contract BlocklistTransferHook is IBlocklistTransferHook, SafeOwnable {
     require(!_blocklist.isIncluded(_to), "Recipient blocked");
   }
 
-  function setBlocklist(IAccountList _newBlocklist) external override onlyOwner {
+  function setBlocklist(IAccountList _newBlocklist)
+    external
+    override
+    onlyOwner
+  {
     _blocklist = _newBlocklist;
     emit BlocklistChange(_newBlocklist);
   }

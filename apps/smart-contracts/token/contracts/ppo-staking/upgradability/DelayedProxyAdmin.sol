@@ -15,9 +15,18 @@ import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transpa
  *          Part of the code taken from OpenZeppelin-SDK's ProxyAdmin.sol
  */
 contract DelayedProxyAdmin is ImmutableModule {
-  event UpgradeProposed(address indexed proxy, address implementation, bytes data);
+  event UpgradeProposed(
+    address indexed proxy,
+    address implementation,
+    bytes data
+  );
   event UpgradeCancelled(address indexed proxy);
-  event Upgraded(address indexed proxy, address oldImpl, address newImpl, bytes data);
+  event Upgraded(
+    address indexed proxy,
+    address oldImpl,
+    address newImpl,
+    bytes data
+  );
 
   // Request struct to store proposed upgrade requests
   struct Request {
@@ -51,7 +60,10 @@ contract DelayedProxyAdmin is ImmutableModule {
   ) external onlyGovernor {
     require(_proxy != address(0), "Proxy address is zero");
     require(_implementation != address(0), "Implementation address is zero");
-    require(requests[_proxy].implementation == address(0), "Upgrade already proposed");
+    require(
+      requests[_proxy].implementation == address(0),
+      "Upgrade already proposed"
+    );
     validateProxy(_proxy, _implementation);
 
     Request storage request = requests[_proxy];
@@ -78,7 +90,11 @@ contract DelayedProxyAdmin is ImmutableModule {
    *      `payable`, to forward ETH to initialize function call upon upgrade.
    * @param _proxy The address of the proxy
    */
-  function acceptUpgradeRequest(address payable _proxy) external payable onlyGovernor {
+  function acceptUpgradeRequest(address payable _proxy)
+    external
+    payable
+    onlyGovernor
+  {
     // _proxy is payable, because AdminUpgradeabilityProxy has fallback function
     require(_proxy != address(0), "Proxy address is zero");
     Request memory request = requests[_proxy];
@@ -96,7 +112,10 @@ contract DelayedProxyAdmin is ImmutableModule {
       require(msg.value == 0, "msg.value should be zero");
       TransparentUpgradeableProxy(_proxy).upgradeTo(newImpl);
     } else {
-      TransparentUpgradeableProxy(_proxy).upgradeToAndCall{value: msg.value}(newImpl, data);
+      TransparentUpgradeableProxy(_proxy).upgradeToAndCall{value: msg.value}(
+        newImpl,
+        data
+      );
     }
 
     emit Upgraded(_proxy, oldImpl, newImpl, data);
@@ -108,7 +127,8 @@ contract DelayedProxyAdmin is ImmutableModule {
    * @return Returns `true` when upgrade delay is over, otherwise `false`
    */
   function _isDelayOver(uint256 _timestamp) private view returns (bool) {
-    if (_timestamp > 0 && block.timestamp >= _timestamp + UPGRADE_DELAY) return true;
+    if (_timestamp > 0 && block.timestamp >= _timestamp + UPGRADE_DELAY)
+      return true;
     return false;
   }
 
@@ -148,7 +168,11 @@ contract DelayedProxyAdmin is ImmutableModule {
    * @param _proxy Contract address of Proxy
    * @return The address of the current implementation of the proxy.
    */
-  function getProxyImplementation(address _proxy) public view returns (address) {
+  function getProxyImplementation(address _proxy)
+    public
+    view
+    returns (address)
+  {
     // We need to manually run the static call since the getter cannot be flagged as view
     // bytes4(keccak256("implementation()")) == 0x5c60da1b
     (bool success, bytes memory returndata) = _proxy.staticcall(hex"5c60da1b");

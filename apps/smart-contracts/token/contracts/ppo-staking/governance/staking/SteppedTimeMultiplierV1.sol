@@ -4,7 +4,12 @@ pragma solidity =0.8.7;
 import "./interfaces/ITimeMultiplierCalculator.sol";
 
 contract SteppedTimeMultiplierV1 is ITimeMultiplierCalculator {
-  function calculate(uint256 _timestamp) external view override returns (uint256 timeMultiplier) {
+  function calculate(uint256 _timestamp)
+    external
+    view
+    override
+    returns (uint256 timeMultiplier)
+  {
     // If user has no timestamp, it means they haven't staked
     if (_timestamp == 0) return 1000000000000;
 

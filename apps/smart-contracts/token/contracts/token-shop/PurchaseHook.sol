@@ -7,7 +7,8 @@ import "prepo-shared-contracts/contracts/SafeOwnable.sol";
 
 contract PurchaseHook is IPurchaseHook, SafeOwnable {
   mapping(address => uint256) private _erc721ToMaxPurchasesPerUser;
-  mapping(address => mapping(uint256 => uint256)) private _erc1155ToIdToMaxPurchasesPerUser;
+  mapping(address => mapping(uint256 => uint256))
+    private _erc1155ToIdToMaxPurchasesPerUser;
   ITokenShop private _tokenShop;
 
   //TODO: EOA validation check in hookERC721 and hookERC1155 implementation
@@ -25,7 +26,8 @@ contract PurchaseHook is IPurchaseHook, SafeOwnable {
      */
     if (_maxPurchaseAmount != 0) {
       require(
-        _tokenShop.getERC721PurchaseCount(_user, _tokenContract) < _maxPurchaseAmount,
+        _tokenShop.getERC721PurchaseCount(_user, _tokenContract) <
+          _maxPurchaseAmount,
         "ERC721 purchase limit reached"
       );
     }
@@ -38,7 +40,9 @@ contract PurchaseHook is IPurchaseHook, SafeOwnable {
     uint256 _amount
   ) external override {
     require(address(_tokenShop) != address(0), "Token shop not set in hook");
-    uint256 _maxPurchaseAmount = _erc1155ToIdToMaxPurchasesPerUser[_tokenContract][_tokenId];
+    uint256 _maxPurchaseAmount = _erc1155ToIdToMaxPurchasesPerUser[
+      _tokenContract
+    ][_tokenId];
     // TODO: move in the new ITokenShopPurchaseHook.sol in future PR
     /**
      * _maxPurchaseAmount = 0 means an unlimited amount of items
@@ -46,7 +50,8 @@ contract PurchaseHook is IPurchaseHook, SafeOwnable {
      */
     if (_maxPurchaseAmount != 0) {
       require(
-        _tokenShop.getERC1155PurchaseCount(_user, _tokenContract, _tokenId) + _amount <=
+        _tokenShop.getERC1155PurchaseCount(_user, _tokenContract, _tokenId) +
+          _amount <=
           _maxPurchaseAmount,
         "ERC1155 purchase limit reached"
       );
@@ -57,11 +62,10 @@ contract PurchaseHook is IPurchaseHook, SafeOwnable {
     _tokenShop = ITokenShop(_newTokenShop);
   }
 
-  function setMaxERC721PurchasesPerUser(address[] memory _contracts, uint256[] memory _amounts)
-    external
-    override
-    onlyOwner
-  {
+  function setMaxERC721PurchasesPerUser(
+    address[] memory _contracts,
+    uint256[] memory _amounts
+  ) external override onlyOwner {
     require(_contracts.length == _amounts.length, "Array length mismatch");
     for (uint256 i; i < _contracts.length; ++i) {
       _erc721ToMaxPurchasesPerUser[_contracts[i]] = _amounts[i];

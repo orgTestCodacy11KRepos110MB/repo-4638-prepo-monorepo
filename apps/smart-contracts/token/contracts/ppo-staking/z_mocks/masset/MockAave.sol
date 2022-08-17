@@ -11,7 +11,9 @@ contract MockATokenV2 is ERC20 {
   IERC20 public underlyingToken;
   using SafeERC20 for IERC20;
 
-  constructor(address _lendingPool, IERC20 _underlyingToken) ERC20("MockAToken", "MAT") {
+  constructor(address _lendingPool, IERC20 _underlyingToken)
+    ERC20("MockAToken", "MAT")
+  {
     lendingPool = _lendingPool;
     underlyingToken = _underlyingToken;
   }
@@ -43,7 +45,9 @@ contract MockAaveV2 is IAaveLendingPoolV2, ILendingPoolAddressesProviderV2 {
     address, /* _onBehalfOf */
     uint16 /*_referralCode*/
   ) external override {
-    uint256 previousBal = IERC20(reserveToAToken[_reserve]).balanceOf(msg.sender);
+    uint256 previousBal = IERC20(reserveToAToken[_reserve]).balanceOf(
+      msg.sender
+    );
     uint256 factor = 2 * (10**13); // 0.002%
     uint256 interest = (previousBal * factor) / 1e18;
     MockATokenV2(reserveToAToken[_reserve]).mint(msg.sender, interest);

@@ -21,11 +21,17 @@ interface IQuestManager {
   event StakedTokenAdded(address stakedToken);
 
   // GETTERS
-  function balanceData(address _account) external view returns (QuestBalance memory);
+  function balanceData(address _account)
+    external
+    view
+    returns (QuestBalance memory);
 
   function getQuest(uint256 _id) external view returns (Quest memory);
 
-  function hasCompleted(address _account, uint256 _id) external view returns (bool);
+  function hasCompleted(address _account, uint256 _id)
+    external
+    view
+    returns (bool);
 
   function questMaster() external view returns (address);
 
@@ -61,5 +67,7 @@ interface IQuestManager {
     bytes calldata _signature
   ) external;
 
-  function checkForSeasonFinish(address _account) external returns (uint8 newQuestMultiplier);
+  function checkForSeasonFinish(address _account)
+    external
+    returns (uint8 newQuestMultiplier);
 }

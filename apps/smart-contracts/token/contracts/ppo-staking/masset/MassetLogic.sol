@@ -60,7 +60,12 @@ library MassetLogic {
       _getCacheDetails(_data, _config.supply)
     );
     // Validation should be after token transfer, as bAssetQty is unknown before
-    mintOutput = computeMint(cachedBassetData, _input.idx, quantityDeposited, _config);
+    mintOutput = computeMint(
+      cachedBassetData,
+      _input.idx,
+      quantityDeposited,
+      _config
+    );
     require(mintOutput >= _minOutputQuantity, "Mint quantity < min qty");
     // Log the Vault increase - can only be done when basket is healthy
     _data.bAssetData[_input.idx].vaultBalance =
@@ -107,7 +112,12 @@ library MassetLogic {
       }
     }
     // Validate the proposed mint, after token transfer
-    mintOutput = computeMintMulti(cachedBassetData, _indices, quantitiesDeposited, _config);
+    mintOutput = computeMintMulti(
+      cachedBassetData,
+      _indices,
+      quantitiesDeposited,
+      _config
+    );
     require(mintOutput >= _minOutputQuantity, "Mint quantity < min qty");
     require(mintOutput > 0, "Zero mAsset quantity");
   }
@@ -218,7 +228,10 @@ library MassetLogic {
     // Apply fees, burn mAsset and return bAsset to recipient
     _data.surplus += scaledFee;
     // 2.0. Transfer the Bassets to the recipient
-    uint256 maxCache = _getCacheDetails(_data, _config.supply - _inputQuantity + scaledFee);
+    uint256 maxCache = _getCacheDetails(
+      _data,
+      _config.supply - _inputQuantity + scaledFee
+    );
     _withdrawTokens(
       bAssetQuantity,
       _data.bAssetPersonal[_output.idx],
@@ -273,14 +286,18 @@ library MassetLogic {
     _data.surplus += scaledFee;
 
     // Calc cache and total mAsset circulating
-    uint256 maxCache = _getCacheDetails(_data, _config.supply - _inputQuantity + scaledFee);
+    uint256 maxCache = _getCacheDetails(
+      _data,
+      _config.supply - _inputQuantity + scaledFee
+    );
 
     uint256 len = cachedBassetData.length;
     outputs = new address[](len);
     outputQuantities = new uint256[](len);
     for (uint256 i = 0; i < len; i++) {
       // Get amount out, proportionate to redemption quantity
-      uint256 amountOut = (cachedBassetData[i].vaultBalance * deductedInput) / _config.supply;
+      uint256 amountOut = (cachedBassetData[i].vaultBalance * deductedInput) /
+        _config.supply;
       require(amountOut > 1, "Output == 0");
       amountOut -= 1;
       require(amountOut >= _minOutputQuantities[i], "bAsset qty < min qty");
@@ -292,7 +309,13 @@ library MassetLogic {
       BassetPersonal memory personal = _data.bAssetPersonal[i];
       (outputQuantities[i], outputs[i]) = (amountOut, personal.addr);
       // Transfer the bAsset to the recipient
-      _withdrawTokens(amountOut, personal, cachedBassetData[i], _recipient, maxCache);
+      _withdrawTokens(
+        amountOut,
+        personal,
+        cachedBassetData[i],
+        _recipient,
+        maxCache
+      );
     }
   }
 
@@ -343,11 +366,17 @@ library MassetLogic {
       _config,
       _data.swapFee
     );
-    require(mAssetQuantity <= _maxMassetQuantity, "Redeem mAsset qty > max quantity");
+    require(
+      mAssetQuantity <= _maxMassetQuantity,
+      "Redeem mAsset qty > max quantity"
+    );
     // Apply fees, burn mAsset and return bAsset to recipient
     _data.surplus += fee;
     // Transfer the Bassets to the recipient and count fees
-    uint256 maxCache = _getCacheDetails(_data, _config.supply - mAssetQuantity + fee);
+    uint256 maxCache = _getCacheDetails(
+      _data,
+      _config.supply - mAssetQuantity + fee
+    );
     for (uint256 i = 0; i < _indices.length; i++) {
       uint8 idx = _indices[i];
       _withdrawTokens(
@@ -417,7 +446,11 @@ library MassetLogic {
 
     if (cacheBal > relativeMaxCache) {
       uint256 delta = cacheBal - (relativeMaxCache / 2);
-      IPlatformIntegration(_bAsset.integrator).deposit(_bAsset.addr, delta, false);
+      IPlatformIntegration(_bAsset.integrator).deposit(
+        _bAsset.addr,
+        delta,
+        false
+      );
     }
   }
 
@@ -451,7 +484,9 @@ library MassetLogic {
     }
     // 1.2. Else, withdraw from either cache or main vault
     else {
-      uint256 cacheBal = IERC20(_personal.addr).balanceOf(_personal.integrator);
+      uint256 cacheBal = IERC20(_personal.addr).balanceOf(
+        _personal.integrator
+      );
       // 2.1 - If balance b in cache, simply withdraw
       if (cacheBal >= _quantity) {
         IPlatformIntegration(_personal.integrator).withdrawRaw(
@@ -464,7 +499,8 @@ library MassetLogic {
       //       - Withdraw X+b from platform
       //       - Send b to user
       else {
-        uint256 relativeMidCache = _maxCache.divRatioPrecisely(_data.ratio) / 2;
+        uint256 relativeMidCache = _maxCache.divRatioPrecisely(_data.ratio) /
+          2;
         uint256 totalWithdrawal = StableMath.min(
           relativeMidCache + _quantity - cacheBal,
           _data.vaultBalance - SafeCast.toUint128(cacheBal)
@@ -591,7 +627,12 @@ library MassetLogic {
     sum += scaledInput;
     // 4. Calc total mAsset q
     uint256 k2;
-    (k2, scaledSwapFee) = _getSwapFee(k0, _invariant(x, sum, _config.a), _feeRate, _config);
+    (k2, scaledSwapFee) = _getSwapFee(
+      k0,
+      _invariant(x, sum, _config.a),
+      _feeRate,
+      _config
+    );
     // 5. Calc output bAsset
     uint256 newOutputReserve = _solveInvariant(x, _config.a, _o, k2);
     require(newOutputReserve < x[_o], "Zero swap output");
@@ -643,7 +684,12 @@ library MassetLogic {
     // 2. Get value of reserves according to invariant
     uint256 k0 = _invariant(x, sum, _config.a);
     uint256 redemption;
-    (redemption, scaledFee) = _getFee(_grossMassetQuantity, _config, _feeRate, k0);
+    (redemption, scaledFee) = _getFee(
+      _grossMassetQuantity,
+      _config,
+      _feeRate,
+      k0
+    );
     uint256 kFinal = (k0 * (_config.supply - redemption)) / _config.supply + 1;
     // 3. Compute bAsset output
     uint256 newOutputReserve = _solveInvariant(x, _config.a, _o, kFinal);
@@ -719,11 +765,10 @@ library MassetLogic {
    * @return price    Price of an mAsset
    * @return k        Total value of basket, k
    */
-  function computePrice(BassetData[] memory _bAssets, InvariantConfig memory _config)
-    public
-    pure
-    returns (uint256 price, uint256 k)
-  {
+  function computePrice(
+    BassetData[] memory _bAssets,
+    InvariantConfig memory _config
+  ) public pure returns (uint256 price, uint256 k) {
     (uint256[] memory x, uint256 sum) = _getReserves(_bAssets);
     k = _invariant(x, sum, _config.a);
     price = (1e18 * k) / _config.supply;
@@ -852,7 +897,11 @@ library MassetLogic {
    * @param _kPrev          Previous iteration solution
    * @return hasConverged   Bool, true if diff abs(k, kPrev) <= 1
    */
-  function _hasConverged(uint256 _k, uint256 _kPrev) internal pure returns (bool) {
+  function _hasConverged(uint256 _k, uint256 _kPrev)
+    internal
+    pure
+    returns (bool)
+  {
     if (_kPrev > _k) {
       return (_kPrev - _k) <= 1;
     } else {

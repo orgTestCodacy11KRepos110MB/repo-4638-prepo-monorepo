@@ -20,7 +20,11 @@ contract MockSavingsContract is ERC20 {
   // Underlying asset is underlying
   IERC20 public immutable underlying;
 
-  event CreditsRedeemed(address indexed redeemer, uint256 creditsRedeemed, uint256 savingsCredited);
+  event CreditsRedeemed(
+    address indexed redeemer,
+    uint256 creditsRedeemed,
+    uint256 savingsCredited
+  );
 
   constructor(
     string memory _name,
@@ -68,7 +72,10 @@ contract MockSavingsContract is ERC20 {
 
     // Optionally, transfer tokens from here to sender
     if (_transferUnderlying) {
-      require(underlying.transfer(msg.sender, underlying_), "Must send tokens");
+      require(
+        underlying.transfer(msg.sender, underlying_),
+        "Must send tokens"
+      );
     }
     // Cache and poke removed
 
@@ -103,7 +110,10 @@ contract MockSavingsContract is ERC20 {
 
     // Ensure that the payout was sufficient
     (creditsBurned, massetRedeemed) = _redeem(_amount, _isCreditAmt, false);
-    require(_isCreditAmt ? creditsBurned == _amount : massetRedeemed == _amount, "Invalid output");
+    require(
+      _isCreditAmt ? creditsBurned == _amount : massetRedeemed == _amount,
+      "Invalid output"
+    );
 
     // Approve wrapper to spend contract's underlying; just for this tx
     // underlying.approve(unwrapper, massetRedeemed);

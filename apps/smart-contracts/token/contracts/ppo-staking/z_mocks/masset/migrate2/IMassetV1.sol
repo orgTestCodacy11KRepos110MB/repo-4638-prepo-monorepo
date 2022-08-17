@@ -6,14 +6,18 @@ pragma solidity =0.8.7;
  */
 interface IMassetV1 {
   /** @dev Calc interest */
-  function collectInterest() external returns (uint256 swapFeesGained, uint256 newTotalSupply);
+  function collectInterest()
+    external
+    returns (uint256 swapFeesGained, uint256 newTotalSupply);
 
   function collectPlatformInterest()
     external
     returns (uint256 interestGained, uint256 newTotalSupply);
 
   /** @dev Minting */
-  function mint(address _basset, uint256 _bassetQuantity) external returns (uint256 massetMinted);
+  function mint(address _basset, uint256 _bassetQuantity)
+    external
+    returns (uint256 massetMinted);
 
   function mintTo(
     address _basset,

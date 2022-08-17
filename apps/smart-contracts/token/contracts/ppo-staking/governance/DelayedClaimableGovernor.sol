@@ -21,7 +21,9 @@ contract DelayedClaimableGovernor is ClaimableGovernor {
    * @param _governorAddr Initial governor
    * @param _delay    Delay in seconds for 2 way handshake
    */
-  constructor(address _governorAddr, uint256 _delay) ClaimableGovernor(_governorAddr) {
+  constructor(address _governorAddr, uint256 _delay)
+    ClaimableGovernor(_governorAddr)
+  {
     require(_delay > 0, "Delay must be greater than zero");
     delay = _delay;
   }
@@ -30,7 +32,11 @@ contract DelayedClaimableGovernor is ClaimableGovernor {
    * @dev Requests change of governor and logs request time
    * @param _proposedGovernor Address of the new governor
    */
-  function requestGovernorChange(address _proposedGovernor) public override onlyGovernor {
+  function requestGovernorChange(address _proposedGovernor)
+    public
+    override
+    onlyGovernor
+  {
     requestTime = block.timestamp;
     super.requestGovernorChange(_proposedGovernor);
   }

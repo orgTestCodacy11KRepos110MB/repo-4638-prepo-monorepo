@@ -34,7 +34,12 @@ library MassetManager {
   event BassetAdded(address indexed bAsset, address integrator);
   event BassetStatusChanged(address indexed bAsset, BassetStatus status);
   event BasketStatusChanged();
-  event StartRampA(uint256 currentA, uint256 targetA, uint256 startTime, uint256 rampEndTime);
+  event StartRampA(
+    uint256 currentA,
+    uint256 targetA,
+    uint256 startTime,
+    uint256 rampEndTime
+  );
   event StopRampA(uint256 currentA, uint256 time);
 
   uint256 private constant MIN_RAMP_TIME = 1 days;
@@ -93,7 +98,9 @@ library MassetManager {
         status: BassetStatus.Normal
       })
     );
-    _bAssetData.push(BassetData({ratio: SafeCast.toUint128(ratio), vaultBalance: 0}));
+    _bAssetData.push(
+      BassetData({ratio: SafeCast.toUint128(ratio), vaultBalance: 0})
+    );
 
     emit BassetAdded(_bAsset, _integration);
   }
@@ -122,14 +129,17 @@ library MassetManager {
       BassetData memory bData = bAssetData_[i];
       // If there is no integration, then nothing can have accrued
       if (bPersonal.integrator == address(0)) continue;
-      uint256 lending = IPlatformIntegration(bPersonal.integrator).checkBalance(bPersonal.addr);
+      uint256 lending = IPlatformIntegration(bPersonal.integrator)
+        .checkBalance(bPersonal.addr);
       uint256 cache = 0;
       if (!bPersonal.hasTxFee) {
         cache = IERC20(bPersonal.addr).balanceOf(bPersonal.integrator);
       }
       uint256 balance = lending + cache;
       uint256 oldVaultBalance = bData.vaultBalance;
-      if (balance > oldVaultBalance && bPersonal.status == BassetStatus.Normal) {
+      if (
+        balance > oldVaultBalance && bPersonal.status == BassetStatus.Normal
+      ) {
         _bAssetData[i].vaultBalance = SafeCast.toUint128(balance);
         uint256 interestDelta = balance - oldVaultBalance;
         rawGains[i] = interestDelta;
@@ -196,7 +206,10 @@ library MassetManager {
 
       // 2. Withdraw everything from the old platform integration
       address oldAddress = _bAssetPersonal[index].integrator;
-      require(oldAddress != _newIntegration, "Must transfer to new integrator");
+      require(
+        oldAddress != _newIntegration,
+        "Must transfer to new integrator"
+      );
       (uint256 cache, uint256 lendingBal) = (0, 0);
       if (oldAddress == address(0)) {
         cache = IERC20(bAsset).balanceOf(address(this));
@@ -222,7 +235,9 @@ library MassetManager {
       //    This should fail if we did not receive the full amount from the platform withdrawal
       // 4.1. Deposit all bAsset
       IERC20(bAsset).safeTransfer(_newIntegration, sum);
-      IPlatformIntegration newIntegration = IPlatformIntegration(_newIntegration);
+      IPlatformIntegration newIntegration = IPlatformIntegration(
+        _newIntegration
+      );
       if (lendingBal > 0) {
         newIntegration.deposit(bAsset, lendingBal, false);
       }
@@ -238,7 +253,8 @@ library MassetManager {
         "Must transfer full amount"
       );
       require(
-        newCache >= cache.mulTruncate(lowerMargin) && newCache <= cache.mulTruncate(upperMargin),
+        newCache >= cache.mulTruncate(lowerMargin) &&
+          newCache <= cache.mulTruncate(upperMargin),
         "Must transfer full amount"
       );
     }
@@ -265,7 +281,9 @@ library MassetManager {
 
     uint256 i = _getAssetIndex(_bAssetPersonal, _bAssetIndexes, _bAsset);
 
-    BassetStatus newStatus = _belowPeg ? BassetStatus.BrokenBelowPeg : BassetStatus.BrokenAbovePeg;
+    BassetStatus newStatus = _belowPeg
+      ? BassetStatus.BrokenBelowPeg
+      : BassetStatus.BrokenAbovePeg;
     _bAssetPersonal[i].status = newStatus;
 
     _basket.undergoingRecol = true;
@@ -318,7 +336,10 @@ library MassetManager {
       block.timestamp >= (_ampData.rampStartTime + MIN_RAMP_TIME),
       "Sufficient period of previous ramp has not elapsed"
     );
-    require(_rampEndTime >= (block.timestamp + MIN_RAMP_TIME), "Ramp time too short");
+    require(
+      _rampEndTime >= (block.timestamp + MIN_RAMP_TIME),
+      "Ramp time too short"
+    );
     require(_targetA > 0 && _targetA < MAX_A, "A target out of bounds");
 
     uint256 preciseTargetA = _targetA * _precision;
@@ -342,7 +363,10 @@ library MassetManager {
    * it to whatever the current value is.
    */
   function stopRampA(AmpData storage _ampData, uint256 _currentA) external {
-    require(block.timestamp < _ampData.rampEndTime, "Amplification not changing");
+    require(
+      block.timestamp < _ampData.rampEndTime,
+      "Amplification not changing"
+    );
 
     _ampData.initialA = SafeCast.toUint64(_currentA);
     _ampData.targetA = SafeCast.toUint64(_currentA);

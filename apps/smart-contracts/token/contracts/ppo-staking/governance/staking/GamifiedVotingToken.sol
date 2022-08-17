@@ -48,7 +48,11 @@ abstract contract GamifiedVotingToken is Initializable, GamifiedToken {
   /**
    * @dev Emitted when a token transfer or delegate change results in changes to an account's voting power.
    */
-  event DelegateVotesChanged(address indexed delegate, uint256 previousBalance, uint256 newBalance);
+  event DelegateVotesChanged(
+    address indexed delegate,
+    uint256 previousBalance,
+    uint256 newBalance
+  );
 
   constructor(
     address _nexus,
@@ -83,7 +87,12 @@ abstract contract GamifiedVotingToken is Initializable, GamifiedToken {
   /**
    * @dev Get number of checkpoints for `account`.
    */
-  function numCheckpoints(address account) public view virtual returns (uint32) {
+  function numCheckpoints(address account)
+    public
+    view
+    virtual
+    returns (uint32)
+  {
     return SafeCast.toUint32(_checkpoints[account].length);
   }
 
@@ -115,7 +124,11 @@ abstract contract GamifiedVotingToken is Initializable, GamifiedToken {
    *
    * - `blockNumber` must have been already mined
    */
-  function getPastVotes(address account, uint256 blockNumber) public view returns (uint256) {
+  function getPastVotes(address account, uint256 blockNumber)
+    public
+    view
+    returns (uint256)
+  {
     require(blockNumber < block.number, "ERC20Votes: block not yet mined");
     return _checkpointsLookup(_checkpoints[account], blockNumber);
   }
@@ -128,7 +141,11 @@ abstract contract GamifiedVotingToken is Initializable, GamifiedToken {
    *
    * - `blockNumber` must have been already mined
    */
-  function getPastTotalSupply(uint256 blockNumber) public view returns (uint256) {
+  function getPastTotalSupply(uint256 blockNumber)
+    public
+    view
+    returns (uint256)
+  {
     require(blockNumber < block.number, "ERC20Votes: block not yet mined");
     return _checkpointsLookup(_totalSupplyCheckpoints, blockNumber);
   }
@@ -198,7 +215,11 @@ abstract contract GamifiedVotingToken is Initializable, GamifiedToken {
 
     // mint or burn, update total supply
     if (from == address(0) || to == address(0)) {
-      _writeCheckpoint(_totalSupplyCheckpoints, to == address(0) ? _subtract : _add, amount);
+      _writeCheckpoint(
+        _totalSupplyCheckpoints,
+        to == address(0) ? _subtract : _add,
+        amount
+      );
     }
 
     _moveVotingPower(delegates(from), delegates(to), amount);
@@ -237,7 +258,11 @@ abstract contract GamifiedVotingToken is Initializable, GamifiedToken {
       }
 
       if (dst != address(0)) {
-        (uint256 oldWeight, uint256 newWeight) = _writeCheckpoint(_checkpoints[dst], _add, amount);
+        (uint256 oldWeight, uint256 newWeight) = _writeCheckpoint(
+          _checkpoints[dst],
+          _add,
+          amount
+        );
         emit DelegateVotesChanged(dst, oldWeight, newWeight);
       }
 

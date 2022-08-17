@@ -77,7 +77,11 @@ struct EpochHistory {
  * @dev    VERSION: 1.0
  *         DATE:    2021-10-28
  */
-contract EmissionsController is IGovernanceHook, Initializable, ImmutableModule {
+contract EmissionsController is
+  IGovernanceHook,
+  Initializable,
+  ImmutableModule
+{
   using SafeERC20 for IERC20;
 
   /// @notice Minimum time between distributions.
@@ -169,7 +173,10 @@ contract EmissionsController is IGovernanceHook, Initializable, ImmutableModule 
     address[] memory _stakingContracts
   ) external initializer {
     uint256 len = _recipients.length;
-    require(_notifies.length == len && _caps.length == len, "Initialize args mismatch");
+    require(
+      _notifies.length == len && _caps.length == len,
+      "Initialize args mismatch"
+    );
 
     // 1.0 - Set the last epoch storage variable to the immutable start epoch
     //       Set the weekly epoch this contract starts distributions which will be 1 - 2 week after deployment.
@@ -197,7 +204,11 @@ contract EmissionsController is IGovernanceHook, Initializable, ImmutableModule 
    * @param account       For which to fetch voting power.
    * @return votingPower  Units of voting power owned by account.
    */
-  function getVotes(address account) public view returns (uint256 votingPower) {
+  function getVotes(address account)
+    public
+    view
+    returns (uint256 votingPower)
+  {
     // For each configured staking contract
     for (uint256 i = 0; i < stakingContracts.length; i++) {
       votingPower += stakingContracts[i].getVotes(account);
@@ -211,8 +222,15 @@ contract EmissionsController is IGovernanceHook, Initializable, ImmutableModule 
    * @param epoch              The number of weeks since 1 Jan 1970.
    * @return emissionForEpoch  Units of MTA to be distributed at this epoch.
    */
-  function topLineEmission(uint32 epoch) public view returns (uint256 emissionForEpoch) {
-    require(epochs.startEpoch < epoch && epoch <= epochs.startEpoch + 312, "Wrong epoch number");
+  function topLineEmission(uint32 epoch)
+    public
+    view
+    returns (uint256 emissionForEpoch)
+  {
+    require(
+      epochs.startEpoch < epoch && epoch <= epochs.startEpoch + 312,
+      "Wrong epoch number"
+    );
     // e.g. week 1, A = -166000e12, B = 168479942061125e3, C = -168479942061125e3, D = 166000e12
     // e.g. epochDelta = 1
     uint128 epochDelta = (epoch - epochs.startEpoch);
@@ -233,7 +251,11 @@ contract EmissionsController is IGovernanceHook, Initializable, ImmutableModule 
    * @param dialId      Dial identifier starting from 0.
    * @return recipient  Address of the recipient account associated with.
    */
-  function getDialRecipient(uint256 dialId) public view returns (address recipient) {
+  function getDialRecipient(uint256 dialId)
+    public
+    view
+    returns (address recipient)
+  {
     recipient = dials[dialId].recipient;
   }
 
@@ -285,8 +307,12 @@ contract EmissionsController is IGovernanceHook, Initializable, ImmutableModule 
     returns (Preference[16] memory preferences)
   {
     for (uint256 i = 0; i < 16; i++) {
-      preferences[i].weight = uint8(voterPreferences[voter].dialWeights >> (i * 16));
-      preferences[i].dialId = uint8(voterPreferences[voter].dialWeights >> ((i * 16) + 8));
+      preferences[i].weight = uint8(
+        voterPreferences[voter].dialWeights >> (i * 16)
+      );
+      preferences[i].dialId = uint8(
+        voterPreferences[voter].dialWeights >> ((i * 16) + 8)
+      );
     }
   }
 
@@ -334,7 +360,9 @@ contract EmissionsController is IGovernanceHook, Initializable, ImmutableModule 
     if (currentEpoch < epochs.startEpoch) {
       currentEpoch = epochs.startEpoch;
     }
-    newDialData.voteHistory.push(HistoricVotes({votes: 0, epoch: currentEpoch}));
+    newDialData.voteHistory.push(
+      HistoricVotes({votes: 0, epoch: currentEpoch})
+    );
 
     emit AddedDial(len, _recipient);
   }
@@ -370,14 +398,22 @@ contract EmissionsController is IGovernanceHook, Initializable, ImmutableModule 
    * @dev Adds a staking contract by setting it's addition time to current timestamp.
    */
   function _addStakingContract(address _stakingContract) internal {
-    require(_stakingContract != address(0), "Staking contract address is zero");
+    require(
+      _stakingContract != address(0),
+      "Staking contract address is zero"
+    );
 
     uint256 len = stakingContracts.length;
     for (uint256 i = 0; i < len; i++) {
-      require(address(stakingContracts[i]) != _stakingContract, "StakingContract already exists");
+      require(
+        address(stakingContracts[i]) != _stakingContract,
+        "StakingContract already exists"
+      );
     }
 
-    stakingContractAddTime[_stakingContract] = SafeCast.toUint32(block.timestamp);
+    stakingContractAddTime[_stakingContract] = SafeCast.toUint32(
+      block.timestamp
+    );
     stakingContracts.push(IVotes(_stakingContract));
 
     emit AddStakingContract(_stakingContract);
@@ -392,7 +428,9 @@ contract EmissionsController is IGovernanceHook, Initializable, ImmutableModule 
    * @param _dialIds  Dial identifiers that will receive donated rewards.
    * @param _amounts  Units of rewards to be sent to each dial including decimals.
    */
-  function donate(uint256[] memory _dialIds, uint256[] memory _amounts) external {
+  function donate(uint256[] memory _dialIds, uint256[] memory _amounts)
+    external
+  {
     uint256 dialLen = _dialIds.length;
     require(dialLen > 0 && _amounts.length == dialLen, "Invalid inputs");
 
@@ -449,7 +487,10 @@ contract EmissionsController is IGovernanceHook, Initializable, ImmutableModule 
         totalDialVotes += latestVote.votes;
         // Create a new weighted votes for the current distribution period
         dials[i].voteHistory.push(
-          HistoricVotes({votes: latestVote.votes, epoch: SafeCast.toUint32(epoch)})
+          HistoricVotes({
+            votes: latestVote.votes,
+            epoch: SafeCast.toUint32(epoch)
+          })
         );
       } else if (latestVote.epoch == epoch && end > 0) {
         uint256 votes = dialData.voteHistory[end - 1].votes;
@@ -493,7 +534,9 @@ contract EmissionsController is IGovernanceHook, Initializable, ImmutableModule 
       }
 
       // Calculate amount of rewards for the dial & set storage
-      distributionAmounts[l] = (dialVotes[l] * postCappedEmission) / postCappedVotes;
+      distributionAmounts[l] =
+        (dialVotes[l] * postCappedEmission) /
+        postCappedVotes;
       dials[l].balance += SafeCast.toUint96(distributionAmounts[l]);
     }
 
@@ -524,7 +567,9 @@ contract EmissionsController is IGovernanceHook, Initializable, ImmutableModule 
       // 4.0 - Notify the dial of the new rewards if configured to
       //       Only after successful transer tx
       if (dialData.notify) {
-        IRewardsDistributionRecipient(dialData.recipient).notifyRewardAmount(dialData.balance);
+        IRewardsDistributionRecipient(dialData.recipient).notifyRewardAmount(
+          dialData.balance
+        );
       }
 
       emit DistributedReward(_dialIds[i], dialData.balance);
@@ -548,7 +593,9 @@ contract EmissionsController is IGovernanceHook, Initializable, ImmutableModule 
       uint256 votesCast = voterPreferences[_voter].votesCast;
       uint256 newVotesCast = getVotes(_voter) - votesCast;
       _moveVotingPower(_voter, newVotesCast, _add);
-      voterPreferences[_voter].lastSourcePoke = SafeCast.toUint32(block.timestamp);
+      voterPreferences[_voter].lastSourcePoke = SafeCast.toUint32(
+        block.timestamp
+      );
 
       emit SourcesPoked(_voter, newVotesCast);
     }
@@ -596,7 +643,9 @@ contract EmissionsController is IGovernanceHook, Initializable, ImmutableModule 
     voterPreferences[msg.sender].dialWeights = newDialWeights;
 
     // Need to set before calling _moveVotingPower for the second time
-    voterPreferences[msg.sender].lastSourcePoke = SafeCast.toUint32(block.timestamp);
+    voterPreferences[msg.sender].lastSourcePoke = SafeCast.toUint32(
+      block.timestamp
+    );
 
     // 3.0 - Cast votes on these new preferences
     _moveVotingPower(msg.sender, getVotes(msg.sender), _add);
@@ -682,7 +731,9 @@ contract EmissionsController is IGovernanceHook, Initializable, ImmutableModule 
     uint32 currentEpoch = _epoch(block.timestamp);
 
     // 0.3 - Update the total amount of votes cast by the voter
-    voterPreferences[_voter].votesCast = SafeCast.toUint128(_op(preferences.votesCast, _amount));
+    voterPreferences[_voter].votesCast = SafeCast.toUint128(
+      _op(preferences.votesCast, _amount)
+    );
 
     // 1.0 - Loop through voter preferences until dialId == 255 or until end
     for (uint256 i = 0; i < 16; i++) {
@@ -701,12 +752,16 @@ contract EmissionsController is IGovernanceHook, Initializable, ImmutableModule 
       HistoricVotes storage latestHistoricVotes = voteHistory[len - 1];
 
       // 1.3 - Determine new votes cast for dial
-      uint128 newVotes = SafeCast.toUint128(_op(latestHistoricVotes.votes, amountToChange));
+      uint128 newVotes = SafeCast.toUint128(
+        _op(latestHistoricVotes.votes, amountToChange)
+      );
 
       // 1.4 - Update dial vote count. If first vote in new epoch, create new entry
       if (latestHistoricVotes.epoch < currentEpoch) {
         // Add a new weighted votes epoch for the dial
-        voteHistory.push(HistoricVotes({votes: newVotes, epoch: currentEpoch}));
+        voteHistory.push(
+          HistoricVotes({votes: newVotes, epoch: currentEpoch})
+        );
       } else {
         // Epoch already exists for this dial so just update the dial's weighted votes
         latestHistoricVotes.votes = newVotes;

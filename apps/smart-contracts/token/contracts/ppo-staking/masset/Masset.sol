@@ -206,7 +206,13 @@ contract Masset is
 
     Asset memory input = _getAsset(_input);
 
-    mintOutput = MassetLogic.mint(data, _getConfig(), input, _inputQuantity, _minOutputQuantity);
+    mintOutput = MassetLogic.mint(
+      data,
+      _getConfig(),
+      input,
+      _inputQuantity,
+      _minOutputQuantity
+    );
 
     // Mint the Masset
     _mint(_recipient, mintOutput);
@@ -244,7 +250,13 @@ contract Masset is
 
     // Mint the Masset
     _mint(_recipient, mintOutput);
-    emit MintedMulti(msg.sender, _recipient, mintOutput, _inputs, _inputQuantities);
+    emit MintedMulti(
+      msg.sender,
+      _recipient,
+      mintOutput,
+      _inputs,
+      _inputQuantities
+    );
   }
 
   /**
@@ -263,7 +275,12 @@ contract Masset is
 
     Asset memory input = _getAsset(_input);
 
-    mintOutput = MassetLogic.computeMint(data.bAssetData, input.idx, _inputQuantity, _getConfig());
+    mintOutput = MassetLogic.computeMint(
+      data.bAssetData,
+      input.idx,
+      _inputQuantity,
+      _getConfig()
+    );
   }
 
   /**
@@ -272,16 +289,20 @@ contract Masset is
    * @param _inputQuantities  Quantity of each bAsset to deposit for the minted mAsset.
    * @return mintOutput        Estimated mint output in mAsset terms
    */
-  function getMintMultiOutput(address[] calldata _inputs, uint256[] calldata _inputQuantities)
-    external
-    view
-    override
-    returns (uint256 mintOutput)
-  {
+  function getMintMultiOutput(
+    address[] calldata _inputs,
+    uint256[] calldata _inputQuantities
+  ) external view override returns (uint256 mintOutput) {
     uint256 len = _inputQuantities.length;
     require(len > 0 && len == _inputs.length, "Input array mismatch");
     uint8[] memory indexes = _getAssets(_inputs);
-    return MassetLogic.computeMintMulti(data.bAssetData, indexes, _inputQuantities, _getConfig());
+    return
+      MassetLogic.computeMintMulti(
+        data.bAssetData,
+        indexes,
+        _inputQuantities,
+        _getConfig()
+      );
   }
 
   /***************************************
@@ -323,7 +344,14 @@ contract Masset is
       _recipient
     );
 
-    emit Swapped(msg.sender, input.addr, output.addr, swapOutput, scaledFee, _recipient);
+    emit Swapped(
+      msg.sender,
+      input.addr,
+      output.addr,
+      swapOutput,
+      scaledFee,
+      _recipient
+    );
   }
 
   /**
@@ -378,7 +406,13 @@ contract Masset is
     uint256 _mAssetQuantity,
     uint256 _minOutputQuantity,
     address _recipient
-  ) external override nonReentrant whenNoRecol returns (uint256 outputQuantity) {
+  )
+    external
+    override
+    nonReentrant
+    whenNoRecol
+    returns (uint256 outputQuantity)
+  {
     require(_recipient != address(0), "Invalid recipient");
     require(_mAssetQuantity > 0, "Qty==0");
 
@@ -398,7 +432,14 @@ contract Masset is
       _recipient
     );
 
-    emit Redeemed(msg.sender, _recipient, _mAssetQuantity, output.addr, outputQuantity, scaledFee);
+    emit Redeemed(
+      msg.sender,
+      _recipient,
+      _mAssetQuantity,
+      output.addr,
+      outputQuantity,
+      scaledFee
+    );
   }
 
   /**
@@ -412,7 +453,13 @@ contract Masset is
     uint256 _mAssetQuantity,
     uint256[] calldata _minOutputQuantities,
     address _recipient
-  ) external override nonReentrant whenNoRecol returns (uint256[] memory outputQuantities) {
+  )
+    external
+    override
+    nonReentrant
+    whenNoRecol
+    returns (uint256[] memory outputQuantities)
+  {
     require(_recipient != address(0), "Invalid recipient");
     require(_mAssetQuantity > 0, "Qty==0");
 
@@ -454,7 +501,13 @@ contract Masset is
     uint256[] calldata _outputQuantities,
     uint256 _maxMassetQuantity,
     address _recipient
-  ) external override nonReentrant whenNoRecol returns (uint256 mAssetQuantity) {
+  )
+    external
+    override
+    nonReentrant
+    whenNoRecol
+    returns (uint256 mAssetQuantity)
+  {
     require(_recipient != address(0), "Invalid recipient");
     uint256 len = _outputQuantities.length;
     require(len > 0 && len == _outputs.length, "Invalid array input");
@@ -474,7 +527,14 @@ contract Masset is
 
     _burn(msg.sender, mAssetQuantity);
 
-    emit RedeemedMulti(msg.sender, _recipient, mAssetQuantity, _outputs, _outputQuantities, fee);
+    emit RedeemedMulti(
+      msg.sender,
+      _recipient,
+      mAssetQuantity,
+      _outputs,
+      _outputQuantities,
+      fee
+    );
   }
 
   /**
@@ -583,7 +643,12 @@ contract Masset is
    * @return price    Price of an fpToken
    * @return k        Total value of basket, k
    */
-  function getPrice() external view override returns (uint256 price, uint256 k) {
+  function getPrice()
+    external
+    view
+    override
+    returns (uint256 price, uint256 k)
+  {
     return MassetLogic.computePrice(data.bAssetData, _getConfig());
   }
 
@@ -596,7 +661,11 @@ contract Masset is
    * @param _asset      Address of the asset
    * @return asset      Struct containing bAsset details (idx, data)
    */
-  function _getAsset(address _asset) internal view returns (Asset memory asset) {
+  function _getAsset(address _asset)
+    internal
+    view
+    returns (Asset memory asset)
+  {
     asset.idx = bAssetIndexes[_asset];
     asset.addr = _asset;
     asset.exists = data.bAssetPersonal[asset.idx].addr == _asset;
@@ -608,7 +677,11 @@ contract Masset is
    * @param _bAssets    Addresses of the assets
    * @return indexes    Indexes of the assets
    */
-  function _getAssets(address[] memory _bAssets) internal view returns (uint8[] memory indexes) {
+  function _getAssets(address[] memory _bAssets)
+    internal
+    view
+    returns (uint8[] memory indexes)
+  {
     uint256 len = _bAssets.length;
 
     indexes = new uint8[](len);
@@ -628,7 +701,13 @@ contract Masset is
    * @dev Gets all config needed for general InvariantValidator calls
    */
   function _getConfig() internal view returns (InvariantConfig memory) {
-    return InvariantConfig(totalSupply() + data.surplus, _getA(), data.weightLimits, RECOL_FEE);
+    return
+      InvariantConfig(
+        totalSupply() + data.surplus,
+        _getA(),
+        data.weightLimits,
+        RECOL_FEE
+      );
   }
 
   /**
@@ -645,7 +724,10 @@ contract Masset is
       uint64 startA = ampData_.initialA;
       uint64 startTime = ampData_.rampStartTime;
 
-      (uint256 elapsed, uint256 total) = (block.timestamp - startTime, endTime - startTime);
+      (uint256 elapsed, uint256 total) = (
+        block.timestamp - startTime,
+        endTime - startTime
+      );
 
       if (endA > startA) {
         return startA + (((endA - startA) * elapsed) / total);
@@ -684,7 +766,13 @@ contract Masset is
 
       // mint new mAsset to savings manager
       _mint(msg.sender, mintAmount);
-      emit MintedMulti(address(this), msg.sender, mintAmount, new address[](0), new uint256[](0));
+      emit MintedMulti(
+        address(this),
+        msg.sender,
+        mintAmount,
+        new address[](0),
+        new uint256[](0)
+      );
     }
     newSupply = totalSupply();
   }
@@ -703,17 +791,26 @@ contract Masset is
     nonReentrant
     returns (uint256 mintAmount, uint256 newSupply)
   {
-    (uint8[] memory idxs, uint256[] memory gains) = MassetManager.collectPlatformInterest(
-      data.bAssetPersonal,
-      data.bAssetData
-    );
+    (uint8[] memory idxs, uint256[] memory gains) = MassetManager
+      .collectPlatformInterest(data.bAssetPersonal, data.bAssetData);
 
-    mintAmount = MassetLogic.computeMintMulti(data.bAssetData, idxs, gains, _getConfig());
+    mintAmount = MassetLogic.computeMintMulti(
+      data.bAssetData,
+      idxs,
+      gains,
+      _getConfig()
+    );
 
     require(mintAmount > 0, "Must collect something");
 
     _mint(msg.sender, mintAmount);
-    emit MintedMulti(address(this), msg.sender, mintAmount, new address[](0), gains);
+    emit MintedMulti(
+      address(this),
+      msg.sender,
+      mintAmount,
+      new address[](0),
+      gains
+    );
 
     newSupply = totalSupply();
   }
@@ -739,7 +836,11 @@ contract Masset is
    * @dev Set the ecosystem fee for sewapping bAssets or redeeming specific bAssets
    * @param _swapFee Fee calculated in (%/100 * 1e18)
    */
-  function setFees(uint256 _swapFee, uint256 _redemptionFee) external override onlyGovernor {
+  function setFees(uint256 _swapFee, uint256 _redemptionFee)
+    external
+    override
+    onlyGovernor
+  {
     require(_swapFee <= MAX_FEE, "Swap rate oob");
     require(_redemptionFee <= MAX_FEE, "Redemption rate oob");
 
@@ -768,8 +869,17 @@ contract Masset is
    * @param _bAsset   bAsset address
    * @param _flag         Charge transfer fee when its set to 'true', otherwise 'false'
    */
-  function setTransferFeesFlag(address _bAsset, bool _flag) external override onlyGovernor {
-    MassetManager.setTransferFeesFlag(data.bAssetPersonal, bAssetIndexes, _bAsset, _flag);
+  function setTransferFeesFlag(address _bAsset, bool _flag)
+    external
+    override
+    onlyGovernor
+  {
+    MassetManager.setTransferFeesFlag(
+      data.bAssetPersonal,
+      bAssetIndexes,
+      _bAsset,
+      _flag
+    );
   }
 
   /**
@@ -785,7 +895,12 @@ contract Masset is
     override
     onlyGovernor
   {
-    MassetManager.migrateBassets(data.bAssetPersonal, bAssetIndexes, _bAssets, _newIntegration);
+    MassetManager.migrateBassets(
+      data.bAssetPersonal,
+      bAssetIndexes,
+      _bAssets,
+      _newIntegration
+    );
   }
 
   /**
@@ -794,7 +909,10 @@ contract Masset is
    * @param _belowPeg        Bool to describe whether the bAsset deviated below peg (t)
    *                         or above (f)
    */
-  function handlePegLoss(address _bAsset, bool _belowPeg) external onlyGovernor {
+  function handlePegLoss(address _bAsset, bool _belowPeg)
+    external
+    onlyGovernor
+  {
     MassetManager.handlePegLoss(
       data.basket,
       data.bAssetPersonal,
@@ -809,7 +927,12 @@ contract Masset is
    * @param _bAsset Address of the bAsset
    */
   function negateIsolation(address _bAsset) external onlyGovernor {
-    MassetManager.negateIsolation(data.basket, data.bAssetPersonal, bAssetIndexes, _bAsset);
+    MassetManager.negateIsolation(
+      data.basket,
+      data.bAssetPersonal,
+      bAssetIndexes,
+      _bAsset
+    );
   }
 
   /**
@@ -817,8 +940,17 @@ contract Masset is
    * @param _targetA      Target A value
    * @param _rampEndTime  Time at which A will arrive at _targetA
    */
-  function startRampA(uint256 _targetA, uint256 _rampEndTime) external onlyGovernor {
-    MassetManager.startRampA(data.ampData, _targetA, _rampEndTime, _getA(), A_PRECISION);
+  function startRampA(uint256 _targetA, uint256 _rampEndTime)
+    external
+    onlyGovernor
+  {
+    MassetManager.startRampA(
+      data.ampData,
+      _targetA,
+      _rampEndTime,
+      _getA(),
+      A_PRECISION
+    );
   }
 
   /**
@@ -833,7 +965,10 @@ contract Masset is
    * @dev Mints deficit to SAVE if k > token supply
    */
   function mintDeficit() external returns (uint256 mintAmount) {
-    require(msg.sender == _governor() || msg.sender == _proxyAdmin(), "Gov or ProxyAdmin");
+    require(
+      msg.sender == _governor() || msg.sender == _proxyAdmin(),
+      "Gov or ProxyAdmin"
+    );
 
     InvariantConfig memory config = _getConfig();
     (, uint256 k) = MassetLogic.computePrice(data.bAssetData, config);

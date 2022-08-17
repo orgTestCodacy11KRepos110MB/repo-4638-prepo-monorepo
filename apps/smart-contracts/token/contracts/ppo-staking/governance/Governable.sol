@@ -13,7 +13,10 @@ pragma solidity =0.8.7;
  *          DATE:    2021-04-15
  */
 contract Governable {
-  event GovernorChanged(address indexed previousGovernor, address indexed newGovernor);
+  event GovernorChanged(
+    address indexed previousGovernor,
+    address indexed newGovernor
+  );
 
   address private _governor;
 

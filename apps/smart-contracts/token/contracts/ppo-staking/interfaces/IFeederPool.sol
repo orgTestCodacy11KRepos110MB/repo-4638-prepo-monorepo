@@ -26,11 +26,10 @@ abstract contract IFeederPool {
     virtual
     returns (uint256 mintOutput);
 
-  function getMintMultiOutput(address[] calldata _inputs, uint256[] calldata _inputQuantities)
-    external
-    view
-    virtual
-    returns (uint256 mintOutput);
+  function getMintMultiOutput(
+    address[] calldata _inputs,
+    uint256[] calldata _inputQuantities
+  ) external view virtual returns (uint256 mintOutput);
 
   // Swaps
   function swap(
@@ -84,7 +83,11 @@ abstract contract IFeederPool {
 
   function getPrice() public view virtual returns (uint256 price, uint256 k);
 
-  function getConfig() external view virtual returns (FeederConfig memory config);
+  function getConfig()
+    external
+    view
+    virtual
+    returns (FeederConfig memory config);
 
   function getBasset(address _token)
     external

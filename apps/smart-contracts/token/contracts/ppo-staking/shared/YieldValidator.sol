@@ -20,7 +20,14 @@ library YieldValidator {
     uint256 _interest,
     uint256 _timeSinceLastCollection
   ) internal pure returns (uint256 extrapolatedAPY) {
-    return validateCollection(_newSupply, _interest, _timeSinceLastCollection, MAX_APY, TEN_BPS);
+    return
+      validateCollection(
+        _newSupply,
+        _interest,
+        _timeSinceLastCollection,
+        MAX_APY,
+        TEN_BPS
+      );
   }
 
   /**
@@ -39,7 +46,9 @@ library YieldValidator {
     uint256 _maxApy,
     uint256 _baseApy
   ) internal pure returns (uint256 extrapolatedAPY) {
-    uint256 protectedTime = _timeSinceLastCollection == 0 ? 1 : _timeSinceLastCollection;
+    uint256 protectedTime = _timeSinceLastCollection == 0
+      ? 1
+      : _timeSinceLastCollection;
 
     // Percentage increase in total supply
     // e.g. (1e20 * 1e18) / 1e24 = 1e14 (or a 0.01% increase)
@@ -52,7 +61,8 @@ library YieldValidator {
     // e.g. day: (86400 * 1e18) / 3.154e7 = 2.74..e15
     // e.g. 30 mins: (1800 * 1e18) / 3.154e7 = 5.7..e13
     // e.g. epoch: (1593596907 * 1e18) / 3.154e7 = 50.4..e18
-    uint256 yearsSinceLastCollection = (protectedTime * 1e18) / SECONDS_IN_YEAR;
+    uint256 yearsSinceLastCollection = (protectedTime * 1e18) /
+      SECONDS_IN_YEAR;
 
     // e.g. 0.01% (1e14 * 1e18) / 2.74..e15 = 3.65e16 or 3.65% apr
     // e.g. (4.1667e12 * 1e18) / 5.7..e13 = 7.1e16 or 7.1% apr
@@ -60,9 +70,15 @@ library YieldValidator {
     extrapolatedAPY = (percentageIncrease * 1e18) / yearsSinceLastCollection;
 
     if (protectedTime > THIRTY_MINUTES) {
-      require(extrapolatedAPY < _maxApy, "Interest protected from inflating past maxAPY");
+      require(
+        extrapolatedAPY < _maxApy,
+        "Interest protected from inflating past maxAPY"
+      );
     } else {
-      require(percentageIncrease < _baseApy, "Interest protected from inflating past 10 Bps");
+      require(
+        percentageIncrease < _baseApy,
+        "Interest protected from inflating past 10 Bps"
+      );
     }
   }
 }

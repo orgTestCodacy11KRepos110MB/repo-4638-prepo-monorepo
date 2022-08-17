@@ -7,12 +7,19 @@ import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "./interfaces/IPregenesisPoints.sol";
 import "prepo-shared-contracts/contracts/SafeOwnable.sol";
 
-contract PregenesisPoints is IPregenesisPoints, SafeOwnable, ReentrancyGuard, ERC20 {
+contract PregenesisPoints is
+  IPregenesisPoints,
+  SafeOwnable,
+  ReentrancyGuard,
+  ERC20
+{
   address private _shop;
   bytes32 private _root;
   mapping(address => bool) private _userToClaim;
 
-  constructor(string memory _name, string memory _symbol) ERC20(_name, _symbol) {}
+  constructor(string memory _name, string memory _symbol)
+    ERC20(_name, _symbol)
+  {}
 
   function setShop(address _newShop) external override onlyOwner {
     _shop = _newShop;
@@ -26,11 +33,19 @@ contract PregenesisPoints is IPregenesisPoints, SafeOwnable, ReentrancyGuard, ER
     _mint(_to, _amount);
   }
 
-  function burn(address _account, uint256 _amount) external override onlyOwner {
+  function burn(address _account, uint256 _amount)
+    external
+    override
+    onlyOwner
+  {
     _burn(_account, _amount);
   }
 
-  function claim(uint256 _amount, bytes32[] memory _proof) external override nonReentrant {
+  function claim(uint256 _amount, bytes32[] memory _proof)
+    external
+    override
+    nonReentrant
+  {
     require(!_userToClaim[_msgSender()], "Already claimed");
     bytes32 _leaf = keccak256(abi.encodePacked(_msgSender(), _amount));
     bool _verified = MerkleProof.verify(_proof, _root, _leaf);
@@ -59,7 +74,10 @@ contract PregenesisPoints is IPregenesisPoints, SafeOwnable, ReentrancyGuard, ER
     if (_from == address(0) && _msgSender() != owner()) {
       require(_userToClaim[_msgSender()], "Unauthorized mint");
     } else {
-      require(_msgSender() == owner() || _msgSender() == _shop, "Unauthorized transfer");
+      require(
+        _msgSender() == owner() || _msgSender() == _shop,
+        "Unauthorized transfer"
+      );
     }
     super._beforeTokenTransfer(_from, _to, _amount);
   }

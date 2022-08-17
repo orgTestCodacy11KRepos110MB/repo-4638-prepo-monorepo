@@ -26,7 +26,9 @@ library MV1Migrator {
       address bAssetAddress = bAsset.addr;
       bAssetIndexes[bAssetAddress] = i;
 
-      address integratorAddress = basketManager.getBassetIntegrator(bAssetAddress);
+      address integratorAddress = basketManager.getBassetIntegrator(
+        bAssetAddress
+      );
       bAssetPersonal.push(
         BassetPersonal({
           addr: bAssetAddress,

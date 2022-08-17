@@ -44,9 +44,8 @@ abstract contract IInvariantValidator {
     InvariantConfig memory _config
   ) external view virtual returns (uint256);
 
-  function computePrice(BassetData[] memory _bAssets, InvariantConfig memory _config)
-    public
-    pure
-    virtual
-    returns (uint256 price, uint256 k);
+  function computePrice(
+    BassetData[] memory _bAssets,
+    InvariantConfig memory _config
+  ) public pure virtual returns (uint256 price, uint256 k);
 }

@@ -14,8 +14,14 @@ import {Governable} from "./Governable.sol";
  */
 contract ClaimableGovernor is Governable {
   event GovernorChangeClaimed(address indexed proposedGovernor);
-  event GovernorChangeCancelled(address indexed governor, address indexed proposed);
-  event GovernorChangeRequested(address indexed governor, address indexed proposed);
+  event GovernorChangeCancelled(
+    address indexed governor,
+    address indexed proposed
+  );
+  event GovernorChangeRequested(
+    address indexed governor,
+    address indexed proposed
+  );
 
   address public proposedGovernor = address(0);
 
@@ -40,8 +46,15 @@ contract ClaimableGovernor is Governable {
    * @dev Current Governor request to proposes a new Governor
    * @param _proposedGovernor Address of the proposed Governor
    */
-  function requestGovernorChange(address _proposedGovernor) public virtual onlyGovernor {
-    require(_proposedGovernor != address(0), "Proposed governor is address(0)");
+  function requestGovernorChange(address _proposedGovernor)
+    public
+    virtual
+    onlyGovernor
+  {
+    require(
+      _proposedGovernor != address(0),
+      "Proposed governor is address(0)"
+    );
     require(proposedGovernor == address(0), "Proposed governor already set");
 
     proposedGovernor = _proposedGovernor;
