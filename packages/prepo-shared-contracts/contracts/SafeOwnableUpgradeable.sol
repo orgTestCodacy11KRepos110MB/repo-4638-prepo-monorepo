@@ -12,13 +12,13 @@ abstract contract SafeOwnableUpgradeable is ISafeOwnable, OwnableUpgradeable {
     _;
   }
 
-  function transferOwnership(address _nominee)
+  function transferOwnership(address _newNominee)
     public
     virtual
     override(ISafeOwnable, OwnableUpgradeable)
     onlyOwner
   {
-    _setNominee(_nominee);
+    _setNominee(_newNominee);
   }
 
   function acceptOwnership() public virtual override onlyNominee {

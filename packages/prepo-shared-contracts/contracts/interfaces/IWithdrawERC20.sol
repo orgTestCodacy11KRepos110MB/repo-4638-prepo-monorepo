@@ -14,5 +14,8 @@ interface IWithdrawERC20 {
    * @param erc20Tokens ERC20 tokens to be withdrawn
    * @param amounts Amounts to be withdrawn
    */
-  function withdrawERC20(address[] calldata erc20Tokens, uint256[] calldata amounts) external;
+  function withdrawERC20(
+    address[] calldata erc20Tokens,
+    uint256[] calldata amounts
+  ) external;
 }
