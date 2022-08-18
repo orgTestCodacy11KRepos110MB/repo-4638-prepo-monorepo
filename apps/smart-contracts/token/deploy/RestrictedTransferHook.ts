@@ -32,18 +32,29 @@ const deployFunction: DeployFunction = async function deployRestrictedTransferHo
    * This can be temporarily removed if deploying to prod.
    */
   assertIsTestnetChain(currentChain)
-  // Check if there is an existing SourceAllowlist-AccountList deployment
-  const existingSourceAllowlist = await getOrNull('SourceAllowlist-AccountList')
-  if (!existingSourceAllowlist) {
+  // Check if there is an existing AccountList to serve as the blocklist
+  const existingBlocklist = await getOrNull('RestrictedTransferHook-Blocklist-AccountList')
+  if (!existingBlocklist) {
     throw new Error(
-      `No existing SourceAllowlist-AccountList deployment exists for the ${currentNetwork.name} network`
+      `No existing RestrictedTransferHook-Blocklist-AccountList deployment exists for the ${currentNetwork.name} network`
     )
   }
-  // Check if there is an existing DestinationAllowlist-AccountList deployment
-  const existingDestinationAllowlist = await getOrNull('DestinationAllowlist-AccountList')
+  // Check if there is an existing AccountList to serve as the source allowlist
+  const existingSourceAllowlist = await getOrNull(
+    'RestrictedTransferHook-SourceAllowlist-AccountList'
+  )
+  if (!existingSourceAllowlist) {
+    throw new Error(
+      `No existing RestrictedTransferHook-SourceAllowlist-AccountList deployment exists for the ${currentNetwork.name} network`
+    )
+  }
+  // Check if there is an existing AccountList to serve as the destination allowlist
+  const existingDestinationAllowlist = await getOrNull(
+    'RestrictedTransferHook-DestinationAllowlist-AccountList'
+  )
   if (!existingDestinationAllowlist) {
     throw new Error(
-      `No existing DestinationAllowlist-AccountList deployment exists for the ${currentNetwork.name} network`
+      `No existing RestrictedTransferHook-DestinationAllowlist-AccountList deployment exists for the ${currentNetwork.name} network`
     )
   }
   const governanceAddress = getPrePOAddressForNetwork(
@@ -70,6 +81,12 @@ const deployFunction: DeployFunction = async function deployRestrictedTransferHo
   const restrictedTransferHook = (await ethers.getContract(
     'RestrictedTransferHook'
   )) as RestrictedTransferHook
+  if ((await restrictedTransferHook.getBlocklist()) !== existingBlocklist.address) {
+    console.log('Setting RestrictedTransferHook to use Blocklist at', existingBlocklist.address)
+    await sendTxAndWait(
+      await restrictedTransferHook.connect(deployer).setBlocklist(existingBlocklist.address)
+    )
+  }
   if ((await restrictedTransferHook.getSourceAllowlist()) !== existingSourceAllowlist.address) {
     console.log(
       'Setting RestrictedTransferHook to use SourceAllowlist at',

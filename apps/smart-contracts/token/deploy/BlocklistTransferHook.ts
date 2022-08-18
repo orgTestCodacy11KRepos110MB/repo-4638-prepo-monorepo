@@ -32,11 +32,11 @@ const deployFunction: DeployFunction = async function deployBlocklistTransferHoo
    * This can be temporarily removed if deploying to prod.
    */
   assertIsTestnetChain(currentChain)
-  // Check if there is an existing Blocklist-AccountList deployment
-  const existingBlocklist = await getOrNull('Blocklist-AccountList')
+  // Check if there is an existing AccountList to serve as the blocklist
+  const existingBlocklist = await getOrNull('BlocklistTransferHook-AccountList')
   if (!existingBlocklist) {
     throw new Error(
-      `No existing Blocklist-AccountList deployment exists for the ${currentNetwork.name} network`
+      `No existing BlocklistTransferHook-AccountList deployment exists for the ${currentNetwork.name} network`
     )
   }
   const governanceAddress = getPrePOAddressForNetwork(
