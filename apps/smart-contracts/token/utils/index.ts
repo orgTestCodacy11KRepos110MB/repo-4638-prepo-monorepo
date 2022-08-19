@@ -1,9 +1,11 @@
 /* eslint-disable no-await-in-loop */
-import { BigNumber, BigNumberish } from 'ethers'
+import { BigNumber, BigNumberish, Signature } from 'ethers'
 import { MerkleTree } from 'merkletreejs'
 import keccak256 from 'keccak256'
-import { solidityKeccak256, formatBytes32String } from 'ethers/lib/utils'
+import { solidityKeccak256, formatBytes32String, splitSignature } from 'ethers/lib/utils'
 import { TypedDataUtils, SignTypedDataVersion } from '@metamask/eth-sig-util'
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
+import { ERC20PermitUpgradeable } from '../types/generated'
 
 export const MAX_UINT64 = BigNumber.from(2).pow(64).sub(1)
 export const MAX_INT64 = BigNumber.from(2).pow(63).sub(1)
@@ -152,4 +154,61 @@ export function generateDomainSeparator(
     { EIP712Domain },
     SignTypedDataVersion.V4
   ).toString('hex')}`
+}
+
+// from Uniswap V3 Periphery's test suite
+export async function getPermitSignature(
+  token: ERC20PermitUpgradeable,
+  signer: SignerWithAddress,
+  spender: string,
+  value: BigNumber,
+  deadline: number
+): Promise<Signature> {
+  const [nonce, name, version, chainId] = await Promise.all([
+    token.nonces(signer.address),
+    token.name(),
+    '1',
+    signer.getChainId(),
+  ])
+  return splitSignature(
+    await signer._signTypedData(
+      {
+        name,
+        version,
+        chainId,
+        verifyingContract: token.address,
+      },
+      {
+        Permit: [
+          {
+            name: 'owner',
+            type: 'address',
+          },
+          {
+            name: 'spender',
+            type: 'address',
+          },
+          {
+            name: 'value',
+            type: 'uint256',
+          },
+          {
+            name: 'nonce',
+            type: 'uint256',
+          },
+          {
+            name: 'deadline',
+            type: 'uint256',
+          },
+        ],
+      },
+      {
+        owner: signer.address,
+        spender,
+        value,
+        nonce,
+        deadline,
+      }
+    )
+  )
 }

@@ -40,6 +40,30 @@ interface IPPO is IERC20Upgradeable, IERC20PermitUpgradeable {
    */
   function burnFrom(address account, uint256 amount) external;
 
-  ///@return The transfer hook contract
+  /**
+   * @notice @notice Atomically allows and transfers `amount` from `from` to
+   * `to`, if before the `deadline`, using a signature signed by `from`.
+   * @dev `from`, `to` and `deadline` must exactly match the values used
+   * to generate `v`, `r` and `s`.
+   * @param from Address to transfer `PPO` from
+   * @param to Address to transfer `PPO` to
+   * @param amount Amount of PPO to be transferred
+   * @param deadline Future timestamp, specified in the permit signature
+   * before which the transaction must execute
+   * @param v recovery identifier of the signature
+   * @param r part of ECDSA signature output
+   * @param s part of ECDSA signature output
+   */
+  function transferFromWithPermit(
+    address from,
+    address to,
+    uint256 amount,
+    uint256 deadline,
+    uint8 v,
+    bytes32 r,
+    bytes32 s
+  ) external;
+
+  /// @return The transfer hook contract
   function getTransferHook() external view returns (ITransferHook);
 }

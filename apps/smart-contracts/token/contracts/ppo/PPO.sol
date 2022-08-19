@@ -55,6 +55,19 @@ contract PPO is
     super.burnFrom(_account, _amount);
   }
 
+  function transferFromWithPermit(
+    address _from,
+    address _to,
+    uint256 _amount,
+    uint256 _deadline,
+    uint8 _v,
+    bytes32 _r,
+    bytes32 _s
+  ) external override {
+    permit(_from, _msgSender(), _amount, _deadline, _v, _r, _s);
+    transferFrom(_from, _to, _amount);
+  }
+
   function getTransferHook() external view override returns (ITransferHook) {
     return _transferHook;
   }
