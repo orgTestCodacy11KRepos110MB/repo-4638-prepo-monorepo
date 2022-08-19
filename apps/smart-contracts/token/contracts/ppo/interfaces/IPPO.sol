@@ -41,7 +41,7 @@ interface IPPO is IERC20Upgradeable, IERC20PermitUpgradeable {
   function burnFrom(address account, uint256 amount) external;
 
   /**
-   * @notice @notice Atomically allows and transfers `amount` from `from` to
+   * @notice Atomically allows and transfers `amount` from `from` to
    * `to`, if before the `deadline`, using a signature signed by `from`.
    * @dev `from`, `to` and `deadline` must exactly match the values used
    * to generate `v`, `r` and `s`.

@@ -3,10 +3,14 @@ import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { ZERO_ADDRESS, JUNK_ADDRESS } from 'prepo-constants'
 import { FakeContract, smock } from '@defi-wonderland/smock'
-import { Contract } from 'ethers'
+import { BigNumber, Contract } from 'ethers'
+import { utils } from 'prepo-hardhat'
+import { formatBytes32String } from 'ethers/lib/utils'
 import { ppoFixture } from './fixtures/PPOFixtures'
-import { generateDomainSeparator, MAX_UINT256 } from '../utils'
+import { generateDomainSeparator, MAX_UINT256, getPermitSignature } from '../utils'
 import { PPO } from '../types/generated'
+
+const { getLastTimestamp, setNextTimestamp } = utils
 
 chai.use(smock.matchers)
 
@@ -442,6 +446,533 @@ describe('=> PPO', () => {
       await expect(tx)
         .to.emit(ppo, 'Transfer(address,address,uint256)')
         .withArgs(user1.address, ZERO_ADDRESS, 1)
+    })
+  })
+
+  describe('# transferFromWithPermit', () => {
+    let currentTime: number
+    let deadline: number
+    const BLOCK_DURATION_IN_SECONDS = 15
+    let spender: SignerWithAddress
+    beforeEach(async () => {
+      await setupPPOAndFakeTransferHook()
+      await ppo.connect(owner).mint(user1.address, 10)
+      currentTime = await getLastTimestamp(ethers.provider)
+      deadline = currentTime + BLOCK_DURATION_IN_SECONDS
+      spender = deployer
+    })
+
+    it('reverts if deadline expired', async () => {
+      const timeAfterDeadlineExpiration = deadline + BLOCK_DURATION_IN_SECONDS
+      const user1PPOBalanceBefore = await ppo.balanceOf(user1.address)
+      const { v, r, s } = await getPermitSignature(
+        ppo,
+        user1,
+        spender.address,
+        user1PPOBalanceBefore,
+        deadline
+      )
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await setNextTimestamp(ethers.provider as any, timeAfterDeadlineExpiration)
+
+      await expect(
+        ppo
+          .connect(spender)
+          .transferFromWithPermit(
+            user1.address,
+            user2.address,
+            user1PPOBalanceBefore,
+            deadline,
+            v,
+            r,
+            s
+          )
+      ).revertedWith('ERC20Permit: expired deadline')
+    })
+
+    it('reverts if from address different from signature', async () => {
+      const user1PPOBalanceBefore = await ppo.balanceOf(user1.address)
+      const invalidFromAddress = user2
+      const { v, r, s } = await getPermitSignature(
+        ppo,
+        user1,
+        spender.address,
+        user1PPOBalanceBefore,
+        deadline
+      )
+
+      await expect(
+        ppo
+          .connect(spender)
+          .transferFromWithPermit(
+            invalidFromAddress.address,
+            user2.address,
+            user1PPOBalanceBefore,
+            deadline,
+            v,
+            r,
+            s
+          )
+      ).revertedWith('ERC20Permit: invalid signature')
+    })
+
+    it('reverts if spender different from signature', async () => {
+      const user1PPOBalanceBefore = await ppo.balanceOf(user1.address)
+      const invalidSpender = user2
+      const { v, r, s } = await getPermitSignature(
+        ppo,
+        user1,
+        spender.address,
+        user1PPOBalanceBefore,
+        deadline
+      )
+
+      await expect(
+        ppo
+          .connect(invalidSpender)
+          .transferFromWithPermit(
+            user1.address,
+            user2.address,
+            user1PPOBalanceBefore,
+            deadline,
+            v,
+            r,
+            s
+          )
+      ).revertedWith('ERC20Permit: invalid signature')
+    })
+
+    it('reverts if deadline different from signature', async () => {
+      const user1PPOBalanceBefore = await ppo.balanceOf(user1.address)
+      const { v, r, s } = await getPermitSignature(
+        ppo,
+        user1,
+        spender.address,
+        user1PPOBalanceBefore,
+        deadline
+      )
+
+      await expect(
+        ppo
+          .connect(spender)
+          .transferFromWithPermit(
+            user1.address,
+            user2.address,
+            user1PPOBalanceBefore,
+            deadline + 1,
+            v,
+            r,
+            s
+          )
+      ).revertedWith('ERC20Permit: invalid signature')
+    })
+
+    it('reverts if invalid v', async () => {
+      const user1PPOBalanceBefore = await ppo.balanceOf(user1.address)
+      const { v, r, s } = await getPermitSignature(
+        ppo,
+        user1,
+        spender.address,
+        user1PPOBalanceBefore,
+        deadline
+      )
+      const invalidV = v + 1
+
+      await expect(
+        ppo
+          .connect(spender)
+          .transferFromWithPermit(
+            user1.address,
+            user2.address,
+            user1PPOBalanceBefore,
+            deadline,
+            invalidV,
+            r,
+            s
+          )
+      ).revertedWith('ERC20Permit: invalid signature')
+    })
+
+    it('reverts if invalid r', async () => {
+      const user1PPOBalanceBefore = await ppo.balanceOf(user1.address)
+      const { v, r, s } = await getPermitSignature(
+        ppo,
+        user1,
+        spender.address,
+        user1PPOBalanceBefore,
+        deadline
+      )
+      const invalidR = formatBytes32String('JUNK_DATA')
+      expect(invalidR).to.not.eq(r)
+
+      await expect(
+        ppo
+          .connect(spender)
+          .transferFromWithPermit(
+            user1.address,
+            user2.address,
+            user1PPOBalanceBefore,
+            deadline + 1,
+            v,
+            invalidR,
+            s
+          )
+      ).revertedWith('ERC20Permit: invalid signature')
+    })
+
+    it('reverts if invalid s', async () => {
+      const user1PPOBalanceBefore = await ppo.balanceOf(user1.address)
+      const { v, r, s } = await getPermitSignature(
+        ppo,
+        user1,
+        spender.address,
+        user1PPOBalanceBefore,
+        deadline
+      )
+      const invalidS = formatBytes32String('JUNK_DATA')
+      expect(invalidS).to.not.eq(s)
+
+      await expect(
+        ppo
+          .connect(spender)
+          .transferFromWithPermit(
+            user1.address,
+            user2.address,
+            user1PPOBalanceBefore,
+            deadline + 1,
+            v,
+            r,
+            invalidS
+          )
+      ).revertedWith('ERC20Permit: invalid signature')
+    })
+
+    it('reverts if transfer hook not set', async () => {
+      await ppo.connect(owner).setTransferHook(ZERO_ADDRESS)
+      expect(await ppo.getTransferHook()).to.eq(ZERO_ADDRESS)
+      const user1PPOBalanceBefore = await ppo.balanceOf(user1.address)
+      const { v, r, s } = await getPermitSignature(
+        ppo,
+        user1,
+        spender.address,
+        user1PPOBalanceBefore,
+        deadline
+      )
+
+      await expect(
+        ppo
+          .connect(spender)
+          .transferFromWithPermit(
+            user1.address,
+            user2.address,
+            user1PPOBalanceBefore,
+            deadline,
+            v,
+            r,
+            s
+          )
+      ).revertedWith('Transfer hook not set')
+    })
+
+    it('reverts if transfer hook reverts', async () => {
+      fakeTransferHook.hook.reverts()
+      const user1PPOBalanceBefore = await ppo.balanceOf(user1.address)
+      const { v, r, s } = await getPermitSignature(
+        ppo,
+        user1,
+        spender.address,
+        user1PPOBalanceBefore,
+        deadline
+      )
+
+      await expect(
+        ppo
+          .connect(spender)
+          .transferFromWithPermit(
+            user1.address,
+            user2.address,
+            user1PPOBalanceBefore,
+            deadline,
+            v,
+            r,
+            s
+          )
+      ).to.be.reverted
+      expect(await fakeTransferHook.hook).to.have.been.called
+    })
+
+    it('reverts if amount > allowance', async () => {
+      const user1PPOBalanceBefore = await ppo.balanceOf(user1.address)
+      const { v, r, s } = await getPermitSignature(
+        ppo,
+        user1,
+        spender.address,
+        user1PPOBalanceBefore.sub(1),
+        deadline
+      )
+
+      await expect(
+        ppo
+          .connect(spender)
+          .transferFromWithPermit(
+            user1.address,
+            user2.address,
+            user1PPOBalanceBefore,
+            deadline,
+            v,
+            r,
+            s
+          )
+      ).revertedWith('ERC20Permit: invalid signature')
+    })
+
+    it('reverts if amount > balance', async () => {
+      const user1PPOBalanceBefore = await ppo.balanceOf(user1.address)
+      const { v, r, s } = await getPermitSignature(
+        ppo,
+        user1,
+        spender.address,
+        user1PPOBalanceBefore.add(1),
+        deadline
+      )
+
+      await expect(
+        ppo
+          .connect(spender)
+          .transferFromWithPermit(
+            user1.address,
+            user2.address,
+            user1PPOBalanceBefore.add(1),
+            deadline,
+            v,
+            r,
+            s
+          )
+      ).revertedWith('ERC20: transfer amount exceeds balance')
+    })
+
+    it('transfers to recipient if recipient is not spender', async () => {
+      const user1PPOBalanceBefore = await ppo.balanceOf(user1.address)
+      const user2PPOBalanceBefore = await ppo.balanceOf(user2.address)
+      const spenderPPOBalanceBefore = await ppo.balanceOf(spender.address)
+      const { v, r, s } = await getPermitSignature(
+        ppo,
+        user1,
+        spender.address,
+        user1PPOBalanceBefore,
+        deadline
+      )
+      expect(spender.address).to.not.eq(user2.address)
+
+      await ppo
+        .connect(spender)
+        .transferFromWithPermit(
+          user1.address,
+          user2.address,
+          user1PPOBalanceBefore,
+          deadline,
+          v,
+          r,
+          s
+        )
+
+      expect(await ppo.balanceOf(user1.address)).to.eq(0)
+      expect(await ppo.balanceOf(user2.address)).to.eq(
+        user2PPOBalanceBefore.add(user1PPOBalanceBefore)
+      )
+      expect(await ppo.balanceOf(spender.address)).to.eq(spenderPPOBalanceBefore)
+    })
+
+    it('transfers to recipient if recipient is spender', async () => {
+      const user1PPOBalanceBefore = await ppo.balanceOf(user1.address)
+      const spenderPPOBalanceBefore = await ppo.balanceOf(spender.address)
+      const { v, r, s } = await getPermitSignature(
+        ppo,
+        user1,
+        spender.address,
+        user1PPOBalanceBefore,
+        deadline
+      )
+
+      await ppo
+        .connect(spender)
+        .transferFromWithPermit(
+          user1.address,
+          spender.address,
+          user1PPOBalanceBefore,
+          deadline,
+          v,
+          r,
+          s
+        )
+
+      expect(await ppo.balanceOf(user1.address)).to.eq(0)
+      expect(await ppo.balanceOf(spender.address)).to.eq(
+        spenderPPOBalanceBefore.add(user1PPOBalanceBefore)
+      )
+    })
+
+    it("doesn't change user balances if amount = 0", async () => {
+      const user1PPOBalanceBefore = await ppo.balanceOf(user1.address)
+      const user2PPOBalanceBefore = await ppo.balanceOf(user2.address)
+      const { v, r, s } = await getPermitSignature(
+        ppo,
+        user1,
+        spender.address,
+        BigNumber.from(0),
+        deadline
+      )
+
+      await ppo
+        .connect(spender)
+        .transferFromWithPermit(user1.address, user2.address, BigNumber.from(0), deadline, v, r, s)
+
+      expect(await ppo.balanceOf(user1.address)).to.eq(user1PPOBalanceBefore)
+      expect(await ppo.balanceOf(user2.address)).to.eq(user2PPOBalanceBefore)
+    })
+
+    it('transfers to recipient if amount < balance', async () => {
+      const user1PPOBalanceBefore = await ppo.balanceOf(user1.address)
+      const user2PPOBalanceBefore = await ppo.balanceOf(user2.address)
+      const { v, r, s } = await getPermitSignature(
+        ppo,
+        user1,
+        spender.address,
+        user1PPOBalanceBefore.sub(1),
+        deadline
+      )
+
+      await ppo
+        .connect(spender)
+        .transferFromWithPermit(
+          user1.address,
+          user2.address,
+          user1PPOBalanceBefore.sub(1),
+          deadline,
+          v,
+          r,
+          s
+        )
+
+      expect(await ppo.balanceOf(user1.address)).to.eq(1)
+      expect(await ppo.balanceOf(user2.address)).to.eq(
+        user2PPOBalanceBefore.add(user1PPOBalanceBefore.sub(1))
+      )
+    })
+
+    it('transfers to recipient if amount = balance', async () => {
+      const user1PPOBalanceBefore = await ppo.balanceOf(user1.address)
+      const user2PPOBalanceBefore = await ppo.balanceOf(user2.address)
+      const { v, r, s } = await getPermitSignature(
+        ppo,
+        user1,
+        spender.address,
+        user1PPOBalanceBefore,
+        deadline
+      )
+
+      await ppo
+        .connect(spender)
+        .transferFromWithPermit(
+          user1.address,
+          user2.address,
+          user1PPOBalanceBefore,
+          deadline,
+          v,
+          r,
+          s
+        )
+
+      expect(await ppo.balanceOf(user1.address)).to.eq(0)
+      expect(await ppo.balanceOf(user2.address)).to.eq(
+        user2PPOBalanceBefore.add(user1PPOBalanceBefore)
+      )
+    })
+
+    it('emits transfer if amount = 0 and recipient is not spender', async () => {
+      const { v, r, s } = await getPermitSignature(
+        ppo,
+        user1,
+        spender.address,
+        BigNumber.from(0),
+        deadline
+      )
+      expect(spender.address).to.not.eq(user2.address)
+      const tx = await ppo
+        .connect(spender)
+        .transferFromWithPermit(user1.address, user2.address, BigNumber.from(0), deadline, v, r, s)
+
+      await expect(tx)
+        .to.emit(ppo, 'Transfer(address,address,uint256)')
+        .withArgs(user1.address, user2.address, 0)
+    })
+
+    it('emits transfer if amount = 0 and recipient is spender', async () => {
+      const { v, r, s } = await getPermitSignature(
+        ppo,
+        user1,
+        spender.address,
+        BigNumber.from(0),
+        deadline
+      )
+      const tx = await ppo
+        .connect(spender)
+        .transferFromWithPermit(
+          user1.address,
+          spender.address,
+          BigNumber.from(0),
+          deadline,
+          v,
+          r,
+          s
+        )
+
+      await expect(tx)
+        .to.emit(ppo, 'Transfer(address,address,uint256)')
+        .withArgs(user1.address, spender.address, 0)
+    })
+
+    it('emits transfer if amount > 0 and recipient is not spender', async () => {
+      const { v, r, s } = await getPermitSignature(
+        ppo,
+        user1,
+        spender.address,
+        BigNumber.from(1),
+        deadline
+      )
+      expect(spender.address).to.not.eq(user2.address)
+      const tx = await ppo
+        .connect(spender)
+        .transferFromWithPermit(user1.address, user2.address, BigNumber.from(1), deadline, v, r, s)
+
+      await expect(tx)
+        .to.emit(ppo, 'Transfer(address,address,uint256)')
+        .withArgs(user1.address, user2.address, 1)
+    })
+
+    it('emits transfer if amount > 0 and recipient is spender', async () => {
+      const { v, r, s } = await getPermitSignature(
+        ppo,
+        user1,
+        spender.address,
+        BigNumber.from(1),
+        deadline
+      )
+      const tx = await ppo
+        .connect(spender)
+        .transferFromWithPermit(
+          user1.address,
+          spender.address,
+          BigNumber.from(1),
+          deadline,
+          v,
+          r,
+          s
+        )
+
+      await expect(tx)
+        .to.emit(ppo, 'Transfer(address,address,uint256)')
+        .withArgs(user1.address, spender.address, 1)
     })
   })
 
