@@ -1,17 +1,24 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity =0.8.7;
 
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "./interfaces/ITokenShop.sol";
 import "./interfaces/IPurchaseHook.sol";
-import "prepo-shared-contracts/contracts/SafeOwnable.sol";
 import "prepo-shared-contracts/contracts/Pausable.sol";
+import "prepo-shared-contracts/contracts/WithdrawERC20.sol";
+import "prepo-shared-contracts/contracts/WithdrawERC721.sol";
+import "prepo-shared-contracts/contracts/WithdrawERC1155.sol";
 
-contract TokenShop is ITokenShop, SafeOwnable, ReentrancyGuard, Pausable {
+contract TokenShop is
+  ITokenShop,
+  Pausable,
+  WithdrawERC20,
+  WithdrawERC721,
+  WithdrawERC1155
+{
   using SafeERC20 for IERC20;
 
   IERC20 private _paymentToken;
@@ -105,38 +112,6 @@ contract TokenShop is ITokenShop, SafeOwnable, ReentrancyGuard, Pausable {
     }
   }
 
-  function withdrawERC20(address _erc20Token, uint256 _amount)
-    external
-    override
-    onlyOwner
-    nonReentrant
-  {
-    IERC20(_erc20Token).safeTransfer(owner(), _amount);
-  }
-
-  function withdrawERC721(address _erc721Token, uint256 _id)
-    external
-    override
-    onlyOwner
-    nonReentrant
-  {
-    IERC721(_erc721Token).safeTransferFrom(address(this), owner(), _id);
-  }
-
-  function withdrawERC1155(
-    address _erc1155Token,
-    uint256 _id,
-    uint256 _amount
-  ) external override onlyOwner nonReentrant {
-    IERC1155(_erc1155Token).safeTransferFrom(
-      address(this),
-      owner(),
-      _id,
-      _amount,
-      ""
-    );
-  }
-
   function getPrice(address _tokenContract, uint256 _id)
     external
     view
@@ -160,7 +135,7 @@ contract TokenShop is ITokenShop, SafeOwnable, ReentrancyGuard, Pausable {
     override
     returns (uint256)
   {
-    _userToERC721ToPurchaseCount[_user][_tokenContract];
+    return _userToERC721ToPurchaseCount[_user][_tokenContract];
   }
 
   function getERC1155PurchaseCount(
@@ -169,26 +144,6 @@ contract TokenShop is ITokenShop, SafeOwnable, ReentrancyGuard, Pausable {
     uint256 _id
   ) external view override returns (uint256) {
     return _userToERC1155ToIdToPurchaseCount[_user][_tokenContract][_id];
-  }
-
-  function onERC1155Received(
-    address,
-    address,
-    uint256,
-    uint256,
-    bytes memory
-  ) external pure returns (bytes4) {
-    return this.onERC1155Received.selector;
-  }
-
-  function onERC1155BatchReceived(
-    address,
-    address,
-    uint256[] memory,
-    uint256[] memory,
-    bytes memory
-  ) external pure returns (bytes4) {
-    return this.onERC1155BatchReceived.selector;
   }
 
   function onERC721Received(

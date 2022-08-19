@@ -20,16 +20,6 @@ interface ITokenShop {
     uint256[] memory amounts
   ) external;
 
-  function withdrawERC20(address erc20Token, uint256 amount) external;
-
-  function withdrawERC721(address erc721Token, uint256 id) external;
-
-  function withdrawERC1155(
-    address erc1155Token,
-    uint256 id,
-    uint256 amount
-  ) external;
-
   function getPrice(address tokenContract, uint256 id)
     external
     view

@@ -619,6 +619,7 @@ describe('TokenShop', () => {
   // TODO : add tests for tx.origin vs msg.sender
 
   describe('# withdrawERC20', () => {
+    // Adding minimal test to just ensure function reverts and is callable.
     beforeEach(async () => {
       await setupTokenShop()
       const externalERC20Recipient = user1.address
@@ -638,52 +639,29 @@ describe('TokenShop', () => {
       expect(await tokenShop.owner()).to.not.eq(user1.address)
 
       await expect(
-        tokenShop.connect(user1).withdrawERC20(externalERC20Token.address, amountToWithdraw)
+        tokenShop.connect(user1).withdrawERC20([externalERC20Token.address], [amountToWithdraw])
       ).revertedWith('Ownable: caller is not the owner')
-    })
-
-    it('reverts if amount > contract balance', async () => {
-      const tokenShopBalanceBefore = await ethers.provider.getBalance(tokenShop.address)
-
-      await expect(
-        tokenShop
-          .connect(owner)
-          .withdrawERC20(externalERC20Token.address, tokenShopBalanceBefore.add(1))
-      ).revertedWith('ERC20: transfer amount exceeds balance')
     })
 
     it('transfers if amount = contract balance', async () => {
       await externalERC20Token.connect(user1).transfer(tokenShop.address, parseEther('1'))
-      const tokenShopBalanceBefore = await externalERC20Token.balanceOf(tokenShop.address)
+      const contractBalanceBefore = await externalERC20Token.balanceOf(tokenShop.address)
+      expect(contractBalanceBefore).to.be.gt(0)
       const ownerBalanceBefore = await externalERC20Token.balanceOf(owner.address)
 
       await tokenShop
         .connect(owner)
-        .withdrawERC20(externalERC20Token.address, tokenShopBalanceBefore)
+        .withdrawERC20([externalERC20Token.address], [contractBalanceBefore])
 
-      expect(await externalERC20Token.balanceOf(owner.address)).to.be.eq(
-        ownerBalanceBefore.add(tokenShopBalanceBefore)
+      expect(await externalERC20Token.balanceOf(owner.address)).to.be.equal(
+        ownerBalanceBefore.add(contractBalanceBefore)
       )
-      expect(await externalERC20Token.balanceOf(tokenShop.address)).to.be.eq(0)
-    })
-
-    it('transfers if amount < contract balance', async () => {
-      await externalERC20Token.connect(user1).transfer(tokenShop.address, parseEther('1'))
-      const tokenShopBalanceBefore = await externalERC20Token.balanceOf(tokenShop.address)
-      const ownerBalanceBefore = await externalERC20Token.balanceOf(owner.address)
-
-      await tokenShop
-        .connect(owner)
-        .withdrawERC20(externalERC20Token.address, tokenShopBalanceBefore.sub(1))
-
-      expect(await externalERC20Token.balanceOf(owner.address)).to.be.eq(
-        ownerBalanceBefore.add(tokenShopBalanceBefore.sub(1))
-      )
-      expect(await externalERC20Token.balanceOf(tokenShop.address)).to.be.eq(1)
+      expect(await externalERC20Token.balanceOf(tokenShop.address)).to.be.equal(0)
     })
   })
 
   describe('# withdrawERC721', () => {
+    // Adding minimal test to just ensure function reverts and is callable.
     const erc721Id = 1
     beforeEach(async () => {
       await setupTokenShop()
@@ -695,17 +673,20 @@ describe('TokenShop', () => {
       expect(await tokenShop.owner()).to.not.eq(user1.address)
 
       await expect(
-        tokenShop.connect(user1).withdrawERC721(mockERC721.address, erc721Id)
+        tokenShop.connect(user1).withdrawERC721([mockERC721.address], [owner.address], [erc721Id])
       ).revertedWith('Ownable: caller is not the owner')
     })
 
     it('reverts if token id not owned by token shop', async () => {
-      await mockERC721.mint(user1.address, 2)
-      mockERC721.ownerOf.whenCalledWith(2).returns(user1.address)
+      const idNotOwnedByTokenShop = 2
+      await mockERC721.mint(user1.address, idNotOwnedByTokenShop)
+      mockERC721.ownerOf.whenCalledWith(idNotOwnedByTokenShop).returns(user1.address)
 
-      await expect(tokenShop.connect(owner).withdrawERC721(mockERC721.address, 2)).revertedWith(
-        'ERC721: caller is not token owner nor approved'
-      )
+      await expect(
+        tokenShop
+          .connect(owner)
+          .withdrawERC721([mockERC721.address], [owner.address], [idNotOwnedByTokenShop])
+      ).revertedWith('ERC721: caller is not token owner nor approved')
     })
 
     it('transfers if token id owned by token shop', async () => {
@@ -713,7 +694,9 @@ describe('TokenShop', () => {
       const tokenShop721BalanceBefore = await mockERC721.balanceOf(tokenShop.address)
       const ownerERC721BalanceBefore = await mockERC721.balanceOf(owner.address)
 
-      await tokenShop.connect(owner).withdrawERC721(mockERC721.address, erc721Id)
+      await tokenShop
+        .connect(owner)
+        .withdrawERC721([mockERC721.address], [owner.address], [erc721Id])
 
       expect(await mockERC721.balanceOf(owner.address)).to.be.equal(ownerERC721BalanceBefore.add(1))
       expect(await mockERC721.balanceOf(tokenShop.address)).to.be.equal(
@@ -723,6 +706,7 @@ describe('TokenShop', () => {
   })
 
   describe('# withdrawERC1155', () => {
+    // Adding minimal test to just ensure function reverts and is callable.
     const erc1155Id = 1
     const erc1155Amount = 10
     beforeEach(async () => {
@@ -735,7 +719,9 @@ describe('TokenShop', () => {
       expect(await tokenShop.owner()).to.not.eq(user1.address)
 
       await expect(
-        tokenShop.connect(user1).withdrawERC1155(mockERC1155.address, erc1155Id, erc1155Amount)
+        tokenShop
+          .connect(user1)
+          .withdrawERC1155([mockERC1155.address], [owner.address], [erc1155Id], [erc1155Amount])
       ).revertedWith('Ownable: caller is not the owner')
     })
 
@@ -745,76 +731,33 @@ describe('TokenShop', () => {
       await expect(
         tokenShop
           .connect(owner)
-          .withdrawERC1155(mockERC1155.address, erc1155Id, tokenShopERC1155Balance.add(1))
+          .withdrawERC1155(
+            [mockERC1155.address],
+            [owner.address],
+            [erc1155Id],
+            [tokenShopERC1155Balance.add(1)]
+          )
       ).revertedWith('ERC1155: insufficient balance for transfer')
     })
 
     it('transfers if amount to withdraw = balance', async () => {
       const tokenShop1155BalanceBefore = await mockERC1155.balanceOf(tokenShop.address, erc1155Id)
+      expect(tokenShop1155BalanceBefore).to.be.gt(0)
       const ownerERC1155BalanceBefore = await mockERC1155.balanceOf(owner.address, erc1155Id)
 
       await tokenShop
         .connect(owner)
-        .withdrawERC1155(mockERC1155.address, erc1155Id, tokenShop1155BalanceBefore)
+        .withdrawERC1155(
+          [mockERC1155.address],
+          [owner.address],
+          [erc1155Id],
+          [tokenShop1155BalanceBefore]
+        )
 
       expect(await mockERC1155.balanceOf(owner.address, erc1155Id)).to.be.equal(
         ownerERC1155BalanceBefore.add(tokenShop1155BalanceBefore)
       )
       expect(await mockERC1155.balanceOf(tokenShop.address, erc1155Id)).to.be.equal(ZERO)
-    })
-
-    it('transfers if amount to withdraw < balance', async () => {
-      const tokenShop1155BalanceBefore = await mockERC1155.balanceOf(tokenShop.address, erc1155Id)
-      const ownerERC1155BalanceBefore = await mockERC1155.balanceOf(owner.address, erc1155Id)
-
-      await tokenShop
-        .connect(owner)
-        .withdrawERC1155(mockERC1155.address, erc1155Id, tokenShop1155BalanceBefore.sub(1))
-
-      expect(await mockERC1155.balanceOf(owner.address, erc1155Id)).to.be.equal(
-        ownerERC1155BalanceBefore.add(tokenShop1155BalanceBefore.sub(1))
-      )
-      expect(await mockERC1155.balanceOf(tokenShop.address, erc1155Id)).to.be.equal(1)
-    })
-  })
-
-  describe('# onERC1155Received', () => {
-    beforeEach(async () => {
-      await setupTokenShop()
-      await setupMockContracts()
-    })
-
-    it('is compliant with ERC1155 safeTransferFrom() requirements', async () => {
-      await mockERC1155.mint(user1.address, erc1155Id1, erc1155Id1Amount)
-
-      await expect(
-        mockERC1155
-          .connect(user1)
-          .safeTransferFrom(user1.address, tokenShop.address, erc1155Id1, erc1155Id1Amount, [])
-      ).not.reverted
-    })
-  })
-
-  describe('# onERC1155BatchReceived', () => {
-    beforeEach(async () => {
-      await setupTokenShop()
-      await setupMockContracts()
-    })
-
-    it('is compliant with ERC1155 safeBatchTransferFrom() requirements', async () => {
-      await mockERC1155.mint(user1.address, erc1155Id1, erc1155Id1Amount)
-
-      await expect(
-        mockERC1155
-          .connect(user1)
-          .safeBatchTransferFrom(
-            user1.address,
-            tokenShop.address,
-            [erc1155Id1],
-            [erc1155Id1Amount],
-            []
-          )
-      ).not.reverted
     })
   })
 
