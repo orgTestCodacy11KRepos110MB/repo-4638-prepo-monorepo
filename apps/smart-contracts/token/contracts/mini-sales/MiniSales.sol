@@ -25,7 +25,8 @@ contract MiniSales is IMiniSales, WithdrawERC20 {
   function purchase(
     address _recipient,
     uint256 _saleTokenAmount,
-    uint256 _purchasePrice
+    uint256 _purchasePrice,
+    bytes calldata _data
   ) external override nonReentrant {
     require(_purchasePrice == _price, "Price mismatch");
     if (address(_purchaseHook) != address(0)) {
@@ -33,7 +34,8 @@ contract MiniSales is IMiniSales, WithdrawERC20 {
         _msgSender(),
         _recipient,
         _saleTokenAmount,
-        _purchasePrice
+        _price,
+        _data
       );
     }
     uint256 _paymentTokenAmount = (_saleTokenAmount * _price) /

@@ -4,6 +4,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-wit
 import { ZERO_ADDRESS, JUNK_ADDRESS } from 'prepo-constants'
 import { FakeContract, smock } from '@defi-wonderland/smock'
 import { Contract } from 'ethers'
+import { formatBytes32String } from 'ethers/lib/utils'
 import { allowlistPurchaseHookFixture, fakeAccountListFixture } from './fixtures/MiniSalesFixtures'
 import { AllowlistPurchaseHook } from '../types/generated'
 
@@ -17,6 +18,7 @@ describe('AllowlistPurchaseHook', () => {
   let allowedContract: SignerWithAddress
   let allowlistPurchaseHook: AllowlistPurchaseHook
   let allowedAccounts: FakeContract<Contract>
+  const dataPayloadA = formatBytes32String('A')
 
   const deployHook = async (): Promise<void> => {
     ;[deployer, owner, user1, user2, allowedContract] = await ethers.getSigners()
@@ -69,7 +71,7 @@ describe('AllowlistPurchaseHook', () => {
       await expect(
         allowlistPurchaseHook
           .connect(allowedContract)
-          .hook(purchaser.address, recipient.address, 1, 1)
+          .hook(purchaser.address, recipient.address, 1, 1, dataPayloadA)
       ).to.be.revertedWith('Recipient not allowed')
     })
 
@@ -80,7 +82,7 @@ describe('AllowlistPurchaseHook', () => {
       await expect(
         allowlistPurchaseHook
           .connect(allowedContract)
-          .hook(purchaser.address, recipient.address, 1, 1)
+          .hook(purchaser.address, recipient.address, 1, 1, dataPayloadA)
       ).to.be.reverted
     })
 
@@ -92,7 +94,7 @@ describe('AllowlistPurchaseHook', () => {
       await expect(
         allowlistPurchaseHook
           .connect(allowedContract)
-          .hook(purchaser.address, recipient.address, 1, 1)
+          .hook(purchaser.address, recipient.address, 1, 1, dataPayloadA)
       ).to.be.reverted
     })
 
@@ -102,7 +104,7 @@ describe('AllowlistPurchaseHook', () => {
       await expect(
         allowlistPurchaseHook
           .connect(allowedContract)
-          .hook(purchaser.address, recipient.address, 1, 1)
+          .hook(purchaser.address, recipient.address, 1, 1, dataPayloadA)
       ).to.not.reverted
     })
 
@@ -110,7 +112,7 @@ describe('AllowlistPurchaseHook', () => {
       allowedAccounts.isIncluded.whenCalledWith(recipient.address).returns(true)
       await allowlistPurchaseHook
         .connect(allowedContract)
-        .hook(purchaser.address, recipient.address, 1, 1)
+        .hook(purchaser.address, recipient.address, 1, 1, dataPayloadA)
 
       expect(allowedAccounts.isIncluded).to.have.been.calledWith(recipient.address)
     })

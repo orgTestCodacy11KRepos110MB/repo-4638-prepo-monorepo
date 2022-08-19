@@ -57,11 +57,13 @@ interface IMiniSales {
    * @param recipient Address that sale token will be delivered to
    * @param amount Amount of sale token to be purchased
    * @param price Sale token price in terms of payment token
+   * @param data Data payload passed on to the hook for added functionality
    */
   function purchase(
     address recipient,
     uint256 amount,
-    uint256 price
+    uint256 price,
+    bytes calldata data
   ) external;
 
   /**

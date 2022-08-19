@@ -13,11 +13,13 @@ interface IPurchaseHook {
    * @param recipient Address that sale token was delivered to
    * @param amount Amount of sale token purchased
    * @param price Sale token price in terms of payment token
+   * @param data Data payload for supporting additional hook functionality
    */
   function hook(
     address purchaser,
     address recipient,
     uint256 amount,
-    uint256 price
+    uint256 price,
+    bytes calldata data
   ) external;
 }

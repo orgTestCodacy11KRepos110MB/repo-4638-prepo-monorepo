@@ -2,7 +2,7 @@ import chai, { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { ZERO_ADDRESS, JUNK_ADDRESS } from 'prepo-constants'
-import { parseUnits } from 'ethers/lib/utils'
+import { formatBytes32String, parseUnits } from 'ethers/lib/utils'
 import { FakeContract, smock } from '@defi-wonderland/smock'
 import { Contract, BigNumber } from 'ethers'
 import { miniSalesFixture, fakeAllowlistPurchaseHookFixture } from './fixtures/MiniSalesFixtures'
@@ -24,6 +24,7 @@ describe('=> MiniSales', () => {
   const paymentTokenDecimals = 6 // USDC is 6 decimal
   const testPrice = parseUnits('1.234', paymentTokenDecimals)
   const testDenominator = parseUnits('1', saleTokenDecimals)
+  const dataPayloadA = formatBytes32String('A')
 
   const deployMiniSales = async (): Promise<void> => {
     ;[deployer, owner, user1, user2] = await ethers.getSigners()
@@ -108,7 +109,7 @@ describe('=> MiniSales', () => {
       await expect(
         miniSales
           .connect(purchaser)
-          .purchase(recipient.address, saleTokenAmount, currentPrice.add(1))
+          .purchase(recipient.address, saleTokenAmount, currentPrice.add(1), dataPayloadA)
       ).revertedWith('Price mismatch')
     })
 
@@ -117,7 +118,9 @@ describe('=> MiniSales', () => {
       fakeAllowlistPurchaseHook.hook.reverts()
 
       await expect(
-        miniSales.connect(purchaser).purchase(recipient.address, saleTokenAmount, testPrice)
+        miniSales
+          .connect(purchaser)
+          .purchase(recipient.address, saleTokenAmount, testPrice, dataPayloadA)
       ).to.be.reverted
       expect(fakeAllowlistPurchaseHook.hook).to.have.been.calledOnce
     })
@@ -129,7 +132,9 @@ describe('=> MiniSales', () => {
       await paymentToken.connect(purchaser).approve(miniSales.address, paymentNeeded)
 
       await expect(
-        miniSales.connect(purchaser).purchase(recipient.address, saleTokenAmount, testPrice)
+        miniSales
+          .connect(purchaser)
+          .purchase(recipient.address, saleTokenAmount, testPrice, dataPayloadA)
       ).to.revertedWith('ERC20: transfer amount exceeds balance')
     })
 
@@ -138,7 +143,9 @@ describe('=> MiniSales', () => {
       await paymentToken.connect(purchaser).approve(miniSales.address, paymentNeeded)
 
       await expect(
-        miniSales.connect(purchaser).purchase(recipient.address, saleTokenAmount, testPrice)
+        miniSales
+          .connect(purchaser)
+          .purchase(recipient.address, saleTokenAmount, testPrice, dataPayloadA)
       ).to.revertedWith('ERC20: transfer amount exceeds balance')
     })
 
@@ -147,7 +154,9 @@ describe('=> MiniSales', () => {
       await paymentToken.connect(purchaser).approve(miniSales.address, paymentNeeded.sub(1))
 
       await expect(
-        miniSales.connect(purchaser).purchase(recipient.address, saleTokenAmount, testPrice)
+        miniSales
+          .connect(purchaser)
+          .purchase(recipient.address, saleTokenAmount, testPrice, dataPayloadA)
       ).to.revertedWith('ERC20: insufficient allowance')
     })
 
@@ -156,7 +165,9 @@ describe('=> MiniSales', () => {
       await paymentToken.connect(purchaser).approve(miniSales.address, paymentNeeded)
 
       await expect(
-        miniSales.connect(purchaser).purchase(ZERO_ADDRESS, saleTokenAmount, testPrice)
+        miniSales
+          .connect(purchaser)
+          .purchase(ZERO_ADDRESS, saleTokenAmount, testPrice, dataPayloadA)
       ).revertedWith('ERC20: transfer to the zero address')
     })
 
@@ -165,7 +176,9 @@ describe('=> MiniSales', () => {
       await paymentToken.connect(purchaser).approve(miniSales.address, paymentNeeded)
       await miniSales.connect(owner).setPurchaseHook(ZERO_ADDRESS)
 
-      await miniSales.connect(purchaser).purchase(recipient.address, saleTokenAmount, testPrice)
+      await miniSales
+        .connect(purchaser)
+        .purchase(recipient.address, saleTokenAmount, testPrice, dataPayloadA)
 
       expect(fakeAllowlistPurchaseHook.hook).to.not.have.been.called
     })
@@ -175,13 +188,16 @@ describe('=> MiniSales', () => {
       await paymentToken.connect(purchaser).approve(miniSales.address, paymentNeeded)
       expect(await miniSales.getPurchaseHook()).to.not.eq(ZERO_ADDRESS)
 
-      await miniSales.connect(purchaser).purchase(recipient.address, saleTokenAmount, testPrice)
+      await miniSales
+        .connect(purchaser)
+        .purchase(recipient.address, saleTokenAmount, testPrice, dataPayloadA)
 
       expect(fakeAllowlistPurchaseHook.hook).to.have.been.calledWith(
         purchaser.address,
         recipient.address,
         saleTokenAmount,
-        testPrice
+        testPrice,
+        dataPayloadA
       )
     })
 
@@ -192,7 +208,9 @@ describe('=> MiniSales', () => {
       const contractSaleTokenBalanceBefore = await saleToken.balanceOf(miniSales.address)
       await paymentToken.connect(purchaser).approve(miniSales.address, paymentNeeded)
 
-      const tx = await miniSales.connect(purchaser).purchase(recipient.address, 0, testPrice)
+      const tx = await miniSales
+        .connect(purchaser)
+        .purchase(recipient.address, 0, testPrice, dataPayloadA)
 
       expect(await saleToken.balanceOf(purchaser.address)).to.eq(purchaserSaleTokenBalanceBefore)
       expect(await saleToken.balanceOf(recipient.address)).to.eq(recipientSaleTokenBalanceBefore)
@@ -212,7 +230,9 @@ describe('=> MiniSales', () => {
       const contractSaleTokenBalanceBefore = await saleToken.balanceOf(miniSales.address)
       await paymentToken.connect(purchaser).approve(miniSales.address, paymentNeeded)
 
-      await miniSales.connect(purchaser).purchase(recipient.address, saleTokenAmount, testPrice)
+      await miniSales
+        .connect(purchaser)
+        .purchase(recipient.address, saleTokenAmount, testPrice, dataPayloadA)
 
       expect(await saleToken.balanceOf(recipient.address)).to.eq(
         recipientSaleTokenBalanceBefore.add(saleTokenAmount)
@@ -231,7 +251,9 @@ describe('=> MiniSales', () => {
       const contractSaleTokenBalanceBefore = await saleToken.balanceOf(miniSales.address)
       await paymentToken.connect(purchaser).approve(miniSales.address, paymentNeeded)
 
-      await miniSales.connect(purchaser).purchase(recipient.address, saleTokenAmount, testPrice)
+      await miniSales
+        .connect(purchaser)
+        .purchase(recipient.address, saleTokenAmount, testPrice, dataPayloadA)
 
       expect(await saleToken.balanceOf(purchaser.address)).to.eq(purchaserSaleTokenBalanceBefore)
       expect(await saleToken.balanceOf(recipient.address)).to.eq(
@@ -248,7 +270,9 @@ describe('=> MiniSales', () => {
       const contractPaymentTokenBalanceBefore = await paymentToken.balanceOf(miniSales.address)
       await paymentToken.connect(purchaser).approve(miniSales.address, paymentNeeded)
 
-      await miniSales.connect(purchaser).purchase(recipient.address, saleTokenAmount, testPrice)
+      await miniSales
+        .connect(purchaser)
+        .purchase(recipient.address, saleTokenAmount, testPrice, dataPayloadA)
 
       expect(await paymentToken.balanceOf(purchaser.address)).to.eq(
         purchaserPaymentTokenBalanceBefore.sub(paymentNeeded)
@@ -267,7 +291,9 @@ describe('=> MiniSales', () => {
       const contractPaymentTokenBalanceBefore = await paymentToken.balanceOf(miniSales.address)
       await paymentToken.connect(purchaser).approve(miniSales.address, paymentNeeded)
 
-      await miniSales.connect(purchaser).purchase(recipient.address, saleTokenAmount, testPrice)
+      await miniSales
+        .connect(purchaser)
+        .purchase(recipient.address, saleTokenAmount, testPrice, dataPayloadA)
 
       expect(await paymentToken.balanceOf(purchaser.address)).to.eq(
         purchaserPaymentTokenBalanceBefore.sub(paymentNeeded)
@@ -282,7 +308,10 @@ describe('=> MiniSales', () => {
 
     it('emits purchase if amount = 0 and recipient is purchaser', async () => {
       expect(recipient.address).to.eq(purchaser.address)
-      const tx = await miniSales.connect(purchaser).purchase(recipient.address, 0, testPrice)
+
+      const tx = await miniSales
+        .connect(purchaser)
+        .purchase(recipient.address, 0, testPrice, dataPayloadA)
 
       await expect(tx)
         .to.emit(miniSales, 'Purchase(address,address,uint256,uint256)')
@@ -292,7 +321,10 @@ describe('=> MiniSales', () => {
     it('emits purchase if amount = 0 and recipient is not purchaser', async () => {
       recipient = user2
       expect(recipient.address).to.not.eq(purchaser.address)
-      const tx = await miniSales.connect(purchaser).purchase(recipient.address, 0, testPrice)
+
+      const tx = await miniSales
+        .connect(purchaser)
+        .purchase(recipient.address, 0, testPrice, dataPayloadA)
 
       await expect(tx)
         .to.emit(miniSales, 'Purchase(address,address,uint256,uint256)')
@@ -304,9 +336,10 @@ describe('=> MiniSales', () => {
       expect(recipient.address).to.eq(purchaser.address)
       await paymentToken.connect(owner).transfer(purchaser.address, paymentNeeded)
       await paymentToken.connect(purchaser).approve(miniSales.address, paymentNeeded)
+
       const tx = await miniSales
         .connect(purchaser)
-        .purchase(recipient.address, saleTokenAmount, testPrice)
+        .purchase(recipient.address, saleTokenAmount, testPrice, dataPayloadA)
 
       await expect(tx)
         .to.emit(miniSales, 'Purchase(address,address,uint256,uint256)')
@@ -319,9 +352,10 @@ describe('=> MiniSales', () => {
       expect(recipient.address).to.not.eq(purchaser.address)
       await paymentToken.connect(owner).transfer(purchaser.address, paymentNeeded)
       await paymentToken.connect(purchaser).approve(miniSales.address, paymentNeeded)
+
       const tx = await miniSales
         .connect(purchaser)
-        .purchase(user2.address, saleTokenAmount, testPrice)
+        .purchase(user2.address, saleTokenAmount, testPrice, dataPayloadA)
 
       await expect(tx)
         .to.emit(miniSales, 'Purchase(address,address,uint256,uint256)')
