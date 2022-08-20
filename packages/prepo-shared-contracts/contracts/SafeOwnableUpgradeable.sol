@@ -26,6 +26,16 @@ abstract contract SafeOwnableUpgradeable is ISafeOwnable, OwnableUpgradeable {
     _setNominee(address(0));
   }
 
+  function renounceOwnership()
+    public
+    virtual
+    override(ISafeOwnable, OwnableUpgradeable)
+    onlyOwner
+  {
+    super.renounceOwnership();
+    _setNominee(address(0));
+  }
+
   function getNominee() public view virtual override returns (address) {
     return _nominee;
   }

@@ -26,6 +26,16 @@ contract SafeOwnable is ISafeOwnable, Ownable {
     _setNominee(address(0));
   }
 
+  function renounceOwnership()
+    public
+    virtual
+    override(ISafeOwnable, Ownable)
+    onlyOwner
+  {
+    super.renounceOwnership();
+    _setNominee(address(0));
+  }
+
   function getNominee() public view virtual override returns (address) {
     return _nominee;
   }

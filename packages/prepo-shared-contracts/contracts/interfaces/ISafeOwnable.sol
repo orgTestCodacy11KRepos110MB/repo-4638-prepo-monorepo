@@ -25,6 +25,15 @@ interface ISafeOwnable {
   function transferOwnership(address nominee) external;
 
   /**
+   * @notice Renounces ownership of contract and leaves the contract
+   * without any owner.
+   * @dev Only callable by `owner()`.
+   * Sets nominee back to zero address.
+   * It will not be possible to call `onlyOwner` functions anymore.
+   */
+  function renounceOwnership() external;
+
+  /**
    * @notice Accepts ownership nomination.
    * @dev Only callable by the current nominee. Sets nominee back to zero
    * address.

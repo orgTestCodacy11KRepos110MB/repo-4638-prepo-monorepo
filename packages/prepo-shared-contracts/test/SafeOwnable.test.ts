@@ -15,7 +15,6 @@ describe('SafeOwnable', () => {
 
   const setupSafeOwnable = async (): Promise<void> => {
     ;[deployer, user1, user2] = await ethers.getSigners()
-    owner = deployer
     safeOwnable = await safeOwnableFixture()
   }
 
@@ -32,6 +31,7 @@ describe('SafeOwnable', () => {
   describe('# transferOwnership', () => {
     beforeEach(async () => {
       await setupSafeOwnable()
+      owner = deployer
     })
 
     it('reverts if not owner and not nominee', async () => {
@@ -99,6 +99,7 @@ describe('SafeOwnable', () => {
     beforeEach(async () => {
       await setupSafeOwnable()
       nominee = user1
+      owner = deployer
       await safeOwnable.connect(owner).transferOwnership(nominee.address)
     })
 
@@ -149,6 +150,67 @@ describe('SafeOwnable', () => {
       const tx = await safeOwnable.connect(nominee).acceptOwnership()
 
       await expect(tx).to.emit(safeOwnable, 'NomineeUpdate').withArgs(nominee.address, ZERO_ADDRESS)
+    })
+  })
+
+  describe('# renounceOwnership', () => {
+    beforeEach(async () => {
+      await setupSafeOwnable()
+      nominee = user1
+      await safeOwnable.connect(deployer).transferOwnership(owner.address)
+      await safeOwnable.connect(owner).acceptOwnership()
+    })
+
+    it('reverts if not owner', async () => {
+      expect(await safeOwnable.owner()).to.not.eq(user1.address)
+
+      await expect(safeOwnable.connect(user2).renounceOwnership()).revertedWith(
+        'Ownable: caller is not the owner'
+      )
+    })
+
+    it('sets owner to zero address', async () => {
+      expect(await safeOwnable.owner()).to.not.eq(ZERO_ADDRESS)
+
+      await safeOwnable.connect(owner).renounceOwnership()
+
+      expect(await safeOwnable.owner()).to.eq(ZERO_ADDRESS)
+    })
+
+    it('sets nominee to zero address', async () => {
+      await safeOwnable.connect(deployer).transferOwnership(nominee.address)
+      expect(await safeOwnable.getNominee()).to.not.eq(ZERO_ADDRESS)
+
+      await safeOwnable.connect(owner).renounceOwnership()
+
+      expect(await safeOwnable.getNominee()).to.eq(ZERO_ADDRESS)
+    })
+
+    it('emits OwnershipTransferred', async () => {
+      expect(await safeOwnable.owner()).to.eq(owner.address)
+
+      const tx = await safeOwnable.connect(owner).renounceOwnership()
+
+      await expect(tx)
+        .to.emit(safeOwnable, 'OwnershipTransferred')
+        .withArgs(owner.address, ZERO_ADDRESS)
+    })
+
+    it('emits NomineeUpdate if nominee is not zero address', async () => {
+      await safeOwnable.connect(deployer).transferOwnership(nominee.address)
+      expect(await safeOwnable.getNominee()).to.eq(nominee.address)
+
+      const tx = await safeOwnable.connect(owner).renounceOwnership()
+
+      await expect(tx).to.emit(safeOwnable, 'NomineeUpdate').withArgs(nominee.address, ZERO_ADDRESS)
+    })
+
+    it('emits NomineeUpdate if nominee is zero address', async () => {
+      expect(await safeOwnable.getNominee()).to.eq(ZERO_ADDRESS)
+
+      const tx = await safeOwnable.connect(owner).renounceOwnership()
+
+      await expect(tx).to.emit(safeOwnable, 'NomineeUpdate').withArgs(ZERO_ADDRESS, ZERO_ADDRESS)
     })
   })
 })
