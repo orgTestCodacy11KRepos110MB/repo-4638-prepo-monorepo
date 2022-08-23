@@ -334,7 +334,7 @@ describe('SafeAccessControlEnumerable', () => {
       expect(await safeAccessControlEnumerable.isNominated(roleA, user2.address)).to.eq(false)
 
       await expect(safeAccessControlEnumerable.connect(user2).acceptRole(roleA)).to.be.revertedWith(
-        'msg.sender != nominee for role'
+        'msg.sender != role nominee'
       )
     })
 

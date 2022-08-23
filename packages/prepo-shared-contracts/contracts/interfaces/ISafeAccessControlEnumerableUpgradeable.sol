@@ -8,6 +8,8 @@ import "@openzeppelin/contracts-upgradeable/access/IAccessControlEnumerableUpgra
  * `AccessControlEnumerableUpgradeable.sol` contract that requires an
  * address/role to initially be nominated, and then accepted, before the role
  * or admin role is granted.
+ * @dev Inheriting contract must call `__SafeAccessControlEnumerable_init()`
+ * within their own externally exposed `initializer`.
  */
 interface ISafeAccessControlEnumerableUpgradeable is
   IAccessControlEnumerableUpgradeable

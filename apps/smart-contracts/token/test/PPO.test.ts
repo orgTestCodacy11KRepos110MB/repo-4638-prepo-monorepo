@@ -576,7 +576,12 @@ describe('=> PPO', () => {
         user1PPOBalanceBefore,
         deadline
       )
-      const invalidV = v + 1
+      /**
+       * v can only be 27 or 28, so you will have a ECDSA revert rather than
+       * a generic invalid signature revert. So we can't just input an
+       * arbitrary v value here.
+       */
+      const invalidV = v === 27 ? 28 : 27
 
       await expect(
         ppo
