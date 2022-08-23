@@ -31,8 +31,8 @@ contract SafeAccessControlEnumerable is
     override
     onlyRole(_roleToRoleAdminNominee[_role])
   {
-    _setRoleAdminNominee(_role, 0x00);
     _setRoleAdmin(_role, _roleToRoleAdminNominee[_role]);
+    _setRoleAdminNominee(_role, 0x00);
   }
 
   function grantRole(bytes32 _role, address _account)

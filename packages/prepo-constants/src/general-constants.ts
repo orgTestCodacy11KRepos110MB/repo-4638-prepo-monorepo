@@ -18,6 +18,9 @@ export const MIN_IN_MS = SEC_IN_MS * 60
 
 export const MINIMUM_GAS_FEE = 21000
 
+export const DEFAULT_ADMIN_ROLE =
+  '0x0000000000000000000000000000000000000000000000000000000000000000'
+
 // We use FallbackProvider to have some redundancy
 // Use QUORUM of 1 because we trust the endpoints and prioritise speed
 // STALL_TIMEOUT is how many ms until FallbackProvider will wait until trying the next provider
