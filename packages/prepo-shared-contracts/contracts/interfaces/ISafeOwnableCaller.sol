@@ -4,6 +4,8 @@ pragma solidity =0.8.7;
 /**
  * @notice This contract enables inheriting contracts to accept, transfer and
  * renounce ownership of any SafeOwnable contract.
+ * @dev All non-view methods must be overridden in the inheriting contract
+ * with suitable access controls to prevent anyone from calling them.
  */
 interface ISafeOwnableCaller {
   /**

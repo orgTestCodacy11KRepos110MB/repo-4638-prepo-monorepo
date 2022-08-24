@@ -4,25 +4,35 @@ pragma solidity =0.8.7;
 import "./interfaces/ISafeOwnable.sol";
 import "./interfaces/ISafeOwnableCaller.sol";
 
-contract SafeOwnableCaller is ISafeOwnableCaller {
+abstract contract SafeOwnableCaller is ISafeOwnableCaller {
   function transferOwnership(address _safeOwnableContract, address _nominee)
-    external
+    public
+    virtual
     override
   {
     ISafeOwnable(_safeOwnableContract).transferOwnership(_nominee);
   }
 
-  function acceptOwnership(address _safeOwnableContract) external override {
+  function acceptOwnership(address _safeOwnableContract)
+    public
+    virtual
+    override
+  {
     ISafeOwnable(_safeOwnableContract).acceptOwnership();
   }
 
-  function renounceOwnership(address _safeOwnableContract) external override {
+  function renounceOwnership(address _safeOwnableContract)
+    public
+    virtual
+    override
+  {
     ISafeOwnable(_safeOwnableContract).renounceOwnership();
   }
 
   function getNominee(address _safeOwnableContract)
-    external
+    public
     view
+    virtual
     override
     returns (address)
   {
