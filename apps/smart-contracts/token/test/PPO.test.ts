@@ -577,9 +577,11 @@ describe('=> PPO', () => {
         deadline
       )
       /**
-       * v can only be 27 or 28, so you will have a ECDSA revert rather than
-       * a generic invalid signature revert. So we can't just input an
-       * arbitrary v value here.
+       * `v` can only be 27 or 28, so if we just indiscriminately add 1, the
+       * function might revert with a ECDSA revert due to the `v` value being
+       * invalid instead of not matching the signature verification inputs.
+       * Instead, we switch between 27 and 28 depending on the correct `v`
+       * value.
        */
       const invalidV = v === 27 ? 28 : 27
 
