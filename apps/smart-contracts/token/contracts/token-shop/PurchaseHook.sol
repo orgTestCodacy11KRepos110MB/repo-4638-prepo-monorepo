@@ -19,11 +19,6 @@ contract PurchaseHook is IPurchaseHook, SafeOwnable {
   ) external view override {
     require(address(_tokenShop) != address(0), "Token shop not set in hook");
     uint256 _maxPurchaseAmount = _erc721ToMaxPurchasesPerUser[_tokenContract];
-    // TODO: move in the new ITokenShopPurchaseHook.sol in future PR
-    /**
-     * _maxPurchaseAmount = 0 means unlimited amount of items
-     * can be purchased for the given ERC721 Contract.
-     */
     if (_maxPurchaseAmount != 0) {
       require(
         _tokenShop.getERC721PurchaseCount(_user, _tokenContract) <
@@ -43,11 +38,6 @@ contract PurchaseHook is IPurchaseHook, SafeOwnable {
     uint256 _maxPurchaseAmount = _erc1155ToIdToMaxPurchasesPerUser[
       _tokenContract
     ][_tokenId];
-    // TODO: move in the new ITokenShopPurchaseHook.sol in future PR
-    /**
-     * _maxPurchaseAmount = 0 means an unlimited amount of items
-     * can be purchased for a ERC1155 Contract and tokenId.
-     */
     if (_maxPurchaseAmount != 0) {
       require(
         _tokenShop.getERC1155PurchaseCount(_user, _tokenContract, _tokenId) +
