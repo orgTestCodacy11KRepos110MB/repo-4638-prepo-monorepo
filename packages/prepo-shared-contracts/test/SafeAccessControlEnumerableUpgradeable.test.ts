@@ -2,24 +2,24 @@ import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { DEFAULT_ADMIN_ROLE, ZERO_ADDRESS } from 'prepo-constants'
-import { safeAccessControlEnumerableFixture } from './fixtures/SafeAccessControlEnumerableFixtures'
-import { SafeAccessControlEnumerable } from '../types/generated'
+import { safeAccessControlEnumerableUpgradeableTestFixture } from './fixtures/SafeAccessControlEnumerableFixtures'
+import { SafeAccessControlEnumerableUpgradeableTest } from '../types/generated'
 import { formatBytes32String } from 'ethers/lib/utils'
 
-describe('SafeAccessControlEnumerable', () => {
+describe('SafeAccessControlEnumerableUpgradeableTest', () => {
   let deployer: SignerWithAddress
   let owner: SignerWithAddress
   let user1: SignerWithAddress
   let user2: SignerWithAddress
   let roleAMember: SignerWithAddress
-  let safeAccessControlEnumerable: SafeAccessControlEnumerable
+  let safeAccessControlEnumerable: SafeAccessControlEnumerableUpgradeableTest
   const roleA = formatBytes32String('A')
   const roleB = formatBytes32String('B')
 
   const deploySafeAccessControlEnumerable = async (): Promise<void> => {
     ;[deployer, user1, user2] = await ethers.getSigners()
     owner = deployer
-    safeAccessControlEnumerable = await safeAccessControlEnumerableFixture()
+    safeAccessControlEnumerable = await safeAccessControlEnumerableUpgradeableTestFixture()
   }
 
   const setupSafeAccessControlEnumerable = async (): Promise<void> => {
@@ -169,7 +169,7 @@ describe('SafeAccessControlEnumerable', () => {
       )
     })
 
-    it('reverts if not role admin nominee but is role admin', async () => {
+    it('reverts if role admin but not role admin nominee', async () => {
       const roleBAdmin = await safeAccessControlEnumerable.getRoleAdmin(roleB)
       expect(await safeAccessControlEnumerable.hasRole(roleBAdmin, owner.address)).to.eq(true)
       const roleBAdminNominee = await safeAccessControlEnumerable.getRoleAdminNominee(roleB)
