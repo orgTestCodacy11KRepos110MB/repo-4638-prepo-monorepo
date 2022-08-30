@@ -97,26 +97,4 @@ interface ISafeAccessControlEnumerableCaller {
     bytes32 role,
     address account
   ) external;
-
-  /**
-   * @param safeAccessControlContract Address of the contract to be called
-   * @param role The role to retrieve the role admin nominee for
-   * @return The current role admin nominee of `role`
-   */
-  function getRoleAdminNominee(address safeAccessControlContract, bytes32 role)
-    external
-    view
-    returns (bytes32);
-
-  /**
-   * @param safeAccessControlContract Address of the contract to be called
-   * @param role The role to retrieve nomination status for
-   * @param account The address to retrieve nomination status for
-   * @return Whether `account` is nominated for `role`
-   */
-  function isNominated(
-    address safeAccessControlContract,
-    bytes32 role,
-    address account
-  ) external view returns (bool);
 }

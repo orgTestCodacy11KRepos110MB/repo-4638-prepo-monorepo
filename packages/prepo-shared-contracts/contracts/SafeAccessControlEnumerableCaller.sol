@@ -47,25 +47,4 @@ abstract contract SafeAccessControlEnumerableCaller is
     bytes32 _role,
     address _account
   ) public virtual override;
-
-  function getRoleAdminNominee(
-    address _safeAccessControlContract,
-    bytes32 _role
-  ) public view override returns (bytes32) {
-    return
-      ISafeAccessControlEnumerable(_safeAccessControlContract)
-        .getRoleAdminNominee(_role);
-  }
-
-  function isNominated(
-    address _safeAccessControlContract,
-    bytes32 _role,
-    address _account
-  ) public view override returns (bool) {
-    return
-      ISafeAccessControlEnumerable(_safeAccessControlContract).isNominated(
-        _role,
-        _account
-      );
-  }
 }

@@ -162,39 +162,4 @@ describe('SafeOwnableCallerTest', () => {
       expect(mockOwnedContract.renounceOwnership).to.have.been.calledWith()
     })
   })
-
-  describe('# getNominee', async () => {
-    beforeEach(async () => {
-      await setupSafeOwnableCallerAndMockContract()
-      await mockOwnedContract.connect(owner).transferOwnership(safeOwnableCaller.address)
-      await safeOwnableCaller.connect(owner)['acceptOwnership(address)'](mockOwnedContract.address)
-    })
-
-    it("returns zero address if contract's nominee not set", async () => {
-      expect(await safeOwnableCaller['getNominee(address)'](mockOwnedContract.address)).to.eq(
-        ZERO_ADDRESS
-      )
-    })
-
-    it("returns address of nominee if contract's nominee set", async () => {
-      await safeOwnableCaller
-        .connect(owner)
-        ['transferOwnership(address,address)'](mockOwnedContract.address, user1.address)
-
-      expect(await safeOwnableCaller['getNominee(address)'](mockOwnedContract.address)).to.eq(
-        user1.address
-      )
-    })
-
-    it("returns zero address if contract's nominee accepts ownership", async () => {
-      await safeOwnableCaller
-        .connect(owner)
-        ['transferOwnership(address,address)'](mockOwnedContract.address, user1.address)
-      await mockOwnedContract.connect(user1).acceptOwnership()
-
-      expect(await safeOwnableCaller['getNominee(address)'](mockOwnedContract.address)).to.eq(
-        ZERO_ADDRESS
-      )
-    })
-  })
 })

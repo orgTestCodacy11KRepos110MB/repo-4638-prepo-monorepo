@@ -38,10 +38,4 @@ interface ISafeOwnableCaller {
    * nominee is to be set
    */
   function renounceOwnership(address safeOwnableContract) external;
-
-  // @return The address of current nominee of the SafeOwnable contract
-  function getNominee(address safeOwnableContract)
-    external
-    view
-    returns (address);
 }

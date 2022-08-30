@@ -19,13 +19,4 @@ abstract contract SafeOwnableCaller is ISafeOwnableCaller {
     public
     virtual
     override;
-
-  function getNominee(address _safeOwnableContract)
-    public
-    view
-    override
-    returns (address)
-  {
-    return ISafeOwnable(_safeOwnableContract).getNominee();
-  }
 }
