@@ -9,7 +9,7 @@ import { ZERO_ADDRESS, JUNK_ADDRESS } from 'prepo-constants'
 import { tokenShopFixture, fakePurchaseHookFixture } from './fixtures/TokenShopFixtures'
 import { mockERC20Fixture } from './fixtures/MockERC20Fixtures'
 import { ZERO } from '../utils'
-import { TokenShop, MockERC20 } from '../types/generated'
+import { TokenShop, MockERC20, contracts } from '../types/generated'
 
 chai.use(smock.matchers)
 
@@ -255,7 +255,7 @@ describe('TokenShop', () => {
 
   describe('# purchase', () => {
     let fakePurchaseHook: FakeContract<Contract>
-
+    const purchasePrices = itemPrices
     beforeEach(async () => {
       await setupTokenShop()
       await setupMockContracts()
@@ -273,40 +273,59 @@ describe('TokenShop', () => {
       expect(await tokenShop.isPaused()).to.be.eq(true)
 
       await expect(
-        tokenShop.connect(user1).purchase(tokenContracts, tokenIds, amounts)
+        tokenShop.connect(user1).purchase(tokenContracts, tokenIds, amounts, purchasePrices)
       ).revertedWith('Paused')
     })
 
     it('reverts if token contract array length mismatch', async () => {
       const mismatchedContractArray = tokenContracts.slice(0, 1)
-      expect(tokenIds.length).to.eq(amounts.length)
       expect(mismatchedContractArray.length).to.not.eq(tokenIds.length)
-      expect(mismatchedContractArray.length).to.not.eq(amounts.length)
+      expect(tokenIds.length).to.eq(amounts.length)
+      expect(tokenIds.length).to.eq(purchasePrices.length)
 
       await expect(
-        tokenShop.connect(user1).purchase(mismatchedContractArray, tokenIds, amounts)
+        tokenShop
+          .connect(user1)
+          .purchase(mismatchedContractArray, tokenIds, amounts, purchasePrices)
       ).revertedWith('Array length mismatch')
     })
 
     it('reverts if amount array length mismatch', async () => {
       const mismatchedAmountArray = amounts.slice(0, 1)
-      expect(tokenIds.length).to.eq(tokenContracts.length)
-      expect(mismatchedAmountArray.length).to.not.eq(tokenIds.length)
       expect(mismatchedAmountArray.length).to.not.eq(tokenContracts.length)
+      expect(tokenContracts.length).to.eq(tokenIds.length)
+      expect(tokenContracts.length).to.eq(purchasePrices.length)
 
       await expect(
-        tokenShop.connect(user1).purchase(tokenContracts, tokenIds, mismatchedAmountArray)
+        tokenShop
+          .connect(user1)
+          .purchase(tokenContracts, tokenIds, mismatchedAmountArray, purchasePrices)
       ).revertedWith('Array length mismatch')
     })
 
     it('reverts if token id array length mismatch', async () => {
       const mismatchedTokenIdArray = amounts.slice(0, 1)
-      expect(amounts.length).to.eq(tokenContracts.length)
-      expect(mismatchedTokenIdArray.length).to.not.eq(amounts.length)
       expect(mismatchedTokenIdArray.length).to.not.eq(tokenContracts.length)
+      expect(tokenContracts.length).to.eq(amounts.length)
+      expect(tokenContracts.length).to.eq(purchasePrices.length)
 
       await expect(
-        tokenShop.connect(user1).purchase(tokenContracts, mismatchedTokenIdArray, amounts)
+        tokenShop
+          .connect(user1)
+          .purchase(tokenContracts, mismatchedTokenIdArray, amounts, purchasePrices)
+      ).revertedWith('Array length mismatch')
+    })
+
+    it('reverts if purchase prices array length mismatch', async () => {
+      const mismatchedPurchasePricesArray = purchasePrices.slice(0, 1)
+      expect(mismatchedPurchasePricesArray.length).to.not.eq(tokenContracts.length)
+      expect(tokenContracts.length).to.eq(tokenIds.length)
+      expect(tokenContracts.length).to.eq(amounts.length)
+
+      await expect(
+        tokenShop
+          .connect(user1)
+          .purchase(tokenContracts, tokenIds, amounts, mismatchedPurchasePricesArray)
       ).revertedWith('Array length mismatch')
     })
 
@@ -315,7 +334,7 @@ describe('TokenShop', () => {
       expect(await tokenShop.getPurchaseHook()).to.be.eq(ZERO_ADDRESS)
 
       await expect(
-        tokenShop.connect(user1).purchase(tokenContracts, tokenIds, amounts)
+        tokenShop.connect(user1).purchase(tokenContracts, tokenIds, amounts, purchasePrices)
       ).revertedWith('Purchase hook not set')
     })
 
@@ -326,28 +345,93 @@ describe('TokenShop', () => {
       expect(await tokenShop.getPrice(tokenContracts[0], erc1155Id1)).to.be.eq(ZERO)
 
       await expect(
-        tokenShop.connect(user1).purchase([tokenContracts[0]], [erc1155Id1], [erc1155Id1Amount])
+        tokenShop
+          .connect(user1)
+          .purchase([tokenContracts[0]], [erc1155Id1], [erc1155Id1Amount], [erc1155Id1Price])
       ).revertedWith('Non-purchasable item')
     })
 
     it('reverts if called contract neither ERC1155 nor ERC721', async () => {
       await expect(
-        tokenShop.connect(user1).purchase([paymentToken.address], [erc1155Id1], [erc1155Id1Amount])
+        tokenShop
+          .connect(user1)
+          .purchase([paymentToken.address], [erc1155Id1], [erc1155Id1Amount], [erc1155Id1Price])
       ).to.be.reverted
     })
 
     it('reverts if ERC1155 hook reverts', async () => {
       fakePurchaseHook.hookERC1155.reverts()
 
-      await expect(tokenShop.connect(user1).purchase(tokenContracts, tokenIds, amounts)).to.be
-        .reverted
+      await expect(
+        tokenShop.connect(user1).purchase(tokenContracts, tokenIds, amounts, purchasePrices)
+      ).to.be.reverted
     })
 
     it('reverts if ERC721 hook reverts', async () => {
       fakePurchaseHook.hookERC721.reverts()
 
-      await expect(tokenShop.connect(user1).purchase(tokenContracts, tokenIds, amounts)).to.be
-        .reverted
+      await expect(
+        tokenShop.connect(user1).purchase(tokenContracts, tokenIds, amounts, purchasePrices)
+      ).to.be.reverted
+    })
+
+    it('reverts if purchase price < price', async () => {
+      const invalidPurchasePrice = erc1155Id1Price.sub(1)
+      expect(invalidPurchasePrice).to.be.lt(
+        await tokenShop.getPrice(mockERC1155.address, erc1155Id1)
+      )
+
+      await expect(
+        tokenShop
+          .connect(user1)
+          .purchase([mockERC1155.address], [erc1155Id1], [erc1155Id1Amount], [invalidPurchasePrice])
+      ).revertedWith('Purchase price < Price')
+    })
+
+    it('succeeds if purchase price = price', async () => {
+      const validPurchasePrice = erc1155Id1Price
+      expect(validPurchasePrice).to.be.eq(await tokenShop.getPrice(mockERC1155.address, erc1155Id1))
+      const userPaymentTokenBalanceBefore = await paymentToken.balanceOf(user1.address)
+      const tokenShopPaymentTokenBalanceBefore = await paymentToken.balanceOf(tokenShop.address)
+      await paymentToken
+        .connect(user1)
+        .approve(tokenShop.address, erc1155Id1Price.mul(erc1155Id1Amount))
+
+      await tokenShop
+        .connect(user1)
+        .purchase([mockERC1155.address], [erc1155Id1], [erc1155Id1Amount], [validPurchasePrice])
+
+      expect(await paymentToken.balanceOf(user1.address)).to.be.eq(
+        userPaymentTokenBalanceBefore.sub(erc1155Id1Price.mul(erc1155Id1Amount))
+      )
+      expect(await paymentToken.balanceOf(tokenShop.address)).to.be.eq(
+        tokenShopPaymentTokenBalanceBefore.add(erc1155Id1Price.mul(erc1155Id1Amount))
+      )
+    })
+
+    it('succeeds if purchase price > price', async () => {
+      const validPurchasePrice = erc1155Id1Price.add(1)
+      expect(validPurchasePrice).to.be.gt(await tokenShop.getPrice(mockERC1155.address, erc1155Id1))
+      const userPaymentTokenBalanceBefore = await paymentToken.balanceOf(user1.address)
+      const tokenShopPaymentTokenBalanceBefore = await paymentToken.balanceOf(tokenShop.address)
+      await paymentToken
+        .connect(user1)
+        .approve(tokenShop.address, erc1155Id1Price.mul(erc1155Id1Amount))
+
+      await tokenShop
+        .connect(user1)
+        .purchase([mockERC1155.address], [erc1155Id1], [erc1155Id1Amount], [validPurchasePrice])
+
+      /**
+       * If purchase price > price of token, the amount deducted should still be equal
+       * to (price of token)*(amount of token)
+       */
+      expect(await paymentToken.balanceOf(user1.address)).to.be.eq(
+        userPaymentTokenBalanceBefore.sub(erc1155Id1Price.mul(erc1155Id1Amount))
+      )
+      expect(await paymentToken.balanceOf(tokenShop.address)).to.be.eq(
+        tokenShopPaymentTokenBalanceBefore.add(erc1155Id1Price.mul(erc1155Id1Amount))
+      )
     })
 
     it("doesn't call ERC721 hook if only purchasing ERC1155 item", async () => {
@@ -357,7 +441,7 @@ describe('TokenShop', () => {
 
       await tokenShop
         .connect(user1)
-        .purchase([mockERC1155.address], [erc1155Id1], [erc1155Id1Amount])
+        .purchase([mockERC1155.address], [erc1155Id1], [erc1155Id1Amount], [erc1155Id1Price])
 
       expect(fakePurchaseHook.hookERC1155).to.have.been.called
       expect(fakePurchaseHook.hookERC721).to.not.have.been.called
@@ -366,7 +450,9 @@ describe('TokenShop', () => {
     it("doesn't call ERC1155 hook if only purchasing ERC721 item", async () => {
       await paymentToken.connect(user1).approve(tokenShop.address, erc721Id1Price)
 
-      await tokenShop.connect(user1).purchase([mockERC721.address], [erc721Id1], [erc721Id1Amount])
+      await tokenShop
+        .connect(user1)
+        .purchase([mockERC721.address], [erc721Id1], [erc721Id1Amount], [erc721Id1Price])
 
       expect(fakePurchaseHook.hookERC721).to.have.been.called
       expect(fakePurchaseHook.hookERC1155).to.not.have.been.called
@@ -384,7 +470,7 @@ describe('TokenShop', () => {
 
       await tokenShop
         .connect(user1)
-        .purchase([mockERC1155.address], [erc1155Id1], [erc1155Id1Amount])
+        .purchase([mockERC1155.address], [erc1155Id1], [erc1155Id1Amount], [erc1155Id1Price])
 
       expect(await mockERC1155.balanceOf(tokenShop.address, erc1155Id1)).to.be.eq(
         tokenShopERC1155BalanceBefore.sub(erc1155Id1Amount)
@@ -403,7 +489,7 @@ describe('TokenShop', () => {
 
       await tokenShop
         .connect(user1)
-        .purchase([mockERC1155.address], [erc1155Id1], [erc1155Id1Amount])
+        .purchase([mockERC1155.address], [erc1155Id1], [erc1155Id1Amount], [erc1155Id1Price])
 
       expect(await paymentToken.balanceOf(user1.address)).to.be.eq(
         userPaymentTokenBalanceBefore.sub(erc1155Id1Price.mul(erc1155Id1Amount))
@@ -438,7 +524,12 @@ describe('TokenShop', () => {
 
       await tokenShop
         .connect(user1)
-        .purchase(erc1155Contracts, [erc1155Id1, erc1155Id2], [erc1155Id1Amount, erc1155Id2Amount])
+        .purchase(
+          erc1155Contracts,
+          [erc1155Id1, erc1155Id2],
+          [erc1155Id1Amount, erc1155Id2Amount],
+          [erc1155Id1Price, erc1155Id2Price]
+        )
 
       expect(await mockERC1155.balanceOf(tokenShop.address, erc1155Id1)).to.be.eq(
         tokenShopERC1155Id1BalanceBefore.sub(erc1155Id1Amount)
@@ -471,7 +562,12 @@ describe('TokenShop', () => {
 
       await tokenShop
         .connect(user1)
-        .purchase(erc1155Contracts, [erc1155Id1, erc1155Id2], [erc1155Id1Amount, erc1155Id2Amount])
+        .purchase(
+          erc1155Contracts,
+          [erc1155Id1, erc1155Id2],
+          [erc1155Id1Amount, erc1155Id2Amount],
+          [erc1155Id1Price, erc1155Id2Price]
+        )
 
       expect(await paymentToken.balanceOf(user1.address)).to.be.eq(
         userPaymentTokenBalanceBefore.sub(totalPurchaseAmount)
@@ -486,7 +582,9 @@ describe('TokenShop', () => {
       const userERC721BalanceBefore = await mockERC721.balanceOf(user1.address)
       await paymentToken.connect(user1).approve(tokenShop.address, erc721Id1Price)
 
-      await tokenShop.connect(user1).purchase([mockERC721.address], [erc721Id1], [erc721Id1Amount])
+      await tokenShop
+        .connect(user1)
+        .purchase([mockERC721.address], [erc721Id1], [erc721Id1Amount], [erc721Id1Price])
 
       expect(await mockERC721.balanceOf(tokenShop.address)).to.be.eq(
         tokenShopERC721BalanceBefore.sub(erc721Id1Amount)
@@ -501,7 +599,9 @@ describe('TokenShop', () => {
       const tokenShopPaymentTokenBalanceBefore = await paymentToken.balanceOf(tokenShop.address)
       await paymentToken.connect(user1).approve(tokenShop.address, erc721Id1Price)
 
-      await tokenShop.connect(user1).purchase([mockERC721.address], [erc721Id1], [erc721Id1Amount])
+      await tokenShop
+        .connect(user1)
+        .purchase([mockERC721.address], [erc721Id1], [erc721Id1Amount], [erc721Id1Price])
 
       expect(await paymentToken.balanceOf(user1.address)).to.be.eq(
         userPaymentTokenBalanceBefore.sub(erc721Id1Price)
@@ -528,7 +628,12 @@ describe('TokenShop', () => {
 
       await tokenShop
         .connect(user1)
-        .purchase(erc721Contracts, [erc721Id1, erc721Id2], [erc721Id1Amount, erc721Id2Amount])
+        .purchase(
+          erc721Contracts,
+          [erc721Id1, erc721Id2],
+          [erc721Id1Amount, erc721Id2Amount],
+          [erc721Id1Price, erc721Id2Price]
+        )
 
       expect(await mockERC721.balanceOf(tokenShop.address)).to.be.eq(
         tokenShopERC721BalanceBefore.sub(erc721Id1Amount + erc721Id2Amount)
@@ -555,7 +660,12 @@ describe('TokenShop', () => {
 
       await tokenShop
         .connect(user1)
-        .purchase(erc721Contracts, [erc721Id1, erc721Id2], [erc721Id1Amount, erc721Id2Amount])
+        .purchase(
+          erc721Contracts,
+          [erc721Id1, erc721Id2],
+          [erc721Id1Amount, erc721Id2Amount],
+          [erc721Id1Price, erc721Id2Price]
+        )
 
       expect(await paymentToken.balanceOf(user1.address)).to.be.eq(
         userPaymentTokenBalanceBefore.sub(erc721Id1Price.add(erc721Id2Price))
@@ -580,7 +690,12 @@ describe('TokenShop', () => {
 
       await tokenShop
         .connect(user1)
-        .purchase(tokenContracts, [erc1155Id1, erc721Id1], [erc1155Id1Amount, erc721Id1Amount])
+        .purchase(
+          tokenContracts,
+          [erc1155Id1, erc721Id1],
+          [erc1155Id1Amount, erc721Id1Amount],
+          [erc1155Id1Price, erc721Id1Price]
+        )
 
       expect(await mockERC1155.balanceOf(tokenShop.address, erc1155Id1)).to.be.eq(
         tokenShopERC1155BalanceBefore.sub(erc1155Id1Amount)
@@ -606,7 +721,12 @@ describe('TokenShop', () => {
 
       await tokenShop
         .connect(user1)
-        .purchase(tokenContracts, [erc1155Id1, erc721Id1], [erc1155Id1Amount, erc721Id1Amount])
+        .purchase(
+          tokenContracts,
+          [erc1155Id1, erc721Id1],
+          [erc1155Id1Amount, erc721Id1Amount],
+          [erc1155Id1Price, erc721Id1Price]
+        )
 
       expect(await paymentToken.balanceOf(user1.address)).to.be.eq(
         userPaymentTokenBalanceBefore.sub(totalPurchaseAmount)

@@ -59,22 +59,21 @@ contract TokenShop is
   function purchase(
     address[] memory _tokenContracts,
     uint256[] memory _ids,
-    uint256[] memory _amounts
+    uint256[] memory _amounts,
+    uint256[] memory _purchasePrices
   ) external override nonReentrant whenNotPaused {
     require(
-      _tokenContracts.length == _amounts.length &&
-        _ids.length == _amounts.length,
+      _tokenContracts.length == _ids.length &&
+        _ids.length == _amounts.length &&
+        _amounts.length == _purchasePrices.length,
       "Array length mismatch"
     );
     require(address(_purchaseHook) != address(0), "Purchase hook not set");
     for (uint256 i; i < _tokenContracts.length; ++i) {
-      require(
-        _contractToIdToPrice[_tokenContracts[i]][_ids[i]] != 0,
-        "Non-purchasable item"
-      );
-      uint256 _totalPaymentAmount = _contractToIdToPrice[_tokenContracts[i]][
-        _ids[i]
-      ] * _amounts[i];
+      uint256 _price = _contractToIdToPrice[_tokenContracts[i]][_ids[i]];
+      require(_price != 0, "Non-purchasable item");
+      require(_purchasePrices[i] >= _price, "Purchase price < Price");
+      uint256 _totalPaymentAmount = _price * _amounts[i];
       _paymentToken.transferFrom(
         _msgSender(),
         address(this),

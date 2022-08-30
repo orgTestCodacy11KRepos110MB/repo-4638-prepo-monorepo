@@ -37,11 +37,13 @@ interface ITokenShop {
    * @param tokenContracts ERC721/1155s to be purchased
    * @param ids Token IDs to be purchased
    * @param amounts Amounts to be purchased
+   * @param purchasePrices Purchase price of each ERC721/1155 in payment token
    */
   function purchase(
     address[] memory tokenContracts,
     uint256[] memory ids,
-    uint256[] memory amounts
+    uint256[] memory amounts,
+    uint256[] memory purchasePrices
   ) external;
 
   /**
