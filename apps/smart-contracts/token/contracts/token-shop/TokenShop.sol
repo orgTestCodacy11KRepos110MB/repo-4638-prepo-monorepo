@@ -68,7 +68,8 @@ contract TokenShop is
         _amounts.length == _purchasePrices.length,
       "Array length mismatch"
     );
-    require(address(_purchaseHook) != address(0), "Purchase hook not set");
+    IPurchaseHook _hook = _purchaseHook;
+    require(address(_hook) != address(0), "Purchase hook not set");
     for (uint256 i; i < _tokenContracts.length; ++i) {
       uint256 _price = _contractToIdToPrice[_tokenContracts[i]][_ids[i]];
       require(_price != 0, "Non-purchasable item");
@@ -83,7 +84,7 @@ contract TokenShop is
         type(IERC1155).interfaceId
       );
       if (_isERC1155) {
-        _purchaseHook.hookERC1155(
+        _hook.hookERC1155(
           msg.sender,
           _tokenContracts[i],
           _ids[i],
@@ -100,7 +101,7 @@ contract TokenShop is
           ""
         );
       } else {
-        _purchaseHook.hookERC721(msg.sender, _tokenContracts[i], _ids[i]);
+        _hook.hookERC721(msg.sender, _tokenContracts[i], _ids[i]);
         ++_userToERC721ToPurchaseCount[msg.sender][_tokenContracts[i]];
         IERC721(_tokenContracts[i]).safeTransferFrom(
           address(this),
