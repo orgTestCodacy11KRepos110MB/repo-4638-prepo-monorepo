@@ -43,7 +43,8 @@ contract TokenShop is
         _ids.length == _prices.length,
       "Array length mismatch"
     );
-    for (uint256 i; i < _tokenContracts.length; ++i) {
+    uint256 _arrayLength = _tokenContracts.length;
+    for (uint256 i; i < _arrayLength; ++i) {
       _contractToIdToPrice[_tokenContracts[i]][_ids[i]] = _prices[i];
     }
   }
@@ -70,7 +71,8 @@ contract TokenShop is
     );
     IPurchaseHook _hook = _purchaseHook;
     require(address(_hook) != address(0), "Purchase hook not set");
-    for (uint256 i; i < _tokenContracts.length; ++i) {
+    uint256 _arrayLength = _tokenContracts.length;
+    for (uint256 i; i < _arrayLength; ++i) {
       uint256 _price = _contractToIdToPrice[_tokenContracts[i]][_ids[i]];
       require(_price != 0, "Non-purchasable item");
       require(_purchasePrices[i] >= _price, "Purchase price < Price");

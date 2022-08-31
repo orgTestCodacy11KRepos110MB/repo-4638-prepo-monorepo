@@ -54,7 +54,8 @@ contract Vesting is IVesting, Pausable, WithdrawERC20 {
   ) external override onlyOwner {
     require(_recipients.length == _amounts.length, "Array length mismatch");
     uint256 _newTotalAllocatedSupply = _totalAllocatedSupply;
-    for (uint256 i; i < _recipients.length; ++i) {
+    uint256 _arrayLength = _recipients.length;
+    for (uint256 i; i < _arrayLength; ++i) {
       uint256 _amount = _amounts[i];
       address _recipient = _recipients[i];
       uint256 _prevAllocatedAmount = _recipientToAllocatedAmount[_recipient];

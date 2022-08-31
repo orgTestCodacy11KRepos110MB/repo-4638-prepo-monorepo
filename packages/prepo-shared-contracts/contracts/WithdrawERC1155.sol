@@ -21,7 +21,8 @@ contract WithdrawERC1155 is IWithdrawERC1155, SafeOwnable, ReentrancyGuard {
         _ids.length == _amounts.length,
       "Array length mismatch"
     );
-    for (uint256 i; i < _erc1155Tokens.length; ++i) {
+    uint256 _arrayLength = _erc1155Tokens.length;
+    for (uint256 i; i < _arrayLength; ++i) {
       IERC1155(_erc1155Tokens[i]).safeTransferFrom(
         address(this),
         _recipients[i],

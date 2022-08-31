@@ -59,7 +59,8 @@ contract PurchaseHook is IPurchaseHook, SafeOwnable {
     uint256[] memory _amounts
   ) external override onlyOwner {
     require(_contracts.length == _amounts.length, "Array length mismatch");
-    for (uint256 i; i < _contracts.length; ++i) {
+    uint256 _arrayLength = _contracts.length;
+    for (uint256 i; i < _arrayLength; ++i) {
       _erc721ToMaxPurchasesPerUser[_contracts[i]] = _amounts[i];
     }
   }
@@ -73,7 +74,8 @@ contract PurchaseHook is IPurchaseHook, SafeOwnable {
       _contracts.length == _amounts.length && _ids.length == _amounts.length,
       "Array length mismatch"
     );
-    for (uint256 i; i < _contracts.length; ++i) {
+    uint256 _arrayLength = _contracts.length;
+    for (uint256 i; i < _arrayLength; ++i) {
       _erc1155ToIdToMaxPurchasesPerUser[_contracts[i]][_ids[i]] = _amounts[i];
     }
   }

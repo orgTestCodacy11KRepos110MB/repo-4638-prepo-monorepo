@@ -17,7 +17,8 @@ contract AccountList is IAccountList, SafeOwnable {
     onlyOwner
   {
     require(_accounts.length == _included.length, "Array length mismatch");
-    for (uint256 i; i < _accounts.length; ++i) {
+    uint256 _arrayLength = _accounts.length;
+    for (uint256 i; i < _arrayLength; ++i) {
       _resetIndexToAccountToIncluded[_resetIndex][_accounts[i]] = _included[i];
     }
   }
@@ -28,7 +29,8 @@ contract AccountList is IAccountList, SafeOwnable {
     onlyOwner
   {
     _resetIndex++;
-    for (uint256 i; i < _newIncludedAccounts.length; ++i) {
+    uint256 _arrayLength = _newIncludedAccounts.length;
+    for (uint256 i; i < _arrayLength; ++i) {
       _resetIndexToAccountToIncluded[_resetIndex][
         _newIncludedAccounts[i]
       ] = true;
