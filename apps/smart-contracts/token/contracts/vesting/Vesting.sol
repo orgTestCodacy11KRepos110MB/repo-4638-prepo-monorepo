@@ -64,9 +64,13 @@ contract Vesting is IVesting, Pausable, WithdrawERC20 {
        * _newTotalAllocatedSupply, otherwise it is subtracted.
        */
       if (_amount > _prevAllocatedAmount) {
-        _newTotalAllocatedSupply += _amount - _prevAllocatedAmount;
+        unchecked {
+          _newTotalAllocatedSupply += _amount - _prevAllocatedAmount;
+        }
       } else {
-        _newTotalAllocatedSupply -= _prevAllocatedAmount - _amount;
+        unchecked {
+          _newTotalAllocatedSupply -= _prevAllocatedAmount - _amount;
+        }
       }
       _recipientToAllocatedAmount[_recipient] = _amount;
       emit Allocation(_recipient, _amount);
@@ -77,13 +81,14 @@ contract Vesting is IVesting, Pausable, WithdrawERC20 {
 
   function claim() external override nonReentrant whenNotPaused {
     uint256 _claimableAmount = getClaimableAmount(msg.sender);
-    require(_claimableAmount > 0, "Claimable amount = 0");
+    IERC20 _vestedToken = _token;
+    require(_claimableAmount != 0, "Claimable amount = 0");
     require(
-      _token.balanceOf(address(this)) >= _claimableAmount,
+      _vestedToken.balanceOf(address(this)) >= _claimableAmount,
       "Insufficient balance in contract"
     );
     _recipientToClaimedAmount[msg.sender] += _claimableAmount;
-    _token.transfer(msg.sender, _claimableAmount);
+    _vestedToken.transfer(msg.sender, _claimableAmount);
     emit Claim(msg.sender, _claimableAmount);
   }
 
