@@ -18,8 +18,11 @@ contract WithdrawERC20 is IWithdrawERC20, SafeOwnable, ReentrancyGuard {
     require(_erc20Tokens.length == _amounts.length, "Array length mismatch");
     address _owner = owner();
     uint256 _arrayLength = _erc20Tokens.length;
-    for (uint256 i; i < _arrayLength; ++i) {
+    for (uint256 i; i < _arrayLength; ) {
       IERC20(_erc20Tokens[i]).safeTransfer(_owner, _amounts[i]);
+      unchecked {
+        ++i;
+      }
     }
   }
 }

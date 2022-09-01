@@ -55,7 +55,7 @@ contract Vesting is IVesting, Pausable, WithdrawERC20 {
     require(_recipients.length == _amounts.length, "Array length mismatch");
     uint256 _newTotalAllocatedSupply = _totalAllocatedSupply;
     uint256 _arrayLength = _recipients.length;
-    for (uint256 i; i < _arrayLength; ++i) {
+    for (uint256 i; i < _arrayLength;) {
       uint256 _amount = _amounts[i];
       address _recipient = _recipients[i];
       uint256 _prevAllocatedAmount = _recipientToAllocatedAmount[_recipient];
@@ -75,6 +75,9 @@ contract Vesting is IVesting, Pausable, WithdrawERC20 {
       }
       _recipientToAllocatedAmount[_recipient] = _amount;
       emit Allocation(_recipient, _amount);
+      unchecked {
+        ++i;
+      }
     }
 
     _totalAllocatedSupply = _newTotalAllocatedSupply;
