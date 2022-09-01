@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { DeployFunction } from 'hardhat-deploy/types'
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
-import { ChainId, getPrePOAddressForNetwork } from 'prepo-constants'
+import { ChainId, DEPLOYMENT_NAMES, getPrePOAddressForNetwork } from 'prepo-constants'
 import { utils } from 'prepo-hardhat'
 import { getNetworkByChainId } from 'prepo-utils'
 import dotenv from 'dotenv'
@@ -18,7 +18,7 @@ const deployFunction: DeployFunction = async function deployAccountList({
   deployments,
   getChainId,
 }: HardhatRuntimeEnvironment): Promise<void> {
-  const { deploy, getOrNull } = deployments
+  const { deploy } = deployments
   const deployer = (await ethers.getSigners())[0]
   console.log('Running AccountList deployment script with', deployer.address, 'as the deployer')
   const currentChain = Number(await getChainId()) as ChainId
@@ -28,8 +28,10 @@ const deployFunction: DeployFunction = async function deployAccountList({
    * This can be temporarily removed if deploying to prod.
    */
   assertIsTestnetChain(currentChain)
+
   const nameOfAccountList = ''
   if (!nameOfAccountList) throw new Error('Name must be specified before deploying AccountList')
+
   const { address: accountListAddress, newlyDeployed: accountListNewlyDeployed } = await deploy(
     nameOfAccountList,
     {

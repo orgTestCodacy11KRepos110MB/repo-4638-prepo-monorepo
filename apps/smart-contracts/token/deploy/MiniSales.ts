@@ -1,11 +1,10 @@
 /* eslint-disable no-console */
 import { DeployFunction } from 'hardhat-deploy/types'
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
-import { ChainId, getPrePOAddressForNetwork } from 'prepo-constants'
+import { ChainId, DEPLOYMENT_NAMES, getPrePOAddressForNetwork } from 'prepo-constants'
 import { utils } from 'prepo-hardhat'
 import { getNetworkByChainId } from 'prepo-utils'
 import dotenv from 'dotenv'
-import { parseEther } from 'ethers/lib/utils'
 import { MiniSales } from '../types/generated'
 
 dotenv.config({
@@ -37,12 +36,15 @@ const deployFunction: DeployFunction = async function deployMiniSales({
   const usdcAddress = getPrePOAddressForNetwork('USDC', currentNetwork.name, process.env.USDC)
   console.log('Governance for the current network is at:', governanceAddress)
   // Check if there is an existing PPO deployment
-  const existingPPO = await getOrNull('PPO')
-  if (!existingPPO) {
+  const existingPPO = await getOrNull(DEPLOYMENT_NAMES.ppo.name)
+  if (!existingPPO)
     throw new Error(`No existing PPO deployment exists for the ${currentNetwork.name} network`)
-  }
+
+  const nameOfMiniSales = ''
+  if (!nameOfMiniSales) throw new Error('Name must be specified before deploying MiniSales')
+
   const { address: miniSalesAddress, newlyDeployed: miniSalesNewlyDeployed } = await deploy(
-    'MiniSales',
+    nameOfMiniSales,
     {
       from: deployer.address,
       contract: 'MiniSales',
@@ -56,7 +58,7 @@ const deployFunction: DeployFunction = async function deployMiniSales({
   } else {
     console.log('Existing MiniSales at', miniSalesAddress)
   }
-  const miniSales = (await ethers.getContract('MiniSales')) as MiniSales
+  const miniSales = (await ethers.getContract(nameOfMiniSales)) as MiniSales
   if ((await miniSales.owner()) !== governanceAddress) {
     console.log('Transferring ownership to', governanceAddress)
     await sendTxAndWait(await miniSales.connect(deployer).transferOwnership(governanceAddress))

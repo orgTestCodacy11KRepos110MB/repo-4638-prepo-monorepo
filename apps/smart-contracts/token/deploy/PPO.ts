@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { DeployFunction } from 'hardhat-deploy/types'
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
-import { ChainId, getPrePOAddressForNetwork } from 'prepo-constants'
+import { ChainId, DEPLOYMENT_NAMES, getPrePOAddressForNetwork } from 'prepo-constants'
 import { sendTxAndWait, utils } from 'prepo-hardhat'
 import { getNetworkByChainId } from 'prepo-utils'
 import { HardhatUpgrades } from '@openzeppelin/hardhat-upgrades'
@@ -58,14 +58,21 @@ const deployFunction: DeployFunction = async function deployPPO({
   )
   console.log('Governance for the current network is at:', governanceAddress)
   const ppoTokenFactory = await ethers.getContractFactory('PPO')
-  const existingDeployment = await getOrNull('PPO')
+  const existingDeployment = await getOrNull(DEPLOYMENT_NAMES.ppo.name)
   if (!existingDeployment) {
     console.log('Existing deployment not detected, deploying new contract')
     const newDeployment = await upgrades.deployProxy(ppoTokenFactory, ['prePO Token', 'PPO'])
     console.log('Deployed PPO at', newDeployment.address)
     const deploymentReceipt = await newDeployment.deployTransaction.wait()
-    await save('PPO', {
-      abi: newDeployment.abi,
+    /**
+     * Although `deployProxy` returns an ABI, we have to refetch the ABI from
+     * hardhat-deploy since ABIs returned from OZ have some compatibility
+     * issues with `hardhat-deploy`. If you try to fetch a manually saved
+     * contract saved with an ABI returned from `deployProxy`, it will fail.
+     */
+    const ppoArtifact = await getArtifact('PPO')
+    await save(DEPLOYMENT_NAMES.ppo.name, {
+      abi: ppoArtifact.abi,
       address: newDeployment.address,
       receipt: deploymentReceipt,
     })
@@ -94,18 +101,13 @@ const deployFunction: DeployFunction = async function deployPPO({
      * deployment with the new ABI.
      */
     const ppoArtifact = await getArtifact('PPO')
-    await save('PPO', {
+    await save(DEPLOYMENT_NAMES.ppo.name, {
       abi: ppoArtifact.abi,
       address: upgradeProposal.contract.address,
       receipt: upgradeProposalReceipt,
     })
   }
-  /**
-   * Because this deployment was not conventionally deployed using `hardhat-deploy`,
-   * we cannot directly retrieve it using `ethers.getContract`.
-   */
-  const refetchedDeployment = await getOrNull('PPO')
-  const ppo = await ethers.getContractAt('PPO', refetchedDeployment.address)
+  const ppo = await ethers.getContract(DEPLOYMENT_NAMES.ppo.name)
   if ((await ppo.owner()) !== governanceAddress) {
     console.log('Transferring ownership to', governanceAddress)
     await sendTxAndWait(await ppo.connect(deployer).transferOwnership(governanceAddress))

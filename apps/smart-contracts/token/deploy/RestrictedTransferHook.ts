@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { DeployFunction } from 'hardhat-deploy/types'
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
-import { ChainId, getPrePOAddressForNetwork } from 'prepo-constants'
+import { ChainId, DEPLOYMENT_NAMES, getPrePOAddressForNetwork } from 'prepo-constants'
 import { utils } from 'prepo-hardhat'
 import { getNetworkByChainId } from 'prepo-utils'
 import dotenv from 'dotenv'
@@ -33,30 +33,29 @@ const deployFunction: DeployFunction = async function deployRestrictedTransferHo
    */
   assertIsTestnetChain(currentChain)
   // Check if there is an existing AccountList to serve as the blocklist
-  const existingBlocklist = await getOrNull('RestrictedTransferHook-Blocklist-AccountList')
-  if (!existingBlocklist) {
+  const existingBlocklist = await getOrNull(
+    DEPLOYMENT_NAMES.ppo.restrictedTransferHook.blocklist.name
+  )
+  if (!existingBlocklist)
     throw new Error(
-      `No existing RestrictedTransferHook-Blocklist-AccountList deployment exists for the ${currentNetwork.name} network`
+      `No existing ${DEPLOYMENT_NAMES.ppo.restrictedTransferHook.blocklist.name} deployment exists for the ${currentNetwork.name} network`
     )
-  }
   // Check if there is an existing AccountList to serve as the source allowlist
   const existingSourceAllowlist = await getOrNull(
-    'RestrictedTransferHook-SourceAllowlist-AccountList'
+    DEPLOYMENT_NAMES.ppo.restrictedTransferHook.sourceAllowlist.name
   )
-  if (!existingSourceAllowlist) {
+  if (!existingSourceAllowlist)
     throw new Error(
-      `No existing RestrictedTransferHook-SourceAllowlist-AccountList deployment exists for the ${currentNetwork.name} network`
+      `No existing ${DEPLOYMENT_NAMES.ppo.restrictedTransferHook.sourceAllowlist.name} deployment exists for the ${currentNetwork.name} network`
     )
-  }
   // Check if there is an existing AccountList to serve as the destination allowlist
   const existingDestinationAllowlist = await getOrNull(
-    'RestrictedTransferHook-DestinationAllowlist-AccountList'
+    DEPLOYMENT_NAMES.ppo.restrictedTransferHook.destinationAllowlist.name
   )
-  if (!existingDestinationAllowlist) {
+  if (!existingDestinationAllowlist)
     throw new Error(
-      `No existing RestrictedTransferHook-DestinationAllowlist-AccountList deployment exists for the ${currentNetwork.name} network`
+      `No existing ${DEPLOYMENT_NAMES.ppo.restrictedTransferHook.destinationAllowlist.name} deployment exists for the ${currentNetwork.name} network`
     )
-  }
   const governanceAddress = getPrePOAddressForNetwork(
     'GOVERNANCE',
     currentNetwork.name,
@@ -66,7 +65,7 @@ const deployFunction: DeployFunction = async function deployRestrictedTransferHo
   const {
     address: restrictedTransferHookAddress,
     newlyDeployed: restrictedTransferHookNewlyDeployed,
-  } = await deploy('RestrictedTransferHook', {
+  } = await deploy(DEPLOYMENT_NAMES.ppo.restrictedTransferHook.name, {
     from: deployer.address,
     contract: 'RestrictedTransferHook',
     deterministicDeployment: false,
@@ -79,7 +78,7 @@ const deployFunction: DeployFunction = async function deployRestrictedTransferHo
     console.log('Existing RestrictedTransferHook at', restrictedTransferHookAddress)
   }
   const restrictedTransferHook = (await ethers.getContract(
-    'RestrictedTransferHook'
+    DEPLOYMENT_NAMES.ppo.restrictedTransferHook.name
   )) as RestrictedTransferHook
   if ((await restrictedTransferHook.getBlocklist()) !== existingBlocklist.address) {
     console.log('Setting RestrictedTransferHook to use Blocklist at', existingBlocklist.address)

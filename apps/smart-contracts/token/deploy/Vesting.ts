@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { DeployFunction } from 'hardhat-deploy/types'
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
-import { ChainId, getPrePOAddressForNetwork } from 'prepo-constants'
+import { ChainId, DEPLOYMENT_NAMES, getPrePOAddressForNetwork } from 'prepo-constants'
 import { utils } from 'prepo-hardhat'
 import { getNetworkByChainId } from 'prepo-utils'
 import dotenv from 'dotenv'
@@ -35,13 +35,12 @@ const deployFunction: DeployFunction = async function deployVesting({
   )
   console.log('Governance for the current network is at:', governanceAddress)
   // Check if there is an existing PPO deployment
-  const existingPPO = await getOrNull('PPO')
-  if (!existingPPO) {
+  const existingPPO = await getOrNull(DEPLOYMENT_NAMES.ppo.name)
+  if (!existingPPO)
     throw new Error(`No existing PPO deployment exists for the ${currentNetwork.name} network`)
-  }
   const { address: vestingAddress, newlyDeployed: vestingNewlyDeployed } = await deploy('Vesting', {
     from: deployer.address,
-    contract: 'Vesting',
+    contract: DEPLOYMENT_NAMES.vesting.name,
     deterministicDeployment: false,
     args: [],
     skipIfAlreadyDeployed: true,
@@ -51,7 +50,7 @@ const deployFunction: DeployFunction = async function deployVesting({
   } else {
     console.log('Existing Vesting at', vestingAddress)
   }
-  const vesting = (await ethers.getContract('Vesting')) as Vesting
+  const vesting = (await ethers.getContract(DEPLOYMENT_NAMES.vesting.name)) as Vesting
   if ((await vesting.getToken()) !== existingPPO.address) {
     console.log('Setting Vesting contract to use PPO token at', existingPPO.address)
     await sendTxAndWait(await vesting.connect(deployer).setToken(existingPPO.address))

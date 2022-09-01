@@ -9,12 +9,20 @@ import { config as dotenvConfig } from 'dotenv'
 import 'hardhat-contract-sizer'
 import 'hardhat-deploy'
 import 'hardhat-gas-reporter'
-import { HardhatUserConfig } from 'hardhat/config'
+import { extendEnvironment, HardhatUserConfig } from 'hardhat/config'
+import { HardhatRuntimeEnvironment } from 'hardhat/types'
+import { DEPLOYMENT_NAMES } from 'prepo-constants'
 import { generateHardhatConfig, generateHardhatLocalConfig } from 'prepo-hardhat'
 import { resolve } from 'path'
 import 'solidity-coverage'
+import './type-extensions'
 
 dotenvConfig({ path: resolve(__dirname, './.env') })
+
+extendEnvironment((hre: HardhatRuntimeEnvironment) => {
+  /* eslint-disable no-param-reassign */
+  hre.DEPLOYMENT_NAMES = DEPLOYMENT_NAMES
+})
 
 const hardhatLocalConfig = generateHardhatLocalConfig()
 const hardhatConfig = generateHardhatConfig(hardhatLocalConfig)
