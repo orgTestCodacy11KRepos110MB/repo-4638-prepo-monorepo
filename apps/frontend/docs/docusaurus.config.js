@@ -114,6 +114,10 @@ module.exports = {
             title: 'Apps',
             items: [
               {
+                label: 'Testnet',
+                href: 'https://app.prepo.io/',
+              },
+              {
                 label: 'Simulator',
                 href: 'https://simulator.prepo.io/',
               },
@@ -127,12 +131,12 @@ module.exports = {
                 href: 'https://apply.workable.com/prepo/',
               },
               {
-                label: 'Landing Page',
+                label: 'Website',
                 href: 'https://www.prepo.io/',
               },
               {
                 label: 'Blog',
-                href: 'https://www.prepo.io/blog',
+                href: 'https://medium.com/prepo',
               },
               {
                 label: 'GitHub',
