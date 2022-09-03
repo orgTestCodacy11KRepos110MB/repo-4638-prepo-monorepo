@@ -1,16 +1,19 @@
+import { ROUTES } from '../../lib/constants'
+import { Button } from '../Button'
+
 const Banner: React.FC = () => (
-  <div className="py-1 px-2 text-white bg-prepo">
-    <p className="text-center">
-      The $PPO Token Sale Whitelist is now open!{' '}
-      <a
-        className="underline cursor-pointer"
-        href="https://url.prepo.io/whitelist-website"
+  <div className="py-[6px] px-2 text-white bg-prepo">
+    <p className="text-center leading-4">
+      The PPO Token Presale starts September 20!{' '}
+      <Button
+        className="underline cursor-pointer !p-0 font-normal text-base hover:!bg-transparent leading-4"
+        iconClassName="!ml-1"
+        href={ROUTES.PRESALE_BLOG}
         target="_blank"
-        rel="noreferrer"
+        iconSize={16}
       >
-        Register here
-      </a>
-      .
+        Learn More
+      </Button>
     </p>
   </div>
 )

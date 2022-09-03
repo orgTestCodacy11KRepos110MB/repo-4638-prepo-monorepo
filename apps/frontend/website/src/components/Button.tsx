@@ -9,6 +9,8 @@ export type ButtonProps = React.DetailedHTMLProps<
 > &
   React.DetailedHTMLProps<React.ButtonHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement> & {
     href?: string
+    iconClassName?: string
+    iconSize?: number
     target?: '_blank' | '_self'
   }
 
@@ -17,6 +19,8 @@ export const Button: FC<ButtonProps> = ({
   target = '_self',
   className,
   children,
+  iconClassName,
+  iconSize = 18,
   ...props
 }) => {
   const styles = clsx(
@@ -24,11 +28,13 @@ export const Button: FC<ButtonProps> = ({
     className
   )
 
+  const iconStyle = clsx('inline-block ml-4', iconClassName)
+
   if (href && target === '_blank') {
     return (
       <a href={href} target={target} className={styles} rel="noopener noreferrer" {...props}>
         {children}
-        <Icon name="shareIcon" className="inline-block ml-4" />
+        <Icon height={iconSize} width={iconSize} name="shareIcon" className={iconStyle} />
       </a>
     )
   }

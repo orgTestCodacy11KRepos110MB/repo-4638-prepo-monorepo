@@ -6,7 +6,7 @@ import { Button } from '../Button'
 import { Icon } from '../Icon'
 import { IconButton, IconButtonProps } from '../IconButton'
 import { subscribe } from '../../utils/mailchimp-subscribe'
-import { EMAIL_REGEX, RECAPTCHA_SITE_ID } from '../../lib/constants'
+import { EMAIL_REGEX, RECAPTCHA_SITE_ID, ROUTES } from '../../lib/constants'
 
 const Nav: FC = ({ children }) => (
   <nav className="font-medium">
@@ -113,6 +113,7 @@ const SocialLinks: FC = () => (
       aria-label="Discord"
       href="https://url.prepo.io/discord-website-desktop"
     />
+    <IconButtonSized icon="telegram" aria-label="Telegram" href={ROUTES.TELEGRAM} />
     <IconButtonSized
       icon="linkedIn"
       aria-label="LinkedIn"
@@ -134,7 +135,8 @@ const SocialLinks: FC = () => (
       aria-label="Youtube"
       href="https://www.youtube.com/channel/UCNcBzbUjN4GQevx4Z4dccVA"
     />
-    <IconButtonSized icon="medium" aria-label="Medium" href="https://medium.com/prepo" />
+    <IconButtonSized icon="medium" aria-label="Medium" href={ROUTES.BLOG} />
+    <IconButtonSized icon="github" aria-label="Github" href={ROUTES.GITHUB} />
   </div>
 )
 
@@ -167,7 +169,7 @@ export const Footer: FC = () => (
               />
             </NavGroup> */}
           <NavGroup title="Resources">
-            <NavItem title="Blog" href="https://prepo.io/blog" />
+            <NavItem title="Blog" href={ROUTES.BLOG} />
             <NavItem title="Docs" href="https://docs.prepo.io" />
             <NavItem title="FAQ" href="https://docs.prepo.io/faq" />
             <NavItem title="Jobs" href="https://url.prepo.io/jobs" />

@@ -35,7 +35,7 @@ const externalLinks: MobileMenuLinkProps[] = [
     title: 'Docs',
   },
   {
-    href: 'https://prepo.io/blog',
+    href: ROUTES.BLOG,
     title: 'Blog',
   },
 ]

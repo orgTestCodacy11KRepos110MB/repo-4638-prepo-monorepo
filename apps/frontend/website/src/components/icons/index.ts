@@ -23,6 +23,7 @@ import { MiddleEastIcon } from './MiddleEastIcon'
 import { MoneyBagIcon } from './MoneyBagIcon'
 import { DoubleArrowUpIcon } from './DoubleArrowUpIcon'
 import { GiftIcon } from './GiftIcon'
+import { GithubIcon } from './GithubIcon'
 import { MedalIcon } from './MedalIcon'
 import { PeopleBoxIcon } from './PeopleBoxIcon'
 import { SocialDiscordIcon } from './SocialDiscordIcon.tsx'
@@ -59,6 +60,7 @@ import { ShareIcon } from './ShareIcon'
 import { SocietyOne } from './partners/SocietyOne'
 import { ZedRun } from './partners/ZedRun'
 import { TelescopeIcon } from './TelescopeIcon'
+import { TelegramIcon } from './TelegramIcon'
 
 // lazy load large svg with png embedded
 const DHedge = dynamic(() => import('./partners/DHedge'), { ssr: false })
@@ -81,8 +83,10 @@ export default {
   facebook: FacebookIcon,
   instagram: InstagramIcon,
   linkedIn: LinkedInIcon,
+  github: GithubIcon,
   medium: MediumIcon,
   reddit: RedditIcon,
+  telegram: TelegramIcon,
   twitter: TwitterIcon,
   youTube: YouTubeIcon,
   socialDiscord: SocialDiscordIcon,
