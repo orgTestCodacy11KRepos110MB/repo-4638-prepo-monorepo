@@ -18,6 +18,8 @@ export const PREPO_ADDRESSES: ImportantAddresses = {
     arbitrumOne: '0x596e5940a47169f244fDD2DC269bCeA735635b53',
   },
   USDC: {
+    // This is not an actual USDC contract, but an instance of MockBaseToken
+    arbitrumTestnet: '0xD0778E8A78E95f612A95A3636141435253131103',
     arbitrumOne: '0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8',
   },
 }
