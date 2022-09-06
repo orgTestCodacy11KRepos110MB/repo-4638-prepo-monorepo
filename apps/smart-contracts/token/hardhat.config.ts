@@ -15,6 +15,7 @@ import { DEPLOYMENT_NAMES } from 'prepo-constants'
 import { generateHardhatConfig, generateHardhatLocalConfig } from 'prepo-hardhat'
 import { resolve } from 'path'
 import 'solidity-coverage'
+import './tasks/token/general'
 import './type-extensions'
 
 dotenvConfig({ path: resolve(__dirname, './.env') })

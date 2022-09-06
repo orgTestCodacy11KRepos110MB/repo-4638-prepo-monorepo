@@ -50,7 +50,7 @@ export async function sendTxAndWait(transaction: ContractTransaction): Promise<v
   await transaction.wait()
 }
 
-function assertIsTestnetChain(chainId: ChainId): void {
+function isTestnetChain(chainId: ChainId): boolean {
   const testChains = [
     NETWORKS.hardhat.chainId,
     NETWORKS.ropsten.chainId,
@@ -58,7 +58,11 @@ function assertIsTestnetChain(chainId: ChainId): void {
     NETWORKS.goerli.chainId,
     NETWORKS.kovan.chainId,
   ]
-  if (!testChains.includes(+chainId)) {
+  return testChains.includes(+chainId)
+}
+
+function assertIsTestnetChain(chainId: ChainId): void {
+  if (!isTestnetChain(chainId)) {
     throw new Error('Deployment to production environments is disabled!')
   }
 }
