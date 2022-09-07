@@ -13241,6 +13241,13 @@ ethereum-multicall@2.10.0:
     "@ethersproject/providers" "^5.0.10"
     ethers "^5.0.15"
 
+"ethereum-multicall@https://github.com/prepo-io/ethereum-multicall#1.0.1-prepo":
+  version "2.10.0"
+  resolved "https://github.com/prepo-io/ethereum-multicall#359516f74e66bc6cda16bad8d8170f943765b467"
+  dependencies:
+    "@ethersproject/providers" "^5.0.10"
+    ethers "^5.0.15"
+
 ethereumjs-abi@^0.6.8:
   version "0.6.8"
   resolved "https://registry.yarnpkg.com/ethereumjs-abi/-/ethereumjs-abi-0.6.8.tgz#71bc152db099f70e62f108b7cdfca1b362c6fcae"
