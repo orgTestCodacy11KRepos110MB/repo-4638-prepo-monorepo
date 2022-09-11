@@ -8,7 +8,7 @@ export const normalizeStoreConfig = <SupportedContracts>(
 
   if (storeConfig?.onboardConfig === undefined) {
     normalizedValue.onboardConfig = getOnboardConfig(
-      storeConfig.defaultNetwork.chainId,
+      storeConfig.supportedNetworks,
       storeConfig.appName
     )
   }

@@ -63,6 +63,7 @@ import InfoOutlinedIcon from './InfoOutlinedIcon'
 import DocsOutlinedIcon from './DocsOutlinedIcon'
 import GovernOutlinedIcon from './GovernOutlinedIcon'
 import GradientLogoIcon from './GradientLogoIcon'
+import ExclamationTriangle from './ExclamationTriangle'
 
 export const applicationIcons = {
   'arrow-down': ArrowDownIcon,
@@ -89,6 +90,7 @@ export const applicationIcons = {
   donation: Donation,
   dots: DotsIcon,
   energy: EnergyIcon,
+  'exclamation-triangle': ExclamationTriangle,
   eye: EyeIcon,
   'eye-slash': EyeSlashIcon,
   'gradient-logo': GradientLogoIcon,

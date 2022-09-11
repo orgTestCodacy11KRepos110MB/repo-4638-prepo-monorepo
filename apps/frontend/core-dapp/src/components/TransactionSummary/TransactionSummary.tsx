@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
 import styled from 'styled-components'
-import { NETWORKS } from 'prepo-constants'
 import { spacingIncrement } from 'prepo-ui'
 import { observer } from 'mobx-react-lite'
 import DefaultContent from './contents/DefaultContent'
@@ -60,9 +59,8 @@ const TransactionSummary: React.FC<Props> = ({
   unlock,
   withoutModalButton = false,
 }) => {
-  const {
-    web3Store: { network },
-  } = useRootStore()
+  const { web3Store } = useRootStore()
+  const { isNetworkSupported, network } = web3Store
   const { isPhone } = useResponsive()
   const [showSummary, setShowSummary] = useState(withoutModalButton)
   const [errorMessage, setErrorMessage] = useState(defaultErrorMessage)
@@ -75,7 +73,8 @@ const TransactionSummary: React.FC<Props> = ({
   }
   const requiresUnlockToken = checkRequiresUnlockToken()
   const unlocking = unlock?.token.approving
-  const buttonLoading = loading || requiresUnlockToken === undefined || unlocking
+  const buttonLoading =
+    isNetworkSupported && (loading || requiresUnlockToken === undefined || unlocking)
   const disabledClose = status === 'loading' || loading || unlocking
 
   const callbackFailed = (message?: string): void => {
@@ -120,13 +119,11 @@ const TransactionSummary: React.FC<Props> = ({
   }, [status, title])
 
   const renderModalContent = (): React.ReactNode => {
-    const url = transactionHash
-      ? `${NETWORKS[network.name].blockExplorer}/tx/${transactionHash}`
-      : undefined
+    const url = transactionHash ? web3Store.getBlockExplorerUrl(transactionHash) : undefined
     switch (status) {
       case 'unlock': {
         // eslint-disable-next-line react/jsx-props-no-spreading
-        if (requiresUnlockToken && unlock) return <UnlockTokens {...unlock} />
+        if (isNetworkSupported && requiresUnlockToken && unlock) return <UnlockTokens {...unlock} />
         setStatus('default')
         return null
       }
@@ -136,14 +133,19 @@ const TransactionSummary: React.FC<Props> = ({
         return <SuccessContent onComplete={onComplete} url={url} buttonText={successButtonText} />
       case 'failed':
         return <FailedContent errorMessage={errorMessage} handleRetry={handleRetry} url={url} />
-      default:
+      default: {
+        const defaultContentButtontext = isNetworkSupported
+          ? buttonText ?? (requiresUnlockToken ? 'Approve' : 'Confirm')
+          : `Switch to ${network.displayName ?? network.chainName}`
         return (
           <DefaultContent
             button={{
-              children: buttonText ?? (requiresUnlockToken ? 'Approve' : 'Confirm'),
-              disabled: disabled || buttonLoading,
+              children: defaultContentButtontext,
+              disabled: (unlock?.amount === 0 || disabled || buttonLoading) && isNetworkSupported,
               loading: buttonLoading,
-              onClick: handleConfirm,
+              onClick: isNetworkSupported
+                ? handleConfirm
+                : (): void => web3Store.setNetwork(network),
               type: 'primary',
             }}
           >
@@ -155,6 +157,7 @@ const TransactionSummary: React.FC<Props> = ({
             {children}
           </DefaultContent>
         )
+      }
     }
   }
 

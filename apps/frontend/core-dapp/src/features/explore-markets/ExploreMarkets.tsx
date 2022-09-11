@@ -8,7 +8,6 @@ import Tabs from '../../components/Tabs'
 import MarketCard from '../../components/MarketCard'
 import { useRootStore } from '../../context/RootStoreProvider'
 import MarketSearch from '../../components/MarketSearch'
-import WrongNetworkAlert from '../../components/WrongNetworkAlert'
 import useResponsive from '../../hooks/useResponsive'
 import { MarketEntity } from '../../stores/entities/MarketEntity'
 
@@ -112,7 +111,6 @@ const ExploreMarkets: React.FC = () => {
   const { filteredMarkets, setSearchQuery, filteredIcoMarkets, filteredIpoMarkets } = marketStore
   return (
     <Wrapper>
-      <WrongNetworkAlert />
       <Col xs={24}>
         <Heading type="h1" color="secondary">
           <Trans>Explore Markets</Trans>

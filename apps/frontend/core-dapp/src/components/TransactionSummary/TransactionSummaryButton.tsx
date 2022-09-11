@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { Button, ButtonProps } from 'prepo-ui'
 import { observer } from 'mobx-react-lite'
 import { UnlockOptions } from '../UnlockTokens'
@@ -19,15 +20,22 @@ const TransactionSummaryButton: React.FC<Props> = ({
   unlock,
 }) => {
   const { web3Store } = useRootStore()
-  const { connected } = web3Store
+  const { connected, isNetworkSupported, network } = web3Store
   const emptyAmount = unlock && unlock.amount === 0
   const amountBigNumber = unlock && unlock.token.parseUnits(`${unlock.amount}`)
   const insufficientBalance =
     unlock && amountBigNumber ? amountBigNumber.gt(unlock.token.tokenBalanceRaw || 0) : false
-  const disableButton = loading || !connected || disabled || insufficientBalance || emptyAmount
+
+  const disableButton = useMemo(() => {
+    // enable button for switching network if on wrong network
+    if (isNetworkSupported)
+      return loading || !connected || disabled || insufficientBalance || emptyAmount
+    return false
+  }, [loading, connected, isNetworkSupported, disabled, insufficientBalance, emptyAmount])
 
   const getText = (): string => {
     if (!connected) return 'Connect Your Wallet'
+    if (!isNetworkSupported) return `Switch to ${network.chainName}`
     if (loading) return 'Loading'
     if (insufficientBalance) return 'Insufficient Balance'
     if (emptyAmount) return 'Enter an Amount'
@@ -39,8 +47,8 @@ const TransactionSummaryButton: React.FC<Props> = ({
       block
       type="primary"
       size="md"
-      onClick={onClick}
-      loading={loading && connected}
+      onClick={isNetworkSupported ? onClick : (): void => web3Store.setNetwork(network)}
+      loading={loading && connected && isNetworkSupported}
       disabled={disableButton}
     >
       {getText()}
