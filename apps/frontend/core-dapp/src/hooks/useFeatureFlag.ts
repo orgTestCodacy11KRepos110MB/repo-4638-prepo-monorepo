@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 export enum FeatureFlag {
   enableCoreDapp = 'enableCoreDapp',
   enableStakingLocally = 'enableStakingLocally',
+  enableI18nLocally = 'enableI18nLocally',
 }
 
 type UseFeatureFlag = {
@@ -19,6 +20,13 @@ const fetchFunction = async (featureName: FeatureFlag, userAddress?: string): Pr
     userAddress,
   }
   if (featureName === FeatureFlag.enableStakingLocally) {
+    if (!window) {
+      return false
+    }
+    return window.origin.startsWith(LOCALHOST)
+  }
+
+  if (featureName === FeatureFlag.enableI18nLocally) {
     if (!window) {
       return false
     }

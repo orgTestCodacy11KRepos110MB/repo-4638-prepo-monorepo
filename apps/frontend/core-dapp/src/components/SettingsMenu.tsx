@@ -3,11 +3,16 @@ import { Dropdown, Menu } from 'antd'
 import { ItemType } from 'antd/lib/menu/hooks/useItems'
 import { observer } from 'mobx-react-lite'
 import styled from 'styled-components'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { t } from '@lingui/macro'
+import { NextRouter, useRouter } from 'next/router'
+import Link from 'next/link'
+import { i18n } from '@lingui/core'
 import { useRootStore } from '../context/RootStoreProvider'
 import useResponsive from '../hooks/useResponsive'
 import { PREPO_DISCORD, PREPO_TWITTER, PREPO_WEBSITE } from '../lib/constants'
 import { UiStore } from '../stores/UiStore'
+import useFeatureFlag, { FeatureFlag } from '../hooks/useFeatureFlag'
 
 const StyledDropdown = styled(Dropdown)`
   &&& {
@@ -51,23 +56,23 @@ const StyledMenu = styled(Menu)`
   }
 `
 
-const items: Array<{
+const menuList: Array<{
   label: string
   href?: string
-  key?: 'theme'
+  key?: 'theme' | 'language'
   icon: IconName
   altIcon?: IconName
 }> = [
-  { label: 'About', href: PREPO_WEBSITE, icon: 'info-outlined' },
+  { label: t`About`, href: PREPO_WEBSITE, icon: 'info-outlined' },
   { label: 'Discord', href: PREPO_DISCORD, icon: 'discord-outlined' },
   { label: 'Twitter', href: PREPO_TWITTER, icon: 'twitter-outlined' },
-  { label: 'Docs', href: 'https://docs.prepo.io/', icon: 'docs-outlined' },
-  { label: 'Switch to Dark', key: 'theme', icon: 'dark-theme', altIcon: 'light-theme' },
-  // TODO: translations { label: 'Language' },
+  { label: t`Docs`, href: 'https://docs.prepo.io/', icon: 'docs-outlined' },
+  { label: t`Switch to Dark`, key: 'theme', icon: 'dark-theme', altIcon: 'light-theme' },
+  { label: t`Language`, icon: 'language', key: 'language' },
   // TODO: privacy link { label: 'Legal & Privacy', href: '' },
 ]
 
-const renderItem = (item: typeof items[number], uiStore: UiStore): ItemType => {
+const renderItem = (item: typeof menuList[number], uiStore: UiStore): ItemType => {
   const isLink = !!item.href
   const { key } = item
   let { label, icon } = item
@@ -75,12 +80,16 @@ const renderItem = (item: typeof items[number], uiStore: UiStore): ItemType => {
   let onClick = (): void => undefined
   if (key === 'theme') {
     if (uiStore.selectedTheme === ThemeModes.Dark) {
-      label = 'Switch to Light'
+      label = t`Switch to Light`
       onClick = (): void => uiStore.setTheme(ThemeModes.Light)
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       icon = item.altIcon!
     } else {
       onClick = (): void => uiStore.setTheme(ThemeModes.Dark)
+    }
+  } else if (key === 'language') {
+    onClick = (): void => {
+      uiStore.setShowLanguageList(true)
     }
   }
 
@@ -89,7 +98,7 @@ const renderItem = (item: typeof items[number], uiStore: UiStore): ItemType => {
         label: (
           <>
             <a href={item.href} target="_blank" rel="noreferrer">
-              {label}
+              {i18n._(label)}
             </a>
             <Icon name={icon} width="20px" height="20px" color="neutral4" />
           </>
@@ -100,33 +109,62 @@ const renderItem = (item: typeof items[number], uiStore: UiStore): ItemType => {
         onClick,
         label: (
           <>
-            {label}
+            {i18n._(label)}
             <Icon name={icon} width="20px" height="20px" color="neutral4" />
           </>
         ),
       } as ItemType)
 }
 
+const languageList = [
+  { label: 'English', locale: 'en' },
+  { label: 'Русский', locale: 'ru' },
+]
+
+const renderLangulageList = (
+  { locale, label }: typeof languageList[number],
+  router: NextRouter
+): ItemType =>
+  ({
+    key: label,
+    label: (
+      <Link href={router.asPath} locale={locale} passHref={undefined}>
+        {label}
+      </Link>
+    ),
+  } as ItemType)
+
 const SettingsMenu: React.FC = () => {
   const { isDesktop } = useResponsive()
   const { uiStore } = useRootStore()
   const [visible, setVisible] = useState(false)
-  const handleVisibleChange = (flag: boolean): void => setVisible(flag)
-
+  const { showLanguageList } = uiStore
+  const handleVisibleChange = (flag: boolean): void => {
+    setVisible(flag)
+    // always show main menu on open
+    if (flag === true && flag === showLanguageList) {
+      uiStore.setShowLanguageList(false)
+    }
+  }
+  const { enabled } = useFeatureFlag(FeatureFlag.enableI18nLocally)
+  const menuListFiltered = useMemo(
+    () => (enabled ? menuList : menuList.filter((item) => item.key !== 'language')),
+    [enabled]
+  )
+  const router = useRouter()
   const size = isDesktop ? '32px' : '24px'
+  const items = showLanguageList
+    ? languageList.map((item) => renderLangulageList(item, router))
+    : menuListFiltered.map((item) => renderItem(item, uiStore))
 
   return (
     <Flex alignSelf="stretch" width={38}>
       <StyledDropdown
         visible={visible}
         onVisibleChange={handleVisibleChange}
+        destroyPopupOnHide
         trigger={['click']}
-        overlay={
-          <StyledMenu
-            items={items.map((item) => renderItem(item, uiStore))}
-            onClick={(): void => setVisible(true)}
-          />
-        }
+        overlay={<StyledMenu items={items} onClick={(): void => setVisible(true)} />}
       >
         <button type="button">
           <Icon name="dots" width={size} height={size} color="neutral1" />

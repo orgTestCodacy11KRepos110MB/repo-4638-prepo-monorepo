@@ -6,6 +6,7 @@ import { Language } from '../types/general.types'
 
 export class UiStore {
   root: RootStore
+  showLanguageList = false
   accountModalOpen = false
   mobileNavigationHeight = 0
   message: typeof message
@@ -26,6 +27,10 @@ export class UiStore {
 
   get selectedLanguage(): Language | undefined {
     return this.root.localStorageStore.storage.language
+  }
+
+  setShowLanguageList(show: boolean): void {
+    this.showLanguageList = show
   }
 
   setTheme = (selectedTheme: ThemeModes): void => {

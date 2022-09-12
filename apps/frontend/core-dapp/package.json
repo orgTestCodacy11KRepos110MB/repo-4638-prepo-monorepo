@@ -15,7 +15,7 @@
     "pre-commit": "lint-staged",
     "lint": "eslint . --ext .tsx,.ts",
     "lint:fix": "eslint . --ext .tsx,.ts --fix",
-    "i18n:extract": "NODE_ENV=development lingui extract --locale en",
+    "i18n:extract": "NODE_ENV=development lingui extract",
     "i18n:compile": "yarn i18n:extract && lingui compile",
     "mst-gql:generate": "./internals/mst-gql-generate.bash"
   },

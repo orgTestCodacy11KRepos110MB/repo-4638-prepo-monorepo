@@ -22,11 +22,16 @@ const TradeMarketPage: React.FC<Props> = ({ selectedMarket }) => (
   </>
 )
 
-export const getStaticPaths: GetStaticPaths = () => {
+export const getStaticPaths: GetStaticPaths = ({ locales = [] }) => {
   // Get the paths we want to pre-render based on posts
-  const paths = markets.map((market) => ({
-    params: { marketUrlId: market.urlId },
-  }))
+  const paths = locales
+    .map((locale) =>
+      markets.map((market) => ({
+        params: { marketUrlId: market.urlId },
+        locale,
+      }))
+    )
+    .flat()
 
   return { paths, fallback: false }
 }

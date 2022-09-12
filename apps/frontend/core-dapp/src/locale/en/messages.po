@@ -13,7 +13,11 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#: src/features/explore-markets/ExploreMarkets.tsx:131
+#: src/components/SettingsMenu.tsx:64
+msgid "About"
+msgstr "About"
+
+#: src/features/explore-markets/ExploreMarkets.tsx:129
 msgid "All"
 msgstr "All"
 
@@ -25,11 +29,15 @@ msgstr "Connect Wallet"
 msgid "Connected to Testnet (Goerli)"
 msgstr "Connected to Testnet (Goerli)"
 
+#: src/components/SettingsMenu.tsx:67
+msgid "Docs"
+msgstr "Docs"
+
 #: src/components/MarketCard.tsx:111
 msgid "Estimated Valuation"
 msgstr "Estimated Valuation"
 
-#: src/features/explore-markets/ExploreMarkets.tsx:118
+#: src/features/explore-markets/ExploreMarkets.tsx:116
 msgid "Explore Markets"
 msgstr "Explore Markets"
 
@@ -45,6 +53,10 @@ msgstr "Invest in"
 msgid "Join the <0><1>$PPO Token Sale Whitelist</1></0> for testnet funds."
 msgstr "Join the <0><1>$PPO Token Sale Whitelist</1></0> for testnet funds."
 
+#: src/components/SettingsMenu.tsx:69
+msgid "Language"
+msgstr "Language"
+
 #: src/components/MarketCard.tsx:146
 msgid "Liquidity"
 msgstr "Liquidity"
@@ -57,9 +69,17 @@ msgstr "Liquidity"
 #~ msgid "Profile"
 #~ msgstr "Profile"
 
-#: src/features/explore-markets/ExploreMarkets.tsx:126
+#: src/features/explore-markets/ExploreMarkets.tsx:124
 msgid "Search for Pre-IPO and Pre-IDO Markets"
 msgstr "Search for Pre-IPO and Pre-IDO Markets"
+
+#: src/components/SettingsMenu.tsx:68
+msgid "Switch to Dark"
+msgstr "Switch to Dark"
+
+#: src/components/SettingsMenu.tsx:81
+msgid "Switch to Light"
+msgstr "Switch to Light"
 
 #: src/components/MarketCard.tsx:121
 msgid "Valuation Range"
