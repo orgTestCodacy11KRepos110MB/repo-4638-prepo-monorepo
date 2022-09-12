@@ -169,6 +169,10 @@ export class Web3Store {
   }
 
   handleConnected(walletState: WalletState[]): void {
+    if (!walletState || !walletState.length) {
+      this.disconnect()
+      return
+    }
     const [wallet] = walletState
     const { ens } = wallet.accounts[0]
     const { id } = wallet.chains[0]
