@@ -1,5 +1,6 @@
 import styled, { css } from 'styled-components'
 import { media, spacingIncrement } from 'prepo-ui'
+import { Trans } from '@lingui/macro'
 import Link from '../../components/Link'
 import MarketIconTitle from '../../components/MarketIconTitle'
 import { Market } from '../../types/market.types'
@@ -78,7 +79,9 @@ const SelectedMarketColumn: React.FC<Props> = ({ iconName, name }) => {
   return (
     <Wrapper>
       <Section>
-        <Title>Selected Market</Title>
+        <Title>
+          <Trans>Selected Market</Trans>
+        </Title>
         <SelectedMarket>
           <MarketIconName iconName={iconName} size="sm">
             {name}
@@ -86,7 +89,9 @@ const SelectedMarketColumn: React.FC<Props> = ({ iconName, name }) => {
         </SelectedMarket>
       </Section>
       <Section>
-        <Title>Trending Markets</Title>
+        <Title>
+          <Trans>Trending Markets</Trans>
+        </Title>
         <MarketGroup>
           {trendingMarkets.map((market) => (
             <Link key={market.urlId} href={`/markets/${market.urlId}`} scroll={false}>

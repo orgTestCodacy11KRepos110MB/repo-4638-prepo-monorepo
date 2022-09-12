@@ -3,6 +3,7 @@ import React, { useEffect } from 'react'
 import { Color, useTheme } from 'styled-components'
 import { observer } from 'mobx-react-lite'
 import { useRouter } from 'next/router'
+import { t, Trans } from '@lingui/macro'
 import PpoBox from './PpoBox'
 import ProfileBanner from './ProfileBanner'
 import ProfileAccordion from './ProfileAccordion'
@@ -91,7 +92,10 @@ const ProfilePage: React.FC = () => {
       maxWidth={884}
       alignItems="stretch"
     >
-      <PageTitle href={isCustom ? Routes.Profile : Routes.PPO}>{prefix}Profile</PageTitle>
+      <PageTitle href={isCustom ? Routes.Profile : Routes.PPO}>
+        {prefix}
+        <Trans>Profile</Trans>
+      </PageTitle>
       <Flex flexDirection="column" gap={16} alignItems="stretch" mt={14}>
         {false && <ProfileBanner type="preacher" />}
         {false && <ProfileBanner type="elitePregen" />}
@@ -105,7 +109,7 @@ const ProfilePage: React.FC = () => {
           borderBottom={`1px solid ${theme.color.neutral8}`}
         >
           <PpoBox
-            title="PPO Staked"
+            title={t`PPO Staked`}
             icon={
               <Icon
                 name="ppo-logo"
@@ -120,7 +124,7 @@ const ProfilePage: React.FC = () => {
           />
           <Box width="1px" background="neutral8" alignSelf="stretch" />
           <PpoBox
-            title="PPO Power"
+            title={t`PPO Power`}
             value={mockedValue}
             loading={loading}
             suffix="PPO"
@@ -134,7 +138,7 @@ const ProfilePage: React.FC = () => {
                 <Icon name="energy" color={iconFill} width={energy.width} height={energy.height} />
               </Flex>
             }
-            tooltipText="PPO Staked x Total Multiplier"
+            tooltipText={t`PPO Staked x Total Multiplier`}
           />
         </Flex>
         <Flex flexDirection={{ phone: 'column', desktop: 'row' }} alignItems="stretch">

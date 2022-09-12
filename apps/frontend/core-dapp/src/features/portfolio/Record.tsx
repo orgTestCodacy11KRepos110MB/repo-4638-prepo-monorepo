@@ -1,3 +1,4 @@
+import { Trans } from '@lingui/macro'
 import { Button, Icon, IconName, media, spacingIncrement, Subtitle } from 'prepo-ui'
 import { HTMLAttributeAnchorTarget, useMemo } from 'react'
 import Skeleton from 'react-loading-skeleton'
@@ -269,7 +270,7 @@ const Record: React.FC<Props> = ({
           {position !== undefined && (
             <HideOnMobile>
               <PositionWrapper>
-                Position:&nbsp;
+                <Trans>Position</Trans>:&nbsp;
                 <StyledPositionlabel positionType={position}>{position}</StyledPositionlabel>
               </PositionWrapper>
             </HideOnMobile>

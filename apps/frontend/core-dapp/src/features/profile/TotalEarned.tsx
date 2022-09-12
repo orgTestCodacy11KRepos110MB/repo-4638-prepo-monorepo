@@ -1,6 +1,7 @@
 import { ButtonColors, Flex, IconName, media, spacingIncrement, Typography } from 'prepo-ui'
 import { useMemo } from 'react'
 import styled from 'styled-components'
+import { Trans } from '@lingui/macro'
 import SectionAccordion from './SectionAccordion'
 import Details, { loadValue } from './Details'
 import ButtonLink from '../ppo/ButtonLink'
@@ -101,7 +102,7 @@ const TotalEarned: React.FC<{
       title={
         <Flex flexDirection="column" gap={4} alignItems="flex-start">
           <Typography variant="text-medium-md" color="neutral3">
-            Total Earned
+            <Trans>Total Earned</Trans>
           </Typography>
           <Typography
             variant="text-medium-base"
@@ -121,7 +122,7 @@ const TotalEarned: React.FC<{
             )}
           </Typography>
           <Typography variant="text-medium-sm" color="neutral3" display="flex" alignItems="center">
-            Next Distribution Date:&nbsp;{loadValue(nextDistributionDate)}
+            <Trans>Next Distribution Date:</Trans>&nbsp;{loadValue(nextDistributionDate)}
           </Typography>
         </Flex>
       }

@@ -1,3 +1,4 @@
+import { t } from '@lingui/macro'
 import { Col, Row } from 'antd'
 import { observer } from 'mobx-react-lite'
 import { useEffect, useRef, useState } from 'react'
@@ -51,7 +52,7 @@ const MarketDataColumn: React.FC = () => {
     return (
       <Col xs={24}>
         <FinancialInfoCard
-          title="Payout Range"
+          title={t`Payout Range`}
           tooltip={<PayoutRange />}
           value={`${floorRange} - ${ceilingRange}`}
         />
@@ -64,7 +65,7 @@ const MarketDataColumn: React.FC = () => {
       {estimatedValuation && (
         <Col xs={24}>
           <FinancialInfoCard
-            title="Estimated Valuation"
+            title={t`Estimated Valuation`}
             tooltip={<EstimatedValuation marketName={name} />}
             value={`$${significantDigits(estimatedValuation.value)}`}
           />
@@ -73,20 +74,23 @@ const MarketDataColumn: React.FC = () => {
       {tradingVolume && (
         <Col xs={24}>
           <FinancialInfoCard
-            title="Trading Volume"
+            title={t`Trading Volume`}
             value={`$${significantDigits(tradingVolume.value)}`}
           />
         </Col>
       )}
       {liquidity && (
         <Col xs={24}>
-          <FinancialInfoCard title="Liquidity" value={`$${significantDigits(liquidity.value)}`} />
+          <FinancialInfoCard
+            title={t`Liquidity`}
+            value={`$${significantDigits(liquidity.value)}`}
+          />
         </Col>
       )}
       {expiryTime && (
         <Col xs={24} ref={containerRef}>
           <FinancialInfoCard
-            title="Market Expiry Date"
+            title={t`Market Expiry Date`}
             tooltip={<ExpiryDate />}
             value={
               shortDate ? getFullDateShortenMonthFromMs(expiryTime) : getFullDateFromMs(expiryTime)

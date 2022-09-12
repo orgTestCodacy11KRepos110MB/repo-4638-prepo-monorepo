@@ -1,5 +1,6 @@
 import { centered, Icon, spacingIncrement } from 'prepo-ui'
 import styled from 'styled-components'
+import { i18n } from '@lingui/core'
 import { NavigationItem } from './Navigation'
 import Menu from './Menu'
 import Link from './Link'
@@ -58,7 +59,7 @@ const PpoDropdown: React.FC = () => {
           label: (
             <Link href={href} target={target}>
               <Name>
-                {title}
+                {i18n._(title)}
                 {target && (
                   <Icon
                     name="share"

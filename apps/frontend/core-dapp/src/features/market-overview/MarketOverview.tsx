@@ -3,6 +3,7 @@ import styled from 'styled-components'
 import { media, Button, Icon, Flex } from 'prepo-ui'
 import { observer } from 'mobx-react-lite'
 import Skeleton from 'react-loading-skeleton'
+import { Trans } from '@lingui/macro'
 import SelectedMarketColumn from './SelectedMarketColumn'
 import MarketChart from './MarketChart'
 import MarketDataColumn from './MarketDataColumn'
@@ -50,7 +51,7 @@ const MarketTitleAndValuation: React.FC<Props> = observer(({ selectedMarket }) =
         </Col>
         <Subtitle tooltip={<ValuationRange />}>
           <ValuationText>
-            Valuation Range:{' '}
+            <Trans>Valuation Range</Trans>:{' '}
             {valuationRange === undefined ? (
               <Skeleton height={20} width={160} />
             ) : (
@@ -75,7 +76,7 @@ const MarketSubNavigation: React.FC<Props> = ({ selectedMarket }) => {
       <Row gutter={[16, 0]}>
         <Col xs={12} lg={8}>
           <Button type="primary" size="lg" block href={`/markets/${urlId}/trade`}>
-            Trade
+            <Trans>Trade</Trans>
           </Button>
         </Col>
         <Col xs={12} lg={16}>
@@ -86,7 +87,7 @@ const MarketSubNavigation: React.FC<Props> = ({ selectedMarket }) => {
             href={`/markets/${urlId}/liquidity`}
             icon={<Icon name="plus" color="primaryLight" height={iconSize} width={iconSize} />}
           >
-            Add Liquidity
+            <Trans>Add Liquidity</Trans>
           </Button>
         </Col>
       </Row>

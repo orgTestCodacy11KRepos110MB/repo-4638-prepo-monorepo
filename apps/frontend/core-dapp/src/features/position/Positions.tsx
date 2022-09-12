@@ -1,5 +1,6 @@
 import { Box, Button, Flex, Typography } from 'prepo-ui'
 import { observer } from 'mobx-react-lite'
+import { t, Trans } from '@lingui/macro'
 import ClosePositionSummary from './ClosePositionSummary'
 import { useRootStore } from '../../context/RootStoreProvider'
 import { Routes } from '../../lib/routes'
@@ -14,7 +15,7 @@ const Positions: React.FC = () => {
     return (
       <Flex p={24} flexDirection="column">
         <Typography color="neutral3" mb={12} textAlign="center" variant="text-regular-base">
-          Your wallet is not connected.
+          <Trans>Your wallet is not connected.</Trans>
         </Typography>
       </Flex>
     )
@@ -23,10 +24,10 @@ const Positions: React.FC = () => {
     return (
       <Flex p={24} flexDirection="column">
         <Typography color="neutral3" mb={12} variant="text-regular-base">
-          No position found!
+          <Trans>No position found!</Trans>
         </Typography>
         <Button type="primary" size="sm" href={Routes.Markets}>
-          Trade Now
+          <Trans>Trade Now</Trans>
         </Button>
       </Flex>
     )
@@ -43,7 +44,7 @@ const Positions: React.FC = () => {
             name={market.name}
             nameRedirectUrl={`/markets/${market.urlId}/trade`}
             position={position}
-            buttonLabel="Close Position"
+            buttonLabel={t`Close Position`}
             buttonStyles={{
               backgroundColor: 'primaryAccent',
               color: 'buttonDefaultLabel',
@@ -55,7 +56,7 @@ const Positions: React.FC = () => {
                 percent: data.percentage,
               },
               {
-                label: 'Total Value',
+                label: t`Total Value`,
                 amount: data.totalValue,
                 usd: true,
               },

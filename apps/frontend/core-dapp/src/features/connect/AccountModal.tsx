@@ -2,6 +2,7 @@ import styled from 'styled-components'
 import { observer } from 'mobx-react-lite'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import { spacingIncrement, Button } from 'prepo-ui'
+import { t, Trans } from '@lingui/macro'
 import Modal from '../../components/Modal'
 import { useRootStore } from '../../context/RootStoreProvider'
 
@@ -35,7 +36,7 @@ const AccountModal: React.FC = () => {
 
   return (
     <Modal
-      title="Account"
+      title={t`Account`}
       centered
       visible={accountModalOpen}
       onOk={onClose}
@@ -43,9 +44,11 @@ const AccountModal: React.FC = () => {
       footer={null}
     >
       <ModalSection>
-        <SubTitle>Connected</SubTitle>
+        <SubTitle>
+          <Trans>Connected</Trans>
+        </SubTitle>
         <Button type="text" size="xs" onClick={handleDeactivateAccount}>
-          Disconnect
+          <Trans>Disconnect</Trans>
         </Button>
       </ModalSection>
       <ModalSection>
@@ -55,7 +58,7 @@ const AccountModal: React.FC = () => {
         </SubTitle>
         <CopyToClipboard text={account ?? ''}>
           <Button type="text" size="xs">
-            Copy to Clipboard
+            <Trans>Copy to Clipboard</Trans>
           </Button>
         </CopyToClipboard>
       </ModalSection>

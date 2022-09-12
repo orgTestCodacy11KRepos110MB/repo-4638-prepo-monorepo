@@ -1,3 +1,4 @@
+import { t } from '@lingui/macro'
 import { Box, centered, media, spacingIncrement } from 'prepo-ui'
 import { useState } from 'react'
 import styled, { useTheme } from 'styled-components'
@@ -94,11 +95,11 @@ const PositionsAndHistory: React.FC = () => {
         styles={{ activeColor: 'neutral1', color: 'neutral2' }}
         tab={[
           {
-            heading: 'Positions',
+            heading: t`Positions`,
             content: <Positions />,
           },
           {
-            heading: 'History',
+            heading: t`History`,
             content: <History />,
           },
         ]}

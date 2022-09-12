@@ -14,7 +14,7 @@ import {
   SCALE,
 } from './market-visualisation-constants'
 import { Bounds } from '../../position/markets'
-import { formatValutionNumber } from '../../../helpers'
+import { formatValuationNumber } from '../../../helpers'
 
 type Coord = { x: number; y: number }
 
@@ -246,10 +246,14 @@ export function drawXAxisLabels(
   ctx.textAlign = 'center'
   // Exit val
   ctx.fillStyle = positionColor
-  ctx.fillText(`${formatValutionNumber(exitVal)}`, exitIntercept.x, AXIS_LINES_END.y + 10 * SCALE)
+  ctx.fillText(`${formatValuationNumber(exitVal)}`, exitIntercept.x, AXIS_LINES_END.y + 10 * SCALE)
   // Entry val
   ctx.fillStyle = 'black'
-  ctx.fillText(`${formatValutionNumber(entryVal)}`, entryIntercept.x, AXIS_LINES_END.y + 10 * SCALE)
+  ctx.fillText(
+    `${formatValuationNumber(entryVal)}`,
+    entryIntercept.x,
+    AXIS_LINES_END.y + 10 * SCALE
+  )
 }
 
 export function drawAxisLabels(ctx: CanvasRenderingContext2D): void {
@@ -354,7 +358,7 @@ export function drawLimits(
   )
   ctx.fillStyle = '#A0A0A0'
   ctx.fillText(
-    `${formatValutionNumber(valuationRange.ceil)}`,
+    `${formatValuationNumber(valuationRange.ceil)}`,
     valuationCeilStart.x + valuationCeilRectWidth / 2,
     valuationCeilStart.y + LIMITS_RECT_SIZE_DEFAULT.y / 2
   )
@@ -377,7 +381,7 @@ export function drawLimits(
   )
   ctx.fillStyle = '#A0A0A0'
   ctx.fillText(
-    `${formatValutionNumber(valuationRange.floor)}`,
+    `${formatValuationNumber(valuationRange.floor)}`,
     valuationFloorStart.x + valuationFloorRectWidth / 2,
     valuationFloorStart.y + LIMITS_RECT_SIZE_DEFAULT.y / 2
   )

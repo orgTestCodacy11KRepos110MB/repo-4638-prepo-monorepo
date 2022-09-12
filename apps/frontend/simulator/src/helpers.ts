@@ -35,7 +35,7 @@ export function formatValuation(val: number): string {
   return val >= 1 ? `${val}B` : `${val * 1000}M`
 }
 
-export const formatValutionNumber = (n: number): string => `$${formatValuation(n)}`
+export const formatValuationNumber = (n: number): string => `$${formatValuation(n)}`
 
 export function calcValuationPrecision(min: number, max: number): number {
   if (Math.min(min, max) <= 0.01) return 0.001

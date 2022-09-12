@@ -1,3 +1,4 @@
+import { Trans } from '@lingui/macro'
 import { Icon, media, spacingIncrement, Typography } from 'prepo-ui'
 import styled from 'styled-components'
 import Accordion from '../../components/Accordion'
@@ -44,7 +45,7 @@ const ProfileAccordion: React.FC = ({ children }) => {
           gap={8}
         >
           <Icon name="ppo-logo" width={logoSize} height={logoSize} />
-          PPO Stats
+          <Trans>PPO Stats</Trans>
         </Typography>
       }
       renderIcon={(active): JSX.Element => (

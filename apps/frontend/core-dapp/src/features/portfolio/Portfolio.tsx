@@ -14,6 +14,7 @@ import {
   Typography,
   Grid,
 } from 'prepo-ui'
+import { t, Trans } from '@lingui/macro'
 import PortfolioBreakdownItem from './PortfolioBreakdownItem'
 import PositionsAndHistory from './PositionsAndHistory'
 import { makeRepeatedValue } from '../../utils/generic-utils'
@@ -94,12 +95,12 @@ const Portfolio: React.FC = () => {
       <PortfolioBreakdownWrapper show={isPortfolioVisible}>
         <PortfolioBreakdownItem
           iconName="money-bag"
-          label="Cash Balance"
+          label={t`Cash Balance`}
           value={tokenBalanceFormat}
         />
         <PortfolioBreakdownItem
           iconName="growth"
-          label="Trading Positions"
+          label={t`Trading Positions`}
           value={tradingPositionsValue}
         />
         {/*  reserving this code for post mvp
@@ -118,7 +119,7 @@ const Portfolio: React.FC = () => {
             <Flex alignItems="flex-start" flexDirection="column" gap={8}>
               <Flex justifyContent="flex-start">
                 <Typography color="neutral2" variant="text-medium-md" mr={17}>
-                  Portfolio Value
+                  <Trans>Portfolio Value</Trans>
                 </Typography>
                 <IconWrapper onClick={toggleShowPortfolio}>
                   <Icon
@@ -134,11 +135,11 @@ const Portfolio: React.FC = () => {
             <Grid gap={22} gridTemplateColumns="1fr 1fr" maxWidth={540} mt={17} width="100%">
               {/* eslint-disable-next-line react/jsx-props-no-spreading */}
               <Button type="primary" block href="/portfolio/deposit" {...commonButtonProps}>
-                Deposit
+                <Trans>Deposit</Trans>
               </Button>
               {/* eslint-disable-next-line react/jsx-props-no-spreading */}
               <Button href="/portfolio/withdraw" {...commonButtonProps}>
-                Withdraw
+                <Trans>Withdraw</Trans>
               </Button>
             </Grid>
           </Flex>
@@ -150,7 +151,7 @@ const Portfolio: React.FC = () => {
         <Col flex="3">
           <Box>
             <Typography color="neutral4" variant="text-semiBold-md" pb={8} pl={27} pt={20}>
-              Portfolio Breakdown
+              <Trans>Portfolio Breakdown</Trans>
             </Typography>
             {renderPortfolioBreakdown}
           </Box>

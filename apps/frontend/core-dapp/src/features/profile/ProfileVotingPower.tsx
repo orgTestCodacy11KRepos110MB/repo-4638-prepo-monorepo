@@ -1,5 +1,6 @@
 import { Flex, Icon, media, Subtitle, Typography } from 'prepo-ui'
 import styled from 'styled-components'
+import { t, Trans } from '@lingui/macro'
 import Details, { loadValue } from './Details'
 import SectionAccordion from './SectionAccordion'
 import useResponsive from '../../hooks/useResponsive'
@@ -35,7 +36,7 @@ const ProfileVotingPower: React.FC<{ delegate?: DelegateEntity }> = ({ delegate 
           </Flex>
           <Flex flexDirection="column" gap={4} alignItems="flex-start">
             <Typography variant="text-medium-md" color="neutral3">
-              Total Voting Power
+              <Trans>Total Voting Power</Trans>
             </Typography>
             <Typography textAlign="left" variant="text-semiBold-xl">
               {loadValue(delegate?.totalPPOPower?.toLocaleString(), '')}
@@ -44,11 +45,19 @@ const ProfileVotingPower: React.FC<{ delegate?: DelegateEntity }> = ({ delegate 
         </Flex>
       }
     >
-      <Details title="From PPO Power" value={ppoPowerValue} />
+      <Details title={t`From PPO Power`} value={ppoPowerValue} />
       <Details
-        title={<StyledSubtitle tooltip="Power delegated to you">From Delegators</StyledSubtitle>}
+        title={
+          <StyledSubtitle tooltip={t`Power delegated to you`}>
+            <Trans>From Delegators</Trans>
+          </StyledSubtitle>
+        }
         value={delegatorsPowerValue}
-        description={<Flex as="span">{loadValue(delegate?.delegatorsCount)} Delegates</Flex>}
+        description={
+          <Flex as="span">
+            {loadValue(delegate?.delegatorsCount)}&nbsp;<Trans>Delegates</Trans>
+          </Flex>
+        }
       />
     </SectionAccordion>
   )

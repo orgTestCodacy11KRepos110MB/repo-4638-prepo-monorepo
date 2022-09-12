@@ -1,3 +1,4 @@
+import { t, Trans } from '@lingui/macro'
 import { observer } from 'mobx-react-lite'
 import { NETWORKS } from 'prepo-constants'
 import { Box, Flex, Typography } from 'prepo-ui'
@@ -40,7 +41,7 @@ const History: React.FC = () => {
     return (
       <Flex p={24} flexDirection="column">
         <Typography color="neutral3" mb={12} textAlign="center" variant="text-regular-base">
-          Your wallet is not connected.
+          <Trans>Your wallet is not connected.</Trans>
         </Typography>
       </Flex>
     )
@@ -58,7 +59,7 @@ const History: React.FC = () => {
     return (
       <Flex p={24} flexDirection="column">
         <Typography color="neutral3" mb={12} variant="text-regular-base">
-          No transaction history.
+          <Trans>No transaction history.</Trans>
         </Typography>
       </Flex>
     )
@@ -83,11 +84,11 @@ const History: React.FC = () => {
               buttonStyles={buttonColors[event] ?? DEFAULT_COLORS}
               data={[
                 {
-                  label: 'Value',
+                  label: t`Value`,
                   amount: usdValue,
                 },
                 {
-                  label: 'Transaction Time',
+                  label: t`Transaction Time`,
                   amount: getFullDateTimeFromSeconds(timestamp),
                   usd: false,
                 },

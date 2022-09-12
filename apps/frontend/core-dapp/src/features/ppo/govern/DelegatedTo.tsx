@@ -1,5 +1,6 @@
 import { Box, Button, Flex, spacingIncrement, Typography } from 'prepo-ui'
 import { getShortAccount } from 'prepo-utils'
+import { Trans } from '@lingui/macro'
 import { Label } from './FromPower'
 import { Routes } from '../../../lib/routes'
 import useResponsive from '../../../hooks/useResponsive'
@@ -22,7 +23,11 @@ const DelegatedTo: React.FC = () => {
 
   return (
     <Box mt={{ phone: 12, desktop: 20 }}>
-      {connected && <Label>Voting Power Delegated To</Label>}
+      {connected && (
+        <Label>
+          <Trans>Voting Power Delegated To</Trans>
+        </Label>
+      )}
 
       <Flex flexDirection="column" gap={{ phone: 14, desktop: 20 }} alignItems="stretch">
         {connected && (
@@ -47,7 +52,7 @@ const DelegatedTo: React.FC = () => {
         )}
 
         <Button type="primary" href={Routes.Delegate} block disabled={disableMocks}>
-          Change Delegate
+          <Trans>Change Delegate</Trans>
         </Button>
         <Button
           block
@@ -62,7 +67,7 @@ const DelegatedTo: React.FC = () => {
             hoverBorder: 'primaryAccent',
           }}
         >
-          Undelegate
+          <Trans>Undelegate</Trans>
         </Button>
       </Flex>
     </Box>

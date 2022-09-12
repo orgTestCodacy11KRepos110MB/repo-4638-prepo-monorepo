@@ -1,3 +1,4 @@
+import { t } from '@lingui/macro'
 import { IconName } from 'prepo-ui'
 import { Routes } from '../../lib/routes'
 
@@ -9,12 +10,12 @@ export type PpoItem = {
 }
 
 export const ppoItems: PpoItem[] = [
-  { iconName: 'stake', title: 'Stake', href: Routes.Stake },
-  { iconName: 'legal', title: 'Govern', href: Routes.Govern },
-  { iconName: 'shopping-cart-arrow-down', title: 'Buy', href: Routes.Buy },
-  { iconName: 'shopping-cart-arrow-right', title: 'Spend', href: Routes.Withdraw },
-  { iconName: 'growth', title: 'Trade to Earn', href: '' },
-  { iconName: 'water-drop', title: 'LP to Earn', href: '' },
-  { iconName: 'history', title: 'History', href: Routes.History },
-  { iconName: 'charts-line', title: 'Analytics', href: '', target: '_blank' },
+  { iconName: 'stake', title: t`Stake`, href: Routes.Stake },
+  { iconName: 'legal', title: t`Govern`, href: Routes.Govern },
+  { iconName: 'shopping-cart-arrow-down', title: t`Buy`, href: Routes.Buy },
+  { iconName: 'shopping-cart-arrow-right', title: t`Spend`, href: Routes.Withdraw },
+  { iconName: 'growth', title: t`Trade to Earn`, href: '' },
+  { iconName: 'water-drop', title: t`LP to Earn`, href: '' },
+  { iconName: 'history', title: t`History`, href: Routes.History },
+  { iconName: 'charts-line', title: t`Analytics`, href: '', target: '_blank' },
 ]

@@ -1,6 +1,7 @@
 import { Flex, Icon, Typography } from 'prepo-ui'
 import { useMemo } from 'react'
 import styled from 'styled-components'
+import { t, Trans } from '@lingui/macro'
 import SectionAccordion from './SectionAccordion'
 import Details, { loadValue } from './Details'
 import useResponsive from '../../hooks/useResponsive'
@@ -49,21 +50,24 @@ const TotalMultiplier: React.FC<{
       }
     >
       <Details
-        title="Time Multiplier"
+        title={t`Time Multiplier`}
         value={connected ? `${timeMultiplier}x` : '-'}
         description={
           <>
             <Flex justifyContent="flex-start" as="span">
-              Next Mutliplier:&nbsp;
+              <Trans>Next Mutliplier</Trans>:&nbsp;
               {loadValue(nextTimeMultiplier, 'x', connected)}
-              &nbsp;(in&nbsp;
+              &nbsp;(
+              <Trans>in</Trans>&nbsp;
               {loadValue(daysTillNextTimeMultiplier, '', connected)}
-              &nbsp;days)
+              &nbsp;
+              <Trans>days</Trans>)
             </Flex>
             <Flex justifyContent="flex-start" as="span">
-              Avg. Staking Time: &nbsp;
+              <Trans>Avg. Staking Time:</Trans>&nbsp;
               {loadValue(stakeTime, '', connected)}
-              &nbsp;Weeks&nbsp;
+              &nbsp;
+              <Trans>Weeks</Trans>&nbsp;
               {/* TODO: add tooltip text */}
               {false && <Icon name="info" width={infoSize} height={infoSize} color="neutral5" />}
             </Flex>
@@ -76,9 +80,9 @@ const TotalMultiplier: React.FC<{
         description={
           <Flex justifyContent="flex-start" as="span">
             {loadValue(temporaryMultiplier, 'x', connected)}
-            &nbsp;Temporary +&nbsp;
+            &nbsp;<Trans>Temporary +</Trans>&nbsp;
             {loadValue(permanentMultiplier, 'x', connected)}
-            &nbsp; Permanent
+            &nbsp;<Trans>Permanent</Trans>
           </Flex>
         }
       />

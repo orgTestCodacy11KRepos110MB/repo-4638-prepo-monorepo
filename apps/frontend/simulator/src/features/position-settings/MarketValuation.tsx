@@ -11,7 +11,7 @@ import { media } from '../../utils/media'
 import {
   calcValuationPrecision,
   checkValuationRangeValid,
-  formatValutionNumber,
+  formatValuationNumber,
 } from '../../helpers'
 import Slider, { SliderValue } from '../../components/Slider/Slider'
 
@@ -124,7 +124,7 @@ const MarketValuation: React.FC = () => {
             position.market.bounds.valuation.ceil
           )}
           minDistance={-99999} // allow handles to pass each other
-          numberFormatter={formatValutionNumber}
+          numberFormatter={formatValuationNumber}
           tooltipLabels={['Entry', 'Exit']}
         />
       </div>

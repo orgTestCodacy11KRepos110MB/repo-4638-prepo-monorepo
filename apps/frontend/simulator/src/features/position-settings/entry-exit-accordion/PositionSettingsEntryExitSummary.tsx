@@ -6,7 +6,7 @@ import { spacingIncrement } from '../../app/themes'
 import { media } from '../../../utils/media'
 import { selectNonZeroOutcome } from '../../position/outcome-selector'
 import RightArrowIcon from '../../../components/icons/RightArrowIcon'
-import { formatValutionNumber } from '../../../helpers'
+import { formatValuationNumber } from '../../../helpers'
 import { cardPadding } from '../../../components/Card'
 import {
   floatToPercentageFormat,
@@ -160,9 +160,9 @@ const PositionSettingsEntryExitSummary: React.FC = () => {
             My Entry & Exit
           </Col>
           <Col xs={12} lg={14}>
-            <span>{formatValutionNumber(position.entry)}</span> <RightArrowIcon />{' '}
+            <span>{formatValuationNumber(position.entry)}</span> <RightArrowIcon />{' '}
             <DynamicSpan dynamicColor={positionColor}>
-              {formatValutionNumber(position.exit)}
+              {formatValuationNumber(position.exit)}
             </DynamicSpan>
           </Col>
         </SpacerRow>

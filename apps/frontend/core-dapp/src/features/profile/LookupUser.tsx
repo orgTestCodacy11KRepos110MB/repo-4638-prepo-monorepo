@@ -2,6 +2,7 @@ import { Flex, Input, media, spacingIncrement } from 'prepo-ui'
 import { observer } from 'mobx-react-lite'
 import styled from 'styled-components'
 import { ZERO_ADDRESS } from 'prepo-constants'
+import { t } from '@lingui/macro'
 import { CUSTOM_STYLE } from './TotalEarned'
 import ButtonLink from '../ppo/ButtonLink'
 import { Routes } from '../../lib/routes'
@@ -64,7 +65,7 @@ const LookupUser: React.FC = () => {
               avatarDiameter={{ desktop: 24, mobile: 24 }}
             />
           }
-          label="Lookup User"
+          label={t`Lookup User`}
           placeholder={PLACEHOLDER}
           value={ensInputValue}
           onChange={onChangeEnsNameInput}
@@ -73,7 +74,7 @@ const LookupUser: React.FC = () => {
       <ButtonLink
         disabled={disabled}
         customStyles={CUSTOM_STYLE}
-        title="View Profile"
+        title={t`View Profile`}
         href={`${Routes.Profile}?search=${ensInputValue}`}
       />
     </Flex>
