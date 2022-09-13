@@ -16,6 +16,10 @@ import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
  * implicitly paused/ended by the owner by withdrawing the sale token balance
  * in full.
  *
+ * During initialization, the contract will automatically get `decimals` for
+ * the Sale Token and generate a denominator based on it. This value is
+ * immutable and assumes the `decimals` of the Sale Token will not change.
+ *
  * This contract can be reused for multiple sequential sales.
  */
 interface IMiniSales {

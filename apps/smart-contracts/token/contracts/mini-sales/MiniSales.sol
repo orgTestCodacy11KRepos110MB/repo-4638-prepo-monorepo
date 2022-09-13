@@ -18,7 +18,6 @@ contract MiniSales is IMiniSales, WithdrawERC20 {
   ) {
     _saleToken = IERC20Metadata(_newSaleToken);
     _paymentToken = IERC20Metadata(_newPaymentToken);
-    // TODO add to natspec that this assumes decimals will not change
     _saleTokenDecimals = 10**_newSaleTokenDecimals;
   }
 
