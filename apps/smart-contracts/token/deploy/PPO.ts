@@ -6,12 +6,15 @@ import { sendTxAndWait, utils } from 'prepo-hardhat'
 import { getNetworkByChainId } from 'prepo-utils'
 import { HardhatUpgrades } from '@openzeppelin/hardhat-upgrades'
 import dotenv from 'dotenv'
+import { FormatTypes, getContractAddress } from 'ethers/lib/utils'
+import { fromChainId } from 'defender-base-client'
+import { TransactionResponse } from '@ethersproject/providers'
 
 dotenv.config({
   path: '../.env',
 })
 
-const { assertIsTestnetChain } = utils
+const { assertIsTestnetChain, getDefenderAdminClient } = utils
 
 async function ensureProxyOwnedByGovernance(
   upgrades: HardhatUpgrades,
@@ -32,7 +35,6 @@ const deployFunction: DeployFunction = async function deployPPO({
   getChainId,
   ethers,
   upgrades,
-  defender,
 }: HardhatRuntimeEnvironment): Promise<void> {
   const { save, getOrNull, getArtifact } = deployments
   const deployer = (await ethers.getSigners())[0]
@@ -80,15 +82,36 @@ const deployFunction: DeployFunction = async function deployPPO({
   } else {
     console.log('Existing deployment detected, upgrading contract')
     await ensureProxyOwnedByGovernance(upgrades, governanceAddress)
-    const upgradeProposal = await defender.proposeUpgrade(
+    /**
+     * Need to explicitly cast as TransactionResponse since an upgrade
+     * proposal can be a string or TransactionResponse object. Tedious string
+     * checks for when it is not a TransactionResponse would be required
+     * multiple times throughout the script if we do not explicitly recast.
+     */
+    const upgradeResponse = (await upgrades.prepareUpgrade(
       existingDeployment.address,
       ppoTokenFactory,
       {
+        getTxResponse: true,
+      }
+    )) as TransactionResponse
+    const newImplAddress = getContractAddress(upgradeResponse)
+    const upgradeReceipt = await upgradeResponse.wait()
+    const defenderClient = getDefenderAdminClient(currentChain)
+    const upgradeProposal = await defenderClient.proposeUpgrade(
+      {
+        title: 'PPO Upgrade',
         description: 'PPO Upgrade Proposal',
+        proxyAdmin: (await upgrades.admin.getInstance()).address,
+        newImplementation: newImplAddress,
+      },
+      {
+        address: existingDeployment.address,
+        network: fromChainId(currentChain),
+        abi: ppoTokenFactory.interface.format(FormatTypes.json) as string,
       }
     )
-    const upgradeProposalReceipt = await upgradeProposal.txResponse.wait()
-    console.log('PPO Upgrade Proposal Receipt:', upgradeProposalReceipt)
+    console.log('PPO Upgrade Proposal Receipt:', upgradeResponse)
     /**
      * Because this is only a proposal and not an actual deployment, a
      * contract instance is not returned for us to fetch a `hardhat-deploy`
@@ -104,7 +127,7 @@ const deployFunction: DeployFunction = async function deployPPO({
     await save(DEPLOYMENT_NAMES.ppo.name, {
       abi: ppoArtifact.abi,
       address: upgradeProposal.contract.address,
-      receipt: upgradeProposalReceipt,
+      receipt: upgradeReceipt,
     })
   }
   const ppo = await ethers.getContract(DEPLOYMENT_NAMES.ppo.name)

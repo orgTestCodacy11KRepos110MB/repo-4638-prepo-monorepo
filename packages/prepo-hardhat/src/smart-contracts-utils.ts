@@ -2,6 +2,7 @@ import { BigNumber, providers, Contract, ContractTransaction } from 'ethers'
 import { parse, stringify } from 'envfile'
 import { ChainId, NETWORKS } from 'prepo-constants'
 import { hexZeroPad } from 'ethers/lib/utils'
+import { AdminClient } from 'defender-admin-client'
 import { readFileSync, writeFileSync } from 'fs'
 
 function expandToDecimals(n: number, decimals: number): BigNumber {
@@ -57,6 +58,7 @@ function isTestnetChain(chainId: ChainId): boolean {
     NETWORKS.rinkeby.chainId,
     NETWORKS.goerli.chainId,
     NETWORKS.kovan.chainId,
+    NETWORKS.arbitrumTestnet.chainId,
   ]
   return testChains.includes(+chainId)
 }
@@ -65,6 +67,18 @@ function assertIsTestnetChain(chainId: ChainId): void {
   if (!isTestnetChain(chainId)) {
     throw new Error('Deployment to production environments is disabled!')
   }
+}
+
+function getDefenderAdminClient(chainId: ChainId): AdminClient {
+  if (isTestnetChain(chainId))
+    return new AdminClient({
+      apiKey: process.env.DEFENDER_TEST_API_KEY,
+      apiSecret: process.env.DEFENDER_TEST_API_SECRET,
+    })
+  return new AdminClient({
+    apiKey: process.env.DEFENDER_PROD_API_KEY,
+    apiSecret: process.env.DEFENDER_PROD_API_SECRET,
+  })
 }
 
 function recordDeployment(envVarName: string, contract: Contract): void {
@@ -103,7 +117,9 @@ export const utils = {
   getLastTimestamp,
   setNextTimestamp,
   sendTxAndWait,
+  isTestnetChain,
   assertIsTestnetChain,
+  getDefenderAdminClient,
   recordDeployment,
   mineBlocks,
   mineBlock,
