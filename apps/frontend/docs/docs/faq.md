@@ -6,7 +6,13 @@ sidebar_position: 13
 
 ## General
 
-Coming soon.
+### Where does the name prePO come from?
+
+prePO stands for "pre Public Offering", as opposed to IPO (Initial Public Offering).
+
+### How do you pronounce prePO?
+
+pree-pee-oh!
 
 ## Token
 
@@ -106,6 +112,50 @@ Token holders can propose how this PPO is utilized.
 ### What is the lockup for PPO investors and team members?
 
 3 years linear vesting starting from the token launch date, with a 1-year cliff.
+
+## PPO Token Presale
+
+### Where can I find important details about the PPO Token Presale?
+
+See the [Presale announcement post](https://url.prepo.io/blog-presale-docs).
+
+### How do I get access to the Presale?
+
+Register for the [whitelist](https://url.prepo.io/whitelist-docs) before it closes on 15th September 00:00 UTC.
+
+If you completed the necessary requirements (followed prePO on Twitter, joined the Discord and passed captcha verification, liked & retweed the announcement tweet), and aren't deemed to be a bot / spam, you will be eligible to participate in the PPO Token Presale.
+
+Note that you will still need to acknowledge terms before participating.
+
+### Can I edit my whitelist form submission after submitting?
+
+Yes - after you fill out the form you will receive an email from Google Forms with a link to edit. You can edit your response at any time before the whitelist closes.
+
+### How do I check my eligibility for the Presale?
+
+After the whitelist closes and before the sale begins, there will be an announcement on Discord and Twitter for when you can check your eligibility on [sale.prepo.io](https://sale.prepo.io/).
+
+### What will the Presale price and cap (total PPO allocation) be?
+
+The Presale price and cap will be finalized after the whitelist closes and before the sale begins. This will be in the same announcement as the whitelist eligibility announcement.
+
+### Will there be any other rewards for participating in the Presale?
+
+Yes! See our [bonus rewards announcement post](https://url.prepo.io/blog-presalegalxe-docs).
+
+### When does the Presale end?
+
+The Presale will end as soon as the cap is reached (first-come-first-served), so make sure to be ready in advance!
+
+### What payment currency is accepted for the Presale?
+
+USDC only. Note that you will also need a small amount of ETH to pay for gas costs.
+
+Check out our [step-by-step guide](https://url.prepo.io/blog-arbitrumguide-docs) for getting ETH & USDC on Arbitrum.
+
+### Will I receive my PPO immediately?
+
+Yes.
 
 ## Platform
 
