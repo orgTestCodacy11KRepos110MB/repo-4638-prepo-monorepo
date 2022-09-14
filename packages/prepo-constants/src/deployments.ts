@@ -26,6 +26,9 @@ export const DEPLOYMENT_NAMES = {
   vesting: {
     name: 'Vesting',
   },
+  miniSalesFlag_A: {
+    name: 'MiniSalesFlag_A',
+  }
 } as const
 
 export type DeploymentNames = typeof DEPLOYMENT_NAMES

@@ -35,6 +35,7 @@ export class Token {
   public ppo: PPOWithHooks
   public miniSales: MiniSalesWithHooks
   public vesting: ContractWithName
+  public miniSalesFlag: ContractWithName
 
   public static get Instance(): Token {
     if (!this._instance) {
@@ -96,6 +97,10 @@ export class Token {
     this.vesting = {
       name: DEPLOYMENT_NAMES.vesting.name,
       contract: await ethers.getContract(DEPLOYMENT_NAMES.vesting.name),
+    }
+    this.miniSalesFlag = {
+      name: DEPLOYMENT_NAMES.miniSalesFlag_A.name,
+      contract: await ethers.getContract(DEPLOYMENT_NAMES.miniSalesFlag_A.name),
     }
     return this
   }

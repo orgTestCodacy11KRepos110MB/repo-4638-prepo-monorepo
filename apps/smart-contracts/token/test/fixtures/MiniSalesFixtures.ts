@@ -1,6 +1,6 @@
 import { ethers } from 'hardhat'
 import { FakeContract, smock } from '@defi-wonderland/smock'
-import { MiniSales, AllowlistPurchaseHook } from '../../types/generated'
+import { MiniSales, AllowlistPurchaseHook, MiniSalesFlag } from '../../types/generated'
 
 export async function miniSalesFixture(
   saleTokenAddress: string,
@@ -26,4 +26,9 @@ export async function fakeAllowlistPurchaseHookFixture(): Promise<FakeContract> 
 
 export async function fakeAccountListFixture(): Promise<FakeContract> {
   return (await smock.fake('AccountList')) as FakeContract
+}
+
+export async function miniSalesFlagFixture(): Promise<MiniSalesFlag> {
+  const Factory = await ethers.getContractFactory('MiniSalesFlag')
+  return (await Factory.deploy()) as MiniSalesFlag
 }
