@@ -7,6 +7,7 @@
     "./test/**/*.ts",
     "./*.js",
     "./hardhat.config.ts",
-    "index.ts"
+    "index.ts",
+    "../../../packages/compiler/soljson-v0.8.7+commit.e28d00a7.js"
   ]
 }
