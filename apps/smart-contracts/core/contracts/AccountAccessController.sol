@@ -22,7 +22,11 @@ contract AccountAccessController is Ownable, IAccountAccessController {
     _clearAllowedAccounts();
   }
 
-  function setRootAndClearAllowedAccounts(bytes32 _newRoot) external override onlyOwner {
+  function setRootAndClearAllowedAccounts(bytes32 _newRoot)
+    external
+    override
+    onlyOwner
+  {
     _setRoot(_newRoot);
     _clearAllowedAccounts();
   }
@@ -32,14 +36,22 @@ contract AccountAccessController is Ownable, IAccountAccessController {
     emit BlockedAccountsCleared(_blockedAccountsIndex);
   }
 
-  function allowAccounts(address[] calldata _accounts) external override onlyOwner {
+  function allowAccounts(address[] calldata _accounts)
+    external
+    override
+    onlyOwner
+  {
     for (uint256 _i = 0; _i < _accounts.length; _i++) {
       _allowedAccounts[_allowedAccountsIndex][_accounts[_i]] = true;
       emit AccountAllowed(_accounts[_i]);
     }
   }
 
-  function blockAccounts(address[] calldata _accounts) external override onlyOwner {
+  function blockAccounts(address[] calldata _accounts)
+    external
+    override
+    onlyOwner
+  {
     for (uint256 _i = 0; _i < _accounts.length; _i++) {
       _blockedAccounts[_blockedAccountsIndex][_accounts[_i]] = true;
       emit AccountBlocked(_accounts[_i]);
@@ -62,11 +74,21 @@ contract AccountAccessController is Ownable, IAccountAccessController {
     return _root;
   }
 
-  function isAccountAllowed(address _account) external view override returns (bool) {
+  function isAccountAllowed(address _account)
+    external
+    view
+    override
+    returns (bool)
+  {
     return _allowedAccounts[_allowedAccountsIndex][_account];
   }
 
-  function isAccountBlocked(address _account) external view override returns (bool) {
+  function isAccountBlocked(address _account)
+    external
+    view
+    override
+    returns (bool)
+  {
     return _blockedAccounts[_blockedAccountsIndex][_account];
   }
 

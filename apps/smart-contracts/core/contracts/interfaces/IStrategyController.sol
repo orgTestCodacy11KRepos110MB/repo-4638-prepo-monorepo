@@ -20,7 +20,11 @@ interface IStrategyController {
   /// @param oldStrategy The old strategy address
   /// @param newStrategy The new strategy address
   /// @param amount The amount migrated
-  event StrategyMigrated(address oldStrategy, address newStrategy, uint256 amount);
+  event StrategyMigrated(
+    address oldStrategy,
+    address newStrategy,
+    uint256 amount
+  );
 
   /**
    * @notice Deposits the specified amount of Base Token into the Strategy.

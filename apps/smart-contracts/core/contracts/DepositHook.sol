@@ -40,7 +40,11 @@ contract DepositHook is IHook, Ownable {
     return _vault;
   }
 
-  function getDepositRecord() external view returns (ICollateralDepositRecord) {
+  function getDepositRecord()
+    external
+    view
+    returns (ICollateralDepositRecord)
+  {
     return _depositRecord;
   }
 }

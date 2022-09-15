@@ -35,7 +35,10 @@ contract Collateral is
   uint256 private constant FEE_DENOMINATOR = 1000000;
   uint256 private constant FEE_LIMIT = 50000;
 
-  function initialize(address _newBaseToken, address _newTreasury) public initializer {
+  function initialize(address _newBaseToken, address _newTreasury)
+    public
+    initializer
+  {
     __Ownable_init_unchained();
     __ReentrancyGuard_init_unchained();
     __ERC20_init_unchained(string("prePO Collateral Token"), string("preCT"));
@@ -43,7 +46,12 @@ contract Collateral is
     _treasury = _newTreasury;
   }
 
-  function deposit(uint256 _amount) external override nonReentrant returns (uint256) {
+  function deposit(uint256 _amount)
+    external
+    override
+    nonReentrant
+    returns (uint256)
+  {
     require(_depositsAllowed, "Deposits not allowed");
     _baseToken.safeTransferFrom(msg.sender, address(this), _amount);
     // Calculate fees and shares to mint including latent contract funds
@@ -99,7 +107,9 @@ contract Collateral is
     _accountToWithdrawalRequest[msg.sender].blockNumber = 0;
   }
 
-  function _processDelayedWithdrawal(address _account, uint256 _amount) internal {
+  function _processDelayedWithdrawal(address _account, uint256 _amount)
+    internal
+  {
     /**
      * Verify that the withdrawal being processed matches what was
      * recorded during initiation.
@@ -119,12 +129,18 @@ contract Collateral is
     _accountToWithdrawalRequest[_account].blockNumber = 0;
   }
 
-  function withdraw(uint256 _amount) external override nonReentrant returns (uint256) {
+  function withdraw(uint256 _amount)
+    external
+    override
+    nonReentrant
+    returns (uint256)
+  {
     require(_withdrawalsAllowed, "Withdrawals not allowed");
     if (_delayedWithdrawalExpiry != 0) {
       _processDelayedWithdrawal(msg.sender, _amount);
     }
-    uint256 _owed = (_strategyController.totalValue() * _amount) / totalSupply();
+    uint256 _owed = (_strategyController.totalValue() * _amount) /
+      totalSupply();
     _burn(msg.sender, _amount);
 
     uint256 _balanceBefore = _baseToken.balanceOf(address(this));
@@ -194,7 +210,11 @@ contract Collateral is
     emit MintingFeeChanged(_mintingFee);
   }
 
-  function setRedemptionFee(uint256 _newRedemptionFee) external override onlyOwner {
+  function setRedemptionFee(uint256 _newRedemptionFee)
+    external
+    override
+    onlyOwner
+  {
     require(_newRedemptionFee <= FEE_LIMIT, "Exceeds fee limit");
     _redemptionFee = _newRedemptionFee;
     emit RedemptionFeeChanged(_redemptionFee);
@@ -205,7 +225,11 @@ contract Collateral is
     emit DepositHookChanged(address(_depositHook));
   }
 
-  function setWithdrawHook(IHook _newWithdrawHook) external override onlyOwner {
+  function setWithdrawHook(IHook _newWithdrawHook)
+    external
+    override
+    onlyOwner
+  {
     _withdrawHook = _newWithdrawHook;
     emit WithdrawHookChanged(address(_withdrawHook));
   }
@@ -234,11 +258,21 @@ contract Collateral is
     return _baseToken;
   }
 
-  function getStrategyController() external view override returns (IStrategyController) {
+  function getStrategyController()
+    external
+    view
+    override
+    returns (IStrategyController)
+  {
     return _strategyController;
   }
 
-  function getDelayedWithdrawalExpiry() external view override returns (uint256) {
+  function getDelayedWithdrawalExpiry()
+    external
+    view
+    override
+    returns (uint256)
+  {
     return _delayedWithdrawalExpiry;
   }
 
@@ -259,14 +293,24 @@ contract Collateral is
     return _withdrawHook;
   }
 
-  function getAmountForShares(uint256 _shares) external view override returns (uint256) {
+  function getAmountForShares(uint256 _shares)
+    external
+    view
+    override
+    returns (uint256)
+  {
     if (totalSupply() == 0) {
       return _shares;
     }
     return (_shares * totalAssets()) / totalSupply();
   }
 
-  function getSharesForAmount(uint256 _amount) external view override returns (uint256) {
+  function getSharesForAmount(uint256 _amount)
+    external
+    view
+    override
+    returns (uint256)
+  {
     uint256 _totalAssets = totalAssets();
     return (_totalAssets > 0) ? ((_amount * totalSupply()) / _totalAssets) : 0;
   }
@@ -280,6 +324,7 @@ contract Collateral is
   }
 
   function totalAssets() public view override returns (uint256) {
-    return _baseToken.balanceOf(address(this)) + _strategyController.totalValue();
+    return
+      _baseToken.balanceOf(address(this)) + _strategyController.totalValue();
   }
 }

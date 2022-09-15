@@ -21,8 +21,15 @@ contract CollateralDepositRecord is ICollateralDepositRecord, Ownable {
     _accountDepositCap = _newAccountDepositCap;
   }
 
-  function recordDeposit(address _sender, uint256 _amount) external override onlyAllowedHooks {
-    require(_amount + _globalDepositAmount <= _globalDepositCap, "Global deposit cap exceeded");
+  function recordDeposit(address _sender, uint256 _amount)
+    external
+    override
+    onlyAllowedHooks
+  {
+    require(
+      _amount + _globalDepositAmount <= _globalDepositCap,
+      "Global deposit cap exceeded"
+    );
     require(
       _amount + _accountToNetDeposit[_sender] <= _accountDepositCap,
       "Account deposit cap exceeded"
@@ -31,7 +38,11 @@ contract CollateralDepositRecord is ICollateralDepositRecord, Ownable {
     _accountToNetDeposit[_sender] += _amount;
   }
 
-  function recordWithdrawal(address _sender, uint256 _amount) external override onlyAllowedHooks {
+  function recordWithdrawal(address _sender, uint256 _amount)
+    external
+    override
+    onlyAllowedHooks
+  {
     if (_globalDepositAmount > _amount) {
       _globalDepositAmount -= _amount;
     } else {
@@ -44,17 +55,29 @@ contract CollateralDepositRecord is ICollateralDepositRecord, Ownable {
     }
   }
 
-  function setGlobalDepositCap(uint256 _newGlobalDepositCap) external override onlyOwner {
+  function setGlobalDepositCap(uint256 _newGlobalDepositCap)
+    external
+    override
+    onlyOwner
+  {
     _globalDepositCap = _newGlobalDepositCap;
     emit GlobalDepositCapChanged(_globalDepositCap);
   }
 
-  function setAccountDepositCap(uint256 _newAccountDepositCap) external override onlyOwner {
+  function setAccountDepositCap(uint256 _newAccountDepositCap)
+    external
+    override
+    onlyOwner
+  {
     _accountDepositCap = _newAccountDepositCap;
     emit AccountDepositCapChanged(_newAccountDepositCap);
   }
 
-  function setAllowedHook(address _hook, bool _allowed) external override onlyOwner {
+  function setAllowedHook(address _hook, bool _allowed)
+    external
+    override
+    onlyOwner
+  {
     _allowedHooks[_hook] = _allowed;
     emit AllowedHooksChanged(_hook, _allowed);
   }
@@ -71,7 +94,12 @@ contract CollateralDepositRecord is ICollateralDepositRecord, Ownable {
     return _accountDepositCap;
   }
 
-  function getNetDeposit(address _account) external view override returns (uint256) {
+  function getNetDeposit(address _account)
+    external
+    view
+    override
+    returns (uint256)
+  {
     return _accountToNetDeposit[_account];
   }
 

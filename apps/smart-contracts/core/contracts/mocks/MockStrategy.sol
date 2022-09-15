@@ -39,7 +39,10 @@ contract MockStrategy is IStrategy, Ownable, ReentrancyGuard {
   event VaultChanged(address vault);
 
   modifier onlyController() {
-    require(msg.sender == address(_controller), "Caller is not the controller");
+    require(
+      msg.sender == address(_controller),
+      "Caller is not the controller"
+    );
     _;
   }
 
@@ -71,7 +74,11 @@ contract MockStrategy is IStrategy, Ownable, ReentrancyGuard {
         _baseToken.mint(address(this), _virtualBalance - _actualBalance);
       }
     }
-    IERC20(_baseToken).safeTransferFrom(address(_controller), address(this), _amount);
+    IERC20(_baseToken).safeTransferFrom(
+      address(_controller),
+      address(this),
+      _amount
+    );
   }
 
   /**
@@ -79,7 +86,11 @@ contract MockStrategy is IStrategy, Ownable, ReentrancyGuard {
    * we would have to deterministically figure out strategy deployment
    * address ahead of time
    */
-  function withdraw(address _recipient, uint256 _amount) external override onlyController {
+  function withdraw(address _recipient, uint256 _amount)
+    external
+    override
+    onlyController
+  {
     if (_amount > _baseToken.balanceOf(address(this))) {
       uint256 _shortfall = _amount - _baseToken.balanceOf(address(this));
       _baseToken.mint(address(this), _shortfall);
@@ -130,7 +141,12 @@ contract MockStrategy is IStrategy, Ownable, ReentrancyGuard {
     }
   }
 
-  function getController() external view override returns (IStrategyController) {
+  function getController()
+    external
+    view
+    override
+    returns (IStrategyController)
+  {
     return _controller;
   }
 

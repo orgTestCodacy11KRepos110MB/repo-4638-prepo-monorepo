@@ -82,5 +82,8 @@ interface IPrePOMarketFactory {
    * @param longShortHash PrePOMarket unique identifier
    * @return PrePOMarket address corresponding to the market id
    */
-  function getMarket(bytes32 longShortHash) external view returns (IPrePOMarket);
+  function getMarket(bytes32 longShortHash)
+    external
+    view
+    returns (IPrePOMarket);
 }

@@ -16,7 +16,7 @@ contract WithdrawERC721 is IWithdrawERC721, SafeOwnable, ReentrancyGuard {
   ) external override onlyOwner nonReentrant {
     require(_erc721Tokens.length == _ids.length, "Array length mismatch");
     uint256 _arrayLength = _erc721Tokens.length;
-    for (uint256 i; i < _arrayLength;) {
+    for (uint256 i; i < _arrayLength; ) {
       IERC721(_erc721Tokens[i]).transferFrom(
         address(this),
         _recipients[i],

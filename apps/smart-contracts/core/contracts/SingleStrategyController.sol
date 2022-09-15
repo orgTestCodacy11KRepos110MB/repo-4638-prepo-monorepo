@@ -7,7 +7,11 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract SingleStrategyController is IStrategyController, Ownable, ReentrancyGuard {
+contract SingleStrategyController is
+  IStrategyController,
+  Ownable,
+  ReentrancyGuard
+{
   using SafeERC20 for IERC20;
 
   address private _vault;
@@ -30,11 +34,21 @@ contract SingleStrategyController is IStrategyController, Ownable, ReentrancyGua
     _strategy.deposit(_baseToken.balanceOf(address(this)));
   }
 
-  function withdraw(address _recipient, uint256 _amount) external override onlyVault nonReentrant {
+  function withdraw(address _recipient, uint256 _amount)
+    external
+    override
+    onlyVault
+    nonReentrant
+  {
     _strategy.withdraw(_recipient, _amount);
   }
 
-  function migrate(IStrategy _newStrategy) external override onlyOwner nonReentrant {
+  function migrate(IStrategy _newStrategy)
+    external
+    override
+    onlyOwner
+    nonReentrant
+  {
     uint256 _oldStrategyBalance;
     IStrategy _oldStrategy = _strategy;
     _strategy = _newStrategy;
@@ -45,7 +59,11 @@ contract SingleStrategyController is IStrategyController, Ownable, ReentrancyGua
       _oldStrategy.withdraw(address(this), _oldStrategyBalance);
       _newStrategy.deposit(_baseToken.balanceOf(address(this)));
     }
-    emit StrategyMigrated(address(_oldStrategy), address(_newStrategy), _oldStrategyBalance);
+    emit StrategyMigrated(
+      address(_oldStrategy),
+      address(_newStrategy),
+      _oldStrategyBalance
+    );
   }
 
   function setVault(address _newVault) external override onlyOwner {

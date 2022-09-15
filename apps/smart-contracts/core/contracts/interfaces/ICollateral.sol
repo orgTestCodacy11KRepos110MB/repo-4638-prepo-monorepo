@@ -211,7 +211,10 @@ interface ICollateral is IERC20Upgradeable {
   function getDelayedWithdrawalExpiry() external view returns (uint256);
 
   /// @return The withdrawal request on record for `account`
-  function getWithdrawalRequest(address account) external view returns (WithdrawalRequest memory);
+  function getWithdrawalRequest(address account)
+    external
+    view
+    returns (WithdrawalRequest memory);
 
   /**
    * @return The `IHook` that runs during the `deposit()` function

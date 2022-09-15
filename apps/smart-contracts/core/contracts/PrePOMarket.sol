@@ -55,7 +55,10 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
     uint256 _newExpiryTime,
     bool _allowed
   ) {
-    require(_newCeilingLongPrice > _newFloorLongPrice, "Ceiling must exceed floor");
+    require(
+      _newCeilingLongPrice > _newFloorLongPrice,
+      "Ceiling must exceed floor"
+    );
     require(_newExpiryTime > block.timestamp, "Invalid expiry");
     require(_newMintingFee <= FEE_LIMIT, "Exceeds fee limit");
     require(_newRedemptionFee <= FEE_LIMIT, "Exceeds fee limit");
@@ -95,12 +98,20 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
     );
   }
 
-  function mintLongShortTokens(uint256 _amount) external override nonReentrant returns (uint256) {
+  function mintLongShortTokens(uint256 _amount)
+    external
+    override
+    nonReentrant
+    returns (uint256)
+  {
     if (msg.sender != owner()) {
       require(_publicMinting, "Public minting disabled");
     }
     require(_finalLongPrice > MAX_PRICE, "Market ended");
-    require(_collateral.balanceOf(msg.sender) >= _amount, "Insufficient collateral");
+    require(
+      _collateral.balanceOf(msg.sender) >= _amount,
+      "Insufficient collateral"
+    );
     /**
      * Add 1 to avoid rounding to zero, only process if user is minting
      * an amount large enough to pay a fee
@@ -118,14 +129,26 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
     return _amount;
   }
 
-  function redeem(uint256 _longAmount, uint256 _shortAmount) external override nonReentrant {
-    require(_longToken.balanceOf(msg.sender) >= _longAmount, "Insufficient long tokens");
-    require(_shortToken.balanceOf(msg.sender) >= _shortAmount, "Insufficient short tokens");
+  function redeem(uint256 _longAmount, uint256 _shortAmount)
+    external
+    override
+    nonReentrant
+  {
+    require(
+      _longToken.balanceOf(msg.sender) >= _longAmount,
+      "Insufficient long tokens"
+    );
+    require(
+      _shortToken.balanceOf(msg.sender) >= _shortAmount,
+      "Insufficient short tokens"
+    );
 
     uint256 _collateralOwed;
     if (_finalLongPrice <= MAX_PRICE) {
       uint256 _shortPrice = MAX_PRICE - _finalLongPrice;
-      _collateralOwed = (_finalLongPrice * _longAmount + _shortPrice * _shortAmount) / MAX_PRICE;
+      _collateralOwed =
+        (_finalLongPrice * _longAmount + _shortPrice * _shortAmount) /
+        MAX_PRICE;
     } else {
       require(_longAmount == _shortAmount, "Long and Short must be equal");
       _collateralOwed = _longAmount;
@@ -153,9 +176,19 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
     emit TreasuryChanged(_newTreasury);
   }
 
-  function setFinalLongPrice(uint256 _newFinalLongPrice) external override onlyOwner {
-    require(_newFinalLongPrice >= _floorLongPrice, "Price cannot be below floor");
-    require(_newFinalLongPrice <= _ceilingLongPrice, "Price cannot exceed ceiling");
+  function setFinalLongPrice(uint256 _newFinalLongPrice)
+    external
+    override
+    onlyOwner
+  {
+    require(
+      _newFinalLongPrice >= _floorLongPrice,
+      "Price cannot be below floor"
+    );
+    require(
+      _newFinalLongPrice <= _ceilingLongPrice,
+      "Price cannot exceed ceiling"
+    );
     _finalLongPrice = _newFinalLongPrice;
     emit FinalLongPriceSet(_newFinalLongPrice);
   }
@@ -166,7 +199,11 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
     emit MintingFeeChanged(_newMintingFee);
   }
 
-  function setRedemptionFee(uint256 _newRedemptionFee) external override onlyOwner {
+  function setRedemptionFee(uint256 _newRedemptionFee)
+    external
+    override
+    onlyOwner
+  {
     require(_newRedemptionFee <= FEE_LIMIT, "Exceeds fee limit");
     _redemptionFee = _newRedemptionFee;
     emit RedemptionFeeChanged(_newRedemptionFee);
