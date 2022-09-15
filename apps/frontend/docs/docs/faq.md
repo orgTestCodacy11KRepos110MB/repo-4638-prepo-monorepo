@@ -111,7 +111,7 @@ Token holders can propose how this PPO is utilized.
 
 ### What is the lockup for PPO investors and team members?
 
-3 years linear vesting starting from the token launch date, with a 1-year cliff.
+3 years total linear vesting starting from the token launch date, inclusive of a 1-year cliff.
 
 ## PPO Token Presale
 
@@ -121,7 +121,7 @@ See the [Presale announcement post](https://url.prepo.io/blog-presale-docs).
 
 ### How do I get access to the Presale?
 
-Register for the [whitelist](https://url.prepo.io/whitelist-docs) before it closes on 15th September 00:00 UTC.
+Register for the [whitelist](https://url.prepo.io/whitelist-docs) before it closes on 18th September 00:00 UTC.
 
 If you completed the necessary requirements (followed prePO on Twitter, joined the Discord and passed captcha verification, liked & retweed the announcement tweet), and aren't deemed to be a bot / spam, you will be eligible to participate in the PPO Token Presale.
 
@@ -152,6 +152,10 @@ The Presale will end as soon as the cap is reached (first-come-first-served), so
 USDC only. Note that you will also need a small amount of ETH to pay for gas costs.
 
 Check out our [step-by-step guide](https://url.prepo.io/blog-arbitrumguide-docs) for getting ETH & USDC on Arbitrum.
+
+### Is there any vesting for tokens purchased in the Presale?
+
+No.
 
 ### Will I receive my PPO immediately?
 
