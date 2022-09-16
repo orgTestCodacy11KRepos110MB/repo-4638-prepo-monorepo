@@ -14,8 +14,7 @@ export type ImportantAddresses = {
 export const PREPO_ADDRESSES: ImportantAddresses = {
   GOVERNANCE: {
     arbitrumTestnet: '0x054CcD68A2aC152fCFB93a15b6F75Eea53DCD9E0',
-    // TODO replace this with our production multisig address
-    arbitrumOne: '0x596e5940a47169f244fDD2DC269bCeA735635b53',
+    arbitrumOne: '0xe5011a7cc5CDA29F02CE341B2847B58abEFA7c26',
   },
   USDC: {
     // This is not an actual USDC contract, but an instance of MockBaseToken
