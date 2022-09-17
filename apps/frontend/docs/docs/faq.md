@@ -92,9 +92,9 @@ There are no current plans for an airdrop in the traditional sense. Instead, we 
 
 ### What does the PPO token distribution look like?
 
-- Treasury >58%
-- Seed Round 9.6%
-- Strategic Round 5.2%
+- Community Treasury 58.9% (including public sales)
+- Seed Round 8.8%
+- Strategic Round 5.3%
 - Team 25%
 - Charity 2%
 
