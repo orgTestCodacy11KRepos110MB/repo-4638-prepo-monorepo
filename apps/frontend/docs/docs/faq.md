@@ -6,6 +6,14 @@ sidebar_position: 13
 
 ## General
 
+### What is prePO?
+
+prePO is a decentralized trading platform allowing anyone to gain synthetic exposure to any pre-IPO stock or pre-IDO token.
+
+### What is prePO's mission?
+
+prePO's mission is to democratize pre-public investing - transforming a world of financial exclusion into a world of permissionless access.
+
 ### Where does the name prePO come from?
 
 prePO stands for "pre Public Offering", as opposed to IPO (Initial Public Offering).
@@ -13,6 +21,54 @@ prePO stands for "pre Public Offering", as opposed to IPO (Initial Public Offeri
 ### How do you pronounce prePO?
 
 pree-pee-oh!
+
+### Are prePO positions backed by real shares/tokens?
+
+No. Positions on prePO are synthetic, which means rather than needing to acquire large quantities of real shares or tokens (not scalable), all positions are instead fully-collateralized by USDC (infinitely scalable).
+
+### How are prices determined on prePO?
+
+Before going public, a market's price (fully-diluted valuation) is determined purely by supply and demand.
+
+After going public, the market concludes at a fixed settlement price corresponding to the fully-diluted valuation at the end of the first day of public trading.
+
+### Is prePO audited?
+
+Yes, prePO's smart contracts are audited by Code4rena.
+
+### Who are prePO's investors?
+
+prePO's investors include Republic Capital, IOSG Ventures, Maven 11, The LAO; founders from Gnosis, 1inch, Illuvium, Alchemix, Moonbeam, Zapper; and many more!
+
+Most of prePO's investors are listed on the [main website](https://prepo.io/) (scroll down).
+
+### Why is prePO launching on Arbitrum?
+
+prePO will launch on Arbitrum - an Ethereum 'layer 2' scaling solution - due to its high speed, low fees (that should get lower over time), security (maintains the security guarantees of Ethereum), and DeFi ecosystem.
+
+### Will prePO launch on other chains/networks?
+
+prePO is chain-agnostic, meaning it will ultimately end up on the chain/network that makes the most sense for the protocol.
+
+### Will prePO go multi-chain?
+
+This is unlikely in the short-to-medium-term, as it would split the liquidity and userbase, and adds complexity.
+
+### Who founded prePO?
+
+Xavier Ekkel ([LinkedIn](https://www.linkedin.com/in/xavierekkel/), [Twitter](https://twitter.com/XavierEkkel)) - an experienced smart contract engineer, ex-Canva software engineer, and former game developer, who has been in the crypto space for almost a decade.
+
+### How big is the prePO team?
+
+prePO has 8+ team members, currently with a heavy engineering focus.
+
+### Where is the team based?
+
+prePO's team is fully-remote and globally-distributed.
+
+### Is prePO hiring?
+
+Yes! See our [jobs page](https://url.prepo.io/jobs).
 
 ## Token
 
@@ -84,7 +140,7 @@ Some prerequisites that token holders may want to meet before enabling full tran
 
 ### Will there be an airdrop?
 
-There are no current plans for an airdrop in the traditional sense. Instead, we will be exploring sale discounts / incentives / other benefits for engaged and long-term-oriented users / community members.
+There are no current plans for an airdrop in the traditional sense. Instead, prePO will be exploring sale discounts / incentives / other benefits for engaged and long-term-oriented users / community members.
 
 ### What is the total supply of PPO?
 
@@ -106,12 +162,20 @@ Token holders can propose how this PPO is utilized.
 
 ### What are the details of past fundraising rounds?
 
-- Seed Round (2021): raised ~$1.1M at $13M valuation
-- Strategic Round (2022): raised ~$2.3M at $45M valuation
+- [Seed Round](https://prepo.io/blog/prepo-seed-round/) (2021): raised ~$1.1M at $0.013
+- [Strategic Round](https://prepo.io/blog/prepo-strategic-round/) (2022): raised ~$2.3M at $0.045
 
 ### What is the lockup for PPO investors and team members?
 
 3 years total linear vesting starting from the token launch date, inclusive of a 1-year cliff.
+
+### What is the token contract address?
+
+[0xb40dbbb7931cfef8be73aeec6c67d3809bd4600b](https://arbiscan.io/address/0xb40dbbb7931cfef8be73aeec6c67d3809bd4600b)
+
+### Are the token contracts audited?
+
+Yes, the smart contracts have been audited by Code4rena.
 
 ## PPO Token Presale
 
@@ -128,6 +192,10 @@ See the [Presale announcement post](https://url.prepo.io/blog-presale-docs).
 Connect your wallet on [sale.prepo.io](https://sale.prepo.io/).
 
 Only whitelisted addresses are eligible (the whitelist is now closed). If you think your address was excluded by mistake, you can send a direct message to the moderator in our [Discord](https://url.prepo.io/discord-docs).
+
+### Are there KYC requirements for the Presale?
+
+No, you will just be required to acknowledge terms before participation.
 
 ### Will there be any other rewards for participating in the Presale?
 
@@ -153,13 +221,14 @@ No.
 
 Yes.
 
+### What are the contract addresses for the Presale?
+
+- PPO.sol: [0xb40dbbb7931cfef8be73aeec6c67d3809bd4600b](https://arbiscan.io/address/0xb40dbbb7931cfef8be73aeec6c67d3809bd4600b)
+- MiniSales.sol: [0x5f60fc20a5654ee783c179b823dc919e456cd6f2](https://arbiscan.io/address/0x5f60fc20a5654ee783c179b823dc919e456cd6f2)
+
 ### Will there be future public sales?
 
 Most likely yes. Stay updated by joining our [Discord](https://url.prepo.io/discord-docs) and [Twitter](https://twitter.com/prepo_io).
-
-## Platform
-
-Coming soon.
 
 ## Testnet
 
