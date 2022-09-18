@@ -119,25 +119,15 @@ Token holders can propose how this PPO is utilized.
 
 See the [Presale announcement post](https://url.prepo.io/blog-presale-docs).
 
-### How do I get access to the Presale?
+### What will the Presale price and cap (total PPO allocation) be?
 
-Register for the [whitelist](https://url.prepo.io/whitelist-docs) before it closes on 18th September 00:00 UTC.
-
-If you completed the necessary requirements (followed prePO on Twitter, joined the Discord and passed captcha verification, liked & retweed the announcement tweet), and aren't deemed to be a bot / spam, you will be eligible to participate in the PPO Token Presale.
-
-Note that you will still need to acknowledge terms before participating.
-
-### Can I edit my whitelist form submission after submitting?
-
-Yes - after you fill out the form you will receive an email from Google Forms with a link to edit. You can edit your response at any time before the whitelist closes.
+See the [Presale announcement post](https://url.prepo.io/blog-presale-docs).
 
 ### How do I check my eligibility for the Presale?
 
-After the whitelist closes and before the sale begins, there will be an announcement on Discord and Twitter for when you can check your eligibility on [sale.prepo.io](https://sale.prepo.io/).
+Connect your wallet on [sale.prepo.io](https://sale.prepo.io/).
 
-### What will the Presale price and cap (total PPO allocation) be?
-
-The Presale price and cap will be finalized after the whitelist closes and before the sale begins. This will be in the same announcement as the whitelist eligibility announcement.
+Only whitelisted addresses are eligible (the whitelist is now closed). If you think your address was excluded by mistake, you can send a direct message to the moderator in our [Discord](https://url.prepo.io/discord-docs).
 
 ### Will there be any other rewards for participating in the Presale?
 
@@ -153,6 +143,8 @@ USDC only. Note that you will also need a small amount of ETH to pay for gas cos
 
 Check out our [step-by-step guide](https://url.prepo.io/blog-arbitrumguide-docs) for getting ETH & USDC on Arbitrum.
 
+You can approve your USDC in advance on [sale.prepo.io](https://sale.prepo.io/) to save time when the sale begins.
+
 ### Is there any vesting for tokens purchased in the Presale?
 
 No.
@@ -160,6 +152,10 @@ No.
 ### Will I receive my PPO immediately?
 
 Yes.
+
+### Will there be future public sales?
+
+Most likely yes. Stay updated by joining our [Discord](https://url.prepo.io/discord-docs) and [Twitter](https://twitter.com/prepo_io).
 
 ## Platform
 
@@ -178,7 +174,7 @@ However, in order to make trades you will need:
 
 ### How do I receive testnet funds ('FAKEUSD')?
 
-To receive testnet funds ('FAKEUSD'), simply fill out our [whitelist form](https://url.prepo.io/whitelist-dapp).
+To receive testnet funds ('FAKEUSD'), simply fill out [this form](https://url.prepo.io/whitelist-dapp).
 
 Once you've filled out the form, your testnet funds will be sent within a minute.
 
@@ -186,7 +182,7 @@ Once your testnet funds have been sent, the banner on the app will change to gre
 
 ### Where can I receive Goerli (Testnet) ETH?
 
-You will receive a small amount of Goerli ETH by filling out our [whitelist form](https://url.prepo.io/whitelist-dapp).
+You will receive a small amount of Goerli ETH by filling out our [this form](https://url.prepo.io/whitelist-dapp).
 
 If you need more Goerli ETH, you can get more from [this faucet](https://goerli-faucet.mudit.blog/).
 
@@ -213,3 +209,7 @@ Join our [Discord](https://url.prepo.io/discord-docs) to stay in the loop.
 ### Where can I give my feedback about the testnet?
 
 We'd love to hear your constructive feedback in our [Discord](https://url.prepo.io/discord-docs)!
+
+### Do I get a reward for trying out the testnet?
+
+No rewards for trying testnet have been announced.
