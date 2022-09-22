@@ -1,6 +1,5 @@
 import clsx from 'clsx'
 import { FC } from 'react'
-import Banner from './Banner'
 import { Icon } from '../Icon'
 import { IconButton, IconButtonProps } from '../IconButton'
 import { ROUTES } from '../../lib/constants'
@@ -136,7 +135,6 @@ export const Header: FC<{ isMobileMenuOpen: boolean; toggleMobileMenu: () => voi
       isMobileMenuOpen && 'fixed top-0 right-0 z-10 h-screen bg-background'
     )}
   >
-    <Banner />
     <div className="flex justify-between items-center mx-8 mt-14 mb-7 max-w-6xl lg:my-9 lg:mx-auto">
       <img
         src="/prepo-logo.svg"

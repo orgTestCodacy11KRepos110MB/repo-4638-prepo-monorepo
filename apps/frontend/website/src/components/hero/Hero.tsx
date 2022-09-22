@@ -30,8 +30,8 @@ export const Hero: FC = () => (
           any <NonBreakingText>pre-public</NonBreakingText> asset.
         </p>
         <div className="inherit">
-          <Button href="https://url.prepo.io/blog-presale-website" target="_blank">
-            Join Presale
+          <Button href="https://newsletter.prepo.io/" target="_blank">
+            Join Newsletter
           </Button>
         </div>
       </div>
