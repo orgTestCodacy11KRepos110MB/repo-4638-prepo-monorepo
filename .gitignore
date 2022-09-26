@@ -98,3 +98,6 @@ apps/subgraphs/boilerplate/src/types
 **/deployments/localhost
 ## Ignores .openzeppelin/unknown-31337.json across all the sub-folders
 **/.openzeppelin/unknown-31337.json
+## Ignore input and output folders for tasks
+**/tasks/input
+**/tasks/output

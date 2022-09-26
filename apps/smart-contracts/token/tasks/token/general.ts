@@ -4,10 +4,17 @@ import { ChainId, DEPLOYMENT_NAMES, getPrePOAddressForNetwork } from 'prepo-cons
 import { getNetworkByChainId } from 'prepo-utils'
 import { getAddress, parseEther } from 'ethers/lib/utils'
 import { BigNumber } from 'ethers'
-import { AdminClient } from 'defender-admin-client'
-import { AccountList, Vesting } from '../../types'
+import { utils } from 'prepo-hardhat'
+import { AccountList, ERC20, Vesting } from '../../types'
 import path from 'path'
-import { readFileSync } from 'fs'
+import { readFileSync, writeFileSync } from 'fs'
+
+const { getDefenderAdminClient } = utils
+
+function sleep(time): Promise<void> {
+  // eslint-disable-next-line no-promise-executor-return
+  return new Promise((resolve) => setTimeout(resolve, time))
+}
 
 function readAddressesFromFile(filePath: string): Set<string> {
   const addressSet = new Set<string>()
@@ -49,6 +56,78 @@ function removeStringsFromSet(toRemove: string[], set: Set<string>): Set<string>
   return set
 }
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+async function getERC20ApprovalEventsBetweenBlocks(
+  erc20: ERC20,
+  owner: string | null,
+  spender: string | null,
+  start: number | null
+): Promise<any> {
+  const filter = erc20.filters.Approval(owner, spender)
+  const results = await erc20.queryFilter(filter, start)
+  return results
+}
+
+task('check-if-included', 'ensure a list of addresses is already included')
+  .addParam('name', 'deployment name of AccountList', '', types.string)
+  .addParam(
+    'list',
+    'filepath to list of addresses that should already be included',
+    '',
+    types.string
+  )
+  .setAction(async (args, { ethers, getChainId }) => {
+    const currentChain = Number(await getChainId()) as ChainId
+    const currentNetwork = getNetworkByChainId(currentChain)
+    const governanceAddress = getPrePOAddressForNetwork(
+      'GOVERNANCE',
+      currentNetwork.name,
+      process.env.GOVERNANCE
+    )
+    console.log('Governance for the current network is at:', governanceAddress)
+    const fetchedAccountList = (await ethers.getContract(args.name)) as AccountList
+    console.log('Fetched', args.name, 'at', fetchedAccountList.address)
+    const accountsFromList = readAddressesFromFile(args.list)
+    const inclusionArray = Array.from(accountsFromList.keys())
+    console.log('Verifying', inclusionArray.length, 'addresses')
+    /* eslint-disable no-await-in-loop */
+    /**
+     * Because polling all requests in parallel will result in flooding the
+     * provider with too many requests, we must perform requests sequentially
+     * in a loop, which is against conventional eslint. However, we can chunk
+     * in groups of 50 to speed things up.
+     */
+    let chunkSize = 50
+    for (let i = 0; i < inclusionArray.length; i += chunkSize) {
+      console.log('Fetching', i, 'to', i + chunkSize)
+      if (i + chunkSize >= inclusionArray.length) {
+        chunkSize = inclusionArray.length - i
+      }
+      const arrayChunk = inclusionArray.slice(i, i + chunkSize)
+      for (let j = 1; j <= 3; j++) {
+        if (j !== 1) {
+          console.log('Attempt', j, 'fetch for', i, 'to', i + chunkSize)
+        }
+        try {
+          await Promise.all(
+            arrayChunk.map(async (account) => {
+              const isIncluded = await fetchedAccountList.isIncluded(account)
+              if (!isIncluded) {
+                console.log(account, 'is not included')
+              }
+              return account
+            })
+          )
+          break
+        } catch (err) {
+          console.log('Attempt failed, trying again...')
+          // Sleep for 2 seconds to ensure provider is not flooded
+          await sleep(2000)
+        }
+      }
+    }
+  })
+
 task('modify-account-list', 'modify AccountList')
   .addParam('name', 'deployment name of AccountList', '', types.string)
   .addOptionalParam('add', 'filepath to list of addresses to include', '', types.string)
@@ -64,10 +143,7 @@ task('modify-account-list', 'modify AccountList')
     console.log('Governance for the current network is at:', governanceAddress)
     const fetchedAccountList = (await ethers.getContract(args.name)) as AccountList
     console.log('Fetched', args.name, 'at', fetchedAccountList.address)
-    const defenderClient = new AdminClient({
-      apiKey: process.env.DEFENDER_API_KEY,
-      apiSecret: process.env.DEFENDER_API_SECRET,
-    })
+    const defenderClient = getDefenderAdminClient(currentChain)
     /**
      * For safety, add addresses after we remove them, in case we have an
      * unintentional duplicate in both.
@@ -89,10 +165,10 @@ task('modify-account-list', 'modify AccountList')
       )
       if (accountsToRemove.length >= 1) {
         /* eslint-disable @typescript-eslint/no-explicit-any */
-        defenderClient.createProposal({
+        await defenderClient.createProposal({
           contract: {
             address: fetchedAccountList.address,
-            network: currentNetwork.infuraEndpointName as any,
+            network: currentNetwork.defenderName as any,
           },
           title: `Remove addresses from ${args.name}`,
           description: `Removing ${accountsToRemove.length} addresses from AccountList at ${fetchedAccountList.address}`,
@@ -128,10 +204,10 @@ task('modify-account-list', 'modify AccountList')
         removeStringsFromSet(addressesAlreadyIncluded, setOfAccountsToInclude).keys()
       )
       if (accountsToInclude.length >= 1) {
-        defenderClient.createProposal({
+        await defenderClient.createProposal({
           contract: {
             address: fetchedAccountList.address,
-            network: currentNetwork.infuraEndpointName as any,
+            network: currentNetwork.defenderName as any,
           },
           title: `Include addresses for ${args.name}`,
           description: `Including ${accountsToInclude.length} addresses for AccountList at ${fetchedAccountList.address}`,
@@ -174,10 +250,7 @@ task('modify-vesting-allocation', 'modify Vesting allocations')
       accountsArray.push(account)
       amountsArray.push(amount)
     })
-    const defenderClient = new AdminClient({
-      apiKey: process.env.DEFENDER_API_KEY,
-      apiSecret: process.env.DEFENDER_API_SECRET,
-    })
+    const defenderClient = getDefenderAdminClient(currentChain)
     if (accountsArray.length !== amountsArray.length)
       throw new Error("Accounts and Amounts arrays don't match")
     /**
@@ -185,10 +258,10 @@ task('modify-vesting-allocation', 'modify Vesting allocations')
      * representations of values, can't directly pass in BN values.
      */
     const amountsArrayAsString = amountsArray.map((amount) => amount.toString())
-    defenderClient.createProposal({
+    await defenderClient.createProposal({
       contract: {
         address: vesting.address,
-        network: currentNetwork.infuraEndpointName as any,
+        network: currentNetwork.defenderName as any,
       },
       title: `Modifying vesting allocations`,
       description: `Modifying vesting allocations for ${accountsArray.length} addresses for Vesting at ${vesting.address}`,
@@ -205,4 +278,38 @@ task('modify-vesting-allocation', 'modify Vesting allocations')
       viaType: 'Gnosis Safe',
     })
     console.log('Set vesting allocations for', accountsArray.length, 'accounts')
+  })
+
+task(
+  'get-usdc-approvals',
+  'retrieves USDC approvals made to a MiniSales contract and dumps it to a CSV'
+)
+  .addParam('name', 'name of MiniSales contract to poll approvals for')
+  .addParam('output', '')
+  .addParam('from', 'start of block range to parse', 0, types.int)
+  .setAction(async (args, { ethers, getChainId }) => {
+    const currentChain = Number(await getChainId()) as ChainId
+    const currentNetwork = getNetworkByChainId(currentChain)
+    const usdcAddress = getPrePOAddressForNetwork('USDC', currentNetwork.name, process.env.USDC)
+    const erc20ContractFactory = await ethers.getContractFactory('ERC20')
+    const usdc = (await erc20ContractFactory.attach(usdcAddress)) as ERC20
+    const miniSales = await ethers.getContract(args.name)
+    const usdcApprovalEvents = await getERC20ApprovalEventsBetweenBlocks(
+      usdc,
+      null,
+      miniSales.address,
+      args.from
+    )
+    const addressSet = new Set<string>()
+    usdcApprovalEvents.forEach((approvalEvent) => {
+      addressSet.add(getAddress(approvalEvent.args.owner))
+    })
+    console.log(addressSet.size, 'accounts have already made their USDC approvals')
+    const usersThatApproved = Array.from(addressSet.keys())
+    const outputArray = []
+    usersThatApproved.forEach((account) => {
+      outputArray.push(account)
+      outputArray.push('\n')
+    })
+    writeFileSync(path.resolve(__dirname, args.output), outputArray.join(''))
   })

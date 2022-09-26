@@ -48,6 +48,7 @@ export type Network = {
   chainId: ChainId
   blockExplorer: string
   infuraEndpointName?: string
+  defenderName?: string
   rpcUrls: string[]
   faucet?: string
   gasPrice?: BigNumber
@@ -94,6 +95,7 @@ export const NETWORKS: Networks = {
     name: 'mainnet',
     color: '#ff8b9e',
     chainId: ChainId.Mainnet,
+    defenderName: 'mainnet',
     rpcUrls: [`https://mainnet.infura.io/v3/${INFURA_ID}`],
     blockExplorer: 'https://etherscan.io',
     iconName: 'weth',
@@ -117,6 +119,7 @@ export const NETWORKS: Networks = {
     name: 'rinkeby',
     color: '#e0d068',
     chainId: ChainId.Rinkeby,
+    defenderName: 'rinkeby',
     rpcUrls: [`https://rinkeby.infura.io/v3/${INFURA_ID}`],
     faucet: 'https://faucet.rinkeby.io',
     blockExplorer: 'https://rinkeby.etherscan.io',
@@ -141,6 +144,7 @@ export const NETWORKS: Networks = {
     name: 'goerli',
     color: '#0975F6',
     chainId: ChainId.Goerli,
+    defenderName: 'goerli',
     faucet: 'https://goerli-faucet.slock.it',
     blockExplorer: 'https://goerli.etherscan.io',
     iconName: 'weth',
@@ -167,6 +171,7 @@ export const NETWORKS: Networks = {
     color: '#2bbdf7',
     chainId: ChainId.Polygon,
     infuraEndpointName: 'polygon-mainnet',
+    defenderName: 'matic',
     rpcUrls: ['https://polygon-rpc.com', 'https://matic-mainnet.chainstacklabs.com'],
     faucet: 'https://faucet.matic.network',
     blockExplorer: 'https://polygonscan.com',
@@ -181,6 +186,7 @@ export const NETWORKS: Networks = {
     name: 'polygonMumbai',
     color: '#92D9FA',
     chainId: ChainId.PolygonMumbai,
+    defenderName: 'mumbai',
     rpcUrls: ['https://rpc-mumbai.maticvigil.com'],
     faucet: 'https://faucet.matic.network',
     blockExplorer: 'https://mumbai-explorer.matic.today',
@@ -218,6 +224,7 @@ export const NETWORKS: Networks = {
     color: '#2BA0EF',
     chainId: ChainId.ArbitrumOne,
     infuraEndpointName: 'arbitrum-mainnet',
+    defenderName: 'arbitrum',
     rpcUrls: ['https://arb1.arbitrum.io/rpc'],
     blockExplorer: 'https://arbiscan.io/',
     iconName: 'arbitrum',
@@ -231,6 +238,7 @@ export const NETWORKS: Networks = {
     color: '#2BA0EF',
     chainId: ChainId.ArbitrumTestnet,
     infuraEndpointName: 'arbitrum-rinkeby',
+    defenderName: 'arbitrum-rinkeby',
     rpcUrls: ['https://rinkeby.arbitrum.io/rpc'],
     blockExplorer: 'https://testnet.arbiscan.io/',
     iconName: 'arbitrum',
