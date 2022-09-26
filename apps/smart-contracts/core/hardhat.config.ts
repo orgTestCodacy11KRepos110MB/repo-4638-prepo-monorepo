@@ -21,6 +21,7 @@ dotenvConfig({ path: resolve(__dirname, './.env') })
 const hardhatLocalConfig = generateHardhatLocalConfig()
 const hardhatConfig = generateHardhatConfig(hardhatLocalConfig)
 
+// download any compiler version here https://etherscan.io/solcversions
 subtask<{ solcVersion: string }>(
   TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD,
   // eslint-disable-next-line require-await
