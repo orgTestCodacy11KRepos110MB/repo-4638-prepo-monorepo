@@ -387,8 +387,12 @@ export class MarketEntity
     return supportedMarketPools[this.long.poolAddress]?.[name]?.toLocaleLowerCase()
   }
 
-  get longTokenBalance(): number | undefined {
-    return this.longToken?.tokenBalance
+  get longTokenBalance(): string | undefined {
+    return this.longToken?.tokenBalanceFormat
+  }
+
+  get longTokenBalanceBN(): BigNumber | undefined {
+    return this.longToken?.tokenBalanceRaw
   }
 
   get longTokenPrice(): number | undefined {
@@ -426,8 +430,12 @@ export class MarketEntity
     return supportedMarketPools[this.short.poolAddress]?.[name]?.toLocaleLowerCase()
   }
 
-  get shortTokenBalance(): number | undefined {
-    return this.shortToken?.tokenBalance
+  get shortTokenBalance(): string | undefined {
+    return this.shortToken?.tokenBalanceFormat
+  }
+
+  get shortTokenBalanceBN(): BigNumber | undefined {
+    return this.shortToken?.tokenBalanceRaw
   }
 
   get shortTokenPrice(): number | undefined {

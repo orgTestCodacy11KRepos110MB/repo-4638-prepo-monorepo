@@ -18,13 +18,13 @@ describe('UnstakeStore tests', () => {
   })
 
   it('should update current unstaking value', () => {
-    const value = 1000
+    const value = '1000'
     rootStore.unstakeStore.setCurrentUnstakingValue(value)
     expect(rootStore.unstakeStore.currentUnstakingValue).toBe(value)
   })
 
   it('should set isCurrentUnstakingValueValid to false when currentUntakingValue is 0', () => {
-    const value = 0
+    const value = '0'
     rootStore.unstakeStore.setCurrentUnstakingValue(value)
     expect(rootStore.unstakeStore.isCurrentUnstakingValueValid).toBe(false)
   })

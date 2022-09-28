@@ -13,8 +13,9 @@ configure({ safeDescriptors: false })
 
 const { rootStore } = global
 const selectedMarket = new MarketEntity(rootStore, markets[0])
-const amountToTrade = 100
-const PRECT_BALANCE = 2000
+const amountToTrade = '100'
+const PRECT_BALANCE = '2000'
+const PRECT_DECIMALS = 18
 
 beforeAll(() => {
   selectedMarket.fetchPools()
@@ -22,11 +23,16 @@ beforeAll(() => {
 
 describe('TradeStore tests', () => {
   let spyPreCTTokenBalance: jest.SpyInstance
+  let spyPreCTDecimalsNumber: jest.SpyInstance
   let spyPreCTTokenBalanceRaw: jest.SpyInstance
   beforeAll(() => {
     spyPreCTTokenBalance = jest
-      .spyOn(rootStore.preCTTokenStore, 'tokenBalance', 'get')
+      .spyOn(rootStore.preCTTokenStore, 'tokenBalanceFormat', 'get')
       .mockReturnValue(PRECT_BALANCE)
+
+    spyPreCTDecimalsNumber = jest
+      .spyOn(rootStore.preCTTokenStore, 'decimalsNumber', 'get')
+      .mockReturnValue(PRECT_DECIMALS)
 
     const PRECT_BALANCE_BIGNUMBER = rootStore.preCTTokenStore.parseUnits(
       `${PRECT_BALANCE}`
@@ -40,6 +46,7 @@ describe('TradeStore tests', () => {
   afterAll(() => {
     spyPreCTTokenBalance.mockRestore()
     spyPreCTTokenBalanceRaw.mockRestore()
+    spyPreCTDecimalsNumber.mockRestore()
   })
 
   it('should initialize trade with long direction as default', () => {
@@ -59,12 +66,13 @@ describe('TradeStore tests', () => {
 
   it('should allow decimals input', () => {
     rootStore.tradeStore.setOpenTradeAmount('100.123')
-    expect(rootStore.tradeStore.openTradeAmount).toBe(100.123)
+    expect(rootStore.tradeStore.openTradeAmount).toBe('100.123')
   })
 
   it('should disable button if amount is larger than balance', () => {
-    rootStore.tradeStore.setOpenTradeAmount('3000.50')
-    expect(rootStore.tradeStore.openTradeAmount).toBe(3000.5)
+    const tradeAmount = '3000.50'
+    rootStore.tradeStore.setOpenTradeAmount(tradeAmount)
+    expect(rootStore.tradeStore.openTradeAmount).toBe(tradeAmount)
     expect(rootStore.tradeStore.tradeDisabled).toBe(true)
   })
 
@@ -111,7 +119,12 @@ describe('TradeStore tests', () => {
     })
 
     it('should call UniswapRouter exactOutput when closing a trade', () => {
-      rootStore.tradeStore.closeTrade(mockToken, amountToTrade, 200, selectedMarket)
+      rootStore.tradeStore.closeTrade(
+        mockToken,
+        BigNumber.from(amountToTrade),
+        BigNumber.from(200),
+        selectedMarket
+      )
       expect(rootStore.uniswapRouterStore.exactOutput).toHaveBeenCalledTimes(1)
     })
 

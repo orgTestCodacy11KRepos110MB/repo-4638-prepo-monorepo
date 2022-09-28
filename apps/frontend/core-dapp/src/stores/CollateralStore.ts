@@ -16,6 +16,7 @@ const { toUsd } = numberFormatter
 
 type Deposit = CollateralAbi['functions']['deposit']
 type GetAmountForShares = CollateralAbi['functions']['getAmountForShares']
+type GetFeeDenominator = CollateralAbi['functions']['getFeeDenominator']
 type GetSharesForAmount = CollateralAbi['functions']['getSharesForAmount']
 type GetMintingFee = CollateralAbi['functions']['getMintingFee']
 type GetRedemptionFee = CollateralAbi['functions']['getRedemptionFee']
@@ -68,6 +69,10 @@ export class CollateralStore extends Erc20Store {
     ...params: Parameters<GetAmountForShares>
   ): ContractReturn<GetAmountForShares> {
     return this.call<GetAmountForShares>('getAmountForShares', params)
+  }
+
+  getFeeDenominator(...params: Parameters<GetFeeDenominator>): ContractReturn<GetFeeDenominator> {
+    return this.call<GetFeeDenominator>('getFeeDenominator', params)
   }
 
   getSharesForAmount(
@@ -132,6 +137,12 @@ export class CollateralStore extends Erc20Store {
         this.withdrawing = false
       })
     }
+  }
+
+  get feeDenominator(): BigNumber | undefined {
+    const feeDenominatorRaw = this.getFeeDenominator()
+    if (feeDenominatorRaw === undefined) return undefined
+    return feeDenominatorRaw[0]
   }
 
   get sharesForAmount(): BigNumber | undefined {

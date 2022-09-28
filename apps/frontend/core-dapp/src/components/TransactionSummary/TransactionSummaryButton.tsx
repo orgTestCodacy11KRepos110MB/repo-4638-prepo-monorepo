@@ -21,10 +21,9 @@ const TransactionSummaryButton: React.FC<Props> = ({
 }) => {
   const { web3Store } = useRootStore()
   const { connected, isNetworkSupported, network } = web3Store
-  const emptyAmount = unlock && unlock.amount === 0
-  const amountBigNumber = unlock && unlock.token.parseUnits(`${unlock.amount}`)
-  const insufficientBalance =
-    unlock && amountBigNumber ? amountBigNumber.gt(unlock.token.tokenBalanceRaw || 0) : false
+  const emptyAmount = unlock && +unlock.amount === 0
+  const amountBN = unlock && unlock.token.parseUnits(unlock.amount)
+  const insufficientBalance = unlock && amountBN && amountBN.gt(unlock.token.tokenBalanceRaw || 0)
 
   const disableButton = useMemo(() => {
     // enable button for switching network if on wrong network

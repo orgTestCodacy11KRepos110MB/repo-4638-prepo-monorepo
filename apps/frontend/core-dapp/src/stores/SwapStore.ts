@@ -1,5 +1,5 @@
 import { makeError } from 'prepo-utils'
-import { parseEther } from 'ethers/lib/utils'
+import { BigNumber } from 'ethers'
 import { makeAutoObservable } from 'mobx'
 import { RootStore } from './RootStore'
 import { SLIPPAGE_MULTIPLIER } from '../lib/constants'
@@ -11,14 +11,14 @@ export enum TradeType {
 
 export type SwapExactInputParameters = {
   type: TradeType.EXACT_INPUT
-  fromAmount: number
-  toAmount?: number
+  fromAmount: BigNumber
+  toAmount: BigNumber
 }
 
 export type SwapExactOutputParameters = {
   type: TradeType.EXACT_OUTPUT
-  fromAmount?: number
-  toAmount: number
+  fromAmount: BigNumber
+  toAmount: BigNumber
 }
 
 export type SwapParameters = {
@@ -72,23 +72,19 @@ export class SwapStore {
     const { advancedSettingsStore, web3Store } = this.root
     const { slippage } = advancedSettingsStore
     const { address } = web3Store
-    if (address === undefined || (fromAmount === undefined && toAmount === undefined))
-      throw new Error('Invalid request.')
+    if (address === undefined) throw new Error('Invalid request.')
     try {
       const slippageMultiplied = getSlippage(slippage)
       const tokens = [fromTokenAddress, toTokenAddress]
       const path = encodePath(tokens, new Array(tokens.length - 1).fill(fee))
 
       if (type === TradeType.EXACT_INPUT) {
-        const amountIn = parseEther(`${fromAmount}`)
-        const amountOutMinimum = parseEther(`${toAmount ?? 0}`)
-          .mul(slippageMultiplied)
-          .div(SLIPPAGE_MULTIPLIER)
+        const amountOutMinimum = toAmount.mul(slippageMultiplied).div(SLIPPAGE_MULTIPLIER)
 
         const params = {
           path,
           recipient: address,
-          amountIn,
+          amountIn: fromAmount,
           amountOutMinimum,
         }
 
@@ -99,15 +95,12 @@ export class SwapStore {
       }
 
       // exactOutput
-      const amountOut = parseEther(`${toAmount}`)
-      const amountInMaximum = parseEther(`${fromAmount}`)
-        .div(slippageMultiplied)
-        .mul(SLIPPAGE_MULTIPLIER)
+      const amountInMaximum = fromAmount.mul(SLIPPAGE_MULTIPLIER).div(slippageMultiplied)
 
       const params = {
         path,
         recipient: address,
-        amountOut,
+        amountOut: toAmount,
         amountInMaximum,
       }
 

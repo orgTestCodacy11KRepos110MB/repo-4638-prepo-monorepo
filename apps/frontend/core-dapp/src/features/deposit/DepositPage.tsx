@@ -53,17 +53,17 @@ const Message = styled.div`
 
 const DepositPage: React.FC = () => {
   const {
-    depositStore: { depositAmount, depositMaxAmountString, setDepositAmount },
+    depositStore: { depositAmount, setDepositAmount },
     web3Store: { connected },
     preCTTokenStore,
-    baseTokenStore,
+    baseTokenStore: { balanceOfSigner, tokenBalanceFormat },
   } = useRootStore()
 
   useEffect(() => {
-    if (depositMaxAmountString) {
-      setDepositAmount(depositMaxAmountString)
+    if (tokenBalanceFormat) {
+      setDepositAmount(tokenBalanceFormat)
     }
-  }, [setDepositAmount, depositMaxAmountString])
+  }, [setDepositAmount, tokenBalanceFormat])
 
   return (
     <Wrapper>
@@ -71,10 +71,10 @@ const DepositPage: React.FC = () => {
       <FormItem>
         <TokenInput
           alignInput="right"
-          balance={depositMaxAmountString}
+          balance={tokenBalanceFormat}
           connected={connected}
           iconName="usdc"
-          max={depositMaxAmountString}
+          max={tokenBalanceFormat}
           onChange={setDepositAmount}
           showSlider
           symbol={USDC_SYMBOL}
@@ -87,7 +87,7 @@ const DepositPage: React.FC = () => {
       <FormItem>
         <DepositTransactionSummary />
       </FormItem>
-      {preCTTokenStore.balanceOfSigner?.eq(0) && baseTokenStore.balanceOfSigner?.eq(0) && (
+      {preCTTokenStore.balanceOfSigner?.eq(0) && balanceOfSigner?.eq(0) && (
         <FormItem>
           <AlertWrapper>
             <Alert

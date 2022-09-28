@@ -1,15 +1,15 @@
 import { CheckboxChangeEvent } from 'antd/lib/checkbox'
 import { BigNumber } from 'ethers'
 import { makeAutoObservable } from 'mobx'
+import { safeStringBN } from 'prepo-utils'
 import { TRANSACTION_SETTING } from '../../../lib/constants'
 import { RootStore } from '../../../stores/RootStore'
-import { validateNumber } from '../../../utils/number-utils'
 
 const FEE_MOCK = 7.5
 
 export class UnstakeStore {
   confirm = false
-  currentUnstakingValue = TRANSACTION_SETTING.DEFAULT_AMOUNT
+  currentUnstakingValue = `${TRANSACTION_SETTING.DEFAULT_AMOUNT}`
   fee = FEE_MOCK
 
   get isCurrentUnstakingValueValid(): boolean {
@@ -18,7 +18,9 @@ export class UnstakeStore {
     if (!stakedPPO) return false
     return (
       // TODO: parseEther with real SC
-      stakedPPO.gte(this.currentUnstakingValue) && this.currentUnstakingValue !== 0
+      stakedPPO.gte(this.currentUnstakingValue) &&
+      this.currentUnstakingValueBN !== undefined &&
+      this.currentUnstakingValueBN?.gt(0)
     )
   }
 
@@ -30,25 +32,39 @@ export class UnstakeStore {
     this.confirm = checked
   }
 
-  setCurrentUnstakingValue(value: number | string): void {
-    this.currentUnstakingValue = validateNumber(+value)
+  setCurrentUnstakingValue(value: string): void {
+    try {
+      if (value === '') {
+        this.currentUnstakingValue = ''
+        return
+      }
+      this.root.ppoTokenStore.parseUnits(safeStringBN(value))
+      this.currentUnstakingValue = value
+    } catch (error) {
+      // invalid input
+    }
   }
 
   startCooldown(): Promise<{
     success: boolean
     error?: string | undefined
   }> {
-    if (!this.valid) {
+    if (!this.valid || this.currentUnstakingValueBN === undefined) {
       return Promise.resolve({ success: false })
     }
-    return this.root.ppoStakingStore.startCooldown(this.currentUnstakingValue)
+    return this.root.ppoStakingStore.startCooldown(this.currentUnstakingValueBN)
+  }
+
+  get currentUnstakingValueBN(): BigNumber | undefined {
+    return this.root.ppoTokenStore.parseUnits(safeStringBN(this.currentUnstakingValue))
   }
 
   get valid(): boolean {
     const { balanceData } = this.root.ppoStakingStore
     return (
       balanceData !== undefined &&
-      this.currentUnstakingValue > 0 &&
+      this.currentUnstakingValueBN !== undefined &&
+      this.currentUnstakingValueBN.gt(0) &&
       BigNumber.from(balanceData.raw).gte(this.currentUnstakingValue)
     )
   }
@@ -59,9 +75,9 @@ export class UnstakeStore {
     success: boolean
     error?: string | undefined
   }> => {
-    if (!this.valid) {
+    if (!this.valid || this.currentUnstakingValueBN === undefined) {
       return Promise.resolve({ success: false })
     }
-    return this.root.ppoStakingStore.withdraw(this.currentUnstakingValue, immediate)
+    return this.root.ppoStakingStore.withdraw(this.currentUnstakingValueBN, immediate)
   }
 }

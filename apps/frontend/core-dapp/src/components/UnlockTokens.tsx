@@ -2,12 +2,12 @@ import { useCallback, useMemo } from 'react'
 import styled from 'styled-components'
 import { observer } from 'mobx-react-lite'
 import { spacingIncrement, Button, Icon, centered, ButtonProps } from 'prepo-ui'
-import { truncateAmountString } from 'prepo-utils'
+import { displayDecimals } from 'prepo-utils'
 import LoadingLottie from './lottie-animations/LoadingLottie'
 import { Erc20Store } from '../stores/entities/Erc20.entity'
 import { SupportedContractsNames } from '../lib/contract.types'
 
-type DynamicCopy = ((symbol: string, amount: number) => React.ReactNode) | React.ReactNode
+type DynamicCopy = ((symbol: string, amount: string) => React.ReactNode) | React.ReactNode
 type ContentType = 'deposit' | 'openTrade' | 'closeTrade'
 
 const contentMap: {
@@ -22,7 +22,7 @@ const contentMap: {
       <>
         prePO needs your permission in order to deposit{' '}
         <span>
-          {truncateAmountString(`${amount}`)} {symbol}
+          {displayDecimals(amount)} {symbol}
         </span>{' '}
         on your behalf.
       </>
@@ -42,7 +42,7 @@ const contentMap: {
 }
 
 export type UnlockOptions = {
-  amount: number
+  amount: string
   token: Erc20Store
   spenderContractName?: SupportedContractsNames
   contentType?: ContentType
@@ -132,7 +132,7 @@ const UnlockTokensModal: React.FC<UnlockOptions> = ({
         <>
           prePO needs your permission in order to move{' '}
           <span>
-            {truncateAmountString(`${amount}`)} {symbol}
+            {displayDecimals(amount)} {symbol}
           </span>{' '}
           on your behalf.
         </>

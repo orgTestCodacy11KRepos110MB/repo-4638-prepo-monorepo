@@ -120,7 +120,7 @@ export class PPOStakingStore extends Erc20Store {
     return MOCKED_CONFIG.fee
   }
 
-  async stake(amount: number): Promise<{ success: boolean; error?: string }> {
+  async stake(amount: BigNumber): Promise<{ success: boolean; error?: string }> {
     try {
       this.staking = true
       this.stakingHash = undefined
@@ -178,7 +178,7 @@ export class PPOStakingStore extends Erc20Store {
     }
   }
 
-  async startCooldown(amount: number): Promise<{ success: boolean; error?: string }> {
+  async startCooldown(amount: BigNumber): Promise<{ success: boolean; error?: string }> {
     try {
       this.startingCooldown = true
       this.startingCooldownHash = undefined
@@ -291,7 +291,7 @@ export class PPOStakingStore extends Erc20Store {
   }
 
   async withdraw(
-    amount: number,
+    amount: BigNumber,
     immediate: boolean
   ): Promise<{ success: boolean; error?: string }> {
     try {

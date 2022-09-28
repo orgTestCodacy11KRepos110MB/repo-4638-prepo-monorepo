@@ -141,7 +141,9 @@ const TransactionSummary: React.FC<Props> = ({
           <DefaultContent
             button={{
               children: defaultContentButtontext,
-              disabled: (unlock?.amount === 0 || disabled || buttonLoading) && isNetworkSupported,
+              disabled:
+                ((unlock && +unlock.amount === 0) || disabled || buttonLoading) &&
+                isNetworkSupported,
               loading: buttonLoading,
               onClick: isNetworkSupported
                 ? handleConfirm

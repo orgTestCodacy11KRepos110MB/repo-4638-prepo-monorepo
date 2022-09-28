@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { truncateAmountString, validateNumber } from 'prepo-utils'
+import { displayDecimals } from 'prepo-utils'
 import Skeleton from 'react-loading-skeleton'
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import styled from 'styled-components'
 import Icon from '../Icon'
 import { IconName } from '../Icon/icon.types'
@@ -12,7 +12,7 @@ import useResponsive from '../../hooks/useResponsive'
 
 type Props = {
   alignInput?: Alignment
-  balance?: number | string
+  balance?: string
   connected?: boolean
   disabled?: boolean
   disableClickBalance?: boolean
@@ -20,13 +20,13 @@ type Props = {
   hideInput?: boolean
   iconName?: IconName
   label?: string
-  onChange?: (value: number | string) => void
-  max?: number | string
+  onChange?: (value: string) => void
+  max?: string
   shadowSuffix?: string
   showSlider?: boolean
   symbol?: string
   usd?: boolean
-  value?: number
+  value?: string
   balanceLabel?: string
 }
 
@@ -78,7 +78,7 @@ const SliderWrapper = styled.div`
 
 const TokenInput: React.FC<Props> = ({
   alignInput,
-  balance,
+  balance = '0',
   connected,
   disabled,
   disableClickBalance,
@@ -86,8 +86,8 @@ const TokenInput: React.FC<Props> = ({
   hideInput,
   iconName,
   label = 'Amount',
+  max = '0',
   onChange,
-  max = 0,
   shadowSuffix,
   showSlider,
   symbol = '',
@@ -96,26 +96,21 @@ const TokenInput: React.FC<Props> = ({
   value,
 }) => {
   const { isDesktop } = useResponsive()
-  const [stringValue, setStringValue] = useState(`${value ?? ''}`)
   const canInteract = !disabled && connected
-  const defaultValue = connected && stringValue !== '' ? value ?? stringValue : ''
+  const defaultValue = connected ? value ?? '' : ''
   const size = isDesktop ? '40' : '31'
 
-  const handleClickBalance = useCallback(
-    (amount: number | string): void => {
-      if (!disableClickBalance) {
-        setStringValue(`${amount}`)
-        if (onChange) onChange(amount)
-      }
-    },
-    [disableClickBalance, onChange]
-  )
+  const handleClickBalance = useCallback((): void => {
+    if (!disableClickBalance) {
+      if (onChange) onChange(balance)
+    }
+  }, [balance, disableClickBalance, onChange])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    const { value: inputValue } = e.target
-    if (validateNumber(inputValue)) {
-      setStringValue(inputValue)
-      if (onChange) onChange(+inputValue)
+    try {
+      if (onChange) onChange(e.target.value)
+    } catch (error) {
+      // invalid input
     }
   }
 
@@ -130,8 +125,7 @@ const TokenInput: React.FC<Props> = ({
 
   const handleSliderChange = (e: SliderValue): void => {
     if (typeof e === 'number' && canInteract) {
-      setStringValue(`${e}`)
-      if (onChange) onChange(e)
+      if (onChange) onChange(`${e}`)
     }
   }
 
@@ -150,13 +144,13 @@ const TokenInput: React.FC<Props> = ({
       <BalanceText
         $clickable={canInteract && !disableClickBalance}
         onClick={(): void => {
-          if (canInteract) handleClickBalance(balance ?? 0)
+          if (canInteract) handleClickBalance()
         }}
       >
         {balanceLabel}:&nbsp;
         <SemiboldText>
           {usd && '$'}
-          {truncateAmountString(`${!connected ? 0 : balance}`)}&nbsp;
+          {displayDecimals(balance)}&nbsp;
           {!usd && symbol}
         </SemiboldText>
       </BalanceText>
@@ -208,7 +202,7 @@ const TokenInput: React.FC<Props> = ({
             min={0}
             max={+max}
             onChange={handleSliderChange}
-            step={0.01}
+            step={+max > 1 ? 0.01 : 0.00001}
             thickness="small"
             thumbStyles={['circle', 'circle']}
             trackColor="primary"

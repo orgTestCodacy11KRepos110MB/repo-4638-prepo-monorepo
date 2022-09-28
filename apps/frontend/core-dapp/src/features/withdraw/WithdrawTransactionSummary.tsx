@@ -14,7 +14,6 @@ const WithdrawTransactionSummary: React.FC = () => {
   const {
     donationPercentage,
     donationAmount,
-    withdrawalAmount,
     withdrawalDisabled,
     withdrawalFees,
     withdrawalReceivedAmount,
@@ -34,7 +33,7 @@ const WithdrawTransactionSummary: React.FC = () => {
     successCallback: Callback,
     failedCallback: Callback<string>
   ): Promise<void> => {
-    const { error } = await withdrawStore.withdraw(withdrawalAmount)
+    const { error } = await withdrawStore.withdraw()
     if (error) {
       failedCallback(error)
     } else {

@@ -1,9 +1,4 @@
-import {
-  numFormatter,
-  formatPercent,
-  validateNumber,
-  normalizeDecimalPrecision,
-} from '../number-utils'
+import { numFormatter, formatPercent, normalizeDecimalPrecision } from '../number-utils'
 
 describe('formatPercent tests', () => {
   it('should return undefined if the input is NaN', () => {
@@ -24,35 +19,6 @@ describe('formatPercent tests', () => {
   it('should return correct precision value', () => {
     const output = formatPercent('0.43244567', 2)
     expect(output).toBe('43.24')
-  })
-})
-
-describe('validateNumber tests', () => {
-  it('should return 0 when number is invalid', () => {
-    const output = validateNumber(-10)
-    expect(output).toBe(0)
-  })
-
-  it('should return the number back when it is a string', () => {
-    const output = validateNumber('10')
-    expect(output).toBe(10)
-  })
-
-  it('should return the number back when it is valid', () => {
-    const output = validateNumber(10)
-    expect(output).toBe(10)
-  })
-
-  it('should return zero with empty string', () => {
-    const output = validateNumber('')
-    expect(output).toBe(0)
-  })
-
-  it('should return zero with undefined', () => {
-    const output1 = validateNumber(undefined)
-    const output2 = validateNumber()
-    expect(output1).toBe(0)
-    expect(output2).toBe(0)
   })
 })
 

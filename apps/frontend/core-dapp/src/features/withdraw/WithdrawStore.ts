@@ -1,14 +1,12 @@
 import { BigNumber } from 'ethers'
 import { parseEther } from 'ethers/lib/utils'
 import { makeAutoObservable } from 'mobx'
-import { FEE_DENOMINATOR } from '../../lib/constants'
+import { validateStringToBN } from 'prepo-utils'
 import { RootStore } from '../../stores/RootStore'
-import { getContractCall, transformBigNumber } from '../../stores/utils/web3-store-utils'
-import { normalizeDecimalPrecision, validateNumber } from '../../utils/number-utils'
 
 export class WithdrawStore {
   donationPercentage: number
-  withdrawalAmount = 0
+  withdrawalAmount = ''
 
   constructor(public root: RootStore) {
     this.donationPercentage = 0
@@ -19,71 +17,74 @@ export class WithdrawStore {
     this.donationPercentage = percentage
   }
 
-  setWithdrawalAmount(amount: number | string): void {
-    this.withdrawalAmount = validateNumber(amount)
+  setWithdrawalAmount(amount: string): void {
+    if (validateStringToBN(amount, this.root.preCTTokenStore.decimalsNumber))
+      this.withdrawalAmount = amount
   }
 
   // eslint-disable-next-line require-await
-  async withdraw(amount: number): Promise<{
+  async withdraw(): Promise<{
     success: boolean
     error?: string | undefined
   }> {
     const { preCTTokenStore } = this.root
-    const amountToWithdraw = preCTTokenStore.parseUnits(`${amount}`)
-    return amountToWithdraw ? preCTTokenStore.withdraw(amountToWithdraw) : { success: false }
+    return this.withdrawalAmountBN !== undefined && this.withdrawalAmountBN.gt(0)
+      ? preCTTokenStore.withdraw(this.withdrawalAmountBN)
+      : { success: false }
+  }
+
+  get amountForSharesBN(): BigNumber | undefined {
+    if (this.sharesForAmountBN === undefined) return undefined
+    const amountForShares = this.root.preCTTokenStore.getAmountForShares(this.sharesForAmountBN)
+    return amountForShares?.[0]
   }
 
   get donationAmount(): number {
-    return (this.withdrawalAmount * this.donationPercentage) / 100
+    return (+this.withdrawalAmount * this.donationPercentage) / 100
+  }
+
+  get sharesForAmountBN(): BigNumber | undefined {
+    if (this.withdrawalAmountBN === undefined) return undefined
+    const sharesForAmount = this.root.preCTTokenStore.getSharesForAmount(this.withdrawalAmountBN)
+    return sharesForAmount?.[0]
+  }
+
+  get withdrawalAmountBN(): BigNumber | undefined {
+    return this.root.preCTTokenStore.parseUnits(this.withdrawalAmount)
   }
 
   get withdrawalDisabled(): boolean {
-    const { preCTTokenStore } = this.root
-    const withdrawalAmountBigNumber = preCTTokenStore.parseUnits(`${this.withdrawalAmount}`)
-    if (!this.withdrawalMaxAmount || !withdrawalAmountBigNumber || this.withdrawalAmount === 0)
-      return true
-
-    return withdrawalAmountBigNumber?.gt(this.withdrawalMaxAmount)
+    const { tokenBalanceRaw } = this.root.preCTTokenStore
+    return (
+      tokenBalanceRaw === undefined ||
+      !this.withdrawalAmountBN ||
+      this.withdrawalAmountBN.lte(0) ||
+      this.withdrawalAmountBN.gt(tokenBalanceRaw)
+    )
   }
 
   get withdrawalFees(): BigNumber {
-    const { redemptionFee } = this.root.preCTTokenStore
-    return parseEther(`${this.withdrawalAmount}`)
-      .mul(redemptionFee || 0)
-      .div(FEE_DENOMINATOR)
-  }
-
-  get withdrawalMaxAmount(): BigNumber | undefined {
-    const { tokenBalanceRaw } = this.root.preCTTokenStore
-    return tokenBalanceRaw
-  }
-
-  get withdrawalMaxAmountString(): string | undefined {
-    const { preCTTokenStore } = this.root
-    return this.withdrawalMaxAmount
-      ? normalizeDecimalPrecision(preCTTokenStore.formatUnits(this.withdrawalMaxAmount))
-      : undefined
+    const { redemptionFee, feeDenominator } = this.root.preCTTokenStore
+    if (this.withdrawalAmountBN === undefined || feeDenominator === undefined)
+      return BigNumber.from(0)
+    return this.withdrawalAmountBN.mul(redemptionFee || 0).div(feeDenominator)
   }
 
   get withdrawalReceivedAmount(): string | undefined {
     const { preCTTokenStore } = this.root
-    const { redemptionFee } = preCTTokenStore
-    const sharesForAmount = transformBigNumber(
-      preCTTokenStore.getSharesForAmount(parseEther(`${this.withdrawalAmount}`))
-    )
-    if (sharesForAmount === undefined || redemptionFee === undefined) return undefined
-    const amountForShares = getContractCall(
-      preCTTokenStore.getAmountForShares(parseEther(`${sharesForAmount}`))
-    )
-
-    if (amountForShares === undefined) return undefined
+    if (this.sharesForAmountBN === undefined || this.amountForSharesBN === undefined)
+      return undefined
     const donationAmountBigNumber = parseEther(`${this.donationAmount}`)
-    const amountBeforeFee = amountForShares.sub(donationAmountBigNumber)
+    const amountBeforeFee = this.amountForSharesBN.sub(donationAmountBigNumber)
     return preCTTokenStore.formatUnits(amountBeforeFee.sub(this.withdrawalFees))
   }
 
   get withdrawUILoading(): boolean {
     const { withdrawing } = this.root.preCTTokenStore
-    return withdrawing || this.withdrawalReceivedAmount === undefined
+    return (
+      withdrawing ||
+      this.withdrawalReceivedAmount === undefined ||
+      this.withdrawalAmountBN === undefined
+    )
   }
 }

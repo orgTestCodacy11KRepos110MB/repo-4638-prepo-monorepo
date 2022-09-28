@@ -1,5 +1,6 @@
 import { BigNumber, ethers } from 'ethers'
 import { makeAutoObservable, reaction, runInAction } from 'mobx'
+import { validateStringToBN } from 'prepo-utils'
 import QuoterABI from '../../../abi/uniswapV3Quoter.abi.json'
 import { UNISWAP_QUOTER_ADDRESS } from '../../lib/external-contracts'
 import { Erc20Store } from '../../stores/entities/Erc20.entity'
@@ -8,7 +9,6 @@ import { RootStore } from '../../stores/RootStore'
 import { TradeType } from '../../stores/SwapStore'
 import { debounce } from '../../utils/debounce'
 import { calculateValuation } from '../../utils/market-utils'
-import { normalizeDecimalPrecision } from '../../utils/number-utils'
 
 export type Direction = 'long' | 'short'
 
@@ -17,11 +17,10 @@ const DEFAULT_DIRECTION = 'long'
 export class TradeStore {
   closeTradeHash?: string
   direction: Direction = DEFAULT_DIRECTION
-  openTradeAmount = 0
-  openTradeAmountBigNumber = BigNumber.from(0)
+  openTradeAmount = ''
+  openTradeAmountOutBN?: BigNumber
   openTradeHash?: string
   selectedMarket?: MarketEntity
-  openTradeAmountOut?: number
 
   constructor(public root: RootStore) {
     makeAutoObservable(this, {}, { autoBind: true })
@@ -30,33 +29,31 @@ export class TradeStore {
 
   subscribeOpenTradeAmountOut(): void {
     reaction(
-      () => ({ selectedMarket: this.selectedMarket, openTradeAmount: this.openTradeAmount }),
-      async ({ openTradeAmount, selectedMarket }) => {
-        if (!selectedMarket) {
-          this.openTradeAmountOut = undefined
+      () => ({ selectedMarket: this.selectedMarket, openTradeAmountBN: this.openTradeAmountBN }),
+      async ({ openTradeAmountBN, selectedMarket }) => {
+        if (!selectedMarket || openTradeAmountBN === undefined) {
+          this.openTradeAmountOutBN = undefined
           return
         }
-        if (openTradeAmount === 0) {
-          this.openTradeAmountOut = 0
+        if (openTradeAmountBN.eq(0)) {
+          this.openTradeAmountOutBN = BigNumber.from(0)
           return
         }
 
-        this.openTradeAmountOut = undefined // clean up while new amountOut gets loaded
-        const openTradeAmountOut = await this.quoteExactInput(selectedMarket)
+        this.openTradeAmountOutBN = undefined // clean up while new amountOut gets loaded
+        const openTradeAmountOutBN = await this.quoteExactInput(selectedMarket)
         runInAction(() => {
-          this.openTradeAmountOut = openTradeAmountOut
+          this.openTradeAmountOutBN = openTradeAmountOutBN
         })
       }
     )
   }
 
   openTradeUILoading(selectedMarket: MarketEntity): boolean {
-    return selectedMarket[`${this.direction}TokenPrice`] === undefined
-  }
-
-  setOpenTradeAmountBigNumber(value: number): void {
-    const { preCTTokenStore } = this.root
-    this.openTradeAmountBigNumber = preCTTokenStore.parseUnits(`${value}`) ?? BigNumber.from(0)
+    return (
+      selectedMarket[`${this.direction}TokenPrice`] === undefined ||
+      this.openTradeAmountOutBN === undefined
+    )
   }
 
   setCloseTradeHash(hash?: string): void {
@@ -72,26 +69,41 @@ export class TradeStore {
     this.selectedMarket = market
   }
 
-  setOpenTradeAmount(amount: number | string): void {
-    this.openTradeAmount = +amount
-    this.setOpenTradeAmountBigNumber(+amount)
+  setOpenTradeAmount(amount: string): void {
+    if (validateStringToBN(amount, this.root.preCTTokenStore.decimalsNumber))
+      this.openTradeAmount = amount
   }
 
   setOpenTradeHash(hash?: string): void {
     this.openTradeHash = hash
   }
 
+  get openTradeAmountOut(): string | undefined {
+    if (!this.selectedMarket || this.openTradeAmountOutBN === undefined) return undefined
+    const token = this.selectedMarket[`${this.direction}Token`]
+    return token?.formatUnits(this.openTradeAmountOutBN)
+  }
+
+  get openTradeAmountBN(): BigNumber | undefined {
+    return this.root.preCTTokenStore.parseUnits(this.openTradeAmount)
+  }
+
   get valuation(): { raw?: number | undefined; afterSlippage?: number | undefined } {
-    if (!this.selectedMarket || this.openTradeAmountOut === undefined) return {}
+    if (
+      !this.selectedMarket ||
+      this.openTradeAmountOut === undefined ||
+      this.openTradeAmountOut === undefined
+    )
+      return {}
     const { payoutRange, valuationRange } = this.selectedMarket
     if (!valuationRange || !payoutRange) return {}
 
-    const price = this.openTradeAmount / this.openTradeAmountOut
+    const price = +this.openTradeAmount / +this.openTradeAmountOut
     const longTokenPrice = this.direction === 'long' ? price : 1 - price
 
     const { slippage } = this.root.advancedSettingsStore
-    const amountOutAfterSlippage = (this.openTradeAmountOut ?? 0) * (1 - slippage)
-    const priceAfterSlippage = this.openTradeAmount / amountOutAfterSlippage
+    const amountOutAfterSlippage = +this.openTradeAmountOut * (1 - slippage)
+    const priceAfterSlippage = +this.openTradeAmount / amountOutAfterSlippage
     const longTokenPriceAfterSlippage =
       this.direction === 'long' ? priceAfterSlippage : 1 - priceAfterSlippage
 
@@ -105,38 +117,39 @@ export class TradeStore {
     }
   }
 
-  quoteExactInput = debounce(async (selectedMarket: MarketEntity): Promise<number | undefined> => {
-    const selectedToken = selectedMarket[`${this.direction}Token`]
-    const pool = selectedMarket[`${this.direction}Pool`]
-    const state = pool?.poolState
-    const fee = pool?.poolImmutables?.fee
-    if (!fee || !selectedToken || !state || !this.openTradeAmount || !selectedToken.address) {
-      return undefined
-    }
-    const tokenAddressFrom = this.root.preCTTokenStore.uniswapToken.address
-    const tokenAddressTo = selectedToken.address
-    const quoterContract = new ethers.Contract(
-      UNISWAP_QUOTER_ADDRESS.mainnet ?? '', // all uniswap contracts has same address on all chains
-      QuoterABI,
-      this.root.web3Store.coreProvider
-    )
-
-    try {
-      const sqrtPriceLimitX96 = 0 // The price limit of the pool that cannot be exceeded by the swap
-      const result: BigNumber = await quoterContract.callStatic.quoteExactInputSingle(
-        tokenAddressFrom,
-        tokenAddressTo,
-        fee,
-        ethers.utils.parseEther(`${this.openTradeAmount}`),
-        sqrtPriceLimitX96
+  quoteExactInput = debounce(
+    async (selectedMarket: MarketEntity): Promise<BigNumber | undefined> => {
+      const selectedToken = selectedMarket[`${this.direction}Token`]
+      const pool = selectedMarket[`${this.direction}Pool`]
+      const state = pool?.poolState
+      const fee = pool?.poolImmutables?.fee
+      if (!fee || !selectedToken || !state || !this.openTradeAmount || !selectedToken.address) {
+        return undefined
+      }
+      const tokenAddressFrom = this.root.preCTTokenStore.uniswapToken.address
+      const tokenAddressTo = selectedToken.address
+      const quoterContract = new ethers.Contract(
+        UNISWAP_QUOTER_ADDRESS.mainnet ?? '', // all uniswap contracts has same address on all chains
+        QuoterABI,
+        this.root.web3Store.coreProvider
       )
-      const amountOut = +ethers.utils.formatEther(result)
-      return amountOut
-    } catch (e) {
-      this.root.toastStore.errorToast('Error calculating output amount', e)
-      return undefined
-    }
-  }, 400)
+
+      try {
+        const sqrtPriceLimitX96 = 0 // The price limit of the pool that cannot be exceeded by the swap
+        return await quoterContract.callStatic.quoteExactInputSingle(
+          tokenAddressFrom,
+          tokenAddressTo,
+          fee,
+          this.openTradeAmountBN,
+          sqrtPriceLimitX96
+        )
+      } catch (e) {
+        this.root.toastStore.errorToast('Error calculating output amount', e)
+        return undefined
+      }
+    },
+    400
+  )
 
   // eslint-disable-next-line require-await
   async openTrade(selectedMarket: MarketEntity): Promise<{ success: boolean; error?: string }> {
@@ -149,16 +162,17 @@ export class TradeStore {
       !selectedToken?.address ||
       price === undefined ||
       fee === undefined ||
-      this.openTradeAmountOut === undefined
+      this.openTradeAmountBN === undefined ||
+      this.openTradeAmountOutBN === undefined
     )
       return { success: false }
 
     this.setOpenTradeHash(undefined)
     return swap({
       fee,
-      fromAmount: this.openTradeAmount,
+      fromAmount: this.openTradeAmountBN,
       fromTokenAddress: uniswapToken.address,
-      toAmount: this.openTradeAmountOut,
+      toAmount: this.openTradeAmountOutBN,
       toTokenAddress: selectedToken.address,
       type: TradeType.EXACT_INPUT,
       onHash: (hash) => this.setOpenTradeHash(hash),
@@ -168,8 +182,8 @@ export class TradeStore {
   // eslint-disable-next-line require-await
   async closeTrade(
     token: Erc20Store,
-    amount: number,
-    tokensReceivable: number,
+    amount: BigNumber,
+    tokensReceivable: BigNumber,
     selectedMarket: MarketEntity
   ): Promise<{ success: boolean; error?: string }> {
     this.setCloseTradeHash(undefined)
@@ -193,21 +207,9 @@ export class TradeStore {
 
   get tradeDisabled(): boolean {
     const { preCTTokenStore } = this.root
-    const openTradeAmountBigNumber = preCTTokenStore.parseUnits(`${this.openTradeAmount}`)
-    return openTradeAmountBigNumber && this.tradeMaxAmount
-      ? openTradeAmountBigNumber.gt(this.tradeMaxAmount)
+    const { tokenBalanceRaw } = preCTTokenStore
+    return this.openTradeAmountBN && tokenBalanceRaw
+      ? this.openTradeAmountBN.gt(tokenBalanceRaw)
       : false
-  }
-
-  get tradeMaxAmount(): BigNumber | undefined {
-    const { tokenBalanceRaw } = this.root.preCTTokenStore
-    return tokenBalanceRaw
-  }
-
-  get tradeMaxAmountString(): string | undefined {
-    const { preCTTokenStore } = this.root
-    return this.tradeMaxAmount
-      ? normalizeDecimalPrecision(preCTTokenStore.formatUnits(this.tradeMaxAmount))
-      : undefined
   }
 }

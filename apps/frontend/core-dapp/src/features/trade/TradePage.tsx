@@ -102,15 +102,9 @@ const Wrapper: React.FC = ({ children }) => {
 const TradePage: React.FC<Props> = ({ markets, staticSelectedMarket }) => {
   const router = useRouter()
   const { tradeStore, web3Store, preCTTokenStore } = useRootStore()
-  const {
-    direction,
-    openTradeAmount,
-    openTradeAmountBigNumber,
-    setDirection,
-    setOpenTradeAmount,
-    tradeMaxAmountString,
-  } = tradeStore
-  const { balanceOfSigner } = preCTTokenStore
+  const { direction, openTradeAmount, openTradeAmountBN, setDirection, setOpenTradeAmount } =
+    tradeStore
+  const { balanceOfSigner, tokenBalanceFormat } = preCTTokenStore
   const {
     connected,
     network: { testNetwork = true },
@@ -126,7 +120,7 @@ const TradePage: React.FC<Props> = ({ markets, staticSelectedMarket }) => {
     router.push(url)
   }
 
-  if (selectedMarket === undefined) return null
+  if (selectedMarket === undefined || openTradeAmountBN === undefined) return null
 
   return (
     <Wrapper>
@@ -163,11 +157,11 @@ const TradePage: React.FC<Props> = ({ markets, staticSelectedMarket }) => {
       </FormItem>
       <FormItem>
         <TokenInput
-          balance={tradeMaxAmountString}
+          balance={tokenBalanceFormat}
           connected={connected}
           onChange={setOpenTradeAmount}
           showSlider
-          max={tradeMaxAmountString}
+          max={tokenBalanceFormat}
           usd
           value={openTradeAmount}
         />
@@ -178,7 +172,7 @@ const TradePage: React.FC<Props> = ({ markets, staticSelectedMarket }) => {
       <FormItem>
         <TradeTransactionSummary />
       </FormItem>
-      {(balanceOfSigner?.lt(openTradeAmountBigNumber) || balanceOfSigner?.eq(0)) && (
+      {(balanceOfSigner?.lt(openTradeAmountBN) || balanceOfSigner?.eq(0)) && (
         <FormItem>
           <AlertWrapper>
             <Alert

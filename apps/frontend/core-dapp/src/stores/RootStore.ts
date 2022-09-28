@@ -73,6 +73,7 @@ export class RootStore extends PRootStore<SupportedContracts> {
     this.swapStore = new SwapStore(this)
     this.localStorageStore = new LocalStorageStore(this, `prepo.${PROJECT_NAME}`, initLocalStorage)
     this.uiStore = new UiStore(this)
+    this.preCTTokenStore = new CollateralStore(this)
     this.depositStore = new DepositStore(this)
     this.withdrawStore = new WithdrawStore(this)
     this.marketStore = new MarketStore(this)
@@ -84,7 +85,6 @@ export class RootStore extends PRootStore<SupportedContracts> {
       symbolOverride: USDC_SYMBOL,
     })
     this.portfolioStore = new PortfolioStore(this)
-    this.preCTTokenStore = new CollateralStore(this)
     this.uniswapRouterStore = new UniswapRouterStore(this)
     this.filterStore = new FilterStore(this)
     this.currenciesStore = new CurrenciesStore(this)

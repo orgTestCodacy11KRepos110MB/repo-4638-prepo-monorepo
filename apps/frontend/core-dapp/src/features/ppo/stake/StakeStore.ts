@@ -1,10 +1,11 @@
+import { BigNumber } from 'ethers'
 import { makeAutoObservable, reaction, runInAction } from 'mobx'
+import { safeStringBN } from 'prepo-utils'
 import { TRANSACTION_SETTING } from '../../../lib/constants'
 import { RootStore } from '../../../stores/RootStore'
-import { validateNumber } from '../../../utils/number-utils'
 
 export class StakeStore {
-  currentStakingValue = TRANSACTION_SETTING.DEFAULT_AMOUNT
+  currentStakingValue = `${TRANSACTION_SETTING.DEFAULT_AMOUNT}`
   showDelegate = true
 
   constructor(private root: RootStore) {
@@ -17,13 +18,27 @@ export class StakeStore {
     // TODO: parseEther(`${this.currentStakingValue}`) when SC
     return (
       tokenBalanceRaw !== undefined &&
-      this.currentStakingValue > 0 &&
-      tokenBalanceRaw.gte(this.currentStakingValue)
+      this.currentStakingValueBN !== undefined &&
+      this.currentStakingValueBN.gt(0) &&
+      tokenBalanceRaw.gte(this.currentStakingValueBN)
     )
   }
 
-  setCurrentStakingValue(value?: number | string): void {
-    this.currentStakingValue = validateNumber(value)
+  get currentStakingValueBN(): BigNumber | undefined {
+    return this.root.ppoTokenStore.parseUnits(safeStringBN(this.currentStakingValue))
+  }
+
+  setCurrentStakingValue(value: string): void {
+    try {
+      if (value === '') {
+        this.currentStakingValue = ''
+        return
+      }
+      this.root.ppoTokenStore.parseUnits(safeStringBN(value))
+      this.currentStakingValue = value
+    } catch (error) {
+      // invalid input
+    }
   }
 
   onDelegateShowChange(show: boolean): void {
@@ -34,10 +49,10 @@ export class StakeStore {
     success: boolean
     error?: string | undefined
   }> {
-    if (!this.isCurrentStakingValueValid) {
+    if (!this.isCurrentStakingValueValid || this.currentStakingValueBN === undefined) {
       return Promise.resolve({ success: false })
     }
-    return this.root.ppoStakingStore.stake(this.currentStakingValue)
+    return this.root.ppoStakingStore.stake(this.currentStakingValueBN)
   }
 
   private subscribe(): void {

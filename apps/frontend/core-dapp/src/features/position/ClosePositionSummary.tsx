@@ -1,14 +1,17 @@
 import { Icon, spacingIncrement, TokenInput } from 'prepo-ui'
-import { truncateAmountString } from 'prepo-utils'
+import { BigNumber } from 'ethers'
+import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { observer } from 'mobx-react-lite'
 import { useState } from 'react'
 import styled from 'styled-components'
+import { safeStringBN, validateStringToBN } from 'prepo-utils'
 import TransactionSummary from '../../components/TransactionSummary'
 import { Position } from '../portfolio/PortfolioStore'
 import { useRootStore } from '../../context/RootStoreProvider'
 import Table, { RowData } from '../../components/Table'
 import { Callback } from '../../types/common.types'
 import AdvancedSettingsModal from '../../components/AdvancedSettingsModal'
+import { ERC20_UNITS } from '../../lib/constants'
 
 type Props = {
   position: Required<Position>
@@ -45,10 +48,11 @@ const ClosePositionSummary: React.FC<Props> = ({ position }) => {
   const { closeTrade, closeTradeHash, setCloseTradeHash } = tradeStore
   const { setSelectedPosition } = portfolioStore
   const { connected } = web3Store
-  const positionValue = +truncateAmountString(`${position.data.totalValue}`, { hideCommas: true })
-  const [amount, setAmount] = useState(positionValue)
-
-  const tokenAmount = amount / position.data.price
+  const [closeValue, setCloseValue] = useState(position.data.totalValue)
+  const closeValueBN = parseUnits(safeStringBN(closeValue), position.data.decimals)
+  const closeAmountBN = closeValueBN
+    .mul(BigNumber.from(10).pow(ERC20_UNITS))
+    .div(position.data.priceBN)
 
   const onClickSettings = (): void => setIsSettingsOpen(true)
 
@@ -65,7 +69,7 @@ const ClosePositionSummary: React.FC<Props> = ({ position }) => {
       data: { token },
     } = position
 
-    const { error } = await closeTrade(token, tokenAmount, amount, position.market)
+    const { error } = await closeTrade(token, closeAmountBN, closeValueBN, position.market)
 
     if (error) {
       failedCallback(error)
@@ -84,7 +88,7 @@ const ClosePositionSummary: React.FC<Props> = ({ position }) => {
     },
     {
       label: 'Position Value',
-      amount: positionValue,
+      amount: position.data.totalValue,
     },
   ]
 
@@ -98,7 +102,7 @@ const ClosePositionSummary: React.FC<Props> = ({ position }) => {
   ]
 
   if (isSettingsOpen) return <AdvancedSettingsModal />
-  const insufficentBalance = positionValue < amount
+  const insufficentBalance = closeValueBN.gt(position.data.totalValueBN)
   const buttonText = insufficentBalance ? 'Insufficent Position Value' : undefined
 
   return (
@@ -121,7 +125,7 @@ const ClosePositionSummary: React.FC<Props> = ({ position }) => {
       }
       transactionHash={closeTradeHash}
       unlock={{
-        amount: tokenAmount,
+        amount: formatUnits(closeAmountBN, position.data.decimals),
         contentType: 'closeTrade',
         token: position.data.token,
       }}
@@ -131,13 +135,13 @@ const ClosePositionSummary: React.FC<Props> = ({ position }) => {
         <TokenInput
           connected={connected}
           hideBalance
-          onChange={(value: string | number): void => {
-            setAmount(+value)
+          onChange={(value): void => {
+            if (validateStringToBN(value, position.data.decimals)) setCloseValue(value)
           }}
-          max={positionValue}
+          max={position.data.totalValue}
           showSlider
           usd
-          value={amount}
+          value={closeValue}
         />
       </FormItem>
       <Table percentagePrecision={2} data={pnlTableData} />

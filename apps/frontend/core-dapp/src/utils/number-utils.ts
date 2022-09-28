@@ -87,13 +87,6 @@ export const numFormatter = (
 export const balanceToNumber = (balanceOfSigner: BigNumber): number =>
   Number(formatUnits(balanceOfSigner.toString(), ERC20_UNITS))
 
-export const validateNumber = (value: number | string | undefined = 0): number => {
-  if (+value > 0) {
-    return +value
-  }
-  return 0
-}
-
 /**
  * Makes sure to avoid getting large string numbers like
  * 14.999999999999999999 when converting from BigNumber to string

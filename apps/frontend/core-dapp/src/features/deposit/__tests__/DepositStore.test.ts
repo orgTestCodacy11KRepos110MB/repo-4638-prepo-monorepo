@@ -10,7 +10,7 @@ configure({ safeDescriptors: false })
 
 const { rootStore } = global
 const selectedMarket = new MarketEntity(rootStore, markets[0])
-const amountToDeposit = 1000
+const amountToDeposit = '1000.0'
 const USDC_BALANCE = 2000
 
 beforeAll(() => {
@@ -43,12 +43,12 @@ describe('DepositStore tests', () => {
   })
 
   it('should disable button if amount is larger than balance', () => {
-    rootStore.depositStore.setDepositAmount(10000)
+    rootStore.depositStore.setDepositAmount('10000')
     expect(rootStore.depositStore.depositDisabled).toBe(true)
   })
 
   it('should not disable button if amount is smaller than balance', () => {
-    rootStore.depositStore.setDepositAmount(100)
+    rootStore.depositStore.setDepositAmount('100')
     expect(rootStore.depositStore.depositDisabled).toBe(false)
   })
 
@@ -57,9 +57,10 @@ describe('DepositStore tests', () => {
     let spyDeposit: jest.SpyInstance
 
     beforeEach(() => {
+      rootStore.depositStore.setDepositAmount(amountToDeposit)
       spyDeposit = jest.spyOn(rootStore.preCTTokenStore, 'deposit')
       spyDeposit.mockImplementation(mock)
-      rootStore.depositStore.deposit(amountToDeposit)
+      rootStore.depositStore.deposit()
     })
 
     afterEach(() => {
@@ -72,7 +73,7 @@ describe('DepositStore tests', () => {
 
     it('should match same amount to deposit to the one sent to the collateral contract', () => {
       const depositParameters = spyDeposit.mock.calls[0][0]
-      expect(Number(utils.formatUnits(depositParameters, ERC20_UNITS))).toBe(amountToDeposit)
+      expect(utils.formatUnits(depositParameters, ERC20_UNITS)).toBe(amountToDeposit)
     })
   })
 })

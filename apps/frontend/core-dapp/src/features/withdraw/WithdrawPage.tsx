@@ -30,9 +30,10 @@ const FormItem = styled.div`
 `
 
 const WithdrawPage: React.FC = () => {
-  const { web3Store, withdrawStore } = useRootStore()
+  const { web3Store, preCTTokenStore, withdrawStore } = useRootStore()
+  const { tokenBalanceFormat } = preCTTokenStore
   const { connected } = web3Store
-  const { setWithdrawalAmount, withdrawalMaxAmountString, withdrawalAmount } = withdrawStore
+  const { setWithdrawalAmount, withdrawalAmount } = withdrawStore
 
   return (
     <Wrapper>
@@ -40,10 +41,10 @@ const WithdrawPage: React.FC = () => {
       <FormItem>
         <TokenInput
           alignInput="right"
-          balance={withdrawalMaxAmountString}
+          balance={tokenBalanceFormat}
           connected={connected}
           disableClickBalance
-          max={withdrawalMaxAmountString}
+          max={tokenBalanceFormat}
           onChange={setWithdrawalAmount}
           shadowSuffix=""
           symbol="USD"

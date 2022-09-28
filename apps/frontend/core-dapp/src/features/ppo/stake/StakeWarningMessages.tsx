@@ -1,5 +1,6 @@
 import { differenceInMinutes } from 'date-fns'
 import { Icon } from 'prepo-ui'
+import { displayDecimals } from 'prepo-utils'
 import styled from 'styled-components'
 import useResponsive from '../../../hooks/useResponsive'
 
@@ -71,12 +72,13 @@ export const DuringUnstaking: React.FC = () => (
   </span>
 )
 
-export const UnstakeRequest: React.FC<{ unstakePpo: number; fee: number }> = ({
+export const UnstakeRequest: React.FC<{ unstakePpo: string; fee: number }> = ({
   unstakePpo,
   fee,
 }) => (
   <span>
-    You requested to unstake <WarningText>{unstakePpo} PPO</WarningText>, subject to an&nbsp;
+    You requested to unstake <WarningText>{displayDecimals(unstakePpo)} PPO</WarningText>, subject
+    to an&nbsp;
     <WarningText>unstaking fee of {fee}%.</WarningText>
   </span>
 )

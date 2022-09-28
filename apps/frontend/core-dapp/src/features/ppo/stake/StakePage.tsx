@@ -66,7 +66,7 @@ const StyledCheckbox = styled(Checkbox)`
 
 const StakePage: React.FC = () => {
   const {
-    ppoTokenStore: { tokenBalance },
+    ppoTokenStore: { tokenBalanceFormat },
     unstakeStore: { confirm, setConfirm, currentUnstakingValue, setCurrentUnstakingValue },
     ppoStakingStore: {
       balanceData,
@@ -87,7 +87,7 @@ const StakePage: React.FC = () => {
     ? BigNumber.from(balanceData.cooldownUnits).toNumber()
     : undefined
   const stakedPPO = balanceData?.raw ? BigNumber.from(balanceData.raw).toNumber() : undefined
-  const unitsToUse = isWithdrawWindowActive ? cooldownUnits : stakedPPO
+  const unitsToUse = `${isWithdrawWindowActive ? cooldownUnits : stakedPPO}`
 
   const unstakedMessages: MessageType[] = []
   if (isCooldownActive) {
@@ -107,7 +107,7 @@ const StakePage: React.FC = () => {
     unstakedMessages.push({
       type: 'warning',
       key: 'UnstakingPartially',
-      message: <UnstakingPartially unstakePpo={(currentUnstakingValue * fee) / 100} />,
+      message: <UnstakingPartially unstakePpo={(+currentUnstakingValue * fee) / 100} />,
     })
     unstakedMessages.push({ type: 'warning', key: 'UnstakingPeriod', message: <UnstakingPeriod /> })
     unstakedMessages.push({
@@ -136,10 +136,10 @@ const StakePage: React.FC = () => {
         <>
           <TokenInput
             alignInput="right"
-            balance={tokenBalance}
+            balance={tokenBalanceFormat}
             connected={connected}
             iconName="ppo-logo"
-            max={tokenBalance}
+            max={tokenBalanceFormat}
             onChange={setCurrentStakingValue}
             showSlider
             symbol="PPO"

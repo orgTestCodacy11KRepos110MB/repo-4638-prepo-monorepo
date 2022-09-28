@@ -21,7 +21,7 @@ type Props = {
     exitValuation: number,
     initialInvestment: number
   ) => ExitProfitLoss | undefined
-  openTradeAmount: number
+  openTradeAmount: string
 }
 
 const Wrapper = styled.div`
@@ -93,7 +93,7 @@ const EstimateProfitLoss: React.FC<Props> = ({
   const message = useMemo(() => {
     const exit = lineSliderValue[1]
 
-    const exitProfitLoss = getProfitLossOnExit(direction, exit, openTradeAmount)
+    const exitProfitLoss = getProfitLossOnExit(direction, exit, +openTradeAmount)
     const dynamicProfitLossMessage = trackColor === 'success' ? 'profit' : 'loss'
 
     if (!exitProfitLoss?.expectedProfitLoss || !exitProfitLoss?.expectedProfitLossPercentage)

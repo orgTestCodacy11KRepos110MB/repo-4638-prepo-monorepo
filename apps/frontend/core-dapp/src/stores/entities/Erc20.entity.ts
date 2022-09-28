@@ -1,12 +1,13 @@
 import { makeObservable, observable, runInAction, computed, action } from 'mobx'
 import { BigNumber, utils } from 'ethers'
-import { parseEther } from 'ethers/lib/utils'
+import { parseUnits } from 'ethers/lib/utils'
 import { UNLIMITED_AMOUNT_APPROVAL } from 'prepo-constants'
+import { displayDecimals, safeStringBN } from 'prepo-utils'
 import { ContractReturn, ContractStore, Factory } from 'prepo-stores'
 import { RootStore } from '../RootStore'
 import { SupportedContracts, SupportedContractsNames } from '../../lib/contract.types'
 import { Erc20Abi, Erc20Abi__factory } from '../../../generated/typechain'
-import { balanceToNumber, normalizeDecimalPrecision } from '../../utils/number-utils'
+import { balanceToNumber } from '../../utils/number-utils'
 import { supportedContracts } from '../../lib/supported-contracts'
 
 type TokenSymbol = Erc20Abi['functions']['symbol']
@@ -138,7 +139,7 @@ export class Erc20Store extends ContractStore<RootStore, SupportedContracts> {
   }
 
   async unlockThisTimeOnly(
-    amount: number,
+    amount: string,
     spenderContractName: SupportedContractsNames = 'UNISWAP_SWAP_ROUTER',
     notification: string | undefined = undefined
   ): Promise<void> {
@@ -151,13 +152,14 @@ export class Erc20Store extends ContractStore<RootStore, SupportedContracts> {
       )
       return
     }
+    if (this.decimalsNumber === undefined) return
     const approved = await this.approve(
       contractAddresses[this.root.web3Store.network.name] ?? '',
-      parseEther(`${amount}`)
+      parseUnits(safeStringBN(amount), this.decimalsNumber)
     )
     if (approved) {
       this.root.toastStore.successToast(
-        notification ?? `Approved ${amount} ${this.symbolOverride}.`
+        notification ?? `Approved ${displayDecimals(amount)} ${this.symbolOverride}.`
       )
     }
   }
@@ -172,8 +174,6 @@ export class Erc20Store extends ContractStore<RootStore, SupportedContracts> {
   }
 
   get decimalsNumber(): number | undefined {
-    const { address } = this.root.web3Store.signerState
-    if (!address) return undefined
     const decimalsRes = this.decimals()
     if (decimalsRes === undefined) return undefined
     const [decimals] = decimalsRes
@@ -214,16 +214,10 @@ export class Erc20Store extends ContractStore<RootStore, SupportedContracts> {
    * @returns string
    */
   get tokenBalanceFormat(): string | undefined {
-    return this.tokenBalanceRaw && this.formatUnits(this.tokenBalanceRaw)
-      ? normalizeDecimalPrecision(this.formatUnits(this.tokenBalanceRaw))
-      : undefined
+    return this.tokenBalanceRaw ? this.formatUnits(this.tokenBalanceRaw) : undefined
   }
 
-  needsToAllowTokens(
-    address: string | undefined,
-    amount: BigNumber | undefined
-  ): boolean | undefined {
-    if (!amount) return undefined
+  needsToAllowTokens(address: string | undefined, amount: BigNumber): boolean | undefined {
     if (!address) return undefined
     const allowance = this.signerAllowance(address)
     if (allowance === undefined || amount === undefined) return undefined
@@ -231,14 +225,14 @@ export class Erc20Store extends ContractStore<RootStore, SupportedContracts> {
   }
 
   needToAllowFor(
-    amount: number | undefined,
+    amount: string,
     spenderContractName: SupportedContractsNames = 'UNISWAP_SWAP_ROUTER'
   ): boolean | undefined {
     const contractAddresses = supportedContracts[spenderContractName]
-    if (!contractAddresses) return undefined
+    if (!contractAddresses || this.decimalsNumber === undefined) return undefined
     return this.needsToAllowTokens(
       contractAddresses[this.root.web3Store.network.name],
-      parseEther(`${amount}`)
+      parseUnits(safeStringBN(amount), this.decimalsNumber)
     )
   }
 
@@ -260,16 +254,12 @@ export class Erc20Store extends ContractStore<RootStore, SupportedContracts> {
   }
 
   formatUnits(value: BigNumber): string | undefined {
-    const decimalsCall = this.decimals()
-    if (decimalsCall === undefined) return undefined
-    const [decimals] = decimalsCall
-    return utils.formatUnits(value.toString(), decimals)
+    if (this.decimalsNumber === undefined) return undefined
+    return utils.formatUnits(value.toString(), this.decimalsNumber)
   }
 
   parseUnits(value: string): BigNumber | undefined {
-    const decimalsCall = this.decimals()
-    if (decimalsCall === undefined) return undefined
-    const [decimals] = decimalsCall
-    return utils.parseUnits(value, decimals)
+    if (this.decimalsNumber === undefined) return undefined
+    return utils.parseUnits(safeStringBN(value), this.decimalsNumber)
   }
 }

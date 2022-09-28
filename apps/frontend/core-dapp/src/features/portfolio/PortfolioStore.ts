@@ -1,5 +1,7 @@
+import { BigNumber } from 'ethers'
+import { parseUnits } from 'ethers/lib/utils'
 import { action, makeAutoObservable } from 'mobx'
-import { DECIMAL_LIMIT } from '../../lib/constants'
+import { ERC20_UNITS } from '../../lib/constants'
 import { Erc20Store } from '../../stores/entities/Erc20.entity'
 import { MarketEntity } from '../../stores/entities/MarketEntity'
 import { RootStore } from '../../stores/RootStore'
@@ -16,15 +18,16 @@ export type Position = {
   data?: {
     costBasis?: number
     price: number
+    priceBN: BigNumber
     pnl?: number
     percentage?: number
     token: Erc20Store
-    tokenBalance: number
-    totalValue: number
+    tokenBalance: string
+    totalValue: string
+    totalValueBN: BigNumber
+    decimals: number
   }
 }
-
-const normalizeTotalValue = (value: number): number => (value < DECIMAL_LIMIT ? 0 : value)
 
 export class PortfolioStore {
   selectedPosition?: Required<Position>
@@ -42,18 +45,25 @@ export class PortfolioStore {
   hasPosition(market: MarketEntity, direction: Direction): Position | undefined {
     const token = market[`${direction}Token`]
     const tokenBalance = market[`${direction}TokenBalance`]
-    const tokenPrice = market[`${direction}TokenPrice`]
+    const tokenBalanceBN = market[`${direction}TokenBalanceBN`]
+    const price = market[`${direction}TokenPrice`]
     const defaultValue = { market, position: direction }
 
-    const loading = !token || tokenBalance === undefined || tokenPrice === undefined
+    const loading =
+      !token ||
+      token.decimalsNumber === undefined ||
+      tokenBalance === undefined ||
+      tokenBalanceBN === undefined ||
+      price === undefined
     if (loading) return defaultValue
 
-    const noPosition = tokenBalance === 0
+    const noPosition = tokenBalanceBN.lte(BigNumber.from(10))
     if (noPosition) return undefined
 
-    const totalValue = tokenBalance * tokenPrice
-    const normalizedTotalValue = normalizeTotalValue(totalValue)
-    if (normalizedTotalValue === 0) return undefined
+    const priceBN = parseUnits(`${price}`, ERC20_UNITS)
+    const totalValueBN = tokenBalanceBN.mul(priceBN).div(BigNumber.from(10).pow(ERC20_UNITS))
+    const totalValue = token.formatUnits(totalValueBN)
+    if (totalValueBN.eq(0) || totalValue === undefined) return undefined
 
     let costBasis
     let pnl
@@ -64,8 +74,9 @@ export class PortfolioStore {
       )
       if (foundPosition) {
         costBasis = foundPosition.costBasis
-        pnl = +normalizeDecimalPrecision(`${tokenBalance * (tokenPrice - costBasis)}`)
-        const capital = totalValue - pnl
+        // pnl is just an estimation so it doesn't require BigNumber level accuracy
+        pnl = +tokenBalance * (price - costBasis)
+        const capital = +totalValue - pnl
         if (pnl > 0) percentage = pnl / capital
       }
     }
@@ -75,10 +86,13 @@ export class PortfolioStore {
         costBasis,
         pnl,
         percentage,
-        price: tokenPrice,
+        price,
+        priceBN,
         token,
         tokenBalance,
-        totalValue: normalizedTotalValue,
+        totalValue,
+        totalValueBN,
+        decimals: token.decimalsNumber,
       },
       ...defaultValue,
     }
