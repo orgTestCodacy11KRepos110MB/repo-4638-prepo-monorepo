@@ -12,7 +12,7 @@ const StyledText = styled(Typography)`
 const TokenSaleWhitelistBanner: React.FC = () => (
   <StyledText as="p" variant="text-regular-base" background="primary" color="white" py={6}>
     <Trans>
-      Join the{' '}
+      Fill out{' '}
       <span>
         <a
           style={{ textDecoration: 'underline', whiteSpace: 'nowrap' }}
@@ -20,7 +20,7 @@ const TokenSaleWhitelistBanner: React.FC = () => (
           href={PREPO_TESTNET_FORM}
           rel="noreferrer"
         >
-          $PPO Token Sale Whitelist
+          this form
         </a>
       </span>{' '}
       for testnet funds.
