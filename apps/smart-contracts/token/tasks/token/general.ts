@@ -2,7 +2,7 @@
 import { task, types } from 'hardhat/config'
 import { ChainId, DEPLOYMENT_NAMES, getPrePOAddressForNetwork } from 'prepo-constants'
 import { getNetworkByChainId } from 'prepo-utils'
-import { getAddress, parseEther } from 'ethers/lib/utils'
+import { commify, formatUnits, getAddress, parseEther } from 'ethers/lib/utils'
 import { BigNumber } from 'ethers'
 import { utils } from 'prepo-hardhat'
 import { AccountList, ERC20, Vesting } from '../../types'
@@ -312,4 +312,30 @@ task(
       outputArray.push('\n')
     })
     writeFileSync(path.resolve(__dirname, args.output), outputArray.join(''))
+  })
+
+task('monitor-minisales-balance', 'monitor PPO and USDC balance for a MiniSales contract')
+  .addParam('name', 'name of MiniSales contract to poll approvals for')
+  .setAction(async (args, { ethers, getChainId }) => {
+    const currentChain = Number(await getChainId()) as ChainId
+    const currentNetwork = getNetworkByChainId(currentChain)
+    const usdcAddress = getPrePOAddressForNetwork('USDC', currentNetwork.name, process.env.USDC)
+    const erc20ContractFactory = await ethers.getContractFactory('ERC20')
+    const usdc = (await erc20ContractFactory.attach(usdcAddress)) as ERC20
+    const ppo = await ethers.getContract(DEPLOYMENT_NAMES.ppo.name)
+    const miniSales = await ethers.getContract(args.name)
+    console.log('Fetched', args.name, 'at', miniSales.address)
+    const ppoSupply = parseEther('100000000')
+    while (true) {
+      console.log(
+        'MiniSales PPO Sold:',
+        commify(formatUnits(ppoSupply.sub(await ppo.balanceOf(miniSales.address)), 18))
+      )
+      console.log(
+        'MiniSales USDC Balance:',
+        commify(formatUnits(await usdc.balanceOf(miniSales.address), 6))
+      )
+      console.log('\n')
+      await sleep(1000)
+    }
   })
