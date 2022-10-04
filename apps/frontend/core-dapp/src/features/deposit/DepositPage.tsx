@@ -44,8 +44,6 @@ const Message = styled.div`
     &:hover {
       color: ${({ theme }): string => theme.color.darkPrimary};
     }
-
-    font-style: italic;
     text-decoration: underline;
     white-space: nowrap;
   }
@@ -93,10 +91,11 @@ const DepositPage: React.FC = () => {
             <Alert
               message={
                 <Message>
-                  Get FAKEUSD by joining the{' '}
+                  Get FAKEUSD by filling out{' '}
                   <a target="_blank" href={PREPO_TESTNET_FORM} rel="noreferrer">
-                    $PPO Token Sale Whitelist
+                    this form
                   </a>
+                  .
                 </Message>
               }
               type="warning"
