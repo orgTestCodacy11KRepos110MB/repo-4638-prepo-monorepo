@@ -1,5 +1,6 @@
 import { Box, Grid, Flex, Icon, spacingIncrement, media } from 'prepo-ui'
 import styled from 'styled-components'
+import { Trans } from '@lingui/macro'
 import { PpoHistoryItem } from './ppo-history.types'
 import PpoHistoryEvent from './PpoHistoryEvent'
 import { getFullLiteralDateTimeFromSeconds } from '../../../utils/date-utils'
@@ -67,7 +68,9 @@ const PpoHistoryItemDesktop: React.FC<{ item: PpoHistoryItem }> = ({ item }) => 
         </Flex>
       </Box>
       <Flex flexDirection="column" py={35} alignItems="flex-start">
-        <Subtitle>Transaction Date</Subtitle>
+        <Subtitle>
+          <Trans>Transaction Date</Trans>
+        </Subtitle>
         <Timestamp>{getFullLiteralDateTimeFromSeconds(item.timestamp)}</Timestamp>
       </Flex>
       <PpoHistoryEvent event={item.type} />

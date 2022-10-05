@@ -1,5 +1,6 @@
 import { Icon, media, spacingIncrement } from 'prepo-ui'
 import styled from 'styled-components'
+import { Trans } from '@lingui/macro'
 import { Label, Value } from './FromPower'
 import useResponsive from '../../../hooks/useResponsive'
 import { numberFormatter } from '../../../utils/numberFormatter'
@@ -30,11 +31,15 @@ const FromDelegators: React.FC<Props> = ({ connected, power = 0, delegatorsCount
     <Wrapper>
       <div>
         <Label>
-          From Delegators
+          <Trans>From Delegators</Trans>
           {/* TODO: add tooltip text */}
           {false && <Icon name="info" color="neutral5" width={size} height={size} />}
         </Label>
-        {connected && <SubLabel>{delegatorsCount} Delegators</SubLabel>}
+        {connected && (
+          <SubLabel>
+            {delegatorsCount} <Trans>Delegators</Trans>
+          </SubLabel>
+        )}
       </div>
       <Value>{connected ? significantDigits(power) : '-'}</Value>
     </Wrapper>

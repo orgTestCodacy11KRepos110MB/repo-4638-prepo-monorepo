@@ -3,6 +3,7 @@ import styled from 'styled-components'
 import { observer } from 'mobx-react-lite'
 import { CSVLink } from 'react-csv'
 import { useEffect } from 'react'
+import { Trans } from '@lingui/macro'
 import { filterTypes } from './ppo-history.types'
 import { useRootStore } from '../../../context/RootStoreProvider'
 import FilterModal from '../../../components/Filter'
@@ -44,14 +45,14 @@ const PpoHistoryActionBar: React.FC = () => {
       <StyledButton disabled={dataForExport.length === 0}>
         <CSVLink data={dataForExport} filename="ppo_history_data">
           <Typography variant="text-medium-md" color="neutral1">
-            Export CSV
+            <Trans>Export CSV</Trans>
           </Typography>
         </CSVLink>
       </StyledButton>
 
       <StyledButton onClick={(): void => setIsFilterOpen(true)}>
         <Typography variant="text-medium-md" color="neutral1">
-          Filter
+          <Trans>Filter</Trans>
         </Typography>
       </StyledButton>
     </Flex>

@@ -1,3 +1,4 @@
+import { Trans } from '@lingui/macro'
 import { spacingIncrement, media, Button, ButtonColors } from 'prepo-ui'
 import styled from 'styled-components'
 import { lightPurpleButtonStyles } from '../ppo-button-styles'
@@ -37,7 +38,7 @@ const StakeUnstakeNavigationButtons: React.FC<{
       type={isStake ? 'primary' : undefined}
       onClick={(): void => onTabChange('stake')}
     >
-      Stake
+      <Trans>Stake</Trans>
     </Button>
     <Button
       block
@@ -45,7 +46,7 @@ const StakeUnstakeNavigationButtons: React.FC<{
       type={!isStake ? 'primary' : undefined}
       onClick={(): void => onTabChange('unstake')}
     >
-      Unstake
+      <Trans>Unstake</Trans>
     </Button>
   </Wrapper>
 )

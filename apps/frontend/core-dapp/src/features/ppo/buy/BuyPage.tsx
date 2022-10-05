@@ -1,5 +1,6 @@
 import styled from 'styled-components'
 import { spacingIncrement } from 'prepo-ui'
+import { Trans } from '@lingui/macro'
 import { buyPageItems } from './buyPageItems'
 import { ButtonGrid, ButtonGridStyles } from '../ButtonGrid'
 import PageTitle from '../PageTitle'
@@ -44,7 +45,9 @@ const externalIconSize: IconSizeResponsive = {
 
 const BuyPage: React.FC = () => (
   <>
-    <PageTitle>Buy PPO</PageTitle>
+    <PageTitle>
+      <Trans>Buy PPO</Trans>
+    </PageTitle>
     <Grid
       items={buyPageItems}
       customStyles={buttonsCustomStyles}

@@ -1,5 +1,6 @@
 import { observer } from 'mobx-react'
 import { Button, Flex } from 'prepo-ui'
+import { t, Trans } from '@lingui/macro'
 import { customStyles } from './StakeUnstakeNavigationButtons'
 import { useRootStore } from '../../../context/RootStoreProvider'
 import useFeatureFlag, { FeatureFlag } from '../../../hooks/useFeatureFlag'
@@ -22,7 +23,7 @@ const UnstakeButtons: React.FC = () => {
   if (!enabled) {
     return (
       <Button type="primary" block disabled>
-        Coming Soon
+        <Trans>Coming Soon</Trans>
       </Button>
     )
   }
@@ -60,7 +61,7 @@ const UnstakeButtons: React.FC = () => {
           onClick={endCooldown}
           disabled={loading}
         >
-          Cancel Unstaking
+          <Trans>Cancel Unstaking</Trans>
         </Button>
       </Flex>
     )
@@ -70,7 +71,7 @@ const UnstakeButtons: React.FC = () => {
     return (
       <Flex flexDirection="column" gap={8} alignItems="stretch">
         <Button type="primary" block onClick={endCooldown} disabled={loading} loading={loading}>
-          Cancel Unstaking
+          <Trans>Cancel Unstaking</Trans>
         </Button>
         <Button
           type="default"
@@ -79,13 +80,13 @@ const UnstakeButtons: React.FC = () => {
           onClick={confirmUnstaking}
           disabled={loading}
         >
-          Confirm Unstaking
+          <Trans>Confirm Unstaking</Trans>
         </Button>
       </Flex>
     )
   }
 
-  const text = confirm ? 'Unstake PPO' : 'Begin Cooldown'
+  const text = confirm ? t`Unstake PPO` : t`Begin Cooldown`
   const onClick = confirm ? unstakeImmediately : startCooldown
   return (
     <Button

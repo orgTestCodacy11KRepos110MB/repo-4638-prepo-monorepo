@@ -1,3 +1,4 @@
+import { Trans } from '@lingui/macro'
 import { Heading, Icon, media, spacingIncrement } from 'prepo-ui'
 import styled from 'styled-components'
 import useResponsive from '../../../hooks/useResponsive'
@@ -67,7 +68,9 @@ const TotalVotingPower: React.FC<Props> = ({ connected, power, expanded, setExpa
     <Wrapper>
       <Icon name="ppo-logo" width={size} height={size} />
       <Content>
-        <StyledHeading type="h4">Total Voting Power</StyledHeading>
+        <StyledHeading type="h4">
+          <Trans>Total Voting Power</Trans>
+        </StyledHeading>
         <Power>{connected ? power?.toLocaleString() : '-'}</Power>
         {!isDesktop && (
           <ExpandButton onClick={(): void => setExpanded(!expanded)} $flip={expanded}>

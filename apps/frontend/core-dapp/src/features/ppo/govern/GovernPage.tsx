@@ -2,6 +2,7 @@ import { media, spacingIncrement } from 'prepo-ui'
 import { useState } from 'react'
 import styled from 'styled-components'
 import { observer } from 'mobx-react-lite'
+import { Trans } from '@lingui/macro'
 import Participate from './Participate'
 import VotePower from './VotePower'
 import DelegatedTo from './DelegatedTo'
@@ -44,8 +45,14 @@ const GovernPage: React.FC = () => {
 
   return (
     <Wrapper>
-      <PageTitle>Govern PPO</PageTitle>
-      {isDesktop && <PageDescription>Earn PPO by participating in governance</PageDescription>}
+      <PageTitle>
+        <Trans>Govern PPO</Trans>
+      </PageTitle>
+      {isDesktop && (
+        <PageDescription>
+          <Trans>Earn PPO by participating in governance</Trans>
+        </PageDescription>
+      )}
       <Content>
         <VotePower expanded={show} setExpanded={setExpanded} />
         <Participate />

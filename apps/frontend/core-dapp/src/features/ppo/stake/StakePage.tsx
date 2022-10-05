@@ -3,6 +3,7 @@ import { Checkbox, Flex, Icon, media, spacingIncrement, TokenInput } from 'prepo
 import { observer } from 'mobx-react-lite'
 import { useState } from 'react'
 import { BigNumber } from 'ethers'
+import { Trans } from '@lingui/macro'
 import StakeUnstakeLayout from './StakeUnstakeLayout'
 import StakeDelegate from './StakeDelegate'
 import {
@@ -168,7 +169,7 @@ const StakePage: React.FC = () => {
           />
           <StyledCheckbox checked={confirm} onChange={setConfirm}>
             <Flex gap={6}>
-              Unstake PPO Immediately
+              <Trans>Unstake PPO Immediately</Trans>
               {/* TODO: add tooltip text */}
               {false && <Icon name="info" color="neutral5" width={size} height={size} />}
             </Flex>

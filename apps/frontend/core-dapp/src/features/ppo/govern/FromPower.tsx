@@ -1,3 +1,4 @@
+import { Trans } from '@lingui/macro'
 import { media, spacingIncrement } from 'prepo-ui'
 import styled from 'styled-components'
 import { numberFormatter } from '../../../utils/numberFormatter'
@@ -41,7 +42,9 @@ export const Label = styled.div`
 
 const FromPower: React.FC<Props> = ({ connected, power = 0 }) => (
   <Wrapper>
-    <Label>From PPO Power</Label>
+    <Label>
+      <Trans>From PPO Power</Trans>
+    </Label>
     <Value>{connected ? significantDigits(power) : '-'}</Value>
   </Wrapper>
 )

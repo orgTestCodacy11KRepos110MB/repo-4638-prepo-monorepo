@@ -1,3 +1,5 @@
+import { i18n } from '@lingui/core'
+import { Trans } from '@lingui/macro'
 import { Button, ButtonColors, Flex, Icon, IconName, media, spacingIncrement } from 'prepo-ui'
 import { useMemo } from 'react'
 import styled, {
@@ -129,10 +131,10 @@ const ButtonLink: React.FC<ButtonLinkProps> = ({
       )}
       <TextWrapper>
         <Flex position="relative">
-          {title}
+          {i18n._(title)}
           {!isOnRightSide && Boolean(target) && externalIcon}
         </Flex>
-        <span>{!href && 'Coming soon'}</span>
+        <span>{!href && <Trans>Coming soon</Trans>}</span>
       </TextWrapper>
       {isOnRightSide && Boolean(target) && externalIcon}
     </StyledButton>

@@ -1,6 +1,7 @@
 import { observer } from 'mobx-react-lite'
 import styled from 'styled-components'
 import { media, spacingIncrement, Typography } from 'prepo-ui'
+import { Trans } from '@lingui/macro'
 import PpoHistoryItemDesktop from './PpoHistoryItemDesktop'
 import PpoHistoryItemMobile from './PpoHistoryItemMobile'
 import { useRootStore } from '../../../context/RootStoreProvider'
@@ -37,7 +38,7 @@ const PpoHistoryItems: React.FC = () => {
   if (historyComingSoon)
     return (
       <Typography variant="text-medium-md" textAlign="center" color="neutral3">
-        Coming soon
+        <Trans>Coming soon</Trans>
       </Typography>
     )
 

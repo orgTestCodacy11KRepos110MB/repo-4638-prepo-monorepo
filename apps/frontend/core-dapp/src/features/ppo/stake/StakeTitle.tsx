@@ -1,3 +1,4 @@
+import { Trans } from '@lingui/macro'
 import { media, Icon, Typography } from 'prepo-ui'
 import styled from 'styled-components'
 import PageTitle from '../PageTitle'
@@ -15,7 +16,7 @@ const StakeTitle: React.FC = () => (
   <PageTitle>
     <div>
       <Typography variant="text-semiBold-xl" display={{ phone: 'block', desktop: 'none' }} mb={25}>
-        Stake
+        <Trans>Stake</Trans>
       </Typography>
       <StyledHeader
         display="flex"
@@ -24,7 +25,7 @@ const StakeTitle: React.FC = () => (
         justifyContent="center"
         as="h4"
       >
-        Staking APY
+        <Trans>Staking APY</Trans>
         {/* TODO: add tooltip text */}
         {false && <Icon name="info" color="neutral5" width="16" height="16" />}
       </StyledHeader>

@@ -2,6 +2,7 @@ import { Button, Icon, media, spacingIncrement, Switch } from 'prepo-ui'
 import { getShortAccount } from 'prepo-utils'
 import { observer } from 'mobx-react-lite'
 import styled from 'styled-components'
+import { Trans } from '@lingui/macro'
 import { useRootStore } from '../../../context/RootStoreProvider'
 import useResponsive from '../../../hooks/useResponsive'
 import { Routes } from '../../../lib/routes'
@@ -75,12 +76,12 @@ const Content: React.FC = observer(() => {
       />
       <Text>{getShortAccount(delegate.delegateAddress)}</Text>
       <Button size="xs" href={Routes.Delegate_Custom_Address} disabled={disableMocks}>
-        Change Delegate
+        <Trans>Change Delegate</Trans>
       </Button>
     </AddressWrapper>
   ) : (
     <Button type="primary" href={Routes.Delegate_Custom_Address} block disabled={disableMocks}>
-      Delegate to Custom Address
+      <Trans>Delegate to Custom Address</Trans>
     </Button>
   )
 })
@@ -95,7 +96,7 @@ const StakeDelegate: React.FC = () => {
     <Wrapper>
       <LabelWrapper>
         <Label>
-          Delegate Voting Power
+          <Trans>Delegate Voting Power</Trans>
           {/* TODO: add tooltip text */}
           {false && <Icon name="info" color="neutral5" width={size} height={size} />}
         </Label>

@@ -1,3 +1,4 @@
+import { t, Trans } from '@lingui/macro'
 import { media, spacingIncrement } from 'prepo-ui'
 import styled from 'styled-components'
 import useResponsive from '../../../hooks/useResponsive'
@@ -36,10 +37,10 @@ const Wrapper = styled.div`
 `
 
 const buttonList = [
-  { title: 'Vote on Snapshot', href: 'https://vote.prepo.io/' },
-  { title: 'Discuss on Discord', href: PREPO_DISCORD },
+  { title: t`Vote on Snapshot`, href: 'https://vote.prepo.io/' },
+  { title: t`Discuss on Discord`, href: PREPO_DISCORD },
   // TODO: show later { title: 'Discuss on Forum', href: ' https://forum.prepo.io/' },
-  { title: 'Learn about Governance', href: 'https://docs.prepo.io/governance' },
+  { title: t`Learn about Governance`, href: 'https://docs.prepo.io/governance' },
 ] as const
 
 const externalIconSize: IconSizeResponsive = {
@@ -53,7 +54,7 @@ const Participate: React.FC = () => {
 
   return (
     <Wrapper>
-      Participate
+      <Trans>Participate</Trans>
       {buttonList.map(({ title, href }, index) => (
         <ButtonLink
           key={title}

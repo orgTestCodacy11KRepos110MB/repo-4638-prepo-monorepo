@@ -41,6 +41,10 @@ msgstr "After this date, the market will automatically resolve at the lower boun
 msgid "All"
 msgstr "All"
 
+#: src/features/ppo/stake/StakeWarningMessages.tsx:133
+msgid "All unstaking will be subject to a fee. The longer you stake, the lower the unstaking fee."
+msgstr "All unstaking will be subject to a fee. The longer you stake, the lower the unstaking fee."
+
 #: src/features/ppo/ppoItems.ts:20
 msgid "Analytics"
 msgstr "Analytics"
@@ -49,21 +53,48 @@ msgstr "Analytics"
 msgid "Avg. Staking Time:"
 msgstr "Avg. Staking Time:"
 
+#: src/features/ppo/stake/UnstakeButtons.tsx:89
+msgid "Begin Cooldown"
+msgstr "Begin Cooldown"
+
 #: src/features/ppo/ppoItems.ts:15
 msgid "Buy"
 msgstr "Buy"
+
+#: src/features/ppo/buy/BuyPage.tsx:49
+msgid "Buy PPO"
+msgstr "Buy PPO"
+
+#: src/features/ppo/stake/UnstakeButtons.tsx:64
+#: src/features/ppo/stake/UnstakeButtons.tsx:74
+msgid "Cancel Unstaking"
+msgstr "Cancel Unstaking"
 
 #: src/features/portfolio/Portfolio.tsx:98
 msgid "Cash Balance"
 msgstr "Cash Balance"
 
 #: src/features/ppo/govern/DelegatedTo.tsx:55
+#: src/features/ppo/stake/StakeDelegate.tsx:79
 msgid "Change Delegate"
 msgstr "Change Delegate"
 
 #: src/features/position/Positions.tsx:47
 msgid "Close Position"
 msgstr "Close Position"
+
+#: src/features/ppo/stake/UnstakeButtons.tsx:26
+msgid "Coming Soon"
+msgstr "Coming Soon"
+
+#: src/features/ppo/ButtonLink.tsx:137
+#: src/features/ppo/history/PpoHistoryItems.tsx:41
+msgid "Coming soon"
+msgstr "Coming soon"
+
+#: src/features/ppo/stake/UnstakeButtons.tsx:83
+msgid "Confirm Unstaking"
+msgstr "Confirm Unstaking"
 
 #: src/features/connect/ConnectButton.tsx:62
 msgid "Connect Wallet"
@@ -77,13 +108,29 @@ msgstr "Connected"
 msgid "Connected to Testnet (Goerli)"
 msgstr "Connected to Testnet (Goerli)"
 
+#: src/features/ppo/stake/StakeWarningMessages.tsx:174
+msgid "Cooldown period ends in: <0>{days}d {hours}h {minutes}m.</0>"
+msgstr "Cooldown period ends in: <0>{days}d {hours}h {minutes}m.</0>"
+
 #: src/features/connect/AccountModal.tsx:61
 msgid "Copy to Clipboard"
 msgstr "Copy to Clipboard"
 
+#: src/features/ppo/stake/StakeDelegate.tsx:99
+msgid "Delegate Voting Power"
+msgstr "Delegate Voting Power"
+
+#: src/features/ppo/stake/StakeDelegate.tsx:84
+msgid "Delegate to Custom Address"
+msgstr "Delegate to Custom Address"
+
 #: src/features/profile/ProfileVotingPower.tsx:58
 msgid "Delegates"
 msgstr "Delegates"
+
+#: src/features/ppo/govern/FromDelegators.tsx:40
+msgid "Delegators"
+msgstr "Delegators"
 
 #: src/features/portfolio/Portfolio.tsx:138
 msgid "Deposit"
@@ -93,9 +140,21 @@ msgstr "Deposit"
 msgid "Disconnect"
 msgstr "Disconnect"
 
+#: src/features/ppo/govern/Participate.tsx:41
+msgid "Discuss on Discord"
+msgstr "Discuss on Discord"
+
 #: src/components/SettingsMenu.tsx:69
 msgid "Docs"
 msgstr "Docs"
+
+#: src/features/ppo/stake/StakeWarningMessages.tsx:79
+msgid "During the unstaking process, the amount being unstacked will lose all associated PPO Power."
+msgstr "During the unstaking process, the amount being unstacked will lose all associated PPO Power."
+
+#: src/features/ppo/govern/GovernPage.tsx:53
+msgid "Earn PPO by participating in governance"
+msgstr "Earn PPO by participating in governance"
 
 #: src/features/definitions/index.tsx:29
 msgid "Estimated USD amount withdrawn after fees."
@@ -114,14 +173,24 @@ msgstr "Estimated deposit amount after fees."
 msgid "Explore Markets"
 msgstr "Explore Markets"
 
+#: src/features/ppo/history/PpoHistoryActionBar.tsx:48
+msgid "Export CSV"
+msgstr "Export CSV"
+
 #: src/features/testnet-onboarding/TokenSaleWhitelistBanner.tsx:14
 msgid "Fill out <0><1>this form</1></0> for testnet funds."
 msgstr "Fill out <0><1>this form</1></0> for testnet funds."
 
+#: src/features/ppo/history/PpoHistoryActionBar.tsx:55
+msgid "Filter"
+msgstr "Filter"
+
+#: src/features/ppo/govern/FromDelegators.tsx:34
 #: src/features/profile/ProfileVotingPower.tsx:52
 msgid "From Delegators"
 msgstr "From Delegators"
 
+#: src/features/ppo/govern/FromPower.tsx:46
 #: src/features/profile/ProfileVotingPower.tsx:48
 msgid "From PPO Power"
 msgstr "From PPO Power"
@@ -129,6 +198,10 @@ msgstr "From PPO Power"
 #: src/features/ppo/ppoItems.ts:14
 msgid "Govern"
 msgstr "Govern"
+
+#: src/features/ppo/govern/GovernPage.tsx:49
+msgid "Govern PPO"
+msgstr "Govern PPO"
 
 #: src/features/portfolio/PositionsAndHistory.tsx:102
 #: src/features/ppo/ppoItems.ts:19
@@ -156,8 +229,13 @@ msgid "Language"
 msgstr "Language"
 
 #: src/features/definitions/index.tsx:13
+#: src/features/ppo/stake/StakeWarningMessages.tsx:42
 msgid "Learn More"
 msgstr "Learn More"
+
+#: src/features/ppo/govern/Participate.tsx:43
+msgid "Learn about Governance"
+msgstr "Learn about Governance"
 
 #: src/components/MarketCard.tsx:146
 #: src/features/market-overview/MarketDataColumn.tsx:85
@@ -192,6 +270,10 @@ msgstr "No position found!"
 msgid "No transaction history."
 msgstr "No transaction history."
 
+#: src/features/ppo/history/PpoHistoryPage.tsx:21
+msgid "PPO History"
+msgstr "PPO History"
+
 #: src/features/profile/ProfilePage.tsx:127
 msgid "PPO Power"
 msgstr "PPO Power"
@@ -207,6 +289,14 @@ msgstr "PPO Staked x Total Multiplier"
 #: src/features/profile/ProfileAccordion.tsx:48
 msgid "PPO Stats"
 msgstr "PPO Stats"
+
+#: src/features/ppo/overview/OverviewPage.tsx:26
+msgid "PPO is prePO's governance and utility token.<0/> PPO's tokenomics design incentivizes high-quality, active participation and long-term alignment."
+msgstr "PPO is prePO's governance and utility token.<0/> PPO's tokenomics design incentivizes high-quality, active participation and long-term alignment."
+
+#: src/features/ppo/govern/Participate.tsx:57
+msgid "Participate"
+msgstr "Participate"
 
 #: src/features/market-overview/MarketDataColumn.tsx:55
 msgid "Payout Range"
@@ -257,8 +347,14 @@ msgid "Spend"
 msgstr "Spend"
 
 #: src/features/ppo/ppoItems.ts:13
+#: src/features/ppo/stake/StakeTitle.tsx:19
+#: src/features/ppo/stake/StakeUnstakeNavigationButtons.tsx:41
 msgid "Stake"
 msgstr "Stake"
+
+#: src/features/ppo/stake/StakeTitle.tsx:28
+msgid "Staking APY"
+msgstr "Staking APY"
 
 #: src/components/SettingsMenu.tsx:70
 msgid "Switch to Dark"
@@ -276,6 +372,10 @@ msgstr "Temporary +"
 msgid "The estimated fully-diluted valuation of {marketName}."
 msgstr "The estimated fully-diluted valuation of {marketName}."
 
+#: src/features/ppo/stake/StakeWarningMessages.tsx:52
+msgid "There is a cooldown on period to unstake and a penalty if you have not staked long enough."
+msgstr "There is a cooldown on period to unstake and a penalty if you have not staked long enough."
+
 #: src/features/definitions/index.tsx:41
 msgid "This is just an illustration to show how much you will gain/lose when you close your position."
 msgstr "This is just an illustration to show how much you will gain/lose when you close your position."
@@ -292,9 +392,14 @@ msgstr "Total Earned"
 msgid "Total Value"
 msgstr "Total Value"
 
+#: src/features/ppo/govern/TotalVotingPower.tsx:72
 #: src/features/profile/ProfileVotingPower.tsx:39
 msgid "Total Voting Power"
 msgstr "Total Voting Power"
+
+#: src/features/ppo/history/PpoHistoryPage.tsx:24
+msgid "Track your PPO rewards on prePO"
+msgstr "Track your PPO rewards on prePO"
 
 #: src/features/market-overview/MarketOverview.tsx:79
 msgid "Trade"
@@ -316,6 +421,10 @@ msgstr "Trading Positions"
 msgid "Trading Volume"
 msgstr "Trading Volume"
 
+#: src/features/ppo/history/PpoHistoryItemDesktop.tsx:72
+msgid "Transaction Date"
+msgstr "Transaction Date"
+
 #: src/features/history/History.tsx:91
 msgid "Transaction Time"
 msgstr "Transaction Time"
@@ -327,6 +436,22 @@ msgstr "Trending Markets"
 #: src/features/ppo/govern/DelegatedTo.tsx:70
 msgid "Undelegate"
 msgstr "Undelegate"
+
+#: src/features/ppo/stake/StakeUnstakeNavigationButtons.tsx:49
+msgid "Unstake"
+msgstr "Unstake"
+
+#: src/features/ppo/stake/UnstakeButtons.tsx:89
+msgid "Unstake PPO"
+msgstr "Unstake PPO"
+
+#: src/features/ppo/stake/StakePage.tsx:172
+msgid "Unstake PPO Immediately"
+msgstr "Unstake PPO Immediately"
+
+#: src/features/ppo/stake/StakeWarningMessages.tsx:122
+msgid "Unstaking is subject to a cooldown period of 21 days, followed by a 7 day period for your final confirmation."
+msgstr "Unstaking is subject to a cooldown period of 21 days, followed by a 7 day period for your final confirmation."
 
 #: src/components/MarketCard.tsx:121
 #: src/features/market-overview/MarketOverview.tsx:54
@@ -345,6 +470,10 @@ msgstr "View Profile"
 msgid "Volume"
 msgstr "Volume"
 
+#: src/features/ppo/govern/Participate.tsx:40
+msgid "Vote on Snapshot"
+msgstr "Vote on Snapshot"
+
 #: src/features/ppo/govern/DelegatedTo.tsx:28
 msgid "Voting Power Delegated To"
 msgstr "Voting Power Delegated To"
@@ -357,10 +486,42 @@ msgstr "Weeks"
 msgid "Withdraw"
 msgstr "Withdraw"
 
+#: src/features/ppo/stake/StakeWarningMessages.tsx:91
+#~ msgid "You requested to unstake <0>{unstakePpo} PPO</0>, subject to an"
+#~ msgstr "You requested to unstake <0>{unstakePpo} PPO</0>, subject to an"
+
+#: src/features/ppo/stake/StakeWarningMessages.tsx:103
+msgid "You requested to unstake <0>{unstakePpo} PPO</0>, subject to an <1>unstaking fee of {fee}%.</1> Cancel and stake for longer to reduce this fee."
+msgstr "You requested to unstake <0>{unstakePpo} PPO</0>, subject to an <1>unstaking fee of {fee}%.</1> Cancel and stake for longer to reduce this fee."
+
+#: src/features/ppo/stake/StakeWarningMessages.tsx:141
+msgid "You will immediately lose"
+msgstr "You will immediately lose"
+
+#: src/features/ppo/stake/StakeWarningMessages.tsx:152
+msgid "You will immediately lose <0>{unstakePpo} PPO Power</0> for the amount being unstacked."
+msgstr "You will immediately lose <0>{unstakePpo} PPO Power</0> for the amount being unstacked."
+
+#: src/features/ppo/stake/StakeWarningMessages.tsx:70
+msgid "Your <0>unstaking fee is 15.0%.</0> Unstake non-immediately, or stake for longer, to reduce this fee."
+msgstr "Your <0>unstaking fee is 15.0%.</0> Unstake non-immediately, or stake for longer, to reduce this fee."
+
+#: src/features/ppo/stake/StakeWarningMessages.tsx:62
+msgid "Your <0>unstaking fee is {fee}%.</0> Stake for longer to reduce this fee."
+msgstr "Your <0>unstaking fee is {fee}%.</0> Stake for longer to reduce this fee."
+
 #: src/features/history/History.tsx:44
 #: src/features/position/Positions.tsx:18
 msgid "Your wallet is not connected."
 msgstr "Your wallet is not connected."
+
+#: src/features/ppo/stake/StakeWarningMessages.tsx:114
+msgid "Your weighted average staking date will increase from {from} to <0>{to}.</0>"
+msgstr "Your weighted average staking date will increase from {from} to <0>{to}.</0>"
+
+#: src/features/ppo/stake/StakeWarningMessages.tsx:143
+msgid "all PPO Power"
+msgstr "all PPO Power"
 
 #: src/features/profile/TotalMultiplier.tsx:64
 msgid "days"
@@ -369,3 +530,7 @@ msgstr "days"
 #: src/features/profile/TotalMultiplier.tsx:61
 msgid "in"
 msgstr "in"
+
+#: src/features/ppo/stake/StakeWarningMessages.tsx:96
+#~ msgid "unstaking fee of {fee}%."
+#~ msgstr "unstaking fee of {fee}%."

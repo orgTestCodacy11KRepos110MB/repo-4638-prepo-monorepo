@@ -41,6 +41,10 @@ msgstr "После этой даты рынок автоматически ус�
 msgid "All"
 msgstr "Все"
 
+#: src/features/ppo/stake/StakeWarningMessages.tsx:133
+msgid "All unstaking will be subject to a fee. The longer you stake, the lower the unstaking fee."
+msgstr "Весь анстейкинг будут облагаться комиссией. Чем дольше вы делаете ставку, тем ниже комиссия за отмену ставки."
+
 #: src/features/ppo/ppoItems.ts:20
 msgid "Analytics"
 msgstr "Аналитика"
@@ -49,21 +53,48 @@ msgstr "Аналитика"
 msgid "Avg. Staking Time:"
 msgstr "Ср. Время Стейкинга"
 
+#: src/features/ppo/stake/UnstakeButtons.tsx:89
+msgid "Begin Cooldown"
+msgstr "Запустить кулдаун"
+
 #: src/features/ppo/ppoItems.ts:15
 msgid "Buy"
 msgstr "Купить"
+
+#: src/features/ppo/buy/BuyPage.tsx:49
+msgid "Buy PPO"
+msgstr "Купить PPO"
+
+#: src/features/ppo/stake/UnstakeButtons.tsx:64
+#: src/features/ppo/stake/UnstakeButtons.tsx:74
+msgid "Cancel Unstaking"
+msgstr "Отменить Анстейкинг"
 
 #: src/features/portfolio/Portfolio.tsx:98
 msgid "Cash Balance"
 msgstr "Денежный Баланс"
 
 #: src/features/ppo/govern/DelegatedTo.tsx:55
+#: src/features/ppo/stake/StakeDelegate.tsx:79
 msgid "Change Delegate"
 msgstr "Изменить Делегата"
 
 #: src/features/position/Positions.tsx:47
 msgid "Close Position"
 msgstr "Закрыть Позицию"
+
+#: src/features/ppo/stake/UnstakeButtons.tsx:26
+msgid "Coming Soon"
+msgstr "Скоро"
+
+#: src/features/ppo/ButtonLink.tsx:137
+#: src/features/ppo/history/PpoHistoryItems.tsx:41
+msgid "Coming soon"
+msgstr "Скоро"
+
+#: src/features/ppo/stake/UnstakeButtons.tsx:83
+msgid "Confirm Unstaking"
+msgstr "Подтвердить Анстейкинг"
 
 #: src/features/connect/ConnectButton.tsx:62
 msgid "Connect Wallet"
@@ -77,13 +108,29 @@ msgstr "Подключен"
 msgid "Connected to Testnet (Goerli)"
 msgstr "Подключены к Тестовой Сети (Goerli)"
 
+#: src/features/ppo/stake/StakeWarningMessages.tsx:174
+msgid "Cooldown period ends in: <0>{days}d {hours}h {minutes}m.</0>"
+msgstr "Период восстановления заканчивается через"
+
 #: src/features/connect/AccountModal.tsx:61
 msgid "Copy to Clipboard"
 msgstr "Копировать в Буфер"
 
+#: src/features/ppo/stake/StakeDelegate.tsx:99
+msgid "Delegate Voting Power"
+msgstr "Передать Голос"
+
+#: src/features/ppo/stake/StakeDelegate.tsx:84
+msgid "Delegate to Custom Address"
+msgstr "Передать Адресу"
+
 #: src/features/profile/ProfileVotingPower.tsx:58
 msgid "Delegates"
-msgstr "Деоегаты"
+msgstr "делегировано"
+
+#: src/features/ppo/govern/FromDelegators.tsx:40
+msgid "Delegators"
+msgstr "Делегаты"
 
 #: src/features/portfolio/Portfolio.tsx:138
 msgid "Deposit"
@@ -93,9 +140,21 @@ msgstr "Депозит"
 msgid "Disconnect"
 msgstr "Отключиться"
 
+#: src/features/ppo/govern/Participate.tsx:41
+msgid "Discuss on Discord"
+msgstr "Обсудить в Дискорде"
+
 #: src/components/SettingsMenu.tsx:69
 msgid "Docs"
 msgstr "Документация"
+
+#: src/features/ppo/stake/StakeWarningMessages.tsx:79
+msgid "During the unstaking process, the amount being unstacked will lose all associated PPO Power."
+msgstr "В процессе анстейкингаб сумма которая разблокируется, потеряет всю связанную с ней мощность PPO."
+
+#: src/features/ppo/govern/GovernPage.tsx:53
+msgid "Earn PPO by participating in governance"
+msgstr "Зарабатывайте PPO, участвуя в управлении"
 
 #: src/features/definitions/index.tsx:29
 msgid "Estimated USD amount withdrawn after fees."
@@ -114,14 +173,24 @@ msgstr "Предполагаемая сумма депозита после ко
 msgid "Explore Markets"
 msgstr "Исследуйте Рынки"
 
+#: src/features/ppo/history/PpoHistoryActionBar.tsx:48
+msgid "Export CSV"
+msgstr "Экспорт CSV"
+
 #: src/features/testnet-onboarding/TokenSaleWhitelistBanner.tsx:14
 msgid "Fill out <0><1>this form</1></0> for testnet funds."
-msgstr ""
+msgstr "Заполните <0><1>эту форму</1></0> для тестнета."
 
+#: src/features/ppo/history/PpoHistoryActionBar.tsx:55
+msgid "Filter"
+msgstr "Фильтр"
+
+#: src/features/ppo/govern/FromDelegators.tsx:34
 #: src/features/profile/ProfileVotingPower.tsx:52
 msgid "From Delegators"
 msgstr "От Делегатов"
 
+#: src/features/ppo/govern/FromPower.tsx:46
 #: src/features/profile/ProfileVotingPower.tsx:48
 msgid "From PPO Power"
 msgstr "От PPO Влияния"
@@ -129,6 +198,10 @@ msgstr "От PPO Влияния"
 #: src/features/ppo/ppoItems.ts:14
 msgid "Govern"
 msgstr "Управлять"
+
+#: src/features/ppo/govern/GovernPage.tsx:49
+msgid "Govern PPO"
+msgstr "Управлять PPO"
 
 #: src/features/portfolio/PositionsAndHistory.tsx:102
 #: src/features/ppo/ppoItems.ts:19
@@ -156,8 +229,13 @@ msgid "Language"
 msgstr "Язык"
 
 #: src/features/definitions/index.tsx:13
+#: src/features/ppo/stake/StakeWarningMessages.tsx:42
 msgid "Learn More"
 msgstr "Узнать Больше"
+
+#: src/features/ppo/govern/Participate.tsx:43
+msgid "Learn about Governance"
+msgstr "Узнать Больше о Управлении"
 
 #: src/components/MarketCard.tsx:146
 #: src/features/market-overview/MarketDataColumn.tsx:85
@@ -188,6 +266,10 @@ msgstr "Позиций не найдено!"
 msgid "No transaction history."
 msgstr "Нет истории транзакий"
 
+#: src/features/ppo/history/PpoHistoryPage.tsx:21
+msgid "PPO History"
+msgstr "PPO История"
+
 #: src/features/profile/ProfilePage.tsx:127
 msgid "PPO Power"
 msgstr "PPO Сила"
@@ -203,6 +285,14 @@ msgstr "PPO застейкано х Общий Множитель"
 #: src/features/profile/ProfileAccordion.tsx:48
 msgid "PPO Stats"
 msgstr "PPO Статы"
+
+#: src/features/ppo/overview/OverviewPage.tsx:26
+msgid "PPO is prePO's governance and utility token.<0/> PPO's tokenomics design incentivizes high-quality, active participation and long-term alignment."
+msgstr "PPO — это токен управления и утилиты prePO.<0/> Дизайн токеномики PPO стимулирует качественное, активное участие и долгосрочное согласование."
+
+#: src/features/ppo/govern/Participate.tsx:57
+msgid "Participate"
+msgstr "Прими участие"
 
 #: src/features/market-overview/MarketDataColumn.tsx:55
 msgid "Payout Range"
@@ -253,8 +343,14 @@ msgid "Spend"
 msgstr "Потратить"
 
 #: src/features/ppo/ppoItems.ts:13
+#: src/features/ppo/stake/StakeTitle.tsx:19
+#: src/features/ppo/stake/StakeUnstakeNavigationButtons.tsx:41
 msgid "Stake"
 msgstr "Стейк"
+
+#: src/features/ppo/stake/StakeTitle.tsx:28
+msgid "Staking APY"
+msgstr "Стейкинг APY"
 
 #: src/components/SettingsMenu.tsx:70
 msgid "Switch to Dark"
@@ -272,6 +368,10 @@ msgstr "Временный +"
 msgid "The estimated fully-diluted valuation of {marketName}."
 msgstr "Предполагаемая полностью разводненная оценка {marketName}."
 
+#: src/features/ppo/stake/StakeWarningMessages.tsx:52
+msgid "There is a cooldown on period to unstake and a penalty if you have not staked long enough."
+msgstr "Существует период восстановления для отмены стейкинга и штраф, если вы не делали стейкинг достаточно долго."
+
 #: src/features/definitions/index.tsx:41
 msgid "This is just an illustration to show how much you will gain/lose when you close your position."
 msgstr "Это всего лишь пример, показывающий, сколько вы выиграете/проиграете, когда закроете свою позицию."
@@ -288,9 +388,14 @@ msgstr "Получено"
 msgid "Total Value"
 msgstr "Полная Оценка"
 
+#: src/features/ppo/govern/TotalVotingPower.tsx:72
 #: src/features/profile/ProfileVotingPower.tsx:39
 msgid "Total Voting Power"
 msgstr "Общее количество голосов"
+
+#: src/features/ppo/history/PpoHistoryPage.tsx:24
+msgid "Track your PPO rewards on prePO"
+msgstr "Отслеживайте свои вознаграждения PPO на prePO"
 
 #: src/features/market-overview/MarketOverview.tsx:79
 msgid "Trade"
@@ -312,6 +417,10 @@ msgstr "Торгуемые позизции"
 msgid "Trading Volume"
 msgstr "Объем торгов"
 
+#: src/features/ppo/history/PpoHistoryItemDesktop.tsx:72
+msgid "Transaction Date"
+msgstr "Дата сделки"
+
 #: src/features/history/History.tsx:91
 msgid "Transaction Time"
 msgstr "Время Транзакции"
@@ -323,6 +432,22 @@ msgstr "Трендовые рынки"
 #: src/features/ppo/govern/DelegatedTo.tsx:70
 msgid "Undelegate"
 msgstr "Отменить делегирование"
+
+#: src/features/ppo/stake/StakeUnstakeNavigationButtons.tsx:49
+msgid "Unstake"
+msgstr "Анстейк"
+
+#: src/features/ppo/stake/UnstakeButtons.tsx:89
+msgid "Unstake PPO"
+msgstr "Анстейк PPO"
+
+#: src/features/ppo/stake/StakePage.tsx:172
+msgid "Unstake PPO Immediately"
+msgstr "Анстейк PPO срочно"
+
+#: src/features/ppo/stake/StakeWarningMessages.tsx:122
+msgid "Unstaking is subject to a cooldown period of 21 days, followed by a 7 day period for your final confirmation."
+msgstr "Анстейкинг подлежит периоду восстановления в 21 день, за которым следует 7-дневный период для вашего окончательного подтверждения."
 
 #: src/components/MarketCard.tsx:121
 #: src/features/market-overview/MarketOverview.tsx:54
@@ -341,6 +466,10 @@ msgstr "Просмотр Профиля"
 msgid "Volume"
 msgstr "Объём"
 
+#: src/features/ppo/govern/Participate.tsx:40
+msgid "Vote on Snapshot"
+msgstr "Голосовать на Snapshot"
+
 #: src/features/ppo/govern/DelegatedTo.tsx:28
 msgid "Voting Power Delegated To"
 msgstr "Право голоса делегировано"
@@ -353,10 +482,42 @@ msgstr "Недели"
 msgid "Withdraw"
 msgstr "Вывести"
 
+#: src/features/ppo/stake/StakeWarningMessages.tsx:91
+#~ msgid "You requested to unstake <0>{unstakePpo} PPO</0>, subject to an"
+#~ msgstr "Вы запросили отмену стейкинга <0>{unstakePpo} PPO</0> в соответствии с"
+
+#: src/features/ppo/stake/StakeWarningMessages.tsx:103
+msgid "You requested to unstake <0>{unstakePpo} PPO</0>, subject to an <1>unstaking fee of {fee}%.</1> Cancel and stake for longer to reduce this fee."
+msgstr "Вы запросили отмену стейкинга <0>{unstakePpo} PPO</0> с учетом <1>комиссии за отмену ставок в размере {fee}%.</1> Отмените и сделайте ставки на более длительный срок, чтобы уменьшить эту комиссию."
+
+#: src/features/ppo/stake/StakeWarningMessages.tsx:141
+msgid "You will immediately lose"
+msgstr "Вы сразу потеряете"
+
+#: src/features/ppo/stake/StakeWarningMessages.tsx:152
+msgid "You will immediately lose <0>{unstakePpo} PPO Power</0> for the amount being unstacked."
+msgstr "Вы немедленно потеряете <0>{unstakePpo} PPO Power</0> на сумму, которая была разблокирована."
+
+#: src/features/ppo/stake/StakeWarningMessages.tsx:70
+msgid "Your <0>unstaking fee is 15.0%.</0> Unstake non-immediately, or stake for longer, to reduce this fee."
+msgstr "Ваша <0>комиссия за отмену стейкинга составляет 15,0%.</0> Отменяйте ставки не сразу или ставьте на более длительный срок, чтобы уменьшить эту комиссию."
+
+#: src/features/ppo/stake/StakeWarningMessages.tsx:62
+msgid "Your <0>unstaking fee is {fee}%.</0> Stake for longer to reduce this fee."
+msgstr "Ваша <0>комиссия за отмену стейкинга составляет {fee}%.</0> Делайте ставки дольше, чтобы уменьшить эту комиссию."
+
 #: src/features/history/History.tsx:44
 #: src/features/position/Positions.tsx:18
 msgid "Your wallet is not connected."
 msgstr "Ваш кошелек не подключен"
+
+#: src/features/ppo/stake/StakeWarningMessages.tsx:114
+msgid "Your weighted average staking date will increase from {from} to <0>{to}.</0>"
+msgstr "Ваша средневзвешенная дата ставок увеличится с {from} до <0>{to}.</0>"
+
+#: src/features/ppo/stake/StakeWarningMessages.tsx:143
+msgid "all PPO Power"
+msgstr "вся Сила PPO"
 
 #: src/features/profile/TotalMultiplier.tsx:64
 msgid "days"
@@ -365,3 +526,7 @@ msgstr "дней"
 #: src/features/profile/TotalMultiplier.tsx:61
 msgid "in"
 msgstr "в"
+
+#: src/features/ppo/stake/StakeWarningMessages.tsx:96
+#~ msgid "unstaking fee of {fee}%."
+#~ msgstr "комиссионный сбор в размере {fee}%."
