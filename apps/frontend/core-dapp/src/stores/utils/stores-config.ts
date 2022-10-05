@@ -1,11 +1,10 @@
 import { NETWORKS } from 'prepo-constants'
 import { StoreConfig } from 'prepo-stores'
-import { PROJECT_NAME } from '../../lib/constants'
 import { SupportedContracts } from '../../lib/contract.types'
 import { supportedContracts } from '../../lib/supported-contracts'
 
 export const storeConfig: StoreConfig<SupportedContracts> = {
-  appName: `prepo.${PROJECT_NAME}`,
+  appName: `https://app.prepo.io`,
   defaultNetwork: NETWORKS.goerli,
   supportedNetworks: [NETWORKS.goerli],
   supportedContracts,

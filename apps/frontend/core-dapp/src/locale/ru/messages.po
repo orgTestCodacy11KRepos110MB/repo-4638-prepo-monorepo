@@ -114,6 +114,10 @@ msgstr "Предполагаемая сумма депозита после ко
 msgid "Explore Markets"
 msgstr "Исследуйте Рынки"
 
+#: src/features/testnet-onboarding/TokenSaleWhitelistBanner.tsx:14
+msgid "Fill out <0><1>this form</1></0> for testnet funds."
+msgstr ""
+
 #: src/features/profile/ProfileVotingPower.tsx:52
 msgid "From Delegators"
 msgstr "От Делегатов"
@@ -140,8 +144,8 @@ msgid "Invest in"
 msgstr "Инвестируйте в"
 
 #: src/features/testnet-onboarding/TokenSaleWhitelistBanner.tsx:14
-msgid "Join the <0><1>$PPO Token Sale Whitelist</1></0> for testnet funds."
-msgstr "Присоединяйтесь <0><1>$PPO Token Sale Whitelist</1></0> для фонда тестовой сети"
+#~ msgid "Join the <0><1>$PPO Token Sale Whitelist</1></0> for testnet funds."
+#~ msgstr "Присоединяйтесь <0><1>$PPO Token Sale Whitelist</1></0> для фонда тестовой сети"
 
 #: src/features/ppo/ppoItems.ts:18
 msgid "LP to Earn"

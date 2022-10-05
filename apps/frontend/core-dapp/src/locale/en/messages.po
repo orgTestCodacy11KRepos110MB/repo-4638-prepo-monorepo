@@ -114,6 +114,10 @@ msgstr "Estimated deposit amount after fees."
 msgid "Explore Markets"
 msgstr "Explore Markets"
 
+#: src/features/testnet-onboarding/TokenSaleWhitelistBanner.tsx:14
+msgid "Fill out <0><1>this form</1></0> for testnet funds."
+msgstr "Fill out <0><1>this form</1></0> for testnet funds."
+
 #: src/features/profile/ProfileVotingPower.tsx:52
 msgid "From Delegators"
 msgstr "From Delegators"
@@ -140,8 +144,8 @@ msgid "Invest in"
 msgstr "Invest in"
 
 #: src/features/testnet-onboarding/TokenSaleWhitelistBanner.tsx:14
-msgid "Join the <0><1>$PPO Token Sale Whitelist</1></0> for testnet funds."
-msgstr "Join the <0><1>$PPO Token Sale Whitelist</1></0> for testnet funds."
+#~ msgid "Join the <0><1>$PPO Token Sale Whitelist</1></0> for testnet funds."
+#~ msgstr "Join the <0><1>$PPO Token Sale Whitelist</1></0> for testnet funds."
 
 #: src/features/ppo/ppoItems.ts:18
 msgid "LP to Earn"
