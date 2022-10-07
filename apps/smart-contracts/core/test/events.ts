@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+// TODO: selectively remove/replace collateral related methods with preUSD
+
 import { ethers } from 'hardhat'
-import { Collateral } from '../typechain/Collateral'
 import { PrePOMarket } from '../typechain/PrePOMarket'
 import { PrePOMarketFactory } from '../typechain/PrePOMarketFactory'
 import { MockStrategy } from '../typechain/MockStrategy'
@@ -121,106 +122,6 @@ export async function getSingleStrategyControllerVaultChangedEvent(
   }
 
   const events = await controller.queryFilter(filter, 'latest')
-  return events[0].args as any
-}
-
-export async function getNameChangeEvent(collateral: Collateral): Promise<any> {
-  const filter = {
-    address: collateral.address,
-    topics: [ethers.utils.id('NameChange(string)')],
-  }
-
-  const events = await collateral.queryFilter(filter, 'latest')
-  return events[0].args as any
-}
-
-export async function getSymbolChangeEvent(collateral: Collateral): Promise<any> {
-  const filter = {
-    address: collateral.address,
-    topics: [ethers.utils.id('SymbolChange(string)')],
-  }
-
-  const events = await collateral.queryFilter(filter, 'latest')
-  return events[0].args as any
-}
-
-export async function getStrategyControllerChangedEvent(collateral: Collateral): Promise<any> {
-  const filter = {
-    address: collateral.address,
-    topics: [ethers.utils.id('StrategyControllerChanged(address)')],
-  }
-
-  const events = await collateral.queryFilter(filter, 'latest')
-  return events[0].args as any
-}
-
-export async function getCollateralMintingFeeChangedEvent(collateral: Collateral): Promise<any> {
-  const filter = {
-    address: collateral.address,
-    topics: [ethers.utils.id('MintingFeeChanged(uint256)')],
-  }
-
-  const events = await collateral.queryFilter(filter, 'latest')
-  return events[0].args as any
-}
-
-export async function getCollateralRedemptionFeeChangedEvent(collateral: Collateral): Promise<any> {
-  const filter = {
-    address: collateral.address,
-    topics: [ethers.utils.id('RedemptionFeeChanged(uint256)')],
-  }
-
-  const events = await collateral.queryFilter(filter, 'latest')
-  return events[0].args as any
-}
-
-export async function getDelayedWithdrawalExpiryChangedEvent(collateral: Collateral): Promise<any> {
-  const filter = {
-    address: collateral.address,
-    topics: [ethers.utils.id('DelayedWithdrawalExpiryChanged(uint256)')],
-  }
-
-  const events = await collateral.queryFilter(filter, 'latest')
-  return events[0].args as any
-}
-
-export async function getDepositHookChangedEvent(collateral: Collateral): Promise<any> {
-  const filter = {
-    address: collateral.address,
-    topics: [ethers.utils.id('DepositHookChanged(address)')],
-  }
-
-  const events = await collateral.queryFilter(filter, 'latest')
-  return events[0].args as any
-}
-
-export async function getWithdrawHookChangedEvent(collateral: Collateral): Promise<any> {
-  const filter = {
-    address: collateral.address,
-    topics: [ethers.utils.id('WithdrawHookChanged(address)')],
-  }
-
-  const events = await collateral.queryFilter(filter, 'latest')
-  return events[0].args as any
-}
-
-export async function getDepositsAllowedChangedEvent(collateral: Collateral): Promise<any> {
-  const filter = {
-    address: collateral.address,
-    topics: [ethers.utils.id('DepositsAllowedChanged(bool)')],
-  }
-
-  const events = await collateral.queryFilter(filter, 'latest')
-  return events[0].args as any
-}
-
-export async function getWithdrawalsAllowedChangedEvent(collateral: Collateral): Promise<any> {
-  const filter = {
-    address: collateral.address,
-    topics: [ethers.utils.id('WithdrawalsAllowedChanged(bool)')],
-  }
-
-  const events = await collateral.queryFilter(filter, 'latest')
   return events[0].args as any
 }
 

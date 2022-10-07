@@ -13,8 +13,9 @@ import { TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD } from 'hardhat/builtin-tasks/task
 import { generateHardhatConfig, generateHardhatLocalConfig } from 'prepo-hardhat'
 import { resolve } from 'path'
 import 'solidity-coverage'
-import './tasks/CoreFunding'
-import './tasks/Markets'
+// TODO: uncomment tasks once harness is modified to accomodate preUSD
+// import './tasks/CoreFunding'
+// import './tasks/Markets'
 
 dotenvConfig({ path: resolve(__dirname, './.env') })
 
