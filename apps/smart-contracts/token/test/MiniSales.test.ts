@@ -461,4 +461,29 @@ describe('=> MiniSales', () => {
       await expect(tx).to.emit(miniSales, 'PurchaseHookChange').withArgs(JUNK_ADDRESS)
     })
   })
+
+  describe('# withdrawERC20 (amounts)', () => {
+    // Adding minimal test to just ensure function reverts and is callable.
+    beforeEach(async () => {
+      await setupMiniSales()
+    })
+
+    it("doesn't revert", async () => {
+      await expect(
+        miniSales.connect(owner)['withdrawERC20(address[],uint256[])']([paymentToken.address], [0])
+      ).not.reverted
+    })
+  })
+
+  describe('# withdrawERC20 (full balance)', () => {
+    // Adding minimal test to just ensure function reverts and is callable.
+    beforeEach(async () => {
+      await setupMiniSales()
+    })
+
+    it("doesn't revert", async () => {
+      await expect(miniSales.connect(owner)['withdrawERC20(address[])']([paymentToken.address])).not
+        .reverted
+    })
+  })
 })

@@ -1005,45 +1005,28 @@ describe('Vesting', () => {
     })
   })
 
-  describe('# withdrawERC20', () => {
+  describe('# withdrawERC20 (amounts)', () => {
     // Adding minimal test to just ensure function reverts and is callable.
     beforeEach(async () => {
       await setupVesting()
-      const externalERC20Recipient = user1.address
-      const externalERC20Decimal = 18
-      const externalERC20InitialMint = parseEther(`100`)
-      externalERC20Token = await mockERC20Fixture(
-        'External ERC20',
-        'ExtERC20',
-        externalERC20Decimal,
-        externalERC20Recipient,
-        externalERC20InitialMint
-      )
     })
 
-    it('reverts if not owner', async () => {
-      const amountToWithdraw = parseEther('1')
-      expect(await vesting.owner()).to.not.eq(user1.address)
+    it("doesn't revert", async () => {
+      await expect(
+        vesting.connect(owner)['withdrawERC20(address[],uint256[])']([mockERC20Token.address], [0])
+      ).not.reverted
+    })
+  })
 
-      expect(
-        vesting.connect(user1).withdrawERC20([externalERC20Token.address], [amountToWithdraw])
-      ).revertedWith('Ownable: caller is not the owner')
+  describe('# withdrawERC20 (full balance)', () => {
+    // Adding minimal test to just ensure function reverts and is callable.
+    beforeEach(async () => {
+      await setupVesting()
     })
 
-    it('transfers if amount = contract balance', async () => {
-      await externalERC20Token.connect(user1).transfer(vesting.address, parseEther('1'))
-      const contractBalanceBefore = await externalERC20Token.balanceOf(vesting.address)
-      const ownerBalanceBefore = await externalERC20Token.balanceOf(owner.address)
-      const amountToWithdraw = contractBalanceBefore
-
-      await vesting.connect(owner).withdrawERC20([externalERC20Token.address], [amountToWithdraw])
-
-      expect(await externalERC20Token.balanceOf(owner.address)).to.be.equal(
-        ownerBalanceBefore.add(amountToWithdraw)
-      )
-      expect(await externalERC20Token.balanceOf(vesting.address)).to.be.equal(
-        contractBalanceBefore.sub(amountToWithdraw)
-      )
+    it("doesn't revert", async () => {
+      await expect(vesting.connect(owner)['withdrawERC20(address[])']([mockERC20Token.address])).not
+        .reverted
     })
   })
 })

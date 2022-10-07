@@ -738,45 +738,28 @@ describe('TokenShop', () => {
   })
   // TODO : add tests for tx.origin vs msg.sender
 
-  describe('# withdrawERC20', () => {
+  describe('# withdrawERC20 (amounts)', () => {
     // Adding minimal test to just ensure function reverts and is callable.
     beforeEach(async () => {
       await setupTokenShop()
-      const externalERC20Recipient = user1.address
-      const externalERC20Decimals = 18
-      const mockERC20InitialSupply = parseEther(`100`)
-      externalERC20Token = await mockERC20Fixture(
-        'External ERC20',
-        'ExtERC20',
-        externalERC20Decimals,
-        externalERC20Recipient,
-        mockERC20InitialSupply
-      )
     })
 
-    it('reverts if not owner', async () => {
-      const amountToWithdraw = parseEther('1')
-      expect(await tokenShop.owner()).to.not.eq(user1.address)
-
+    it("doesn't revert", async () => {
       await expect(
-        tokenShop.connect(user1).withdrawERC20([externalERC20Token.address], [amountToWithdraw])
-      ).revertedWith('Ownable: caller is not the owner')
+        tokenShop.connect(owner)['withdrawERC20(address[],uint256[])']([paymentToken.address], [0])
+      ).not.reverted
+    })
+  })
+
+  describe('# withdrawERC20 (full balance)', () => {
+    // Adding minimal test to just ensure function reverts and is callable.
+    beforeEach(async () => {
+      await setupTokenShop()
     })
 
-    it('transfers if amount = contract balance', async () => {
-      await externalERC20Token.connect(user1).transfer(tokenShop.address, parseEther('1'))
-      const contractBalanceBefore = await externalERC20Token.balanceOf(tokenShop.address)
-      expect(contractBalanceBefore).to.be.gt(0)
-      const ownerBalanceBefore = await externalERC20Token.balanceOf(owner.address)
-
-      await tokenShop
-        .connect(owner)
-        .withdrawERC20([externalERC20Token.address], [contractBalanceBefore])
-
-      expect(await externalERC20Token.balanceOf(owner.address)).to.be.equal(
-        ownerBalanceBefore.add(contractBalanceBefore)
-      )
-      expect(await externalERC20Token.balanceOf(tokenShop.address)).to.be.equal(0)
+    it("doesn't revert", async () => {
+      await expect(tokenShop.connect(owner)['withdrawERC20(address[])']([paymentToken.address])).not
+        .reverted
     })
   })
 

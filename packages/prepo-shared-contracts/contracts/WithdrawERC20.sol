@@ -25,4 +25,23 @@ contract WithdrawERC20 is IWithdrawERC20, SafeOwnable, ReentrancyGuard {
       }
     }
   }
+
+  function withdrawERC20(address[] calldata _erc20Tokens)
+    external
+    override
+    onlyOwner
+    nonReentrant
+  {
+    address _owner = owner();
+    uint256 _arrayLength = _erc20Tokens.length;
+    for (uint256 i; i < _arrayLength; ) {
+      IERC20(_erc20Tokens[i]).safeTransfer(
+        _owner,
+        IERC20(_erc20Tokens[i]).balanceOf(address(this))
+      );
+      unchecked {
+        ++i;
+      }
+    }
+  }
 }
