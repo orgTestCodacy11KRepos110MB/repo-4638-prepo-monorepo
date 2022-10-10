@@ -4,8 +4,6 @@
 import { ethers } from 'hardhat'
 import { PrePOMarket } from '../typechain/PrePOMarket'
 import { PrePOMarketFactory } from '../typechain/PrePOMarketFactory'
-import { MockStrategy } from '../typechain/MockStrategy'
-import { SingleStrategyController } from '../typechain/SingleStrategyController'
 import {
   CollateralDepositRecord,
   AccountAccessController,
@@ -90,38 +88,6 @@ export async function getFinalLongPriceSetEvent(market: PrePOMarket): Promise<an
   }
 
   const events = await market.queryFilter(filter, 'latest')
-  return events[0].args as any
-}
-
-export async function getApyChangedEvent(strategy: MockStrategy): Promise<any> {
-  const filter = {
-    address: strategy.address,
-    topics: [ethers.utils.id('ApyChanged(uint256)')],
-  }
-
-  const events = await strategy.queryFilter(filter, 'latest')
-  return events[0].args as any
-}
-
-export async function getStrategyMigratedEvent(controller: SingleStrategyController): Promise<any> {
-  const filter = {
-    address: controller.address,
-    topics: [ethers.utils.id('StrategyMigrated(address,address,uint256)')],
-  }
-
-  const events = await controller.queryFilter(filter, 'latest')
-  return events[0].args as any
-}
-
-export async function getSingleStrategyControllerVaultChangedEvent(
-  controller: SingleStrategyController
-): Promise<any> {
-  const filter = {
-    address: controller.address,
-    topics: [ethers.utils.id('VaultChanged(address)')],
-  }
-
-  const events = await controller.queryFilter(filter, 'latest')
   return events[0].args as any
 }
 
@@ -225,15 +191,5 @@ export async function getWithdrawHookVaultChangedEvent(hook: WithdrawHook): Prom
   }
 
   const events = await hook.queryFilter(filter, 'latest')
-  return events[0].args as any
-}
-
-export async function getMockStrategyVaultChangedEvent(strategy: MockStrategy): Promise<any> {
-  const filter = {
-    address: strategy.address,
-    topics: [ethers.utils.id('VaultChanged(address)')],
-  }
-
-  const events = await strategy.queryFilter(filter, 'latest')
   return events[0].args as any
 }

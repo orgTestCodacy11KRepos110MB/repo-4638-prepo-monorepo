@@ -2,7 +2,6 @@
 pragma solidity =0.8.7;
 
 import "./ILongShortToken.sol";
-import "./IStrategyController.sol";
 
 /**
  * @notice Users can mint/redeem long/short positions on a specific asset in
