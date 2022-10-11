@@ -117,3 +117,5 @@ Include `-D` if you are planning to install a dev dependency.
 ## Disclaimer
 
 The AGPL V3 license only applies to the code within the repository. Any assets or other files (in part or whole) that already have a non-open-source license are excluded.
+
+## Checking CI/CD
