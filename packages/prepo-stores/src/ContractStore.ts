@@ -16,7 +16,7 @@ type SendTransactionOptions = {
   minimumGasLimit?: BigNumber
 } & UnsignedTransaction
 
-type GasOptions = { gasLimit?: BigNumber; gasPrice?: BigNumber; type: number }
+type GasOptions = { gasLimit?: BigNumber; gasPrice?: BigNumber }
 
 export class ContractStore<RootStoreType, SupportedContracts> {
   contractName: keyof SupportedContracts
@@ -129,7 +129,6 @@ export class ContractStore<RootStoreType, SupportedContracts> {
     const estimateOptions = { from: this.root.web3Store.signerState.address, ...callerOptions }
     const options: GasOptions = {
       gasPrice: this.root.gasStore.gasPrice,
-      type: 0,
     }
 
     try {
