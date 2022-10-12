@@ -22,20 +22,16 @@ const MobileMenuLink: FC<MobileMenuLinkProps> = ({ href, title }) => (
 
 const externalLinks: MobileMenuLinkProps[] = [
   {
-    href: 'https://docs.prepo.io/faq',
-    title: 'FAQ',
-  },
-  {
-    href: 'https://simulator.prepo.io',
-    title: 'Simulator',
-  },
-  {
     href: 'https://docs.prepo.io',
     title: 'Docs',
   },
   {
     href: ROUTES.BLOG,
     title: 'Blog',
+  },
+  {
+    href: 'https://simulator.prepo.io',
+    title: 'Simulator',
   },
 ]
 

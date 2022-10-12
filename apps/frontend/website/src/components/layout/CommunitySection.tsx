@@ -12,12 +12,12 @@ const socialItems: SocialItemProps[] = [
   {
     url: 'https://url.prepo.io/discord-website-desktop',
     iconName: 'socialDiscord',
-    count: '10,000+',
+    count: '15,000+',
   },
   {
     url: 'https://twitter.com/prepo_io',
     iconName: 'socialTwitter',
-    count: '15,000+',
+    count: '25,000+',
   },
 ]
 

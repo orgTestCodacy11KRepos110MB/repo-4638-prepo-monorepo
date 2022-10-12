@@ -1,12 +1,9 @@
-import clsx from 'clsx'
 import ReCAPTCHA from 'react-google-recaptcha'
-import { createRef, FC, useState, KeyboardEvent } from 'react'
+import { createRef, FC } from 'react'
 import Head from 'next/head'
 import { Button } from '../Button'
-import { Icon } from '../Icon'
 import { IconButton, IconButtonProps } from '../IconButton'
-import { subscribe } from '../../utils/mailchimp-subscribe'
-import { EMAIL_REGEX, RECAPTCHA_SITE_ID, ROUTES } from '../../lib/constants'
+import { RECAPTCHA_SITE_ID, ROUTES } from '../../lib/constants'
 
 const Nav: FC = ({ children }) => (
   <nav className="font-medium">
@@ -40,13 +37,7 @@ const NavItem: FC<NavItemProps> = ({ title, href }) => (
 
 const NewsletterSignup: FC = () => {
   const recaptchaRef = createRef<ReCAPTCHA>()
-  const [email, setEmail] = useState('')
-  const [loading, setLoading] = useState(false)
-  const onUserSubscribe = (): void => {
-    setLoading(true)
-    subscribe(email, recaptchaRef).finally(() => setLoading(false))
-  }
-  const disabled = !EMAIL_REGEX.test(email)
+
   return (
     <>
       {/* Must place ReCAPTCHA component where we want challenge to appear */}
@@ -60,39 +51,15 @@ const NewsletterSignup: FC = () => {
         <p className="mt-[7px] mb-[16px] text-sm font-medium text-secondary text-opacity-[68%]">
           Get early access to our news &amp; releases
         </p>
-        <div className="flex py-2 px-[14px] w-full bg-white border-[0.61px] border-inputBorder focus-within:border-prepo focus-within:ring-1 focus-within:ring-prepo">
-          <input
-            type="email"
-            autoComplete="email"
-            placeholder="Enter your Email Address"
-            className="grow pl-0 w-1 text-[11px] leading-none border-none focus:border-none focus:outline-none focus:ring-0 sm:text-sm min-w-1"
-            value={email}
-            onChange={(e): void => setEmail(e.target.value)}
-            onKeyDown={(e: KeyboardEvent<HTMLInputElement>): void => {
-              if (e.key === 'Enter') onUserSubscribe()
-            }}
-          />
-          <Button
-            onClick={onUserSubscribe}
-            className={clsx(
-              disabled && 'opacity-50 pointer-events-none',
-              loading && 'bg-secondary hover:bg-secondary pointer-events-none',
-              'py-2 px-4 text-[11px] leading-none whitespace-nowrap rounded-sm sm:text-sm'
-            )}
-          >
-            <div className="flex items-center">
-              Stay Updated
-              <div
-                className={clsx(
-                  loading ? 'ml-1 w-[1em] opacity-100' : 'ml-0 w-0 opacity-0',
-                  'transition-all animate-spin pointer-events-none'
-                )}
-              >
-                <Icon width="1em" height="1em" name="spinner" />
-              </div>
-            </div>
-          </Button>
-        </div>
+        <Button
+          className="py-2 px-4 pl-4 text-[11px] leading-none whitespace-nowrap rounded-sm sm:text-sm"
+          href="https://url.prepo.io/newsletter-website"
+          target="_blank"
+          iconSize={14}
+          iconClassName="ml-2"
+        >
+          Join Newsletter
+        </Button>
       </div>
     </>
   )
@@ -169,12 +136,13 @@ export const Footer: FC = () => (
               />
             </NavGroup> */}
           <NavGroup title="Resources">
-            <NavItem title="Blog" href={ROUTES.BLOG} />
             <NavItem title="Docs" href="https://docs.prepo.io" />
-            <NavItem title="FAQ" href="https://docs.prepo.io/faq" />
+            <NavItem title="Blog" href={ROUTES.BLOG} />
             <NavItem title="Jobs" href="https://url.prepo.io/jobs" />
           </NavGroup>
           <NavGroup title="Products">
+            <NavItem title="PPO Sales" href="https://sale.prepo.io" />
+            <NavItem title="Testnet" href="https://app.prepo.io" />
             <NavItem title="Simulator" href="https://simulator.prepo.io" />
           </NavGroup>
         </Nav>
