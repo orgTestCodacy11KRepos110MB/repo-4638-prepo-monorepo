@@ -1,4 +1,4 @@
-import { Flex, Input, media, spacingIncrement } from 'prepo-ui'
+import { Flex, Input, InputContainer, LabelWrapper, media, spacingIncrement } from 'prepo-ui'
 import { observer } from 'mobx-react-lite'
 import styled from 'styled-components'
 import { ZERO_ADDRESS } from 'prepo-constants'
@@ -39,6 +39,24 @@ const InputWrapper = styled.div`
   }
 `
 
+const StyledInput = styled(Input)`
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 0;
+  ${LabelWrapper} {
+    height: 24px;
+  }
+  ${InputContainer} {
+    display: flex;
+    height: 29px;
+    padding: 0;
+    span {
+      height: 29px;
+    }
+  }
+`
+
 const LookupUser: React.FC = () => {
   const {
     delegateStore: { loading, customDelegate, onChangeEnsNameInput, ensInputValue },
@@ -52,17 +70,18 @@ const LookupUser: React.FC = () => {
       borderRadius={4}
       justifyContent="space-between"
       py={11}
-      px={22}
+      pl={23}
+      pr={28}
       gap={{ phone: 5, desktop: 15 }}
     >
       <InputWrapper>
-        <Input
+        <StyledInput
           prefix={
             <AddressAvatar
               loading={loading}
               address={customDelegate?.delegateAddress}
               avatarUrl={customDelegate?.avatar}
-              avatarDiameter={{ desktop: 24, mobile: 24 }}
+              avatarDiameter={{ desktop: 20, mobile: 20 }}
             />
           }
           label={t`Lookup User`}

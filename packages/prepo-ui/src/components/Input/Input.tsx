@@ -19,6 +19,7 @@ type Props = InputProps & {
   onClear?: () => void
   secondaryLabel?: React.ReactNode
   shadowSuffix?: string
+  className?: string
 }
 
 type InputSize = {
@@ -74,7 +75,7 @@ const ClearLabel = styled.span`
   `}
 `
 
-const InputContainer = styled.div<{ customStyles?: CustomStyles; size: SizeType }>`
+export const InputContainer = styled.div<{ customStyles?: CustomStyles; size: SizeType }>`
   background-color: ${({ customStyles, theme }): string =>
     theme.color[customStyles?.backgroundColor || 'neutral9']};
   border: 1px solid
@@ -106,7 +107,7 @@ const InputContainer = styled.div<{ customStyles?: CustomStyles; size: SizeType 
   }
 `
 
-const LabelWrapper = styled.span`
+export const LabelWrapper = styled.span`
   color: ${({ theme }): string => theme.color.neutral1};
   font-size: ${({ theme }): string => theme.fontSize.xs};
   font-weight: ${({ theme }): number => theme.fontWeight.medium};
@@ -168,6 +169,7 @@ const Input: React.FC<Props> = ({
   alignInput = 'left',
   customStyles,
   label,
+  className,
   onBlur,
   onClear,
   onFocus,
@@ -197,7 +199,7 @@ const Input: React.FC<Props> = ({
     shadowSuffix.length > 0
 
   return (
-    <Wrapper textAlign={alignInput}>
+    <Wrapper textAlign={alignInput} className={className}>
       <LabelContainer>
         <LabelWrapper>{label}</LabelWrapper>
         {onClear ? (
