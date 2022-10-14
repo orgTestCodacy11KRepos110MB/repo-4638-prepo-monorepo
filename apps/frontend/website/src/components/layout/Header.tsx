@@ -3,6 +3,7 @@ import { FC } from 'react'
 import { Icon } from '../Icon'
 import { IconButton, IconButtonProps } from '../IconButton'
 import { ROUTES } from '../../lib/constants'
+import { Button } from '../Button'
 
 type MobileMenuLinkProps = {
   href: string
@@ -22,7 +23,7 @@ const MobileMenuLink: FC<MobileMenuLinkProps> = ({ href, title }) => (
 
 const externalLinks: MobileMenuLinkProps[] = [
   {
-    href: 'https://docs.prepo.io',
+    href: ROUTES.DOCS,
     title: 'Docs',
   },
   {
@@ -30,7 +31,11 @@ const externalLinks: MobileMenuLinkProps[] = [
     title: 'Blog',
   },
   {
-    href: 'https://simulator.prepo.io',
+    href: ROUTES.APP,
+    title: 'Testnet',
+  },
+  {
+    href: ROUTES.SIMULATOR,
     title: 'Simulator',
   },
 ]
@@ -62,15 +67,14 @@ const MobileMenu: FC<{ isOpen: boolean }> = ({ isOpen }) => (
       {externalLinks.map(({ title, href }) => (
         <MobileMenuLink key={title} title={title} href={href} />
       ))}
-      <a
-        type="button"
-        href={ROUTES.APP}
+      <Button
+        href={ROUTES.TOKEN_SALE}
+        className="w-[284px] relative overflow-hidden"
         target="_blank"
-        className="flex justify-center items-center mt-7 w-56 h-16 font-semibold text-background bg-prepo rounded"
-        rel="noreferrer"
       >
-        Try Testnet
-      </a>
+        <Icon name="ppoGraphic" className="absolute z-0 left-0" />
+        <span className="z-10">Buy PPO Token</span>
+      </Button>
     </div>
     <div className="mb-9">
       <SocialLinks />
@@ -107,13 +111,14 @@ const DesktopItems: FC = () => (
     </div>
     <div className="hidden gap-4 justify-center items-center lg:flex lg:visible">
       <a
-        href={ROUTES.APP}
+        href={ROUTES.TOKEN_SALE}
         target="_blank"
         type="button"
-        className="flex justify-center items-center w-36 h-10 font-semibold text-background bg-prepo hover:bg-prepo-accent rounded transition-all"
+        className="flex justify-center items-center px-3 py-2 gap-2 font-semibold text-prepo bg-white border-[2px] border-prepo hover:bg-prepo-light rounded transition-all"
         rel="noreferrer"
       >
-        Try Testnet
+        <Icon name="ppo" height={24} width={24} />
+        Buy PPO
       </a>
 
       <SocialLinks />
@@ -128,7 +133,7 @@ export const Header: FC<{ isMobileMenuOpen: boolean; toggleMobileMenu: () => voi
   <div
     className={clsx(
       'flex flex-col mx-auto w-full lg:static lg:h-auto',
-      isMobileMenuOpen && 'fixed top-0 right-0 z-10 h-screen bg-background'
+      isMobileMenuOpen && 'fixed top-0 right-0 z-20 h-screen bg-background'
     )}
   >
     <div className="flex justify-between items-center mx-8 mt-14 mb-7 max-w-6xl lg:my-9 lg:mx-auto">

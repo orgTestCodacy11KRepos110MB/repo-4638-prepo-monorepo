@@ -2,6 +2,7 @@ import { FC } from 'react'
 import dynamic from 'next/dynamic'
 import NonBreakingText from '../NonBreakingText'
 import { Button } from '../Button'
+import { Icon } from '../Icon'
 import { ROUTES } from '../../lib/constants'
 
 // Lazy load as it's only esthetics, it's a 58KB module because of embedded PNGs.
@@ -30,8 +31,21 @@ export const Hero: FC = () => (
           prePO is a decentralized trading platform allowing anyone, anywhere to gain exposure to
           any <NonBreakingText>pre-public</NonBreakingText> asset.
         </p>
-        <div className="inherit">
-          <Button href={ROUTES.NEWSLETTER} target="_blank">
+        <div className="flex flex-col md:flex-row gap-4 items-center justify-center">
+          <Button
+            href={ROUTES.TOKEN_SALE}
+            target="_blank"
+            className="w-[284px] relative overflow-hidden"
+          >
+            <Icon name="ppoGraphic" className="absolute z-0 left-0" />
+            <span className="z-10">Buy PPO Token</span>
+          </Button>
+          <Button
+            href={ROUTES.NEWSLETTER}
+            target="_blank"
+            buttonType="secondary"
+            className="w-[284px]"
+          >
             Join Newsletter
           </Button>
         </div>

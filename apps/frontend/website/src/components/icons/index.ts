@@ -61,6 +61,7 @@ import { SocietyOne } from './partners/SocietyOne'
 import { ZedRun } from './partners/ZedRun'
 import { TelescopeIcon } from './TelescopeIcon'
 import { TelegramIcon } from './TelegramIcon'
+import { PPOGraphic } from './PPOGraphic'
 
 // lazy load large svg with png embedded
 const DHedge = dynamic(() => import('./partners/DHedge'), { ssr: false })
@@ -103,6 +104,7 @@ export default {
 
   // governance
   ppo: PPOIcon,
+  ppoGraphic: PPOGraphic,
   earn: EarnIcon,
   spend: SpendIcon,
   timelock: TimelockIcon,

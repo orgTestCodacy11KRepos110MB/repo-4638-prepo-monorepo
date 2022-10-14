@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { FC } from 'react'
+import { FC, useMemo } from 'react'
 import Link from 'next/link'
 import { Icon } from './Icon'
 
@@ -12,6 +12,7 @@ export type ButtonProps = React.DetailedHTMLProps<
     iconClassName?: string
     iconSize?: number
     target?: '_blank' | '_self'
+    buttonType?: 'primary' | 'secondary'
   }
 
 export const Button: FC<ButtonProps> = ({
@@ -21,12 +22,22 @@ export const Button: FC<ButtonProps> = ({
   children,
   iconClassName,
   iconSize = 18,
+  buttonType = 'primary',
   ...props
 }) => {
-  const styles = clsx(
-    'inline-flex justify-center items-center py-4 px-14 text-lg font-semibold text-white bg-prepo hover:bg-prepo-accent disabled:hover:bg-prepo rounded disabled:opacity-50 transition-colors disabled:cursor-default',
-    className
-  )
+  const defaultStyle =
+    'inline-flex justify-center items-center py-4 px-14 text-lg font-semibold rounded disabled:opacity-50 transition-colors disabled:cursor-default'
+
+  const customStyle = useMemo(() => {
+    switch (buttonType) {
+      case 'secondary':
+        return 'text-prepo bg-white border-prepo border'
+      default:
+        return 'text-white bg-prepo hover:bg-prepo-accent disabled:hover:bg-prepo'
+    }
+  }, [buttonType])
+
+  const styles = clsx(defaultStyle, customStyle, className)
 
   const iconStyle = clsx('inline-block ml-4', iconClassName)
 
