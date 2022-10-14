@@ -17,6 +17,7 @@ export enum ROUTES {
   JOBS = 'https://url.prepo.io/jobs',
   NEWSLETTER = 'https://url.prepo.io/newsletter-website',
   PRESALE_BLOG = 'https://url.prepo.io/blog-presale-website',
+  PUBLIC_SALE_BLOG = 'https://medium.com/prepo/announcing-the-ppo-token-public-sale-6f672e23325a',
   TELEGRAM = 'https://t.me/prePO_News',
   GITHUB = 'https://github.com/prepo-io',
   SIMULATOR = 'https://simulator.prepo.io',
