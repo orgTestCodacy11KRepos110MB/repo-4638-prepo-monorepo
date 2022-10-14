@@ -13,9 +13,14 @@ export const APP_NAME = 'prePO'
 export enum ROUTES {
   APP = 'https://app.prepo.io',
   BLOG = 'https://medium.com/prepo',
+  DOCS = 'https://docs.prepo.io',
+  JOBS = 'https://url.prepo.io/jobs',
+  NEWSLETTER = 'https://url.prepo.io/newsletter-website',
   PRESALE_BLOG = 'https://url.prepo.io/blog-presale-website',
   TELEGRAM = 'https://t.me/prePO_News',
   GITHUB = 'https://github.com/prepo-io',
+  SIMULATOR = 'https://simulator.prepo.io',
+  TOKEN_SALE = 'https://sale.prepo.io/',
 }
 
 export const MAILCHIMP_URL =

@@ -53,7 +53,7 @@ const NewsletterSignup: FC = () => {
         </p>
         <Button
           className="py-2 px-4 pl-4 text-[11px] leading-none whitespace-nowrap rounded-sm sm:text-sm"
-          href="https://url.prepo.io/newsletter-website"
+          href={ROUTES.NEWSLETTER}
           target="_blank"
           iconSize={14}
           iconClassName="ml-2"
@@ -136,14 +136,14 @@ export const Footer: FC = () => (
               />
             </NavGroup> */}
           <NavGroup title="Resources">
-            <NavItem title="Docs" href="https://docs.prepo.io" />
+            <NavItem title="Docs" href={ROUTES.DOCS} />
             <NavItem title="Blog" href={ROUTES.BLOG} />
-            <NavItem title="Jobs" href="https://url.prepo.io/jobs" />
+            <NavItem title="Jobs" href={ROUTES.JOBS} />
           </NavGroup>
           <NavGroup title="Products">
-            <NavItem title="PPO Sales" href="https://sale.prepo.io" />
-            <NavItem title="Testnet" href="https://app.prepo.io" />
-            <NavItem title="Simulator" href="https://simulator.prepo.io" />
+            <NavItem title="PPO Sales" href={ROUTES.TOKEN_SALE} />
+            <NavItem title="Testnet" href={ROUTES.APP} />
+            <NavItem title="Simulator" href={ROUTES.SIMULATOR} />
           </NavGroup>
         </Nav>
         <NewsletterSignup />

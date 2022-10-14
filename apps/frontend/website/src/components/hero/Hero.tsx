@@ -2,6 +2,7 @@ import { FC } from 'react'
 import dynamic from 'next/dynamic'
 import NonBreakingText from '../NonBreakingText'
 import { Button } from '../Button'
+import { ROUTES } from '../../lib/constants'
 
 // Lazy load as it's only esthetics, it's a 58KB module because of embedded PNGs.
 const HeroAnimation = dynamic(() => import('./HeroAnimation/HeroAnimation'), {
@@ -30,7 +31,7 @@ export const Hero: FC = () => (
           any <NonBreakingText>pre-public</NonBreakingText> asset.
         </p>
         <div className="inherit">
-          <Button href="https://url.prepo.io/newsletter-website" target="_blank">
+          <Button href={ROUTES.NEWSLETTER} target="_blank">
             Join Newsletter
           </Button>
         </div>
