@@ -64,6 +64,7 @@ import DocsOutlinedIcon from './DocsOutlinedIcon'
 import GovernOutlinedIcon from './GovernOutlinedIcon'
 import GradientLogoIcon from './GradientLogoIcon'
 import ExclamationTriangle from './ExclamationTriangle'
+import CopyIcon from './CopyIcon'
 
 export const applicationIcons = {
   'arrow-down': ArrowDownIcon,
@@ -82,6 +83,7 @@ export const applicationIcons = {
   'colored-liquidity': ColoredLiquiditity,
   'colored-stake': ColoredStake,
   'colored-trade': ColoredTrade,
+  copy: CopyIcon,
   cross: CrossIcon,
   cup: CupIcon,
   'dark-theme': DarkThemeIcon,
