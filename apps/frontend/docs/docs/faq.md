@@ -80,9 +80,11 @@ PPO is prePO’s governance and utility token.
 
 The purpose of the PPO token is to incentivize high-quality, active participation and long-term alignment with the prePO platform, protocol, and DAO.
 
-### When will the PPO token be launching?
+### Is the PPO token launched?
 
-September 20th 00:00 UTC, alongside the [PPO Token Presale](https://url.prepo.io/blog-presale-docs).
+Yes. The PPO token launched on September 20th alongside the [PPO Token Presale](https://url.prepo.io/blog-presale-docs).
+
+Note that the token is currently non-transferable and non-tradable.
 
 ### What chain/network will the PPO token be launching on?
 
@@ -94,13 +96,13 @@ Potentially - however for now it makes sense to keep everything unified on one c
 
 ### How can I buy PPO tokens?
 
-Initially, PPO tokens will only be purchasable via the [PPO Token Presale](https://url.prepo.io/blog-presale-docs) and potential future sale events on [sale.prepo.io](https://sale.prepo.io/).
+Currently, PPO tokens are only purchasable via [sale.prepo.io](https://sale.prepo.io/).
 
 After transferability is enabled, PPO tokens will be purchasable from decentralized exchanges (e.g. Uniswap) and potentially some centralized exchanges (to be announced).
 
 ### How can I earn PPO tokens?
 
-After the token launch, PPO tokens will be earnable in [various other ways](https://docs.prepo.io/tokenomics#earning-ppo).
+PPO tokens are/will be earnable in [various ways](https://docs.prepo.io/tokenomics#earning-ppo), including community tipping and gamified staking rewards.
 
 ### How can I see my PPO balance?
 
@@ -122,13 +124,15 @@ There are many benefits to launching a token as non-transferable initially:
 
 ### What can I do with PPO tokens while transfers are restricted?
 
-PPO tokens will still be fully-functional for certain purposes - such as governance, staking and rewards - even prior to unrestricted transfers are enabled.
+Prior to unrestricted transfers being enabled, PPO tokens will still be fully-functional for most purposes (such as governance, staking, rewards - almost everything except trading/selling).
 
 ### When will unrestricted transfers (and trading) be enabled?
 
-PPO holders can vote to enable full transferability if they deem it to be in the best interest of prePO.
+PPO token holders will be able to vote to unlock transfers if they determine that doing so would be in the best interest of prePO.
 
-Some prerequisites that token holders may want to meet before enabling full transferability could include:
+An estimate of H2 2023 is mentioned in the latest [roadmap update](https://medium.com/prepo/prepo-roadmap-update-q4-2022-%EF%B8%8F-62497a63c7e), but it could be earlier or much later.
+
+Important prerequisites (non-exhaustive) before enabling full transferability include:
 
 - A sufficiently-decentralized fully-functional governance system
 - A widely distributed token holder base
@@ -137,6 +141,10 @@ Some prerequisites that token holders may want to meet before enabling full tran
 - Sufficient traction / product-market fit on the core platform
 - Determining that enabling transfers would comply with all applicable laws
 - The return of a crypto bull market (to protect the treasury's protocol-owned liquidity and avoid negative sentiment around price in a bear market)
+
+As many of these prerequisites should be met as possible. 
+
+Note that prePO's governance process is still being finalized and therefore voting is not yet possible.
 
 ### Will there be an airdrop?
 
@@ -148,7 +156,8 @@ There are no current plans for an airdrop in the traditional sense. Instead, pre
 
 ### What does the PPO token distribution look like?
 
-- Community Treasury 58.9% (including public sales)
+- Community Treasury 58.2% (including public sales)
+- Presale 0.7%
 - Seed Round 8.8%
 - Strategic Round 5.3%
 - Team 25%
@@ -156,14 +165,16 @@ There are no current plans for an airdrop in the traditional sense. Instead, pre
 
 ### How will the treasury PPO allocation be used?
 
-PPO in the treasury could be used for incentives, liquidity bootstrapping, sales (including the [Presale](https://url.prepo.io/blog-presale-docs)), and new initiatives.
+PPO in the treasury could be used for incentives, liquidity bootstrapping, sales, and new initiatives.
 
-Token holders can propose how this PPO is utilized.
+Token holders will be able to propose how this PPO is utilized.
 
 ### What are the details of past fundraising rounds?
 
 - [Seed Round](https://prepo.io/blog/prepo-seed-round/) (2021): raised ~$1.1M at $0.013
 - [Strategic Round](https://prepo.io/blog/prepo-strategic-round/) (2022): raised ~$2.3M at $0.045
+- [Presale](https://medium.com/prepo/a-successful-presale-d427c8d52327): raised ~$390K at $0.060
+- [Public Sale](https://sale.prepo.io/): TBD (still ongoing)
 
 ### What is the lockup for PPO investors and team members?
 
@@ -177,43 +188,49 @@ Token holders can propose how this PPO is utilized.
 
 Yes, the smart contracts have been audited by Code4rena.
 
-## PPO Token Presale
+## PPO Token Public Sale
 
-### Where can I find important details about the PPO Token Presale?
+### Where can I find important details about the PPO Token Public Sale?
 
-See the [Presale announcement post](https://url.prepo.io/blog-presale-docs).
+See the [public sale announcement post](https://url.prepo.io/blog-sale-docs).
 
-### What will the Presale price and cap (total PPO allocation) be?
-
-See the [Presale announcement post](https://url.prepo.io/blog-presale-docs).
-
-### How do I check my eligibility for the Presale?
-
-Connect your wallet on [sale.prepo.io](https://sale.prepo.io/).
-
-Only whitelisted addresses are eligible (the whitelist is now closed). If you think your address was excluded by mistake, you can send a direct message to the moderator in our [Discord](https://url.prepo.io/discord-docs).
-
-### Are there KYC requirements for the Presale?
+### Are there KYC requirements for the public sale?
 
 No, you will just be required to acknowledge terms before participation.
 
-### Will there be any other rewards for participating in the Presale?
+### Will there be any bonus rewards I can earn during the public sale?
 
-Yes! See our [bonus rewards announcement post](https://url.prepo.io/blog-presalegalxe-docs).
+Yes! See our [bonus rewards announcement post](https://url.prepo.io/blog-salegalxe-docs).
 
-### When does the Presale end?
+### When does the public sale end?
 
-The Presale will end as soon as the cap is reached (first-come-first-served), so make sure to be ready in advance!
+There is no predetermined end date for the public sale. The sale may be paused or conclude at any time.
 
-### What payment currency is accepted for the Presale?
+### What payment currency is accepted for the public sale?
 
-USDC only. Note that you will also need a small amount of ETH to pay for gas costs.
+USDC only (for now). Note that you will also need a small amount of ETH to pay for gas costs.
 
 Check out our [step-by-step guide](https://url.prepo.io/blog-arbitrumguide-docs) for getting ETH & USDC on Arbitrum.
 
-You can approve your USDC in advance on [sale.prepo.io](https://sale.prepo.io/) to save time when the sale begins.
+### What is the price for the public sale? / When will the price change? / What will the price change to?
 
-### Is there any vesting for tokens purchased in the Presale?
+The public sale price is subject to change (increase or decrease) at any time, and may be influenced by capital needs, roadmap progress, demand, market conditions, and other data.
+
+There is no predetermined timing or value for price changes, although price changes may potentially be announced in advance.
+
+As with most sales, the aim is to raise as much as possible at the highest weighted average sale price (there is a trade-off between these two metrics).
+
+### What is the total amount of PPO allocated to the public sale? / Is there a limit on how much PPO will be sold in the public sale?
+
+There is no predetermined amount/limit of PPO that will be sold in the public sale. The total sale allocation is subject to change at any time, and may be influenced by capital needs, roadmap progress, demand, market conditions, and other data.
+
+As with most sales, the aim is to raise as much as possible at the highest weighted average sale price (there is a trade-off between these two metrics).
+
+### What is the benefit of the public sale for prePO?
+
+Sales benefit prePO by widening token distribution (thus helping with decentralization and increasing the number of long-term-aligned users) and increasing treasury funds (e.g. for expanding the team and protocol-owned liquidity).
+
+### Is there any vesting for tokens purchased in the public sale?
 
 No.
 
@@ -221,14 +238,38 @@ No.
 
 Yes.
 
-### What are the contract addresses for the Presale?
+### What are the contract addresses for the public sale?
 
-- PPO.sol: [0xb40dbbb7931cfef8be73aeec6c67d3809bd4600b](https://arbiscan.io/address/0xb40dbbb7931cfef8be73aeec6c67d3809bd4600b)
-- MiniSales.sol: [0x5f60fc20a5654ee783c179b823dc919e456cd6f2](https://arbiscan.io/address/0x5f60fc20a5654ee783c179b823dc919e456cd6f2)
+- PPO: [0xB40DBBb7931Cfef8Be73AEEC6c67d3809bD4600B](https://arbiscan.io/address/0xB40DBBb7931Cfef8Be73AEEC6c67d3809bD4600B)
+- Public Sale: [0x7dD121eA83aFfc19457A12fcCbd3B49dcCF9f128](https://arbiscan.io/address/0x7dD121eA83aFfc19457A12fcCbd3B49dcCF9f128)
 
-### Will there be future public sales?
+### Will there be future sales in other forms?
 
-Most likely yes. Stay updated by joining our [Discord](https://url.prepo.io/discord-docs) and [Twitter](https://twitter.com/prepo_io).
+Most likely yes. See our [Roadmap Update (Q4 2022)](https://medium.com/prepo/prepo-roadmap-update-q4-2022-%EF%B8%8F-62497a63c7e), and stay updated by joining our [Discord](https://url.prepo.io/discord-docs) and [Twitter](https://twitter.com/prepo_io).
+
+## Governance
+
+### When will prePO's governance system be live?
+
+prePO's governance process is still being finalized. Stay updated by joining our [Discord](https://url.prepo.io/discord-docs) and [Twitter](https://twitter.com/prepo_io).
+
+### Where will prePO's governance discussions take place?
+
+In dedicated governance channels/forums (coming soon) in [Discord](https://url.prepo.io/discord-docs).
+
+Access to these channels may be gated to certain roles (e.g. requiring a certain amount of PPO, requiring the completion of certain learn-and-earn courses) to increase the average quality of contributions.
+
+### Will the team and private investors be able to participate in governance?
+
+Yes, they will be able to participate in governance using any of their vested tokens (like any other token holder) plus using their unvested tokens but with a down-weighting factor (ensuring that governance still functions properly in the early stages when tokens are not yet widely distributed). The down-weighting factor is to be determined, but a goal is to maintain a balance between avoiding voter apathy from regular token holders, and ensuring the governance system isn't vulnerable to governance attacks due to lower token distribution in the early stages.
+
+### How will prePO's governance be designed/structured?
+
+prePO's governance system uses a representative council, allowing for the project to progress quickly and smoothly rather than putting every tiny decision up to a governance vote.
+
+The representative council will be modifiable at any time by a democratic governance vote, which keeps the representative council accountable and puts the ultimate governance power in the hands of token holders, without requiring them to participate in every single decision (which they likely do not have the context / knowledge / time for).
+
+Some contentious decisions may still be informed by a referendum vote (a direct vote from token holders).
 
 ## Testnet
 
