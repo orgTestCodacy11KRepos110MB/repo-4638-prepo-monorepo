@@ -1,4 +1,4 @@
-import { spacingIncrement, media, Flex, Box, Typography, Button } from 'prepo-ui'
+import { spacingIncrement, media, Flex, Box, Typography, Button, Switch } from 'prepo-ui'
 import React from 'react'
 import styled, { useTheme } from 'styled-components'
 import { observer } from 'mobx-react-lite'
@@ -9,6 +9,7 @@ import { LearnMore } from './StakeWarningMessages'
 import UnstakeButtons from './UnstakeButtons'
 import { useRootStore } from '../../../context/RootStoreProvider'
 import useFeatureFlag, { FeatureFlag } from '../../../hooks/useFeatureFlag'
+import TradingViewChart from '../../../components/TradingViewChart'
 
 const ControlPanel = styled.div`
   border: 1px solid ${({ theme }): string => theme.color.neutral6};
@@ -31,11 +32,13 @@ const pageMap = {
     description:
       'The longer your average staking time, the higher the time multiplier on your staked PPO.',
     href: '',
+    showTradingViewSwitch: true,
   },
   unstake: {
     title: 'Unstaking Fee',
     description: 'Stake for longer for a lower fee.',
     href: '',
+    showTradingViewSwitch: false,
   },
 }
 
@@ -50,13 +53,15 @@ const StakeUnstakeLayout: React.FC<{
     delegateStore: { selectedDelegate: delegate },
     stakeStore: { isCurrentStakingValueValid, stake },
     ppoStakingStore: { staking },
-    uiStore: { disableMocks },
+    uiStore: { disableMocks, showTradingViewChart, setShowTradingViewChart },
   } = useRootStore()
   const { enabled } = useFeatureFlag(FeatureFlag.enableStakingLocally)
   const loading = staking || (delegate && !delegate.delegateAddress)
 
   const isStake = tab === 'stake'
-  const content = pageMap[tab]
+  const { title, href, showTradingViewSwitch, description } = pageMap[tab]
+
+  const renderChart = showTradingViewSwitch && showTradingViewChart ? <TradingViewChart /> : chart
 
   return (
     <Box mx="auto">
@@ -70,6 +75,7 @@ const StakeUnstakeLayout: React.FC<{
         <Flex
           alignItems="flex-start"
           flexDirection="column"
+          position="relative"
           border={`1px solid ${theme.color.neutral6}`}
           borderRadius={`${theme.borderRadius}px`}
           pt={20}
@@ -84,7 +90,7 @@ const StakeUnstakeLayout: React.FC<{
             color="neutral1"
             ml={{ phone: 20, desktop: 0 }}
           >
-            {content.title}
+            {title}
           </Typography>
           <Typography
             ml={{ phone: 20, desktop: 0 }}
@@ -93,9 +99,26 @@ const StakeUnstakeLayout: React.FC<{
             mt={8}
             mb={{ phone: 30, desktop: 50 }}
           >
-            {content.description}
-            <LearnMore href={content.href} />
+            {description}
+            <LearnMore href={href} />
           </Typography>
+          {showTradingViewSwitch && (
+            <Typography
+              position="absolute"
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+              bottom={10}
+              left={0}
+              width="100%"
+              color="neutral1"
+              variant="text-medium-md"
+            >
+              Advanced Chart
+              <Flex width={25} />
+              <Switch checked={showTradingViewChart} onChange={setShowTradingViewChart} />
+            </Typography>
+          )}
           {disableMocks ? (
             <Typography
               variant="text-medium-md"
@@ -108,7 +131,7 @@ const StakeUnstakeLayout: React.FC<{
               Coming Soon
             </Typography>
           ) : (
-            chart
+            renderChart
           )}
         </Flex>
         <Flex maxWidth={{ phone: '100%', desktop: 400 }} alignSelf="flex-start">

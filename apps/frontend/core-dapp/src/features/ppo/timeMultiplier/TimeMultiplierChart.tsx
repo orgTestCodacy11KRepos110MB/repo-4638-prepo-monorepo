@@ -18,6 +18,7 @@ export const ChartContainer = styled.div`
   flex: 1;
   justify-content: center;
   overflow: hidden;
+  position: relative;
   width: 100%;
   .recharts-layer.recharts-active-dot {
     circle {
