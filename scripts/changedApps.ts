@@ -41,6 +41,7 @@ const getChangedApps = async (): Promise<FrontendApp[]> => {
   console.log({ commandToRun })
   const { stdout } = await execCommand(commandToRun)
 
+  console.log(stdout)
   // https://stackoverflow.com/a/63660736
   const TWO_LEVEL_JSON = /\{(?:[^{}]|(\{(?:[^{}]|())*\}))*\}/g
 

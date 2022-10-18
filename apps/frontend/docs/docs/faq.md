@@ -142,7 +142,7 @@ Important prerequisites (non-exhaustive) before enabling full transferability in
 - Determining that enabling transfers would comply with all applicable laws
 - The return of a crypto bull market (to protect the treasury's protocol-owned liquidity and avoid negative sentiment around price in a bear market)
 
-As many of these prerequisites should be met as possible. 
+As many of these prerequisites should be met as possible.
 
 Note that prePO's governance process is still being finalized and therefore voting is not yet possible.
 
@@ -278,6 +278,7 @@ Some contentious decisions may still be informed by a referendum vote (a direct 
 Anyone can explore the UI [here](https://app.prepo.io/).
 
 However, in order to make trades you will need:
+
 - a crypto wallet that supports Goerli Testnet (e.g. MetaMask)
 - Goerli ETH (for gas fees)
 - testnet funds ('FAKEUSD')
@@ -323,3 +324,5 @@ We'd love to hear your constructive feedback in our [Discord](https://url.prepo.
 ### Do I get a reward for trying out the testnet?
 
 No rewards for trying testnet have been announced.
+
+testing dont merge
