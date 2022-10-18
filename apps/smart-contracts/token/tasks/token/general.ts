@@ -132,6 +132,7 @@ task('modify-account-list', 'modify AccountList')
   .addParam('name', 'deployment name of AccountList', '', types.string)
   .addOptionalParam('add', 'filepath to list of addresses to include', '', types.string)
   .addOptionalParam('remove', 'filepath to list of addresses to remove', '', types.string)
+  .addOptionalParam('groupSize', 'size of grouping of addresses', '', types.string)
   .setAction(async (args, { ethers, getChainId }) => {
     const currentChain = Number(await getChainId()) as ChainId
     const currentNetwork = getNetworkByChainId(currentChain)
@@ -144,6 +145,7 @@ task('modify-account-list', 'modify AccountList')
     const fetchedAccountList = (await ethers.getContract(args.name)) as AccountList
     console.log('Fetched', args.name, 'at', fetchedAccountList.address)
     const defenderClient = getDefenderAdminClient(currentChain)
+    const groupSize = parseInt(args.groupSize, 10)
     /**
      * For safety, add addresses after we remove them, in case we have an
      * unintentional duplicate in both.
@@ -165,25 +167,34 @@ task('modify-account-list', 'modify AccountList')
       )
       if (accountsToRemove.length >= 1) {
         /* eslint-disable @typescript-eslint/no-explicit-any */
-        await defenderClient.createProposal({
-          contract: {
-            address: fetchedAccountList.address,
-            network: currentNetwork.defenderName as any,
-          },
-          title: `Remove addresses from ${args.name}`,
-          description: `Removing ${accountsToRemove.length} addresses from AccountList at ${fetchedAccountList.address}`,
-          type: 'custom',
-          functionInterface: {
-            name: 'set',
-            inputs: [
-              { type: 'address[]', name: '_accounts' },
-              { type: 'bool[]', name: '_included' },
+        console.log('splitting addresses into groups of ', args.groupSize)
+        for (let i = 0; i < accountsToRemove.length; i += groupSize) {
+          const accountsToRemoveSubset = accountsToRemove.slice(i, i + groupSize)
+          await defenderClient.createProposal({
+            contract: {
+              address: fetchedAccountList.address,
+              network: currentNetwork.defenderName as any,
+            },
+            title: `(${i} - ${i + accountsToRemoveSubset.length}) Remove addresses from ${
+              args.name
+            }`,
+            description: `Removing ${groupSize} addresses from AccountList at ${fetchedAccountList.address}`,
+            type: 'custom',
+            functionInterface: {
+              name: 'set',
+              inputs: [
+                { type: 'address[]', name: '_accounts' },
+                { type: 'bool[]', name: '_included' },
+              ],
+            },
+            functionInputs: [
+              accountsToRemoveSubset,
+              new Array(accountsToRemoveSubset.length).fill(false),
             ],
-          },
-          functionInputs: [accountsToRemove, new Array(accountsToRemove.length).fill(false)],
-          via: governanceAddress,
-          viaType: 'Gnosis Safe',
-        })
+            via: governanceAddress,
+            viaType: 'Gnosis Safe',
+          })
+        }
       }
       console.log('Removed', accountsToRemove.length, 'Accounts')
     }
@@ -204,25 +215,34 @@ task('modify-account-list', 'modify AccountList')
         removeStringsFromSet(addressesAlreadyIncluded, setOfAccountsToInclude).keys()
       )
       if (accountsToInclude.length >= 1) {
-        await defenderClient.createProposal({
-          contract: {
-            address: fetchedAccountList.address,
-            network: currentNetwork.defenderName as any,
-          },
-          title: `Include addresses for ${args.name}`,
-          description: `Including ${accountsToInclude.length} addresses for AccountList at ${fetchedAccountList.address}`,
-          type: 'custom',
-          functionInterface: {
-            name: 'set',
-            inputs: [
-              { type: 'address[]', name: '_accounts' },
-              { type: 'bool[]', name: '_included' },
+        console.log('splitting addresses into groups of ', args.groupSize)
+        for (let i = 0; i < accountsToInclude.length; i += groupSize) {
+          const accountsToIncludeSubset = accountsToInclude.slice(i, i + groupSize)
+          await defenderClient.createProposal({
+            contract: {
+              address: fetchedAccountList.address,
+              network: currentNetwork.defenderName as any,
+            },
+            title: `(${i} - ${i + accountsToIncludeSubset.length}) Include addresses for ${
+              args.name
+            }`,
+            description: `Including ${accountsToIncludeSubset.length} addresses for AccountList at ${fetchedAccountList.address}`,
+            type: 'custom',
+            functionInterface: {
+              name: 'set',
+              inputs: [
+                { type: 'address[]', name: '_accounts' },
+                { type: 'bool[]', name: '_included' },
+              ],
+            },
+            functionInputs: [
+              accountsToIncludeSubset,
+              new Array(accountsToIncludeSubset.length).fill(true),
             ],
-          },
-          functionInputs: [accountsToInclude, new Array(accountsToInclude.length).fill(true)],
-          via: governanceAddress,
-          viaType: 'Gnosis Safe',
-        })
+            via: governanceAddress,
+            viaType: 'Gnosis Safe',
+          })
+        }
       }
       console.log('Included', accountsToInclude.length, 'Accounts')
     }
