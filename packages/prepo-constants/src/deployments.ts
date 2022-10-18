@@ -14,21 +14,24 @@ export const DEPLOYMENT_NAMES = {
       },
     },
   },
-  miniSales_A: {
-    name: 'MiniSales_A',
+  miniSales_permissioned: {
+    name: 'MiniSales_Permissioned',
     allowlistPurchaseHook: {
-      name: 'MiniSales_A-AllowlistPurchaseHook',
+      name: 'MiniSales_Permissioned-AllowlistPurchaseHook',
       allowlist: {
-        name: 'MiniSales_A-AllowlistPurchaseHook-Allowlist',
+        name: 'MiniSales_Permissioned-AllowlistPurchaseHook-Allowlist',
       },
     },
+  },
+  miniSales_public: {
+    name: 'MiniSales_Public',
   },
   vesting: {
     name: 'Vesting',
   },
-  miniSalesFlag_A: {
-    name: 'MiniSalesFlag_A',
-  }
+  miniSalesFlag: {
+    name: 'MiniSalesFlag',
+  },
 } as const
 
 export type DeploymentNames = typeof DEPLOYMENT_NAMES
