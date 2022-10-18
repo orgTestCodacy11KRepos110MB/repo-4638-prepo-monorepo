@@ -13,6 +13,7 @@ export class UiStore {
   modalHeight: number | undefined
   maxScreenHeight = 0
   disableMocks = true // TODO: REMOVE
+  showTradingViewChart = false
   historyComingSoon = true
 
   constructor(root: RootStore) {
@@ -27,6 +28,10 @@ export class UiStore {
 
   get selectedLanguage(): Language | undefined {
     return this.root.localStorageStore.storage.language
+  }
+
+  setShowTradingViewChart = (show: boolean): void => {
+    this.showTradingViewChart = show
   }
 
   setShowLanguageList(show: boolean): void {
