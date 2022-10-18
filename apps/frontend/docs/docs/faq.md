@@ -324,5 +324,3 @@ We'd love to hear your constructive feedback in our [Discord](https://url.prepo.
 ### Do I get a reward for trying out the testnet?
 
 No rewards for trying testnet have been announced.
-
-testing dont merge
