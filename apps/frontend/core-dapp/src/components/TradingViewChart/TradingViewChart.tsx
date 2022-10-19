@@ -30,7 +30,7 @@ const TradingViewChart: React.FC = () => {
       tvWidgetRef.current = tvWidget
     })
   }, [])
-  return <Flex flex={1} id={chartId} width="100%" />
+  return <Flex height="calc(100% - 20px)" id={chartId} width="100%" />
 }
 
 export default TradingViewChart

@@ -12,7 +12,7 @@ export class UiStore {
   message: typeof message
   modalHeight: number | undefined
   maxScreenHeight = 0
-  disableMocks = true // TODO: REMOVE
+  disableMocks = false // TODO: REMOVE
   showTradingViewChart = false
   historyComingSoon = true
 

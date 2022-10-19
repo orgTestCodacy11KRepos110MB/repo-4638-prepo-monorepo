@@ -1,6 +1,6 @@
 import { Col, Row } from 'antd'
 import styled from 'styled-components'
-import { media, Button, Icon, Flex } from 'prepo-ui'
+import { media, Button, Icon, Flex, Typography, Switch } from 'prepo-ui'
 import { observer } from 'mobx-react-lite'
 import Skeleton from 'react-loading-skeleton'
 import { Trans } from '@lingui/macro'
@@ -14,6 +14,8 @@ import MarketIconTitle from '../../components/MarketIconTitle'
 import useSelectedMarket from '../../hooks/useSelectedMarket'
 import { MarketEntity } from '../../stores/entities/MarketEntity'
 import { ValuationRange } from '../definitions'
+import { useRootStore } from '../../context/RootStoreProvider'
+import TradingViewChart from '../../components/TradingViewChart'
 
 type Props = {
   selectedMarket: MarketEntity
@@ -97,6 +99,9 @@ const MarketSubNavigation: React.FC<Props> = ({ selectedMarket }) => {
 
 const MarketOverview: React.FC = () => {
   const selectedMarket = useSelectedMarket()
+  const {
+    uiStore: { showTradingViewChart, setShowTradingViewChart },
+  } = useRootStore()
 
   if (selectedMarket === undefined) {
     return null
@@ -122,8 +127,23 @@ const MarketOverview: React.FC = () => {
               <MarketSubNavigation selectedMarket={selectedMarket} />
             </Row>
           </Col>
-          <Col xs={24} md={16} xl={18}>
-            <MarketChart />
+          <Col xs={24} md={16} xl={18} style={{ position: 'relative' }}>
+            {showTradingViewChart ? <TradingViewChart /> : <MarketChart />}
+            <Typography
+              position="absolute"
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+              bottom={10}
+              left={0}
+              width="100%"
+              color="neutral1"
+              variant="text-medium-md"
+            >
+              Advanced Chart
+              <Flex width={25} />
+              <Switch checked={showTradingViewChart} onChange={setShowTradingViewChart} />
+            </Typography>
           </Col>
           <Col xs={24} md={8} xl={6}>
             <MarketDataColumn />

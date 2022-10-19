@@ -1,3 +1,5 @@
+import { map } from "d3";
+
 export default {
   onReady: (callback) => {
     console.log("[onReady]: Method call");
