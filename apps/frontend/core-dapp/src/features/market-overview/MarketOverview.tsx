@@ -135,7 +135,7 @@ const MarketOverview: React.FC = () => {
                 display="flex"
                 justifyContent="center"
                 alignItems="center"
-                bottom={10}
+                bottom={showTradingViewChart ? 10 : 100}
                 left={0}
                 width="100%"
                 color="neutral1"
