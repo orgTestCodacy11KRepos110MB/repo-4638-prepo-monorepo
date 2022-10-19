@@ -100,7 +100,7 @@ const MarketSubNavigation: React.FC<Props> = ({ selectedMarket }) => {
 const MarketOverview: React.FC = () => {
   const selectedMarket = useSelectedMarket()
   const {
-    uiStore: { showTradingViewChart, setShowTradingViewChart },
+    uiStore: { showTradingViewChart, setShowTradingViewChart, disableMocks },
   } = useRootStore()
 
   if (selectedMarket === undefined) {
@@ -129,21 +129,23 @@ const MarketOverview: React.FC = () => {
           </Col>
           <Col xs={24} md={16} xl={18} style={{ position: 'relative' }}>
             {showTradingViewChart ? <TradingViewChart /> : <MarketChart />}
-            <Typography
-              position="absolute"
-              display="flex"
-              justifyContent="center"
-              alignItems="center"
-              bottom={10}
-              left={0}
-              width="100%"
-              color="neutral1"
-              variant="text-medium-md"
-            >
-              Advanced Chart
-              <Flex width={25} />
-              <Switch checked={showTradingViewChart} onChange={setShowTradingViewChart} />
-            </Typography>
+            {disableMocks && (
+              <Typography
+                position="absolute"
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+                bottom={10}
+                left={0}
+                width="100%"
+                color="neutral1"
+                variant="text-medium-md"
+              >
+                Advanced Chart
+                <Flex width={25} />
+                <Switch checked={showTradingViewChart} onChange={setShowTradingViewChart} />
+              </Typography>
+            )}
           </Col>
           <Col xs={24} md={8} xl={6}>
             <MarketDataColumn />
