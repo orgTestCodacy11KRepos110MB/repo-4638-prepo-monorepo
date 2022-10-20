@@ -11,9 +11,10 @@ import { MarketEntity } from '../../stores/entities/MarketEntity'
 const config: DatafeedConfiguration = {
   supported_resolutions: ['60', '120', '240', 'D'] as ResolutionString[],
 }
-
+// order calls: onReady => resolveSymbol => getBars
 const configFn = (market: MarketEntity): IBasicDataFeed => ({
   onReady: (callback) => setTimeout(() => callback(config)),
+  // can be removed if don't use search
   searchSymbols: (userInput, exchange, symbolType, onResultReadyCallback): void => {
     console.log('[searchSymbols]: Method call')
   },
@@ -43,6 +44,7 @@ const configFn = (market: MarketEntity): IBasicDataFeed => ({
       })) ?? []
     onResult(data, { noData: false })
   },
+  // can be removed
   subscribeBars: (
     symbolInfo,
     resolution,
@@ -52,6 +54,7 @@ const configFn = (market: MarketEntity): IBasicDataFeed => ({
   ): void => {
     console.log('[subscribeBars]: Method call with subscribeUID:', subscribeUID)
   },
+  // can be removed
   unsubscribeBars: (subscriberUID): void => {
     console.log('[unsubscribeBars]: Method call with subscriberUID:', subscriberUID)
   },
