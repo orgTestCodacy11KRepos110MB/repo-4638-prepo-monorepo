@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite'
 import { CSVLink } from 'react-csv'
 import { useEffect } from 'react'
 import { Trans } from '@lingui/macro'
-import { filterTypes } from './ppo-history.types'
+import { ppoHistoryFilterTypes } from './ppo-history.types'
 import { useRootStore } from '../../../context/RootStoreProvider'
 import FilterModal from '../../../components/Filter'
 
@@ -32,16 +32,16 @@ const StyledButton = styled(Button)<{ disabled?: boolean }>`
 const PpoHistoryActionBar: React.FC = () => {
   const {
     ppoHistoryStore: { dataForExport },
-    filterStore: { changeFilterTypes, setIsFilterOpen },
+    filterStore: { setSelectedFilterTypes, setIsFilterOpen },
   } = useRootStore()
 
   useEffect(() => {
-    changeFilterTypes(filterTypes)
-  }, [changeFilterTypes])
+    setSelectedFilterTypes(undefined)
+  }, [setSelectedFilterTypes])
 
   return (
     <Flex gap={{ phone: 20, desktop: 32 }} justifyContent="flex-end" my={30}>
-      <FilterModal showMarkets={false} />
+      <FilterModal filterTypes={ppoHistoryFilterTypes} showMarkets={false} />
       <StyledButton disabled={dataForExport.length === 0}>
         <CSVLink data={dataForExport} filename="ppo_history_data">
           <Typography variant="text-medium-md" color="neutral1">

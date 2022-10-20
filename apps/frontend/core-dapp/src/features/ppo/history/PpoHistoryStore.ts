@@ -1,6 +1,6 @@
 import { makeAutoObservable, toJS } from 'mobx'
 import { isWithinInterval } from 'date-fns'
-import { PpoHistoryEnum, PpoHistoryItem } from './ppo-history.types'
+import { PpoHistoryItem } from './ppo-history.types'
 import { RootStore } from '../../../stores/RootStore'
 
 const PPO_HISTORY_ITEMS_MOCK: PpoHistoryItem[] = []
@@ -25,10 +25,7 @@ export class PpoHistoryStore {
 
   private applyTypeFilter(data: PpoHistoryItem[]): PpoHistoryItem[] {
     const { selectedFilterTypes } = this.root.filterStore.filterOptions
-    if (selectedFilterTypes.includes(PpoHistoryEnum.ALL)) {
-      return data
-    }
-
+    if (!selectedFilterTypes) return data
     return data.filter(({ type }) => selectedFilterTypes.includes(type))
   }
 

@@ -1,7 +1,6 @@
 import { Color } from 'styled-components'
 
 export enum PpoHistoryEnum {
-  ALL = 'All',
   BONDING = 'Bonding',
   LIQUIDITY = 'LP Rewards',
   GOVERNANCE = 'Governance',
@@ -28,12 +27,10 @@ export type PpoHistoryItem = {
   type: PpoHistoryEnum
 }
 
-export const dropdownFilterTypes = [
+export const ppoHistoryFilterTypes = [
   PpoHistoryEnum.STAKING,
   PpoHistoryEnum.GOVERNANCE,
   PpoHistoryEnum.TRADING_REWARDS,
   PpoHistoryEnum.LIQUIDITY,
   PpoHistoryEnum.BONDING,
 ]
-
-export const filterTypes = [PpoHistoryEnum.ALL, ...dropdownFilterTypes]

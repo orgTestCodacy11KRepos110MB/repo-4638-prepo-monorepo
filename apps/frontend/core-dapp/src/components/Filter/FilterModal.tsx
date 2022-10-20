@@ -19,13 +19,17 @@ export const LabelWrapper = styled.div`
   `}
 `
 
-const FilterModal: React.FC<{ showMarkets?: boolean }> = ({ showMarkets = true }) => {
+const FilterModal: React.FC<{ showMarkets?: boolean; filterTypes: string[] }> = ({
+  showMarkets = true,
+  filterTypes,
+}) => {
   const { filterStore } = useRootStore()
   const { isFilterOpen, isCalendarOpen } = filterStore
   const onClose = (): void => {
     if (isCalendarOpen) {
       filterStore.setIsCalendarOpen(false)
     } else {
+      filterStore.resetFilters()
       filterStore.setIsFilterOpen(false)
     }
   }
@@ -53,7 +57,7 @@ const FilterModal: React.FC<{ showMarkets?: boolean }> = ({ showMarkets = true }
         <>
           {showMarkets && <MarketDropdown />}
           <DateRangeSelection />
-          <MarketTypeSelection />
+          <MarketTypeSelection filterTypes={filterTypes} />
           <ActionContainer />
         </>
       )}

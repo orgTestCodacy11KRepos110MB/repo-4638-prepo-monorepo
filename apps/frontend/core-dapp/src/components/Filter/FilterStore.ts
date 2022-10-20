@@ -1,31 +1,8 @@
 import { add } from 'date-fns'
 import { makeAutoObservable } from 'mobx'
+import cloneDeep from 'clone-deep'
 import { RootStore } from '../../stores/RootStore'
 import { Market } from '../../types/market.types'
-
-export enum FilterType {
-  All = 'All',
-  OpenedShort = 'Opened Short',
-  ClosedShort = 'Closed Short',
-  OpenedLong = 'Opened Long',
-  ClosedLong = 'Closed Long',
-  AddedLiquidity = 'Added Liquidity',
-  RemovedLiquidity = 'Removed Liquidity',
-  Withdrawn = 'Withdrawn',
-  Deposited = 'Deposited',
-}
-
-const filterTypes: string[] = [
-  FilterType.All,
-  FilterType.OpenedShort,
-  FilterType.ClosedShort,
-  FilterType.OpenedLong,
-  FilterType.ClosedLong,
-  FilterType.AddedLiquidity,
-  FilterType.RemovedLiquidity,
-  FilterType.Withdrawn,
-  FilterType.Deposited,
-]
 
 type SelectedMarket = 'All' | Market
 
@@ -39,14 +16,13 @@ type FilterOptions = {
     start: Date | undefined
     end: Date | undefined
   }
-  selectedFilterTypes: string[]
+  selectedFilterTypes?: string[]
 }
 
 export class FilterStore {
   root: RootStore
   isFilterOpen = false
   isCalendarOpen = false
-  filterTypes = filterTypes
   filterOptions: FilterOptions = {
     selectedMarket: 'All',
     dateRange: {
@@ -57,17 +33,13 @@ export class FilterStore {
       start: add(new Date(), { weeks: -1 }),
       end: new Date(),
     },
-    selectedFilterTypes: [FilterType.All],
   }
-
-  changeFilterTypes = (types: string[] = filterTypes): void => {
-    this.filterTypes = types
-    this.filterOptions.selectedFilterTypes = [types[0]]
-  }
+  currentFilter: FilterOptions
 
   constructor(root: RootStore) {
     this.root = root
-    makeAutoObservable(this)
+    this.currentFilter = cloneDeep(this.filterOptions)
+    makeAutoObservable(this, {}, { autoBind: true })
   }
 
   setIsFilterOpen = (isFilterOpen: boolean): void => {
@@ -82,7 +54,7 @@ export class FilterStore {
     this.filterOptions.selectedMarket = selectedMarket
   }
 
-  setSelectedFilterTypes = (selectedFilterTypes: string[]): void => {
+  setSelectedFilterTypes = (selectedFilterTypes?: string[]): void => {
     this.filterOptions.selectedFilterTypes = selectedFilterTypes
   }
 
@@ -91,18 +63,7 @@ export class FilterStore {
   }
 
   resetFilters(): void {
-    this.filterOptions = {
-      selectedMarket: 'All',
-      dateRange: {
-        start: add(new Date(), { weeks: -1 }),
-        end: new Date(),
-      },
-      confirmedDateRange: {
-        start: add(new Date(), { weeks: -1 }),
-        end: new Date(),
-      },
-      selectedFilterTypes: [this.filterTypes[0]],
-    }
+    this.filterOptions = cloneDeep(this.currentFilter)
   }
 
   useConfirmedDateRange(): void {
@@ -118,5 +79,9 @@ export class FilterStore {
       return
     }
     this.filterOptions.confirmedDateRange = { start, end }
+  }
+
+  confirmChanges(): void {
+    this.currentFilter = cloneDeep(this.filterOptions)
   }
 }

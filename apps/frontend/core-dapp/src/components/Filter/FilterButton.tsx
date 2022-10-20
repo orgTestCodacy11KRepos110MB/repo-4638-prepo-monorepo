@@ -3,6 +3,7 @@ import styled from 'styled-components'
 import { useEffect } from 'react'
 import { observer } from 'mobx-react-lite'
 import FilterModal from './FilterModal'
+import { portfolioHistoryFilterTypes } from './filter.constants'
 import useResponsive from '../../hooks/useResponsive'
 import { useRootStore } from '../../context/RootStoreProvider'
 
@@ -47,11 +48,11 @@ const ButtonText = styled.p`
 const FilterButton: React.FC = () => {
   const { isDesktop } = useResponsive()
   const {
-    filterStore: { changeFilterTypes },
+    filterStore: { setSelectedFilterTypes, setIsFilterOpen },
   } = useRootStore()
   useEffect(() => {
-    changeFilterTypes()
-  }, [changeFilterTypes])
+    setSelectedFilterTypes(undefined)
+  }, [setSelectedFilterTypes])
 
   let height = '16'
   let width = '16'
@@ -61,8 +62,8 @@ const FilterButton: React.FC = () => {
   }
   return (
     <>
-      <FilterModal />
-      <ButtonWrapper>
+      <FilterModal filterTypes={portfolioHistoryFilterTypes} />
+      <ButtonWrapper onClick={(): void => setIsFilterOpen(true)}>
         <ButtonText>Filter</ButtonText>
         <IconWrapper name="sort-down" color="neutral2" height={height} width={width} />
       </ButtonWrapper>

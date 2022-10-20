@@ -203,7 +203,7 @@ msgstr "Govern"
 msgid "Govern PPO"
 msgstr "Govern PPO"
 
-#: src/features/portfolio/PositionsAndHistory.tsx:102
+#: src/features/portfolio/PositionsAndHistory.tsx:101
 #: src/features/ppo/ppoItems.ts:19
 msgid "History"
 msgstr "History"
@@ -322,7 +322,7 @@ msgstr "Portfolio Value"
 msgid "Position"
 msgstr "Position"
 
-#: src/features/portfolio/PositionsAndHistory.tsx:98
+#: src/features/portfolio/PositionsAndHistory.tsx:97
 msgid "Positions"
 msgstr "Positions"
 

@@ -203,7 +203,7 @@ msgstr "Управлять"
 msgid "Govern PPO"
 msgstr "Управлять PPO"
 
-#: src/features/portfolio/PositionsAndHistory.tsx:102
+#: src/features/portfolio/PositionsAndHistory.tsx:101
 #: src/features/ppo/ppoItems.ts:19
 msgid "History"
 msgstr "История"
@@ -318,7 +318,7 @@ msgstr "Ценность Портфолио"
 msgid "Position"
 msgstr "Позиция"
 
-#: src/features/portfolio/PositionsAndHistory.tsx:98
+#: src/features/portfolio/PositionsAndHistory.tsx:97
 msgid "Positions"
 msgstr "Позиции"
 

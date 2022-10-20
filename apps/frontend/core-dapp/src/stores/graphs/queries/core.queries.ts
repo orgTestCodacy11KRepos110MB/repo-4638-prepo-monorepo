@@ -13,8 +13,8 @@ export const userPositionsQueryString = gql`
 `
 
 export const userHistoricalEventsQueryString = gql`
-  query userHistoricalEvents($address: String!) {
-    historicalEvents(where: { ownerAddress: $address }, orderBy: createdAtTimestamp, orderDirection: desc) {
+  query userHistoricalEvents($filter: HistoricalEvent_filter!) {
+    historicalEvents(where: $filter, orderBy: createdAtTimestamp, orderDirection: desc) {
       ${selectFromHistoricalEvent()
         .id.amountUSD.createdAtTimestamp.event.hash.txCount.longShortToken(({ id }) =>
           id.market(undefined).token(({ name }) => name.id.symbol)

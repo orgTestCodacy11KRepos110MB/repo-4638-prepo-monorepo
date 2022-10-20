@@ -11,6 +11,7 @@ import { PositionType } from '../../utils/prepo.types'
 import { markets } from '../../lib/markets'
 import { supportedMarketTokens } from '../../lib/markets-tokens-contracts'
 import { supportedMarkets } from '../../lib/markets-contracts'
+import { FilterType } from '../../components/Filter/filter.constants'
 
 type DynamicHistoryTransactionProps = {
   iconName: IconName
@@ -23,12 +24,20 @@ export const iconSymbolMap: { [key: string]: IconName } = {
   FAKEUSD: 'usdc',
 }
 
-export const KNOWN_HISTORY_EVENTS: { [key: string]: string } = {
-  WITHDRAW: 'Withdrawn',
-  DEPOSIT: 'Deposited',
-  OPEN: 'Opened',
-  CLOSE: 'Closed',
+export const KNOWN_HISTORY_EVENTS: { [key: string]: FilterType } = {
+  WITHDRAW: FilterType.Withdrawn,
+  DEPOSIT: FilterType.Deposited,
+  OPEN: FilterType.Opened,
+  CLOSE: FilterType.Closed,
 }
+
+export const KNOWN_HISTORY_EVENTS_MAP: { [key: string]: string } = Object.entries(
+  KNOWN_HISTORY_EVENTS
+).reduce((obj, [key, value]) => {
+  // eslint-disable-next-line no-param-reassign
+  obj[value] = key
+  return obj
+}, {} as { [key: string]: string })
 
 export const KNOWN_TRANSACTION_ACTIONS: { [key: string]: string } = {
   RECEIVE: 'Received',
@@ -108,7 +117,6 @@ export const formatHistoricalEvent = (
 
         const iconName = collateralTokenData?.iconName ?? longShortTokenData?.iconName
         const name = collateralTokenData?.name ?? longShortTokenData?.name
-
         if (iconName !== undefined && name !== undefined)
           formattedEvents.push({
             event: validEvent,

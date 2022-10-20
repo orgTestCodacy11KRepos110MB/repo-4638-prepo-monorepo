@@ -2,13 +2,19 @@ import { BigNumber } from 'ethers'
 import { parseUnits } from 'ethers/lib/utils'
 import { action, makeAutoObservable } from 'mobx'
 import { ERC20_UNITS } from '../../lib/constants'
+import { supportedMarkets } from '../../lib/markets-contracts'
 import { Erc20Store } from '../../stores/entities/Erc20.entity'
 import { MarketEntity } from '../../stores/entities/MarketEntity'
+import { HistoricalEventsFilter } from '../../stores/graphs/CoreGraphStore'
 import { RootStore } from '../../stores/RootStore'
 import { Position as PositionFromGraph } from '../../types/user.types'
 import { normalizeDecimalPrecision } from '../../utils/number-utils'
 import { PositionType } from '../../utils/prepo.types'
-import { formatHistoricalEvent } from '../history/history-utils'
+import {
+  formatHistoricalEvent,
+  KNOWN_HISTORY_EVENTS,
+  KNOWN_HISTORY_EVENTS_MAP,
+} from '../history/history-utils'
 import { HistoryTransaction } from '../history/history.types'
 import { Direction } from '../trade/TradeStore'
 
@@ -103,10 +109,42 @@ export class PortfolioStore {
   get historicalEvents(): HistoryTransaction[] | undefined {
     const { address, network } = this.root.web3Store
     if (!address) return []
+
     return formatHistoricalEvent(
-      this.root.coreGraphStore.historicalEvents(address)?.historicalEvents,
+      this.root.coreGraphStore.historicalEvents(this.historyFilter)?.historicalEvents,
       network.name
     )
+  }
+
+  get historyFilter(): HistoricalEventsFilter {
+    const { address, network } = this.root.web3Store
+    const {
+      currentFilter: {
+        selectedFilterTypes,
+        selectedMarket,
+        confirmedDateRange: { end, start },
+      },
+    } = this.root.filterStore
+
+    // only query subgraph is all selected types are valid event
+    const validatedTypes =
+      selectedFilterTypes?.filter((key) => KNOWN_HISTORY_EVENTS_MAP[key] !== undefined) ?? []
+
+    const types =
+      !selectedFilterTypes || validatedTypes.length === 0
+        ? Object.keys(KNOWN_HISTORY_EVENTS)
+        : validatedTypes.map((key) => KNOWN_HISTORY_EVENTS_MAP[key])
+    const marketAddressName =
+      typeof selectedMarket === 'object' ? selectedMarket.address : undefined
+    const marketMap = marketAddressName ? supportedMarkets[marketAddressName] : undefined
+    const market = marketMap ? marketMap[network.name]?.toLocaleLowerCase() : undefined
+    return {
+      ownerAddress: address?.toLowerCase(),
+      event_in: types,
+      longShortToken_: market ? { market } : undefined,
+      createdAtTimestamp_gte: start ? Math.floor(start.getTime() / 1000) : undefined,
+      createdAtTimestamp_lte: end ? Math.floor(end.getTime() / 1000) : undefined,
+    }
   }
 
   get tradingPositions(): Position[] {

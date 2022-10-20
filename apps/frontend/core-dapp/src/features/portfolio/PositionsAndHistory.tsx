@@ -88,8 +88,7 @@ const PositionsAndHistory: React.FC = () => {
     >
       <StyledTabs
         disableMore
-        // change activeTab check back to 1 when History tab is ready with Filter function
-        tabBarExtraContent={activeTab === 2 && <FilterButton />}
+        tabBarExtraContent={activeTab === 1 && <FilterButton />}
         size="large"
         onChange={(e): void => setActiveTab(+e)}
         styles={{ activeColor: 'neutral1', color: 'neutral2' }}

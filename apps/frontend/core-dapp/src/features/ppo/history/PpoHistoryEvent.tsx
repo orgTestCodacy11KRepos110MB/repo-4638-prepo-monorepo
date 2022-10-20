@@ -58,14 +58,6 @@ export const eventObject: PpoEventObject = {
       primary: 'bondingEvent',
     },
   },
-  // we don't use it
-  [PpoHistoryEnum.ALL]: {
-    label: PpoHistoryEnum.ALL,
-    colors: {
-      accent: 'neutral3',
-      primary: 'neutral1',
-    },
-  },
 }
 
 type Props = {

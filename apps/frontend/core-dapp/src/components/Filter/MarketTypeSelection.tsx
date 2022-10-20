@@ -2,7 +2,6 @@ import { observer } from 'mobx-react-lite'
 import { centered, media, spacingIncrement } from 'prepo-ui'
 import styled from 'styled-components'
 import { LabelWrapper } from './FilterModal'
-import { FilterType } from './FilterStore'
 import { useRootStore } from '../../context/RootStoreProvider'
 
 const MainWrapper = styled.div`
@@ -33,37 +32,42 @@ const SingleFilterItem = styled.div<{ selected?: boolean }>`
   `}
 `
 
-const MarketTypeSelection: React.FC = () => {
+const ALL = 'All'
+
+const MarketTypeSelection: React.FC<{ filterTypes: string[] }> = ({ filterTypes }) => {
   const { filterStore } = useRootStore()
   const {
-    filterTypes,
     filterOptions: { selectedFilterTypes },
   } = filterStore
 
-  const onClick = (type: FilterType): void => {
-    const newTypes = [...selectedFilterTypes]
-    if (type === FilterType.All) {
-      filterStore.setSelectedFilterTypes([FilterType.All])
-    } else if (selectedFilterTypes.includes(type)) {
-      newTypes.splice(newTypes.indexOf(type), 1)
-      filterStore.setSelectedFilterTypes(newTypes)
-    } else {
-      if (selectedFilterTypes.includes(FilterType.All))
-        newTypes.splice(newTypes.indexOf(FilterType.All), 1)
-      newTypes.push(type)
-      filterStore.setSelectedFilterTypes(newTypes)
+  const onClick = (type: string): void => {
+    if (type === ALL) {
+      filterStore.setSelectedFilterTypes(undefined)
+      return
     }
+
+    const newTypes = selectedFilterTypes ?? []
+    if (newTypes.includes(type)) {
+      newTypes.splice(newTypes.indexOf(type), 1)
+    } else {
+      newTypes.push(type)
+    }
+
+    // if deselect everything or select everything, it should select All by default which sets the value to undefined
+    filterStore.setSelectedFilterTypes(
+      newTypes.length === 0 || newTypes.length === filterTypes.length ? undefined : [...newTypes]
+    )
   }
 
   return (
     <MainWrapper>
       <LabelWrapper>Type</LabelWrapper>
       <FilterItemsWrapper>
-        {filterTypes.map((type) => (
+        {[ALL, ...filterTypes].map((type) => (
           <SingleFilterItem
             key={type}
-            selected={selectedFilterTypes.includes(type)}
-            onClick={(): void => onClick(type as FilterType)}
+            selected={selectedFilterTypes ? selectedFilterTypes.includes(type) : type === ALL}
+            onClick={(): void => onClick(type)}
           >
             {type}
           </SingleFilterItem>

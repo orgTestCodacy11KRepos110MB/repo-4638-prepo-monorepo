@@ -34,7 +34,7 @@ const MarketDropdown: React.FC = () => {
     filterOptions: { selectedMarket },
   } = filterStore
   const onClick = ({ key }: { key: string }): void => {
-    const newMarket = key === 'all' ? 'All' : markets[parseInt(key, 10)]
+    const newMarket = key === 'all' ? 'All' : markets.find((x) => x.name === key)
     if (newMarket) filterStore.setSelectedMarket(newMarket)
   }
   const items = [

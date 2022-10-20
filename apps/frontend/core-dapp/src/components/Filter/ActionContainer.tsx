@@ -32,6 +32,7 @@ const ActionContainer: React.FC = () => {
       filterStore.confirmDateRange()
       filterStore.setIsCalendarOpen(false)
     } else {
+      filterStore.confirmChanges()
       filterStore.setIsFilterOpen(false)
     }
   }
