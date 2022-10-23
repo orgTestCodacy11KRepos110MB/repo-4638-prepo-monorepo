@@ -9,7 +9,8 @@ import {
 import { MarketEntity } from '../../stores/entities/MarketEntity'
 
 const config: DatafeedConfiguration = {
-  supported_resolutions: ['60', '120', '240', 'D'] as ResolutionString[],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supported_resolutions: ['60' as any],
 }
 // order calls: onReady => resolveSymbol => getBars
 const configFn = (market: MarketEntity): IBasicDataFeed => ({
@@ -25,23 +26,23 @@ const configFn = (market: MarketEntity): IBasicDataFeed => ({
       description: 'description',
       session: '24x7',
       minmov: 1,
-      pricescale: 10000,
+      pricescale: 1000,
       has_intraday: true,
-      supported_resolutions: ['60', '120', '240', 'D'] as ResolutionString[],
       has_no_volume: false,
     } as LibrarySymbolInfo)
   },
   getBars: (symbolInfo, resolution, { from, to, firstDataRequest }, onResult, onError): void => {
     console.log('[getBars] Method call', from, to, firstDataRequest, resolution)
-    const data =
-      market.cachedHistoricalData?.map((x) => ({
-        time: x.timestamp * 1000,
-        low: 0,
-        high: 10,
-        open: 10,
-        close: 0,
-        volume: x.volume,
-      })) ?? []
+    const num = new Date('24 Oct 2022 00:00:00 GMT').getTime()
+    const data = new Array(24 * 60).fill(0).map((x, i) => ({
+      time: num - 60000 * i,
+      open: 7678.85,
+      high: 7702.55,
+      low: 7656.98,
+      close: 7658.25,
+      volume: 0.9834,
+    }))
+
     onResult(data, { noData: false })
   },
   // can be removed

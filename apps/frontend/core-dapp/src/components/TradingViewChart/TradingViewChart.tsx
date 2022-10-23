@@ -28,6 +28,13 @@ const TradingViewChart: React.FC = () => {
       client_id: 'tradingview.com',
       user_id: 'public_user_id',
       library_path: '/static/charting_library/',
+      disabled_features: [
+        'use_localstorage_for_settings',
+        'left_toolbar',
+        'header_widget',
+        'border_around_the_chart',
+        'timeframes_toolbar',
+      ],
     }
     const tvWidget = new Widget(widgetOptions)
 
