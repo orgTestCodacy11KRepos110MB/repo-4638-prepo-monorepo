@@ -1,17 +1,9 @@
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
-import { utils } from 'prepo-hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { parseEther } from 'ethers/lib/utils'
 import { collateralDepositRecordFixture } from './fixtures/CollateralDepositRecordFixture'
-import {
-  getAccountDepositCapChangedEvent,
-  getAllowedHooksChangedEvent,
-  getGlobalDepositCapChangedEvent,
-} from './events'
 import { CollateralDepositRecord } from '../typechain'
-
-const { revertReason } = utils
 
 describe('=> CollateralDepositRecord', () => {
   let depositRecord: CollateralDepositRecord
@@ -32,13 +24,16 @@ describe('=> CollateralDepositRecord', () => {
     await depositRecord.connect(deployer).setAllowedHook(user.address, true)
   })
 
-  describe('# initialize', () => {
-    it('should be initialized with correct values', async () => {
-      expect(await depositRecord.getGlobalDepositCap()).to.eq(TEST_GLOBAL_DEPOSIT_CAP)
-      expect(await depositRecord.getAccountDepositCap()).to.eq(TEST_ACCOUNT_DEPOSIT_CAP)
+  describe('initial state', () => {
+    it('sets global deposit cap from constructor', async () => {
+      expect(await depositRecord.getGlobalNetDepositCap()).to.eq(TEST_GLOBAL_DEPOSIT_CAP)
     })
 
-    it('owner should be set to deployer', async () => {
+    it('sets user deposit cap from constructor', async () => {
+      expect(await depositRecord.getUserDepositCap()).to.eq(TEST_ACCOUNT_DEPOSIT_CAP)
+    })
+
+    it('sets owner to deployer', async () => {
       expect(await depositRecord.owner()).to.eq(deployer.address)
     })
   })
@@ -49,41 +44,41 @@ describe('=> CollateralDepositRecord', () => {
 
       await expect(
         depositRecord.connect(user2).recordDeposit(user.address, TEST_AMOUNT_TWO)
-      ).to.be.revertedWith(revertReason('Caller not allowed'))
+      ).to.be.revertedWith('msg.sender != allowed hook')
     })
 
-    it("should correctly add 'finalAmount' to both deposited totals when starting from zero", async () => {
-      expect(await depositRecord.getGlobalDepositAmount()).to.eq(0)
-      expect(await depositRecord.getNetDeposit(user.address)).to.eq(0)
+    it("should correctly add 'amount' to both deposited totals when starting from zero", async () => {
+      expect(await depositRecord.getGlobalNetDepositAmount()).to.eq(0)
+      expect(await depositRecord.getUserDepositAmount(user.address)).to.eq(0)
 
       await depositRecord.connect(user).recordDeposit(user.address, TEST_AMOUNT_TWO)
 
-      expect(await depositRecord.getGlobalDepositAmount()).to.eq(TEST_AMOUNT_TWO)
-      expect(await depositRecord.getNetDeposit(user.address)).to.eq(TEST_AMOUNT_TWO)
+      expect(await depositRecord.getGlobalNetDepositAmount()).to.eq(TEST_AMOUNT_TWO)
+      expect(await depositRecord.getUserDepositAmount(user.address)).to.eq(TEST_AMOUNT_TWO)
     })
 
-    it("should correctly add 'finalAmount' to both deposited totals when starting from a non-zero value", async () => {
+    it("should correctly add 'amount' to both deposited totals when starting from a non-zero value", async () => {
       await depositRecord.connect(user).recordDeposit(user.address, TEST_AMOUNT_TWO)
-      const globalDepositsBefore = await depositRecord.getGlobalDepositAmount()
-      const accountDepositsBefore = await depositRecord.getNetDeposit(user.address)
+      const globalDepositsBefore = await depositRecord.getGlobalNetDepositAmount()
+      const accountDepositsBefore = await depositRecord.getUserDepositAmount(user.address)
 
       await depositRecord.connect(user).recordDeposit(user.address, TEST_AMOUNT_ONE)
 
-      expect(await depositRecord.getGlobalDepositAmount()).to.eq(
+      expect(await depositRecord.getGlobalNetDepositAmount()).to.eq(
         globalDepositsBefore.add(TEST_AMOUNT_ONE)
       )
-      expect(await depositRecord.getNetDeposit(user.address)).to.eq(
+      expect(await depositRecord.getUserDepositAmount(user.address)).to.eq(
         accountDepositsBefore.add(TEST_AMOUNT_ONE)
       )
     })
 
     it('should revert if per-account deposit cap is exceeded', async () => {
       await depositRecord.connect(user).recordDeposit(user.address, TEST_ACCOUNT_DEPOSIT_CAP)
-      expect(await depositRecord.getGlobalDepositAmount()).to.eq(TEST_ACCOUNT_DEPOSIT_CAP)
-      expect(await depositRecord.getNetDeposit(user.address)).to.eq(TEST_ACCOUNT_DEPOSIT_CAP)
+      expect(await depositRecord.getGlobalNetDepositAmount()).to.eq(TEST_ACCOUNT_DEPOSIT_CAP)
+      expect(await depositRecord.getUserDepositAmount(user.address)).to.eq(TEST_ACCOUNT_DEPOSIT_CAP)
 
       await expect(depositRecord.connect(user).recordDeposit(user.address, 1)).to.be.revertedWith(
-        revertReason('Account deposit cap exceeded')
+        'User deposit cap exceeded'
       )
     })
 
@@ -97,16 +92,16 @@ describe('=> CollateralDepositRecord', () => {
           .connect(user)
           .recordDeposit(currentAccountAddress, TEST_ACCOUNT_DEPOSIT_CAP)
         // eslint-disable-next-line no-await-in-loop
-        expect(await depositRecord.getNetDeposit(currentAccountAddress)).to.eq(
+        expect(await depositRecord.getUserDepositAmount(currentAccountAddress)).to.eq(
           TEST_ACCOUNT_DEPOSIT_CAP
         )
       }
-      expect(await depositRecord.getGlobalDepositAmount()).to.eq(TEST_GLOBAL_DEPOSIT_CAP)
+      expect(await depositRecord.getGlobalNetDepositAmount()).to.eq(TEST_GLOBAL_DEPOSIT_CAP)
       const lastAccountAddress = allSigners[accountsToReachCap].address
 
       await expect(
         depositRecord.connect(user).recordDeposit(lastAccountAddress, 1)
-      ).to.be.revertedWith(revertReason('Global deposit cap exceeded'))
+      ).to.be.revertedWith('Global deposit cap exceeded')
     })
   })
 
@@ -121,143 +116,151 @@ describe('=> CollateralDepositRecord', () => {
 
       await expect(
         depositRecord.connect(user2).recordWithdrawal(user.address, TEST_AMOUNT_TWO)
-      ).to.be.revertedWith(revertReason('Caller not allowed'))
+      ).to.be.revertedWith('msg.sender != allowed hook')
     })
 
-    it("should correctly subtract 'finalAmount' from both deposited totals when starting from a non-zero value", async () => {
-      expect(await depositRecord.getGlobalDepositAmount()).to.be.gt(0)
-      expect(await depositRecord.getNetDeposit(user.address)).to.be.gt(0)
-      const globalDepositsBefore = await depositRecord.getGlobalDepositAmount()
-      const accountDepositsBefore = await depositRecord.getNetDeposit(user.address)
+    it("should correctly subtract 'amount' from both deposited totals when starting from a non-zero value", async () => {
+      expect(await depositRecord.getGlobalNetDepositAmount()).to.be.gt(0)
+      expect(await depositRecord.getUserDepositAmount(user.address)).to.be.gt(0)
+      const globalDepositsBefore = await depositRecord.getGlobalNetDepositAmount()
+      const accountDepositsBefore = await depositRecord.getUserDepositAmount(user.address)
 
       await depositRecord.connect(user).recordWithdrawal(user.address, TEST_AMOUNT_TWO)
 
-      expect(await depositRecord.getGlobalDepositAmount()).to.eq(
+      expect(await depositRecord.getGlobalNetDepositAmount()).to.eq(
         globalDepositsBefore.sub(TEST_AMOUNT_TWO)
       )
-      expect(await depositRecord.getNetDeposit(user.address)).to.eq(
+      expect(await depositRecord.getUserDepositAmount(user.address)).to.eq(
         accountDepositsBefore.sub(TEST_AMOUNT_TWO)
       )
     })
 
-    it("should correctly subtract 'finalAmount' from both deposited totals when called again", async () => {
+    it("should correctly subtract 'amount' from both deposited totals when called again", async () => {
       await depositRecord.connect(user).recordWithdrawal(user.address, TEST_AMOUNT_TWO)
-      const globalDepositsBeforeSecondWithdrawal = await depositRecord.getGlobalDepositAmount()
-      const accountDepositsBeforeSecondWithdrawal = await depositRecord.getNetDeposit(user.address)
+      const globalDepositsBeforeSecondWithdrawal = await depositRecord.getGlobalNetDepositAmount()
+      const accountDepositsBeforeSecondWithdrawal = await depositRecord.getUserDepositAmount(
+        user.address
+      )
 
       await depositRecord.connect(user).recordWithdrawal(user.address, TEST_AMOUNT_ONE)
 
-      expect(await depositRecord.getGlobalDepositAmount()).to.eq(
+      expect(await depositRecord.getGlobalNetDepositAmount()).to.eq(
         globalDepositsBeforeSecondWithdrawal.sub(TEST_AMOUNT_ONE)
       )
-      expect(await depositRecord.getNetDeposit(user.address)).to.eq(
+      expect(await depositRecord.getUserDepositAmount(user.address)).to.eq(
         accountDepositsBeforeSecondWithdrawal.sub(TEST_AMOUNT_ONE)
       )
     })
 
     it('should set the deposit total to zero instead of underflowing if withdrawal amount is greater than the existing total', async () => {
-      expect(await depositRecord.getGlobalDepositAmount()).to.be.eq(testDepositToWithdrawFrom)
-      expect(await depositRecord.getNetDeposit(user.address)).to.be.eq(testDepositToWithdrawFrom)
+      expect(await depositRecord.getGlobalNetDepositAmount()).to.be.eq(testDepositToWithdrawFrom)
+      expect(await depositRecord.getUserDepositAmount(user.address)).to.be.eq(
+        testDepositToWithdrawFrom
+      )
 
       await depositRecord
         .connect(user)
         .recordWithdrawal(user.address, testDepositToWithdrawFrom.add(1))
 
-      expect(await depositRecord.getGlobalDepositAmount()).to.eq(0)
-      expect(await depositRecord.getNetDeposit(user.address)).to.eq(0)
+      expect(await depositRecord.getGlobalNetDepositAmount()).to.eq(0)
+      expect(await depositRecord.getUserDepositAmount(user.address)).to.eq(0)
     })
   })
 
-  describe('# setGlobalDepositCap', () => {
+  describe('# setGlobalNetDepositCap', () => {
     const differentCapToTestWith = TEST_GLOBAL_DEPOSIT_CAP.add(1)
     it('should only be callable by the owner', async () => {
       expect(await depositRecord.owner()).to.not.eq(user.address)
 
       await expect(
-        depositRecord.connect(user).setGlobalDepositCap(differentCapToTestWith)
-      ).to.revertedWith(revertReason('Ownable: caller is not the owner'))
+        depositRecord.connect(user).setGlobalNetDepositCap(differentCapToTestWith)
+      ).to.revertedWith('Ownable: caller is not the owner')
     })
 
     it('should be settable to a non-zero value', async () => {
       expect(await depositRecord.owner()).to.eq(deployer.address)
-      expect(await depositRecord.getGlobalDepositCap()).to.not.eq(differentCapToTestWith)
+      expect(await depositRecord.getGlobalNetDepositCap()).to.not.eq(differentCapToTestWith)
 
-      await depositRecord.connect(deployer).setGlobalDepositCap(differentCapToTestWith)
+      await depositRecord.connect(deployer).setGlobalNetDepositCap(differentCapToTestWith)
 
-      expect(await depositRecord.getGlobalDepositCap()).to.eq(differentCapToTestWith)
+      expect(await depositRecord.getGlobalNetDepositCap()).to.eq(differentCapToTestWith)
     })
 
     it('should be settable to zero', async () => {
       expect(await depositRecord.owner()).to.eq(deployer.address)
-      expect(await depositRecord.getGlobalDepositCap()).to.not.eq(0)
+      expect(await depositRecord.getGlobalNetDepositCap()).to.not.eq(0)
 
-      await depositRecord.connect(deployer).setGlobalDepositCap(0)
+      await depositRecord.connect(deployer).setGlobalNetDepositCap(0)
 
-      expect(await depositRecord.getGlobalDepositCap()).to.eq(0)
+      expect(await depositRecord.getGlobalNetDepositCap()).to.eq(0)
     })
 
     it('should correctly set the same value twice', async () => {
       expect(await depositRecord.owner()).to.eq(deployer.address)
-      expect(await depositRecord.getGlobalDepositCap()).to.not.eq(differentCapToTestWith)
-      await depositRecord.connect(deployer).setGlobalDepositCap(differentCapToTestWith)
-      expect(await depositRecord.getGlobalDepositCap()).to.eq(differentCapToTestWith)
+      expect(await depositRecord.getGlobalNetDepositCap()).to.not.eq(differentCapToTestWith)
+      await depositRecord.connect(deployer).setGlobalNetDepositCap(differentCapToTestWith)
+      expect(await depositRecord.getGlobalNetDepositCap()).to.eq(differentCapToTestWith)
 
-      await depositRecord.connect(deployer).setGlobalDepositCap(differentCapToTestWith)
+      await depositRecord.connect(deployer).setGlobalNetDepositCap(differentCapToTestWith)
 
-      expect(await depositRecord.getGlobalDepositCap()).to.eq(differentCapToTestWith)
+      expect(await depositRecord.getGlobalNetDepositCap()).to.eq(differentCapToTestWith)
     })
 
-    it('should emit a GlobalDepositCapChanged event', async () => {
-      await depositRecord.connect(deployer).setGlobalDepositCap(differentCapToTestWith)
+    it('should emit a GlobalNetDepositCapChange event', async () => {
+      const tx = await depositRecord
+        .connect(deployer)
+        .setGlobalNetDepositCap(differentCapToTestWith)
 
-      const event = await getGlobalDepositCapChangedEvent(depositRecord)
-      expect(event.args.amount).to.eq(differentCapToTestWith)
+      await expect(tx)
+        .to.emit(depositRecord, 'GlobalNetDepositCapChange')
+        .withArgs(differentCapToTestWith)
     })
   })
 
-  describe('# setAccountDepositCap', () => {
+  describe('# setUserDepositCap', () => {
     const differentCapToTestWith = TEST_ACCOUNT_DEPOSIT_CAP.add(1)
     it('should only be callable by the owner', async () => {
       expect(await depositRecord.owner()).to.not.eq(user.address)
 
       await expect(
-        depositRecord.connect(user).setAccountDepositCap(differentCapToTestWith)
-      ).to.revertedWith(revertReason('Ownable: caller is not the owner'))
+        depositRecord.connect(user).setUserDepositCap(differentCapToTestWith)
+      ).to.revertedWith('Ownable: caller is not the owner')
     })
 
     it('should be settable to a non-zero value', async () => {
       expect(await depositRecord.owner()).to.eq(deployer.address)
-      expect(await depositRecord.getAccountDepositCap()).to.not.eq(differentCapToTestWith)
+      expect(await depositRecord.getUserDepositCap()).to.not.eq(differentCapToTestWith)
 
-      await depositRecord.connect(deployer).setAccountDepositCap(differentCapToTestWith)
+      await depositRecord.connect(deployer).setUserDepositCap(differentCapToTestWith)
 
-      expect(await depositRecord.getAccountDepositCap()).to.eq(differentCapToTestWith)
+      expect(await depositRecord.getUserDepositCap()).to.eq(differentCapToTestWith)
     })
 
     it('should be settable to zero', async () => {
       expect(await depositRecord.owner()).to.eq(deployer.address)
-      expect(await depositRecord.getAccountDepositCap()).to.not.eq(0)
+      expect(await depositRecord.getUserDepositCap()).to.not.eq(0)
 
-      await depositRecord.connect(deployer).setAccountDepositCap(0)
+      await depositRecord.connect(deployer).setUserDepositCap(0)
 
-      expect(await depositRecord.getAccountDepositCap()).to.eq(0)
+      expect(await depositRecord.getUserDepositCap()).to.eq(0)
     })
 
     it('should correctly set the same value twice', async () => {
       expect(await depositRecord.owner()).to.eq(deployer.address)
-      await depositRecord.connect(deployer).setAccountDepositCap(differentCapToTestWith)
-      expect(await depositRecord.getAccountDepositCap()).to.eq(differentCapToTestWith)
+      await depositRecord.connect(deployer).setUserDepositCap(differentCapToTestWith)
+      expect(await depositRecord.getUserDepositCap()).to.eq(differentCapToTestWith)
 
-      await depositRecord.connect(deployer).setAccountDepositCap(differentCapToTestWith)
+      await depositRecord.connect(deployer).setUserDepositCap(differentCapToTestWith)
 
-      expect(await depositRecord.getAccountDepositCap()).to.eq(differentCapToTestWith)
+      expect(await depositRecord.getUserDepositCap()).to.eq(differentCapToTestWith)
     })
 
-    it('should emit a AccountDepositCapChanged event', async () => {
-      await depositRecord.connect(deployer).setAccountDepositCap(differentCapToTestWith)
+    it('should emit a UserDepositCapChange event', async () => {
+      const tx = await depositRecord.connect(deployer).setUserDepositCap(differentCapToTestWith)
 
-      const event = await getAccountDepositCapChangedEvent(depositRecord)
-      expect(event.args.amount).to.eq(differentCapToTestWith)
+      await expect(tx)
+        .to.emit(depositRecord, 'UserDepositCapChange')
+        .withArgs(differentCapToTestWith)
     })
   })
 
@@ -267,7 +270,7 @@ describe('=> CollateralDepositRecord', () => {
 
       await expect(
         depositRecord.connect(user).setAllowedHook(deployer.address, true)
-      ).to.revertedWith(revertReason('Ownable: caller is not the owner'))
+      ).to.revertedWith('Ownable: caller is not the owner')
     })
 
     it('should be able to set the allowed status of an account to true', async () => {
@@ -309,12 +312,10 @@ describe('=> CollateralDepositRecord', () => {
       expect(await depositRecord.isHookAllowed(deployer.address)).to.eq(false)
     })
 
-    it('should emit a AllowedHooksChanged event', async () => {
-      await depositRecord.connect(deployer).setAllowedHook(deployer.address, true)
+    it('should emit a AllowedHooksChange event', async () => {
+      const tx = await depositRecord.connect(deployer).setAllowedHook(deployer.address, true)
 
-      const event = await getAllowedHooksChangedEvent(depositRecord)
-      expect(event.args.hook).to.eq(deployer.address)
-      expect(event.args.allowed).to.eq(true)
+      await expect(tx).to.emit(depositRecord, 'AllowedHooksChange').withArgs(deployer.address, true)
     })
   })
 })

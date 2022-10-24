@@ -1,17 +1,14 @@
 import chai, { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
-import { parseEther } from 'ethers/lib/utils'
+import { id, parseEther } from 'ethers/lib/utils'
 import { Contract } from 'ethers'
 import { MockContract, smock } from '@defi-wonderland/smock'
 import { ZERO_ADDRESS } from 'prepo-constants'
-import { utils } from 'prepo-hardhat'
 import { depositHookFixture } from './fixtures/HookFixture'
 import { smockCollateralDepositRecordFixture } from './fixtures/CollateralDepositRecordFixture'
-import { getDepositHookVaultChangedEvent } from './events'
+import { grantAndAcceptRole } from './utils'
 import { DepositHook } from '../typechain'
-
-const { revertReason } = utils
 
 chai.use(smock.matchers)
 
@@ -33,27 +30,51 @@ describe('=> DepositHook', () => {
       TEST_ACCOUNT_DEPOSIT_CAP
     )
     depositHook = await depositHookFixture(mockCollateralDepositRecord.address)
+    await grantAndAcceptRole(
+      depositHook,
+      deployer,
+      deployer,
+      await depositHook.SET_COLLATERAL_ROLE()
+    )
+    await grantAndAcceptRole(
+      depositHook,
+      deployer,
+      deployer,
+      await depositHook.SET_DEPOSIT_RECORD_ROLE()
+    )
     await mockCollateralDepositRecord.connect(deployer).setAllowedHook(depositHook.address, true)
   })
 
-  describe('# initialize', () => {
-    it('should be initialized with correct values', async () => {
-      expect(await depositHook.getVault()).to.eq(ZERO_ADDRESS)
+  describe('initial state', () => {
+    it('sets collateral to zero address', async () => {
+      expect(await depositHook.getCollateral()).to.eq(ZERO_ADDRESS)
+    })
+
+    it('sets deposit record from constructor', async () => {
       expect(await depositHook.getDepositRecord()).to.eq(mockCollateralDepositRecord.address)
+    })
+
+    it('sets role constants to the correct hash', async () => {
+      expect(await depositHook.SET_COLLATERAL_ROLE()).to.eq(
+        id('DepositHook_setCollateral(address)')
+      )
+      expect(await depositHook.SET_DEPOSIT_RECORD_ROLE()).to.eq(
+        id('DepositHook_setDepositRecord(address)')
+      )
     })
   })
 
   describe('# hook', () => {
     beforeEach(async () => {
-      await depositHook.setVault(vault.address)
+      await depositHook.setCollateral(vault.address)
     })
 
     it('should only usable by the vault', async () => {
-      expect(await depositHook.getVault()).to.not.eq(user.address)
+      expect(await depositHook.getCollateral()).to.not.eq(user.address)
 
       await expect(
         depositHook.connect(user).hook(user.address, TEST_AMOUNT_ONE, TEST_AMOUNT_TWO)
-      ).to.revertedWith(revertReason('Caller is not the vault'))
+      ).to.revertedWith('msg.sender != collateral')
     })
 
     it('should call recordDeposit with the correct parameters', async () => {
@@ -66,57 +87,64 @@ describe('=> DepositHook', () => {
     })
   })
 
-  describe('# setVault', () => {
-    it('should only be usable by the owner', async () => {
-      await expect(depositHook.connect(user).setVault(vault.address)).revertedWith(
-        revertReason('Ownable: caller is not the owner')
+  describe('# setCollateral', () => {
+    it('reverts if not role holder', async () => {
+      expect(
+        await depositHook.hasRole(await depositHook.SET_COLLATERAL_ROLE(), user.address)
+      ).to.eq(false)
+
+      await expect(depositHook.connect(user).setCollateral(vault.address)).revertedWith(
+        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await depositHook.SET_COLLATERAL_ROLE()}`
       )
     })
 
     it('should be settable to an address', async () => {
-      expect(await depositHook.getVault()).to.eq(ZERO_ADDRESS)
+      expect(await depositHook.getCollateral()).to.eq(ZERO_ADDRESS)
 
-      await depositHook.connect(deployer).setVault(vault.address)
+      await depositHook.connect(deployer).setCollateral(vault.address)
 
-      expect(await depositHook.getVault()).to.eq(vault.address)
+      expect(await depositHook.getCollateral()).to.eq(vault.address)
     })
 
     it('should be settable to the zero address', async () => {
-      await depositHook.connect(deployer).setVault(vault.address)
-      expect(await depositHook.getVault()).to.eq(vault.address)
+      await depositHook.connect(deployer).setCollateral(vault.address)
+      expect(await depositHook.getCollateral()).to.eq(vault.address)
 
-      await depositHook.connect(deployer).setVault(ZERO_ADDRESS)
+      await depositHook.connect(deployer).setCollateral(ZERO_ADDRESS)
 
-      expect(await depositHook.getVault()).to.eq(ZERO_ADDRESS)
+      expect(await depositHook.getCollateral()).to.eq(ZERO_ADDRESS)
     })
 
     it('should be settable to the same value twice', async () => {
-      expect(await depositHook.getVault()).to.eq(ZERO_ADDRESS)
+      expect(await depositHook.getCollateral()).to.eq(ZERO_ADDRESS)
 
-      await depositHook.connect(deployer).setVault(vault.address)
+      await depositHook.connect(deployer).setCollateral(vault.address)
 
-      expect(await depositHook.getVault()).to.eq(vault.address)
+      expect(await depositHook.getCollateral()).to.eq(vault.address)
 
-      await depositHook.connect(deployer).setVault(vault.address)
+      await depositHook.connect(deployer).setCollateral(vault.address)
 
-      expect(await depositHook.getVault()).to.eq(vault.address)
+      expect(await depositHook.getCollateral()).to.eq(vault.address)
     })
 
-    it('should emit a VaultChanged event', async () => {
-      await depositHook.connect(deployer).setVault(vault.address)
+    it('should emit a CollateralChange event', async () => {
+      const tx = await depositHook.connect(deployer).setCollateral(vault.address)
 
-      const event = await getDepositHookVaultChangedEvent(depositHook)
-      expect(event.vault).to.eq(vault.address)
+      await expect(tx).to.emit(depositHook, 'CollateralChange').withArgs(vault.address)
     })
   })
 
   describe('# setDepositRecord', () => {
-    it('reverts if not owner', async () => {
-      expect(await depositHook.owner()).to.not.eq(user.address)
+    it('reverts if not role holder', async () => {
+      expect(
+        await depositHook.hasRole(await depositHook.SET_DEPOSIT_RECORD_ROLE(), user.address)
+      ).to.eq(false)
 
       await expect(
         depositHook.connect(user).setDepositRecord(mockCollateralDepositRecord.address)
-      ).revertedWith(revertReason('Ownable: caller is not the owner'))
+      ).revertedWith(
+        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await depositHook.SET_DEPOSIT_RECORD_ROLE()}`
+      )
     })
 
     it('sets to non-zero address', async () => {

@@ -1,44 +1,45 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.7;
 
+import "./ICollateral.sol";
+
 /// @notice Used for adding additional checks and/or data recording when
 /// interacting with the Collateral vault.
 interface IHook {
   /**
-   * @dev Emitted via `setVault()`.
-   * @param vault The new vault address
+   * @dev Emitted via `setCollateral()`.
+   * @param collateral The new collateral address
    */
-  event VaultChanged(address vault);
+  event CollateralChange(address collateral);
 
   /**
    * @dev This hook should only contain calls to external contracts, where
    * the actual implementation and state of a feature will reside.
    *
-   * `initialAmount` for `deposit()` and `withdraw()` is the `amount`
-   * parameter passed in by the caller.
+   * `amountBeforeFee` is the `baseToken` amount deposited/withdrawn by the
+   * caller before fees are taken.
    *
-   * `finalAmount` for `deposit()` is the Base Token amount provided by
-   * the user and any latent contract balance that is included in the
-   * deposit.
+   * `amountAfterFee` is the `baseToken` amount deposited/withdrawn by the
+   * caller after fees are taken.
    *
-   * `finalAmount` for `withdraw()` is the Base Token amount returned
-   * by the configured Strategy.
-   *
-   * Only callable by the vault.
-   * @param sender The account calling the Collateral vault
-   * @param initialAmount The amount passed to the Collateral vault
-   * @param finalAmount The amount actually involved in the transaction
+   * Only callable by allowed collateral.
+   * @param sender Caller depositing/withdrawing collateral
+   * @param amountBeforeFee `baseToken` amount before fees
+   * @param amountAfterFee `baseToken` amount after fees
    */
   function hook(
     address sender,
-    uint256 initialAmount,
-    uint256 finalAmount
+    uint256 amountBeforeFee,
+    uint256 amountAfterFee
   ) external;
 
   /**
-   * @notice Sets the vault that will be allowed to call this hook.
+   * @notice Sets the collateral that will be allowed to call this hook.
    * @dev Only callable by owner().
-   * @param newVault The vault address
+   * @param newCollateral The new allowed collateral
    */
-  function setVault(address newVault) external;
+  function setCollateral(ICollateral newCollateral) external;
+
+  /// @return The collateral that is allowed to call this hook.
+  function getCollateral() external view returns (ICollateral);
 }

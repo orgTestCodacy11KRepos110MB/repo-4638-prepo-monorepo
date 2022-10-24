@@ -1,8 +1,9 @@
 import { parseEther } from '@ethersproject/units'
-import { BigNumber } from 'ethers'
+import { BigNumber, Contract } from 'ethers'
 import { ethers } from 'hardhat'
 import { MerkleTree } from 'merkletreejs'
 import keccak256 from 'keccak256'
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 
 export const FEE_DENOMINATOR = 1000000
 export const FEE_LIMIT = 50000
@@ -50,4 +51,14 @@ export function hashAddress(address: string): Buffer {
 export function generateMerkleTree(addresses: string[]): MerkleTree {
   const leaves = addresses.map(hashAddress)
   return new MerkleTree(leaves, keccak256, { sortPairs: true })
+}
+
+export async function grantAndAcceptRole(
+  contract: Contract,
+  admin: SignerWithAddress,
+  nominee: SignerWithAddress,
+  role: string
+): Promise<void> {
+  await contract.connect(admin).grantRole(role, nominee.address)
+  await contract.connect(nominee).acceptRole(role)
 }

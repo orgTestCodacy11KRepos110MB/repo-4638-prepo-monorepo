@@ -5,22 +5,22 @@ import { CollateralDepositRecord } from '../../typechain'
 
 export async function collateralDepositRecordFixture(
   globalDepositCap: BigNumber,
-  accountDepositCap: BigNumber
+  userDepositCap: BigNumber
 ): Promise<CollateralDepositRecord> {
   const collateralDepositRecord = await ethers.getContractFactory('CollateralDepositRecord')
   return (await collateralDepositRecord.deploy(
     globalDepositCap,
-    accountDepositCap
-  )) as unknown as CollateralDepositRecord
+    userDepositCap
+  )) as CollateralDepositRecord
 }
 
 export async function smockCollateralDepositRecordFixture(
   globalDepositCap: BigNumber,
-  accountDepositCap: BigNumber
+  userDepositCap: BigNumber
 ): Promise<MockContract> {
   const smockCollateralDepositRecord = await smock.mock('CollateralDepositRecord')
   return (await smockCollateralDepositRecord.deploy(
     globalDepositCap,
-    accountDepositCap
+    userDepositCap
   )) as MockContract
 }

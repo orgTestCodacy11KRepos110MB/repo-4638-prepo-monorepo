@@ -1,15 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // TODO: selectively remove/replace collateral related methods with preUSD
-
 import { ethers } from 'hardhat'
 import { PrePOMarket } from '../typechain/PrePOMarket'
 import { PrePOMarketFactory } from '../typechain/PrePOMarketFactory'
-import {
-  CollateralDepositRecord,
-  AccountAccessController,
-  DepositHook,
-  WithdrawHook,
-} from '../typechain'
+import { AccountAccessController } from '../typechain'
 
 export async function getMarketAddedEvent(factory: PrePOMarketFactory): Promise<any> {
   const filter = {
@@ -91,42 +85,6 @@ export async function getFinalLongPriceSetEvent(market: PrePOMarket): Promise<an
   return events[0].args as any
 }
 
-export async function getGlobalDepositCapChangedEvent(
-  depositRecord: CollateralDepositRecord
-): Promise<any> {
-  const filter = {
-    address: depositRecord.address,
-    topics: [ethers.utils.id('GlobalDepositCapChanged(uint256)')],
-  }
-
-  const events = await depositRecord.queryFilter(filter, 'latest')
-  return events[0]
-}
-
-export async function getAccountDepositCapChangedEvent(
-  depositRecord: CollateralDepositRecord
-): Promise<any> {
-  const filter = {
-    address: depositRecord.address,
-    topics: [ethers.utils.id('AccountDepositCapChanged(uint256)')],
-  }
-
-  const events = await depositRecord.queryFilter(filter, 'latest')
-  return events[0]
-}
-
-export async function getAllowedHooksChangedEvent(
-  depositRecord: CollateralDepositRecord
-): Promise<any> {
-  const filter = {
-    address: depositRecord.address,
-    topics: [ethers.utils.id('AllowedHooksChanged(address,bool)')],
-  }
-
-  const events = await depositRecord.queryFilter(filter, 'latest')
-  return events[0]
-}
-
 export async function getRootChangedEvent(
   accountAccessController: AccountAccessController
 ): Promise<any> {
@@ -172,24 +130,4 @@ export async function getBlockedAccountsClearedEvent(
 
   const events = await accountAccessController.queryFilter(filter, 'latest')
   return events[0]
-}
-
-export async function getDepositHookVaultChangedEvent(hook: DepositHook): Promise<any> {
-  const filter = {
-    address: hook.address,
-    topics: [ethers.utils.id('VaultChanged(address)')],
-  }
-
-  const events = await hook.queryFilter(filter, 'latest')
-  return events[0].args as any
-}
-
-export async function getWithdrawHookVaultChangedEvent(hook: WithdrawHook): Promise<any> {
-  const filter = {
-    address: hook.address,
-    topics: [ethers.utils.id('VaultChanged(address)')],
-  }
-
-  const events = await hook.queryFilter(filter, 'latest')
-  return events[0].args as any
 }

@@ -1,20 +1,25 @@
-// SPDX-License-Identifier: UNLICENSED
-import "./interfaces/IHook.sol";
-import "./interfaces/ICollateralDepositRecord.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-
+// SPDX-License-Identifier: AGPL-3.0
 pragma solidity =0.8.7;
 
-contract WithdrawHook is IHook, Ownable {
-  address private _vault;
+import "./interfaces/IHook.sol";
+import "./interfaces/ICollateralDepositRecord.sol";
+import "prepo-shared-contracts/contracts/SafeAccessControlEnumerable.sol";
+
+contract WithdrawHook is IHook, SafeAccessControlEnumerable {
+  ICollateral private _collateral;
   ICollateralDepositRecord private _depositRecord;
+
+  bytes32 public constant SET_COLLATERAL_ROLE =
+    keccak256("WithdrawHook_setCollateral(address)");
+  bytes32 public constant SET_DEPOSIT_RECORD_ROLE =
+    keccak256("WithdrawHook_setDepositRecord(address)");
 
   constructor(address _newDepositRecord) {
     _depositRecord = ICollateralDepositRecord(_newDepositRecord);
   }
 
-  modifier onlyVault() {
-    require(msg.sender == _vault, "Caller is not the vault");
+  modifier onlyCollateral() {
+    require(msg.sender == address(_collateral), "msg.sender != collateral");
     _;
   }
 
@@ -22,21 +27,28 @@ contract WithdrawHook is IHook, Ownable {
     address _sender,
     uint256 _initialAmount,
     uint256 _finalAmount
-  ) external override onlyVault {
+  ) external override onlyCollateral {
     _depositRecord.recordWithdrawal(_sender, _finalAmount);
   }
 
-  function setVault(address _newVault) external override onlyOwner {
-    _vault = _newVault;
-    emit VaultChanged(_newVault);
+  function setCollateral(ICollateral _newCollateral)
+    external
+    override
+    onlyRole(SET_COLLATERAL_ROLE)
+  {
+    _collateral = _newCollateral;
+    emit CollateralChange(address(_newCollateral));
   }
 
-  function setDepositRecord(address _newDepositRecord) external onlyOwner {
+  function setDepositRecord(address _newDepositRecord)
+    external
+    onlyRole(SET_DEPOSIT_RECORD_ROLE)
+  {
     _depositRecord = ICollateralDepositRecord(_newDepositRecord);
   }
 
-  function getVault() external view returns (address) {
-    return _vault;
+  function getCollateral() external view override returns (ICollateral) {
+    return _collateral;
   }
 
   function getDepositRecord()

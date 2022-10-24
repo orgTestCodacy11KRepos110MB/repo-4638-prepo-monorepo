@@ -1,15 +1,12 @@
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
-import { parseEther } from 'ethers/lib/utils'
+import { id, parseEther } from 'ethers/lib/utils'
 import { ZERO_ADDRESS } from 'prepo-constants'
-import { utils } from 'prepo-hardhat'
 import { withdrawHookFixture } from './fixtures/HookFixture'
 import { collateralDepositRecordFixture } from './fixtures/CollateralDepositRecordFixture'
-import { getWithdrawHookVaultChangedEvent } from './events'
+import { grantAndAcceptRole } from './utils'
 import { CollateralDepositRecord, WithdrawHook } from '../typechain'
-
-const { revertReason } = utils
 
 describe('=> WithdrawHook', () => {
   let withdrawHook: WithdrawHook
@@ -29,97 +26,126 @@ describe('=> WithdrawHook', () => {
       TEST_ACCOUNT_DEPOSIT_CAP
     )
     withdrawHook = await withdrawHookFixture(depositRecord.address)
+    await grantAndAcceptRole(
+      withdrawHook,
+      deployer,
+      deployer,
+      await withdrawHook.SET_COLLATERAL_ROLE()
+    )
+    await grantAndAcceptRole(
+      withdrawHook,
+      deployer,
+      deployer,
+      await withdrawHook.SET_DEPOSIT_RECORD_ROLE()
+    )
     await depositRecord.connect(deployer).setAllowedHook(user.address, true)
     await depositRecord.connect(deployer).setAllowedHook(withdrawHook.address, true)
   })
 
-  describe('# initialize', () => {
-    it('should be initialized with correct values', async () => {
-      expect(await withdrawHook.getVault()).to.eq(ZERO_ADDRESS)
+  describe('initial state', () => {
+    it('sets collateral to zero address', async () => {
+      expect(await withdrawHook.getCollateral()).to.eq(ZERO_ADDRESS)
+    })
+
+    it('sets deposit record from constructor', async () => {
       expect(await withdrawHook.getDepositRecord()).to.eq(depositRecord.address)
+    })
+
+    it('sets role constants to the correct hash', async () => {
+      expect(await withdrawHook.SET_COLLATERAL_ROLE()).to.eq(
+        id('WithdrawHook_setCollateral(address)')
+      )
+      expect(await withdrawHook.SET_DEPOSIT_RECORD_ROLE()).to.eq(
+        id('WithdrawHook_setDepositRecord(address)')
+      )
     })
   })
 
   describe('# hook', () => {
     beforeEach(async () => {
-      await withdrawHook.setVault(vault.address)
+      await withdrawHook.setCollateral(vault.address)
     })
 
     it('should only usable by the vault', async () => {
-      expect(await withdrawHook.getVault()).to.not.eq(user.address)
+      expect(await withdrawHook.getCollateral()).to.not.eq(user.address)
 
       await expect(
         withdrawHook.connect(user).hook(user.address, TEST_AMOUNT_ONE, TEST_AMOUNT_TWO)
-      ).to.revertedWith(revertReason('Caller is not the vault'))
+      ).to.revertedWith('msg.sender != collateral')
     })
 
     it('should update deposit records on the CollateralDepositRecord contract', async () => {
       const testDepositToWithdrawFrom = parseEther('5')
       await depositRecord.connect(user).recordDeposit(user.address, testDepositToWithdrawFrom)
-      const globalDepositsBefore = await depositRecord.getGlobalDepositAmount()
-      const accountDepositsBefore = await depositRecord.getNetDeposit(user.address)
+      const globalDepositsBefore = await depositRecord.getGlobalNetDepositAmount()
+      const userDepositsBefore = await depositRecord.getUserDepositAmount(user.address)
 
       await withdrawHook.connect(vault).hook(user.address, TEST_AMOUNT_ONE, TEST_AMOUNT_TWO)
 
-      expect(await depositRecord.getGlobalDepositAmount()).to.eq(
+      expect(await depositRecord.getGlobalNetDepositAmount()).to.eq(
         globalDepositsBefore.sub(TEST_AMOUNT_TWO)
       )
-      expect(await depositRecord.getNetDeposit(user.address)).to.eq(
-        accountDepositsBefore.sub(TEST_AMOUNT_TWO)
+      expect(await depositRecord.getUserDepositAmount(user.address)).to.eq(
+        userDepositsBefore.sub(TEST_AMOUNT_TWO)
       )
     })
   })
 
-  describe('# setVault', () => {
-    it('should only be usable by the owner', async () => {
-      await expect(withdrawHook.connect(user).setVault(vault.address)).revertedWith(
-        revertReason('Ownable: caller is not the owner')
+  describe('# setCollateral', () => {
+    it('reverts if not role holder', async () => {
+      expect(
+        await withdrawHook.hasRole(await withdrawHook.SET_COLLATERAL_ROLE(), user.address)
+      ).to.eq(false)
+
+      await expect(withdrawHook.connect(user).setCollateral(vault.address)).revertedWith(
+        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await withdrawHook.SET_COLLATERAL_ROLE()}`
       )
     })
 
     it('should be settable to an address', async () => {
-      expect(await withdrawHook.getVault()).to.eq(ZERO_ADDRESS)
+      expect(await withdrawHook.getCollateral()).to.eq(ZERO_ADDRESS)
 
-      await withdrawHook.connect(deployer).setVault(vault.address)
+      await withdrawHook.connect(deployer).setCollateral(vault.address)
 
-      expect(await withdrawHook.getVault()).to.eq(vault.address)
+      expect(await withdrawHook.getCollateral()).to.eq(vault.address)
     })
 
     it('should be settable to the zero address', async () => {
-      await withdrawHook.connect(deployer).setVault(vault.address)
-      expect(await withdrawHook.getVault()).to.eq(vault.address)
+      await withdrawHook.connect(deployer).setCollateral(vault.address)
+      expect(await withdrawHook.getCollateral()).to.eq(vault.address)
 
-      await withdrawHook.connect(deployer).setVault(ZERO_ADDRESS)
+      await withdrawHook.connect(deployer).setCollateral(ZERO_ADDRESS)
 
-      expect(await withdrawHook.getVault()).to.eq(ZERO_ADDRESS)
+      expect(await withdrawHook.getCollateral()).to.eq(ZERO_ADDRESS)
     })
 
     it('should be settable to the same value twice', async () => {
-      expect(await withdrawHook.getVault()).to.eq(ZERO_ADDRESS)
+      expect(await withdrawHook.getCollateral()).to.eq(ZERO_ADDRESS)
 
-      await withdrawHook.connect(deployer).setVault(vault.address)
+      await withdrawHook.connect(deployer).setCollateral(vault.address)
 
-      expect(await withdrawHook.getVault()).to.eq(vault.address)
+      expect(await withdrawHook.getCollateral()).to.eq(vault.address)
 
-      await withdrawHook.connect(deployer).setVault(vault.address)
+      await withdrawHook.connect(deployer).setCollateral(vault.address)
 
-      expect(await withdrawHook.getVault()).to.eq(vault.address)
+      expect(await withdrawHook.getCollateral()).to.eq(vault.address)
     })
 
-    it('should emit a VaultChanged event', async () => {
-      await withdrawHook.connect(deployer).setVault(vault.address)
+    it('should emit a CollateralChange event', async () => {
+      const tx = await withdrawHook.connect(deployer).setCollateral(vault.address)
 
-      const event = await getWithdrawHookVaultChangedEvent(withdrawHook)
-      expect(event.vault).to.eq(vault.address)
+      await expect(tx).to.emit(withdrawHook, 'CollateralChange').withArgs(vault.address)
     })
   })
 
   describe('# setDepositRecord', () => {
-    it('reverts if not owner', async () => {
-      expect(await withdrawHook.owner()).to.not.eq(user.address)
+    it('reverts if not role holder', async () => {
+      expect(
+        await withdrawHook.hasRole(await withdrawHook.SET_DEPOSIT_RECORD_ROLE(), user.address)
+      ).to.eq(false)
 
       await expect(withdrawHook.connect(user).setDepositRecord(depositRecord.address)).revertedWith(
-        revertReason('Ownable: caller is not the owner')
+        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await withdrawHook.SET_DEPOSIT_RECORD_ROLE()}`
       )
     })
 
