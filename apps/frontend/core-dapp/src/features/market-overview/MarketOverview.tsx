@@ -131,18 +131,17 @@ const MarketOverview: React.FC = () => {
             {showTradingViewChart ? <TradingViewChart /> : <MarketChart />}
 
             <Typography
-              position="absolute"
               display="flex"
               justifyContent="center"
               alignItems="center"
-              bottom={showTradingViewChart ? 10 : 100}
               left={0}
+              mt={16}
+              gap={16}
               width="100%"
               color="neutral1"
               variant="text-medium-md"
             >
               Advanced Chart
-              <Flex width={25} />
               <Switch checked={showTradingViewChart} onChange={setShowTradingViewChart} />
             </Typography>
           </Col>

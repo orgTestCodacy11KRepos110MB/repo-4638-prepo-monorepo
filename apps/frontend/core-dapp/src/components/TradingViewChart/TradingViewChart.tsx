@@ -1,5 +1,6 @@
-import { Flex } from 'prepo-ui'
+import { Flex, ThemeModes } from 'prepo-ui'
 import { useEffect, useRef } from 'react'
+import { observer } from 'mobx-react-lite'
 import datafeed from './datafeed'
 import {
   widget as Widget,
@@ -7,10 +8,13 @@ import {
   IChartingLibraryWidget,
 } from '../../../public/static/charting_library'
 import useSelectedMarket from '../../hooks/useSelectedMarket'
+import { useRootStore } from '../../context/RootStoreProvider'
 
 const chartId = 'tv_chart_container'
 
 const TradingViewChart: React.FC = () => {
+  const { uiStore } = useRootStore()
+  const { selectedTheme } = uiStore
   const tvWidgetRef = useRef<IChartingLibraryWidget | null>(null)
   const selectedMarket = useSelectedMarket()
 
@@ -33,16 +37,16 @@ const TradingViewChart: React.FC = () => {
         'left_toolbar',
         'header_widget',
         'border_around_the_chart',
-        'timeframes_toolbar',
       ],
+      theme: selectedTheme === ThemeModes.Dark ? 'Dark' : 'Light',
     }
     const tvWidget = new Widget(widgetOptions)
 
     tvWidget.onChartReady(() => {
       tvWidgetRef.current = tvWidget
     })
-  }, [selectedMarket])
+  }, [selectedMarket, selectedTheme])
   return <Flex height="calc(100% - 20px)" id={chartId} width="100%" />
 }
 
-export default TradingViewChart
+export default observer(TradingViewChart)
