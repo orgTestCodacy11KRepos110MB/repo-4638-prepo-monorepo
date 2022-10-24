@@ -48,11 +48,14 @@
   </script>
 </body>
 <!-- Panelbear Analytics - We respect your privacy -->
-<script async src="https://cdn.panelbear.com/analytics.js?site=FZoGw2vnZFr"></script>
+<script async src="/bear.js?site=FZoGw2vnZFr"></script>
 <script>
-  window.panelbear = window.panelbear || function () { (window.panelbear.q = window.panelbear.q || []).push(arguments); };
-  panelbear('config', { site: 'FZoGw2vnZFr' });
+  window.panelbear =
+    window.panelbear ||
+    function () {
+      ;(window.panelbear.q = window.panelbear.q || []).push(arguments)
+    }
+  panelbear('config', { site: 'FZoGw2vnZFr', scriptSrc: '/bear.js', analyticsHost: '/api/bear?' })
 </script>
 <div id="modal-root" />
-
 </html>

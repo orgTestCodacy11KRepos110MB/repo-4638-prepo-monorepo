@@ -15,6 +15,7 @@
     "@reduxjs/toolkit": "1.8.1",
     "antd": "4.20.7",
     "lodash.throttle": "4.1.1",
+    "node-fetch": "2.6.1",
     "prepo-sdk": "*",
     "react": "17.0.2",
     "react-div-100vh": "0.7.0",

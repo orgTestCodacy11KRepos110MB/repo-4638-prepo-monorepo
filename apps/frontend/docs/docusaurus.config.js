@@ -160,5 +160,5 @@ module.exports = {
       crossorigin: 'anonymous',
     },
   ],
-  scripts: ['https://cdn.panelbear.com/analytics.js?site=KdPR54pbOMF', './scripts/panelbear.js'],
+  scripts: ['/bear.js?site=KdPR54pbOMF', './scripts/panelbear.js'],
 }

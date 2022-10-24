@@ -20,7 +20,10 @@ configure({
 })
 
 const App = ({ Component, pageProps }: AppProps): React.ReactElement => {
-  usePanelbear(PANELBEAR_SITE_ID)
+  usePanelbear(PANELBEAR_SITE_ID, {
+    scriptSrc: '/bear.js',
+    analyticsHost: '/api/bear',
+  })
   return (
     <>
       <RootStoreProvider>

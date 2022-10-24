@@ -12,7 +12,17 @@ const withTM = require('next-transpile-modules')([
 ])
 const { locales, sourceLocale } = require('./lingui.config.js')
 
+const rewrites = async () => {
+  return [
+    {
+      source: '/bear.js',
+      destination: 'https://cdn.panelbear.com/analytics.js',
+    },
+  ]
+}
+
 const nextConfig = {
+  rewrites,
   experimental: { esmExternals: 'loose' },
   i18n: {
     locales,

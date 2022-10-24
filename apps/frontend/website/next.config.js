@@ -17,6 +17,10 @@ module.exports = {
         source: '/blog/:path*',
         destination: `${BLOG_URL}/:path*`,
       },
+      {
+        source: '/bear.js',
+        destination: 'https://cdn.panelbear.com/analytics.js',
+      },
     ]
   },
   async redirects() {

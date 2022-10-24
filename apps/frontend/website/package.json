@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "npx next",
-    "build": "next build && next-sitemap && next export",
+    "build": "next build && next-sitemap",
     "test": "jest -w 1",
     "test:ci": "yarn test",
     "start": "next start",

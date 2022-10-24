@@ -28,7 +28,7 @@ configure({
 })
 
 const App = ({ Component, pageProps }: AppProps): React.ReactElement => {
-  usePanelbear(config.PANELBEAR_SDK_KEY)
+  usePanelbear(config.PANELBEAR_SDK_KEY, { scriptSrc: '/bear.js', analyticsHost: '/api/bear' })
   const { locale = DEFAULT_LANGUAGE } = useRouter()
 
   useEffect(() => {
