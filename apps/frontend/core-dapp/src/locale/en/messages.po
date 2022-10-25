@@ -26,8 +26,8 @@ msgid "About"
 msgstr "About"
 
 #: src/features/connect/AccountModal.tsx:39
-msgid "Account"
-msgstr "Account"
+#~ msgid "Account"
+#~ msgstr "Account"
 
 #: src/features/market-overview/MarketOverview.tsx:90
 msgid "Add Liquidity"
@@ -101,8 +101,8 @@ msgid "Connect Wallet"
 msgstr "Connect Wallet"
 
 #: src/features/connect/AccountModal.tsx:48
-msgid "Connected"
-msgstr "Connected"
+#~ msgid "Connected"
+#~ msgstr "Connected"
 
 #: src/features/testnet-onboarding/TestnetBanner.tsx:24
 msgid "Connected to Testnet (Goerli)"
@@ -113,8 +113,8 @@ msgid "Cooldown period ends in: <0>{days}d {hours}h {minutes}m.</0>"
 msgstr "Cooldown period ends in: <0>{days}d {hours}h {minutes}m.</0>"
 
 #: src/features/connect/AccountModal.tsx:61
-msgid "Copy to Clipboard"
-msgstr "Copy to Clipboard"
+#~ msgid "Copy to Clipboard"
+#~ msgstr "Copy to Clipboard"
 
 #: src/features/ppo/stake/StakeDelegate.tsx:99
 msgid "Delegate Voting Power"
@@ -137,8 +137,8 @@ msgid "Deposit"
 msgstr "Deposit"
 
 #: src/features/connect/AccountModal.tsx:51
-msgid "Disconnect"
-msgstr "Disconnect"
+#~ msgid "Disconnect"
+#~ msgstr "Disconnect"
 
 #: src/features/ppo/govern/Participate.tsx:41
 msgid "Discuss on Discord"
@@ -242,7 +242,7 @@ msgstr "Learn about Governance"
 msgid "Liquidity"
 msgstr "Liquidity"
 
-#: src/features/profile/LookupUser.tsx:68
+#: src/features/profile/LookupUser.tsx:87
 msgid "Lookup User"
 msgstr "Lookup User"
 
@@ -462,7 +462,7 @@ msgstr "Valuation Range"
 msgid "Value"
 msgstr "Value"
 
-#: src/features/profile/LookupUser.tsx:77
+#: src/features/profile/LookupUser.tsx:96
 msgid "View Profile"
 msgstr "View Profile"
 
