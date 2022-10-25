@@ -99,7 +99,6 @@ const buttonProps = (disabled: boolean): ButtonProps => ({
   block: true,
   disabled,
   type: 'primary',
-  size: 'md',
 })
 
 const UnlockTokensModal: React.FC<UnlockOptions> = ({

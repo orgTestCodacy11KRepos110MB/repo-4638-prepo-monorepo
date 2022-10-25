@@ -17,7 +17,7 @@ const DEFAULT_VALUES = {
 
 export const Wrapper = styled.div`
   border: 1px solid ${({ theme }): string => theme.color.neutral6};
-  border-radius: ${spacingIncrement(5)};
+  border-radius: ${({ theme }): string => theme.borderRadius.md};
   color: ${({ theme }): string => theme.color.neutral3};
   display: flex;
   flex-direction: column;

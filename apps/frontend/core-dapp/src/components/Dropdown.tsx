@@ -38,7 +38,7 @@ const variantOutlineStyles = (
   background-color: ${({ theme }): string =>
     theme.color[customStyles?.backgroundColor || 'neutral9']};
   border: 1px solid ${({ theme }): string => theme.color[customStyles?.borderColor || 'neutral8']};
-  border-radius: ${({ theme }): number => theme.borderRadius}px;
+  border-radius: ${({ theme }): string => theme.borderRadius.md};
   color: ${({ theme }): string => theme.color.secondary};
 `
 

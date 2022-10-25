@@ -9,7 +9,7 @@ import { getShortAccount } from '../../utils/account-utils'
 import { useRootStore } from '../../context/RootStoreProvider'
 
 const Wrapper = styled.div`
-  border-radius: ${({ theme }): string => `${theme.borderRadius}px`};
+  border-radius: ${({ theme }): string => theme.borderRadius.md};
   display: inline-flex;
 `
 

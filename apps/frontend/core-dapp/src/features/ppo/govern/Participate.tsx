@@ -8,7 +8,7 @@ import ButtonLink from '../ButtonLink'
 
 const Wrapper = styled.div`
   border: 1px solid ${({ theme }): string => theme.color.neutral6};
-  border-radius: ${spacingIncrement(5)};
+  border-radius: ${({ theme }): string => theme.borderRadius.md};
   color: ${({ theme }): string => theme.color.neutral3};
   display: flex;
   flex-direction: column;
@@ -23,16 +23,12 @@ const Wrapper = styled.div`
     font-size: ${({ theme }): string => theme.fontSize.xl};
     gap: ${spacingIncrement(24)};
     line-height: ${spacingIncrement(36)};
-    padding: ${spacingIncrement(28)} ${spacingIncrement(30)} ${spacingIncrement(18)};
+    padding: ${spacingIncrement(28)};
   `}
   > a {
     border: none;
-    height: ${spacingIncrement(54)};
     position: relative;
     width: 100%;
-    ${media.desktop`
-      height: ${spacingIncrement(78)};
-    `}
   }
 `
 

@@ -1,4 +1,4 @@
-import { Button, Flex, media, spacingIncrement, Typography } from 'prepo-ui'
+import { Button, Flex } from 'prepo-ui'
 import styled from 'styled-components'
 import { observer } from 'mobx-react-lite'
 import { CSVLink } from 'react-csv'
@@ -10,22 +10,17 @@ import FilterModal from '../../../components/Filter'
 
 const StyledButton = styled(Button)<{ disabled?: boolean }>`
   &&&& {
-    flex: 1;
     .ant-btn {
+      background-color: transparent;
+      color: ${({ theme }): string => theme.color.neutral2};
       border-color: ${({ theme }): string => theme.color.neutral7};
-      padding: 0;
+      min-width: 158px;
       width: 100%;
-      ${media.desktop`
-        padding: 0 ${spacingIncrement(32)};
-      `}
     }
     .ant-btn:hover {
       border-color: ${({ disabled, theme }): string =>
         disabled ? theme.color.neutral7 : theme.color.primary};
     }
-    ${media.desktop`
-      flex: 0;
-    `}
   }
 `
 
@@ -44,16 +39,12 @@ const PpoHistoryActionBar: React.FC = () => {
       <FilterModal filterTypes={ppoHistoryFilterTypes} showMarkets={false} />
       <StyledButton disabled={dataForExport.length === 0}>
         <CSVLink data={dataForExport} filename="ppo_history_data">
-          <Typography variant="text-medium-md" color="neutral1">
-            <Trans>Export CSV</Trans>
-          </Typography>
+          <Trans>Export CSV</Trans>
         </CSVLink>
       </StyledButton>
 
       <StyledButton onClick={(): void => setIsFilterOpen(true)}>
-        <Typography variant="text-medium-md" color="neutral1">
-          <Trans>Filter</Trans>
-        </Typography>
+        <Trans>Filter</Trans>
       </StyledButton>
     </Flex>
   )

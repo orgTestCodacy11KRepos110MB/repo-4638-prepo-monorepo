@@ -44,42 +44,6 @@ const StyledModal = styled(Modal)`
   }
 `
 
-const StyledButton = styled(Button)`
-  &&&& button {
-    border-radius: 12px;
-    font-weight: 400;
-    height: 24px;
-    padding: 4px 6px;
-    * svg {
-      margin-right: 4px;
-    }
-  }
-`
-
-const StyledIconButton = styled(StyledButton)`
-  &&&& button {
-    padding: 0;
-    &:hover {
-      background: transparent;
-    }
-  }
-`
-
-const StyledLinkButton = styled(Button)`
-  border-radius: 12px;
-  color: ${({ theme }): string => theme.color.neutral3};
-  font-weight: 400;
-  height: 24px;
-  padding: 0;
-  div {
-    margin-right: 4px;
-  }
-  &:hover {
-    background: transparent;
-    color: ${({ theme }): string => theme.color.neutral1};
-  }
-`
-
 const SubTitle = styled.div`
   color: ${({ theme }): string => theme.color.neutral1};
   font-size: ${({ theme }): string => theme.fontSize.sm};
@@ -138,12 +102,12 @@ const AccountModal: React.FC = () => {
         <ModalSection>
           <SubTitle>Connected to {walletState?.label}</SubTitle>
           <Flex gap={8}>
-            <StyledButton size="xs" onClick={handleDeactivateAccount}>
+            <Button size="xs" type="default" onClick={handleDeactivateAccount}>
               Disconnect
-            </StyledButton>
-            <StyledButton size="xs" onClick={handleChangeAccount}>
+            </Button>
+            <Button size="xs" type="default" onClick={handleChangeAccount}>
               Change
-            </StyledButton>
+            </Button>
           </Flex>
         </ModalSection>
         <ModalSection>
@@ -163,7 +127,7 @@ const AccountModal: React.FC = () => {
         <ModalSection>
           <Flex gap={16}>
             <CopyToClipboard onCopy={handleCopied} text={address ?? ''}>
-              <StyledIconButton
+              <Button
                 icon={
                   <Icon
                     name={copied ? 'check-icon' : 'copy'}
@@ -176,9 +140,9 @@ const AccountModal: React.FC = () => {
                 size="xs"
               >
                 {copied ? 'Copied!' : 'Copy Address'}
-              </StyledIconButton>
+              </Button>
             </CopyToClipboard>
-            <StyledLinkButton
+            <Button
               icon={<Icon name="share" height="16" width="16" />}
               type="text"
               size="xs"
@@ -186,7 +150,7 @@ const AccountModal: React.FC = () => {
               target="_blank"
             >
               View on Explorer
-            </StyledLinkButton>
+            </Button>
           </Flex>
         </ModalSection>
       </Flex>

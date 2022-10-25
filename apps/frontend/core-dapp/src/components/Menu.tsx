@@ -78,7 +78,7 @@ const Wrapper = styled.div<Props>`
     }}
     .ant-dropdown-menu {
       background-color: ${({ theme }): string => theme.color.neutral9};
-      border-radius: ${({ theme }): number => theme.borderRadius}px;
+      border-radius: ${({ theme }): string => theme.borderRadius.xs};
       padding: 0;
     }
     ${({ keepBackgroundColorOnHover }): FlattenInterpolation<ThemeProps<DefaultTheme>> =>

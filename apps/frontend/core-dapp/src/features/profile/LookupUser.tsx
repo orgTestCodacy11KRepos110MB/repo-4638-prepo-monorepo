@@ -13,7 +13,7 @@ import { getShortAccount } from '../../utils/account-utils'
 const PLACEHOLDER = getShortAccount(ZERO_ADDRESS) ?? ''
 
 const InputWrapper = styled.div`
-  flex: 1;
+  flex: 3;
   span {
     font-size: ${({ theme }): string => theme.fontSize.sm};
     margin-bottom: ${spacingIncrement(5)};
@@ -67,7 +67,7 @@ const LookupUser: React.FC = () => {
     <Flex
       border="1px solid"
       borderColor="neutral7"
-      borderRadius={4}
+      borderRadius={20}
       justifyContent="space-between"
       py={11}
       pl={23}

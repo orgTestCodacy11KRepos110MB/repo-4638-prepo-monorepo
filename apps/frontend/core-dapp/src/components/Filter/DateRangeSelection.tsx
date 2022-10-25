@@ -14,7 +14,7 @@ const SelectionWrapper = styled.span`
   align-items: center;
   background-color: ${({ theme }): string => theme.color.marketChartFloatingCard};
   border: 1px solid ${({ theme }): string => theme.color.neutral8};
-  border-radius: ${({ theme }): number => theme.borderRadius}px;
+  border-radius: ${({ theme }): string => theme.borderRadius.md};
   color: ${({ theme }): string => theme.color.neutral1};
   cursor: pointer;
   display: flex;

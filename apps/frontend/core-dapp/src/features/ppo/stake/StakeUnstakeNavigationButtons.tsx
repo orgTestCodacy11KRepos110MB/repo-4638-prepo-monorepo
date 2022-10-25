@@ -5,7 +5,7 @@ import { lightPurpleButtonStyles } from '../ppo-button-styles'
 
 const Wrapper = styled.div`
   display: flex;
-  gap: ${spacingIncrement(1)};
+  gap: ${spacingIncrement(12)};
   > * {
     font-weight: ${({ theme }): number => theme.fontWeight.semiBold};
     flex: 1;

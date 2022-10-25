@@ -292,16 +292,6 @@ const Record: React.FC<Props> = ({
               hoverBorder: buttonStyles?.backgroundColor,
               hoverLabel: buttonStyles?.color,
             }}
-            sizes={{
-              desktop: {
-                height: 54,
-                fontSize: 'md',
-              },
-              mobile: {
-                height: 38,
-                fontSize: 'base',
-              },
-            }}
           >
             {buttonLabel}
           </Button>

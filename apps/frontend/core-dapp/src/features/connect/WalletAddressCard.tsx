@@ -4,7 +4,7 @@ import { centered, media, spacingIncrement } from 'prepo-ui'
 const WrapperCard = styled.div`
   ${centered}
   border: 1px solid ${({ theme }): string => theme.color.neutral7};
-  border-radius: ${({ theme }): number => theme.borderRadius}px;
+  border-radius: ${({ theme }): string => theme.borderRadius.md};
   color: ${({ theme }): string => theme.color.secondary};
   cursor: pointer;
   font-size: ${({ theme }): string => theme.fontSize.xs};

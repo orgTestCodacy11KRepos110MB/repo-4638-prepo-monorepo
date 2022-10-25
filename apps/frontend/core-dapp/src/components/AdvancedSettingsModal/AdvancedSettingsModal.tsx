@@ -178,10 +178,10 @@ const AdvancedSettingsModal: React.FC = () => {
           }
         />
         <ButtonWrapper>
-          <Button block disabled={invalidCustomGas} type="primary" onClick={saveSettings} size="sm">
+          <Button block disabled={invalidCustomGas} type="primary" onClick={saveSettings}>
             {invalidCustomGas ? 'Gas price must be larger than 0' : 'Save'}
           </Button>
-          <Button block type="text" onClick={resetValues} size="sm">
+          <Button block type="text" onClick={resetValues}>
             Reset
           </Button>
         </ButtonWrapper>

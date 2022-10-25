@@ -20,7 +20,7 @@ const StyledDropdown = styled(Dropdown)`
       align-items: center;
       background-color: transparent;
       border: 1px solid ${({ theme }): string => theme.color.neutral7};
-      border-radius: ${({ theme }): string => `${theme.borderRadius}px`};
+      border-radius: ${({ theme }): string => theme.borderRadius.md};
       cursor: pointer;
       display: flex;
       height: 100%;
@@ -43,8 +43,7 @@ const StyledMenu = styled(Menu)`
     color: ${({ theme }): string => theme.color.neutral1};
     font-size: ${({ theme }): string => theme.fontSize.sm};
     font-weight: ${({ theme }): number => theme.fontWeight.medium};
-    padding: ${spacingIncrement(13)} ${spacingIncrement(30)} ${spacingIncrement(13)}
-      ${spacingIncrement(20)};
+    padding: ${spacingIncrement(13)} ${spacingIncrement(20)};
     width: ${spacingIncrement(200)};
     .ant-dropdown-menu-title-content {
       display: flex;
