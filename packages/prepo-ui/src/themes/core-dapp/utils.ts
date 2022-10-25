@@ -11,7 +11,7 @@ export const spacingIncrement = (figmaPoint: number): string => {
 
 export const roundedBorder = css`
   border: 1px solid ${({ theme }): string => theme.color.neutral7};
-  border-radius: ${({ theme }): number => theme.borderRadius}px;
+  border-radius: ${({ theme }): string => theme.borderRadius.base};
 `
 
 export const centered = css`

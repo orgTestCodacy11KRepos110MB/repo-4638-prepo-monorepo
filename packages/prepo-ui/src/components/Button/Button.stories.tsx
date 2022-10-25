@@ -12,7 +12,7 @@ export default {
     type: {
       control: {
         type: 'select',
-        options: ['default', 'primary', 'text'],
+        options: ['default', 'primary', 'text', 'ghost'],
       },
     },
     disabled: {
@@ -24,14 +24,14 @@ export default {
     size: {
       name: 'Size',
       description: 'The size of the button',
-      defaultValue: 'md',
+      defaultValue: 'base',
       table: {
         type: { summary: 'Size' },
-        defaultValue: { summary: 'md' },
+        defaultValue: { summary: 'base' },
       },
       control: {
         type: 'select',
-        options: ['lg', 'md', 'sm', 'xs'],
+        options: ['base', 'sm', 'xs'],
       },
     },
     onClick: { action: 'onClick' },
@@ -44,7 +44,7 @@ export default {
 // More on component templates: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
 const Template: Story<ButtonProps> = (args) => (
   // eslint-disable-next-line react/jsx-props-no-spreading
-  <Button {...args} type="primary" />
+  <Button {...args} />
 )
 
 export const Default = Template.bind({})

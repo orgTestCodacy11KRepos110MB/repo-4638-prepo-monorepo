@@ -8,9 +8,7 @@ import styled, {
   ThemeProps,
 } from 'styled-components'
 import { useMemo } from 'react'
-import useResponsive from '../../hooks/useResponsive'
 import { centered, spacingIncrement } from '../../common-utils'
-import { fontSize as fontSizeType } from '../../themes/core-dapp'
 
 export type ButtonColors = {
   background?: keyof Color
@@ -22,195 +20,183 @@ export type ButtonColors = {
 }
 
 type StyleProps = {
-  fontSize: keyof typeof fontSizeType
-  height: number
-}
-
-type Sizes = {
-  height: {
-    lg: number
-    md: number
-    sm: number
-    xs: number
-  }
-  fontSize: {
-    lg: keyof typeof fontSizeType
-    md: keyof typeof fontSizeType
-    sm: keyof typeof fontSizeType
-    xs: keyof typeof fontSizeType
-  }
-}
-
-// See more on: https://www.notion.so/Standardize-buttons-sizes-7cb9835172284b5ea3ad56a3141864b9
-const DESKTOP_SIZES: Sizes = {
-  height: {
-    lg: 54,
-    md: 54,
-    sm: 54,
-    xs: 54,
-  },
-  fontSize: {
-    lg: 'lg',
-    md: 'md',
-    sm: 'base',
-    xs: 'sm',
-  },
-}
-
-const MOBILE_SIZES: Sizes = {
-  height: {
-    lg: 38,
-    md: 54,
-    sm: 38,
-    xs: 54,
-  },
-  fontSize: {
-    lg: 'sm',
-    md: 'sm',
-    sm: 'sm',
-    xs: 'sm',
-  },
+  colors: FlattenInterpolation<ThemeProps<DefaultTheme>>
+  sizeStyle: FlattenInterpolation<ThemeProps<DefaultTheme>>
+  block?: boolean
+  disabled?: boolean
 }
 
 export type ButtonProps = Omit<AButtonProps, 'size'> & {
-  size?: 'lg' | 'md' | 'sm' | 'xs' // Custom Sizes
+  size?: 'base' | 'sm' | 'xs' // Custom Sizes
+  type?: 'primary' | 'default' | 'ghost' | 'text'
   customColors?: ButtonColors
-  sizes?: {
-    desktop: StyleProps
-    mobile: StyleProps
-  }
 }
-
-const buttonStyles = ({
-  colors,
-  fontSize,
-  height,
-}: {
-  colors: Required<ButtonColors>
-} & StyleProps): FlattenInterpolation<ThemeProps<DefaultTheme>> => css`
-  ${centered}
-  background-color: ${({ theme }): string => theme.color[colors.background]};
-  border: 1px solid ${({ theme }): string => theme.color[colors.border]};
-  border-radius: ${({ theme }): number => theme.borderRadius}px;
-  color: ${({ theme }): string => theme.color[colors.label]};
-  cursor: pointer;
-  font-size: ${({ theme }): string => theme.fontSize[fontSize]};
-  font-weight: ${({ theme }): number => theme.fontWeight.semiBold};
-  height: ${spacingIncrement(height)};
-  padding: ${spacingIncrement(4)} ${spacingIncrement(15)};
-  transition: background-color 100ms ease-in-out, border-color 100ms ease-in-out;
-
-  &:active,
-  &:hover {
-    background-color: ${({ theme }): string => theme.color[colors.hoverBackground]};
-    border-color: ${({ theme }): string => theme.color[colors.hoverBorder]};
-    color: ${({ theme }): string => theme.color[colors.hoverLabel]};
-  }
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-    :hover {
-      background-color: ${({ theme }): string => theme.color[colors.background]}};
-    }
-  }
-`
 
 const IconWrapper = styled.div`
   ${centered};
-  margin-right: ${spacingIncrement(10)};
 `
 
-const Wrapper = styled.div<{ colors: Required<ButtonColors> } & StyleProps>`
+const makeButtonStyle = ({
+  colors,
+  sizeStyle,
+  disabled,
+  block,
+}: StyleProps): FlattenInterpolation<ThemeProps<DefaultTheme>> => css`
+  align-items: center;
+  border: solid 1px;
+  display: flex;
+  height: auto;
+  justify-content: center;
+  line-height: 1;
+  transition: background-color 100ms ease-in-out, border-color 100ms ease-in-out;
+  width: ${block ? '100%' : 'max-content'};
+  ${sizeStyle}
+  ${colors}
+  ${disabled &&
+  css`
+    cursor: not-allowed;
+    opacity: 0.5;
+  `}
+`
+
+const Wrapper = styled.div<StyleProps>`
   &&& {
     .ant-btn,
     .ant-btn-primary,
     .ant-btn-text {
-      ${({ colors, fontSize, height }): FlattenInterpolation<ThemeProps<DefaultTheme>> =>
-        buttonStyles({ colors, fontSize, height })};
+      ${makeButtonStyle}
     }
   }
 `
 
-const Anchor = styled.a<ButtonProps & StyleProps & { colors: Required<ButtonColors> }>`
-  ${({ colors, fontSize, height }): FlattenInterpolation<ThemeProps<DefaultTheme>> =>
-    buttonStyles({ colors, fontSize, height })};
-  line-height: 1.2;
+const LinkWrapper = styled.div<StyleProps>`
+  ${makeButtonStyle}
 `
+
+const Anchor = styled.a``
 
 const Button: React.FC<ButtonProps> = ({
   children,
-  type,
+  type = 'primary',
   className,
   href,
   target,
   icon,
   download,
   customColors,
-  size = 'md',
-  sizes = undefined,
+  size = 'base',
+  disabled,
+  block,
   ...props
 }) => {
-  const { isDesktop } = useResponsive()
-  const sizeKey = isDesktop ? 'desktop' : 'mobile'
-  const sizeObject: Sizes = isDesktop ? DESKTOP_SIZES : MOBILE_SIZES
-  const fontSize = sizes ? sizes[sizeKey].fontSize : sizeObject.fontSize[size]
-  const height = sizes ? sizes[sizeKey].height : sizeObject.height[size]
-
-  const defaultColors = useMemo((): Required<ButtonColors> => {
-    switch (type) {
-      case 'text':
-        return {
-          background: 'buttonTextBackground',
-          border: 'buttonTextBorder',
-          label: 'buttonTextLabel',
-          hoverLabel: 'buttonTextHoverLabel',
-          hoverBackground: 'buttonTextHoverBackground',
-          hoverBorder: 'buttonTextHoverBorder',
-        }
-      case 'primary':
-        return {
-          background: 'buttonPrimaryBackground',
-          border: 'buttonPrimaryBorder',
-          label: 'buttonPrimaryLabel',
-          hoverLabel: 'buttonPrimaryHoverLabel',
-          hoverBackground: 'buttonPrimaryHoverBackground',
-          hoverBorder: 'buttonPrimaryHoverBorder',
-        }
+  const sizeStyles = useMemo(() => {
+    switch (size) {
+      case 'sm':
+        return css`
+          border-radius: ${({ theme }): string => theme.borderRadius.md};
+          font-size: ${({ theme }): string => theme.fontSize.base};
+          gap: ${spacingIncrement(8)};
+          padding: ${spacingIncrement(8)} ${spacingIncrement(12)};
+        `
+      case 'xs':
+        return css`
+          border-radius: ${({ theme }): string => theme.borderRadius.xs};
+          font-size: ${({ theme }): string => theme.fontSize.sm};
+          gap: ${spacingIncrement(4)};
+          padding: ${spacingIncrement(4)} ${spacingIncrement(6)};
+        `
       default:
-        return {
-          background: 'buttonDefaultBackground',
-          border: 'buttonDefaultBorder',
-          label: 'buttonDefaultLabel',
-          hoverLabel: 'buttonDefaultHoverLabel',
-          hoverBackground: 'buttonDefaultHoverBackground',
-          hoverBorder: 'buttonDefaultHoverBorder',
-        }
+        return css`
+          border-radius: ${({ theme }): string => theme.borderRadius.base};
+          font-size: ${({ theme }): string => theme.fontSize.base};
+          gap: ${spacingIncrement(8)};
+          padding: ${spacingIncrement(18)};
+        `
     }
-  }, [type])
+  }, [size])
 
   const colors = useMemo(() => {
-    const { background, border, label, hoverBackground, hoverLabel, hoverBorder } = defaultColors
-    return {
-      background: customColors?.background || background,
-      border: customColors?.border || border,
-      label: customColors?.label || label,
-      hoverLabel: customColors?.hoverLabel || hoverLabel,
-      hoverBackground: customColors?.hoverBackground || hoverBackground,
-      hoverBorder: customColors?.hoverBorder || hoverBorder,
+    const { background, border, hoverBackground, hoverBorder, hoverLabel, label } =
+      customColors ?? {}
+    switch (type) {
+      case 'primary':
+        return css`
+          background-color: ${({ theme }): string => theme.color[background ?? 'primary']};
+          border-color: ${({ theme }): string => theme.color[border ?? 'primary']};
+          color: ${({ theme }): string => theme.color[label ?? 'white']};
+          ${!disabled &&
+          css`
+            :hover {
+              background-color: ${({ theme }): string =>
+                theme.color[hoverBackground ?? 'darkPrimary']};
+              border-color: ${({ theme }): string => theme.color[hoverBorder ?? 'darkPrimary']};
+              color: ${({ theme }): string => theme.color[hoverLabel ?? 'white']};
+            }
+          `}
+        `
+      case 'ghost':
+      case 'text':
+        return css`
+          ${type === 'ghost'
+            ? css`
+                background-color: ${({ theme }): string =>
+                  theme.color[background ?? 'accentPrimary']};
+                border-color: ${({ theme }): string => theme.color[border ?? 'accentPrimary']};
+              `
+            : css`
+                border-color: transparent;
+              `}
+          color: ${({ theme }): string => theme.color[label ?? 'primary']};
+          ${!disabled &&
+          css`
+            :hover {
+              color: ${({ theme }): string => theme.color[hoverLabel ?? 'darkPrimary']};
+            }
+          `}
+        `
+      default:
+        return css`
+          background-color: ${({ theme }): string =>
+            theme.isDarkMode ? theme.color[background ?? 'neutral7'] : 'transparent'};
+          border-color: ${({ theme }): string =>
+            theme.isDarkMode
+              ? theme.color[border ?? 'neutral7']
+              : theme.color[border ?? 'primary']};
+          color: ${({ theme }): string => theme.color[label ?? 'primaryWhite']};
+          ${!disabled &&
+          css`
+            :hover {
+              background-color: ${({ theme }): string =>
+                theme.isDarkMode
+                  ? theme.color[hoverBackground ?? 'accentPrimary']
+                  : theme.color[hoverBackground ?? 'accentPrimary']};
+              border-color: ${({ theme }): string =>
+                theme.isDarkMode
+                  ? theme.color[hoverBorder ?? 'accentPrimary']
+                  : theme.color[hoverBorder ?? 'darkPrimary']};
+            }
+          `}
+        `
     }
-  }, [customColors, defaultColors])
+  }, [type, disabled, customColors])
 
   const component = (
-    <Wrapper className={className} colors={colors} fontSize={fontSize} height={height}>
+    <Wrapper
+      className={className}
+      colors={colors}
+      sizeStyle={sizeStyles}
+      block={block}
+      disabled={disabled}
+    >
       {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-      <AButton type={type} icon={icon} download={download} {...props}>
+      <AButton disabled={disabled} type={type} icon={icon} download={download} {...props}>
         {children}
       </AButton>
     </Wrapper>
   )
 
   // disabled property isn't supported on HTML anchor elements, fallback to button
-  if (href && !props.disabled) {
+  if (href && !disabled) {
     return (
       <Link href={href} passHref>
         <Anchor
@@ -219,12 +205,11 @@ const Button: React.FC<ButtonProps> = ({
           target={target}
           download={download}
           rel={target === '_blank' ? 'noopener noreferrer' : ''}
-          colors={colors}
-          fontSize={fontSize}
-          height={height}
         >
-          {icon ? <IconWrapper>{icon}</IconWrapper> : null}
-          {children}
+          <LinkWrapper colors={colors} block={block} sizeStyle={sizeStyles}>
+            {icon ? <IconWrapper>{icon}</IconWrapper> : null}
+            {children}
+          </LinkWrapper>
         </Anchor>
       </Link>
     )
