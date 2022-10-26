@@ -1,12 +1,8 @@
 import { Layout } from 'antd'
-import styled, { css } from 'styled-components'
-import { coreDappTheme, Flex, media, spacingIncrement } from 'prepo-ui'
+import styled from 'styled-components'
+import { coreDappTheme, Flex, Icon, media, spacingIncrement } from 'prepo-ui'
 import Navigation from '../Navigation'
 import ConnectButton from '../../features/connect/ConnectButton'
-import PrePOLogo from '../PrePOLogo'
-import NetworkDropdown from '../NetworkDropdown'
-import { Routes } from '../../lib/routes'
-import SettingsMenu from '../SettingsMenu'
 import TestnetBanner from '../../features/testnet-onboarding/TestnetBanner'
 import DynamicBanner from '../../features/testnet-onboarding/DynamicBanner'
 
@@ -14,31 +10,21 @@ const { Z_INDEX } = coreDappTheme
 
 const { Header: AHeader } = Layout
 
-const commonHeaderCss = css`
-  align-items: center;
-  background-color: ${({ theme }): string => theme.color.neutral10};
-  border-bottom: 1px solid ${({ theme }): string => theme.color.accent2};
-  display: flex;
-  justify-content: space-between;
-`
-
 const Wrapper = styled.div`
   position: sticky;
   top: 0;
   z-index: ${Z_INDEX.navigation};
   .ant-layout-header {
-    ${commonHeaderCss}
-    height: ${spacingIncrement(72)};
-    line-height: 1;
-    padding: 0 ${spacingIncrement(32)};
-  }
-  ${media.tablet`
-    .ant-layout-header {
-      ${commonHeaderCss}
-      height: min-content;
-      padding: ${spacingIncrement(36)} ${spacingIncrement(64)};
-    }
+    align-items: center;
+    background-color: ${({ theme }): string => theme.color.neutral10};
+    display: flex;
+    height: min-content;
+    justify-content: space-between;
+    padding: ${spacingIncrement(16)};
+    ${media.tablet`
+      padding: ${spacingIncrement(32)};
   `};
+  }
 `
 
 const Header: React.FC = () => (
@@ -47,12 +33,12 @@ const Header: React.FC = () => (
     <DynamicBanner />
     <Wrapper>
       <AHeader>
-        <PrePOLogo href={Routes.Markets} showBeta />
-        <Navigation />
+        <Flex justifyContent="flex-start" gap={8}>
+          <Icon name="brand-logo" color="primaryWhite" height="38" width="115" />
+          <Navigation />
+        </Flex>
         <Flex gap={8}>
-          <NetworkDropdown />
           <ConnectButton />
-          <SettingsMenu />
         </Flex>
       </AHeader>
     </Wrapper>
