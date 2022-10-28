@@ -21,6 +21,7 @@ const Wrapper = styled.div`
     height: min-content;
     justify-content: space-between;
     padding: ${spacingIncrement(16)};
+    position: relative;
     ${media.tablet`
       padding: ${spacingIncrement(32)};
   `};
@@ -37,7 +38,7 @@ const Header: React.FC = () => (
           <Icon name="brand-logo" color="primaryWhite" height="38" width="115" />
           <Navigation />
         </Flex>
-        <Flex gap={8}>
+        <Flex>
           <ConnectButton />
         </Flex>
       </AHeader>

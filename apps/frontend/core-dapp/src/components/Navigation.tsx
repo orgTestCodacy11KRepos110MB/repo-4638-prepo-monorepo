@@ -75,7 +75,7 @@ export const NavigationItem: React.FC<PathProps> = ({ path, iconName, name }) =>
 
 const Navigation: React.FC = () => (
   <Wrapper
-    position={{ phone: 'fixed', desktop: 'static', largeDesktop: 'fixed' }}
+    position={{ phone: 'fixed', desktop: 'static', largeDesktop: 'absolute' }}
     bottom={{ phone: 40, desktop: 'auto' }}
     left={{ phone: '50%', largeDesktop: '50%' }}
   >
