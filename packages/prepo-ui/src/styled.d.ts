@@ -75,6 +75,8 @@ declare module 'styled-components' {
     accentWarning: string
     /** #FAF5FE | #212429 */
     accentPurple: string
+    /** #E5E5FB | #40444F */
+    purpleStroke: string
     /** #FAFDFF | #40444F */
     alertBoxInfo: string
     /** #F4FBF7 | #40444F */
