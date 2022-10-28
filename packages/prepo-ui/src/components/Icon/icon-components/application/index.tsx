@@ -65,6 +65,9 @@ import GovernOutlinedIcon from './GovernOutlinedIcon'
 import GradientLogoIcon from './GradientLogoIcon'
 import ExclamationTriangle from './ExclamationTriangle'
 import CopyIcon from './CopyIcon'
+import ChevronRightIcon from './ChevronRightIcon'
+import ChevronUpIcon from './ChevronUpIcon'
+import ChevronDownIcon from './ChevronDownIcon'
 
 export const applicationIcons = {
   'arrow-down': ArrowDownIcon,
@@ -78,6 +81,9 @@ export const applicationIcons = {
   'charts-candlestick': ChartsCandlestickIcon,
   'charts-line': ChartsLineIcon,
   'check-icon': CheckIcon,
+  'chevron-down': ChevronDownIcon,
+  'chevron-right': ChevronRightIcon,
+  'chevron-up': ChevronUpIcon,
   'colored-bond': ColoredBond,
   'colored-legal': ColoredLegal,
   'colored-liquidity': ColoredLiquiditity,

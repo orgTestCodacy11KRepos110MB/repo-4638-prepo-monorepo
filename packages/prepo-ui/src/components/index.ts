@@ -4,6 +4,7 @@ import Button from './Button'
 import CharityDonation from './CharityDonation'
 import CustomThemeProvider, { PresetTheme } from './CustomThemeProvider'
 import Checkbox from './Checkbox'
+import Dropdown from './Dropdown'
 import Flex from './Flex'
 import Grid from './Grid'
 import Heading from './Heading'
@@ -25,6 +26,7 @@ export {
   CharityDonation,
   CustomThemeProvider,
   Checkbox,
+  Dropdown,
   Flex,
   Grid,
   Heading,

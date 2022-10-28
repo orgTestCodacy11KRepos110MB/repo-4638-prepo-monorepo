@@ -96,6 +96,7 @@ const Button: React.FC<ButtonProps> = ({
           border-radius: ${({ theme }): string => theme.borderRadius.md};
           font-size: ${({ theme }): string => theme.fontSize.base};
           gap: ${spacingIncrement(8)};
+          line-height: ${spacingIncrement(22)};
           padding: ${spacingIncrement(8)} ${spacingIncrement(12)};
         `
       case 'xs':
