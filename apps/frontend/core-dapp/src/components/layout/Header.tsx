@@ -5,6 +5,7 @@ import Navigation from '../Navigation'
 import ConnectButton from '../../features/connect/ConnectButton'
 import TestnetBanner from '../../features/testnet-onboarding/TestnetBanner'
 import DynamicBanner from '../../features/testnet-onboarding/DynamicBanner'
+import SettingsMenu from '../SettingsMenu'
 
 const { Z_INDEX } = coreDappTheme
 
@@ -38,8 +39,9 @@ const Header: React.FC = () => (
           <Icon name="brand-logo" color="primaryWhite" height="38" width="115" />
           <Navigation />
         </Flex>
-        <Flex>
+        <Flex gap={8}>
           <ConnectButton />
+          <SettingsMenu />
         </Flex>
       </AHeader>
     </Wrapper>

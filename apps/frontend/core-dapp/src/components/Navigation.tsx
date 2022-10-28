@@ -26,7 +26,7 @@ const navigationPaths: PathProps[] = [
 ]
 
 const Wrapper = styled(Flex)`
-  border: solid 1px ${({ theme }): string => theme.color.neutral6};
+  border: solid 1px ${({ theme }): string => theme.color.neutral7};
   border-radius: ${({ theme }): string => theme.borderRadius.md};
   line-height: 1;
   padding: ${spacingIncrement(2)};
@@ -51,7 +51,7 @@ const Name = styled.p<{ active: boolean }>`
 const NavigationItemWrapper = styled.div<{ active: boolean }>`
   ${centered}
   background-color: ${({ active, theme: { color } }): string =>
-    color[active ? 'neutral6' : 'neutral10']};
+    color[active ? 'neutral7' : 'neutral10']};
   border-radius: ${({ theme }): string => theme.borderRadius.sm};
   gap: ${spacingIncrement(8)};
   padding: ${spacingIncrement(8)} ${spacingIncrement(12)};

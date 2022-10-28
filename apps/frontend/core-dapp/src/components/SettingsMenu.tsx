@@ -1,143 +1,134 @@
-import { Flex, Icon, IconName, spacingIncrement, ThemeModes } from 'prepo-ui'
-import { Dropdown, Menu } from 'antd'
-import { ItemType } from 'antd/lib/menu/hooks/useItems'
+import { Dropdown, Flex, Icon, IconName, spacingIncrement, ThemeModes } from 'prepo-ui'
 import { observer } from 'mobx-react-lite'
-import styled from 'styled-components'
-import { useMemo, useState } from 'react'
-import { t } from '@lingui/macro'
-import { NextRouter, useRouter } from 'next/router'
 import Link from 'next/link'
-import { i18n } from '@lingui/core'
+import styled from 'styled-components'
+import { useState } from 'react'
 import { useRootStore } from '../context/RootStoreProvider'
-import useResponsive from '../hooks/useResponsive'
-import { PREPO_DISCORD, PREPO_TWITTER, PREPO_WEBSITE } from '../lib/constants'
-import { UiStore } from '../stores/UiStore'
-import useFeatureFlag, { FeatureFlag } from '../hooks/useFeatureFlag'
+import { getShortAccount } from '../utils/account-utils'
+import { Routes } from '../lib/routes'
+import Identicon from '../features/connect/Identicon'
 
-const StyledDropdown = styled(Dropdown)`
-  &&& {
-    &.ant-dropdown-trigger {
-      align-items: center;
-      background-color: transparent;
-      border: 1px solid ${({ theme }): string => theme.color.neutral7};
-      border-radius: ${({ theme }): string => theme.borderRadius.md};
-      cursor: pointer;
-      display: flex;
-      height: 100%;
-      justify-content: center;
-      transition: border-color 0.2s ease;
-      width: 100%;
-      &:hover {
-        border-color: ${({ theme }): string => theme.color.neutral5};
-      }
-    }
-  }
-`
+const externalLinks = [{ link: 'https://docs.prepo.io/', name: 'Documentation' }]
 
-const StyledMenu = styled(Menu)`
-  background: ${({ theme }): string => theme.color.neutral9};
-  display: flex;
-  flex-direction: column;
-  padding: ${spacingIncrement(13)} 0;
-  &&& .ant-dropdown-menu-item {
-    color: ${({ theme }): string => theme.color.neutral1};
-    font-size: ${({ theme }): string => theme.fontSize.sm};
-    font-weight: ${({ theme }): number => theme.fontWeight.medium};
-    padding: ${spacingIncrement(13)} ${spacingIncrement(20)};
-    width: ${spacingIncrement(200)};
-    .ant-dropdown-menu-title-content {
-      display: flex;
-      justify-content: space-between;
-    }
-    &:hover {
-      background: ${({ theme }): string => theme.color.neutral7};
-    }
-  }
-`
-
-const menuList: Array<{
-  label: string
+type MenuItemProps = {
+  iconName: IconName
   href?: string
-  key?: 'theme' | 'language'
-  icon: IconName
-  altIcon?: IconName
-}> = [
-  { label: t`About`, href: PREPO_WEBSITE, icon: 'info-outlined' },
-  { label: 'Discord', href: PREPO_DISCORD, icon: 'discord-outlined' },
-  { label: 'Twitter', href: PREPO_TWITTER, icon: 'twitter-outlined' },
-  { label: t`Docs`, href: 'https://docs.prepo.io/', icon: 'docs-outlined' },
-  { label: t`Switch to Dark`, key: 'theme', icon: 'dark-theme', altIcon: 'light-theme' },
-  { label: t`Language`, icon: 'language', key: 'language' },
-  // TODO: privacy link { label: 'Legal & Privacy', href: '' },
-]
-
-const renderItem = (item: typeof menuList[number], uiStore: UiStore): ItemType => {
-  const isLink = !!item.href
-  const { key } = item
-  let { label, icon } = item
-
-  let onClick = (): void => undefined
-  if (key === 'theme') {
-    if (uiStore.selectedTheme === ThemeModes.Dark) {
-      label = t`Switch to Light`
-      onClick = (): void => uiStore.setTheme(ThemeModes.Light)
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      icon = item.altIcon!
-    } else {
-      onClick = (): void => uiStore.setTheme(ThemeModes.Dark)
-    }
-  } else if (key === 'language') {
-    onClick = (): void => {
-      uiStore.setShowLanguageList(true)
-    }
-  }
-
-  return isLink
-    ? ({
-        label: (
-          <>
-            <a href={item.href} target="_blank" rel="noreferrer">
-              {i18n._(label)}
-            </a>
-            <Icon name={icon} width="20px" height="20px" color="neutral4" />
-          </>
-        ),
-      } as ItemType)
-    : ({
-        key,
-        onClick,
-        label: (
-          <>
-            {i18n._(label)}
-            <Icon name={icon} width="20px" height="20px" color="neutral4" />
-          </>
-        ),
-      } as ItemType)
+  external?: boolean
+  onClick?: () => void
 }
 
-const languageList = [
-  { label: 'English', locale: 'en' },
-  { label: 'Русский', locale: 'ru' },
-]
+const MenuWrapper = styled.div`
+  background-color: ${({ theme }): string => theme.color.neutral10};
+  border-radius: ${({ theme }): string => theme.borderRadius.base};
+  box-shadow: 0px 4px 22px rgba(98, 100, 217, 0.11);
+  display: flex;
+  flex-direction: column;
+  gap: ${spacingIncrement(12)};
+  margin-top: ${spacingIncrement(12)};
+  padding: ${spacingIncrement(20)} 0;
+  width: ${spacingIncrement(200)};
+`
 
-const renderLangulageList = (
-  { locale, label }: typeof languageList[number],
-  router: NextRouter
-): ItemType =>
-  ({
-    key: label,
-    label: (
-      <Link href={router.asPath} locale={locale} passHref={undefined}>
-        {label}
-      </Link>
-    ),
-  } as ItemType)
+const MenuItemWrapper = styled.div`
+  align-items: center;
+  display: flex;
+  padding: 0 ${spacingIncrement(18)};
+`
+
+const MenuItemButton = styled.button<{ external?: boolean }>`
+  align-items: center;
+  background-color: ${({ theme }): string => theme.color.neutral10};
+  border: none;
+  border-radius: ${({ theme }): string => theme.borderRadius.xs};
+  color: ${({ theme }): string => theme.color.neutral1};
+  cursor: pointer;
+  display: flex;
+  font-size: ${({ theme, external }): string => theme.fontSize[external ? 'xs' : 'sm']};
+  font-weight: ${({ theme }): number => theme.fontWeight.medium};
+  justify-content: space-between;
+  padding: ${spacingIncrement(6)};
+  width: 100%;
+  :hover {
+    background-color: ${({ theme }): string => theme.color.accentPrimary};
+    color: ${({ theme }): string => theme.color.primary};
+  }
+`
+
+const Divider = styled.div`
+  padding: 0px 24px;
+  width: 100%;
+  ::after {
+    background-color: ${({ theme }): string => theme.color.purpleStroke};
+    content: '';
+    display: block;
+    height: ${spacingIncrement(1)};
+    width: 100%;
+  }
+`
+
+const MenuItem: React.FC<MenuItemProps> = ({ children, external, iconName, href, onClick }) => {
+  const iconSize = external ? '14px' : '18px'
+  const linkProps = external ? { target: '_blank', rel: 'noreferrer' } : {}
+
+  const menuButton = (
+    <MenuItemButton external={external} onClick={onClick}>
+      {children}
+      <Icon name={iconName} height={iconSize} width={iconSize} />
+    </MenuItemButton>
+  )
+  if (href)
+    return (
+      <MenuItemWrapper onClick={onClick}>
+        <Link href={href} passHref>
+          <a href={href} {...linkProps} style={{ width: '100%' }}>
+            {menuButton}
+          </a>
+        </Link>
+      </MenuItemWrapper>
+    )
+  return <MenuItemWrapper>{menuButton}</MenuItemWrapper>
+}
+
+const SettingsCard: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+  const { web3Store, uiStore } = useRootStore()
+  const { selectedTheme, setTheme } = uiStore
+  const { address } = web3Store
+  const isDarkTheme = selectedTheme === ThemeModes.Dark
+
+  const toggleTheme = (): void => {
+    setTheme(selectedTheme === ThemeModes.Dark ? ThemeModes.Light : ThemeModes.Dark)
+  }
+
+  return (
+    <MenuWrapper>
+      <Flex gap={8} flexDirection="column" alignItems="stretch">
+        {address !== undefined ? <Flex>{getShortAccount(address)}</Flex> : null}
+        <MenuItem href={Routes.Portfolio} iconName="portfolio" onClick={onClose}>
+          Portfolio
+        </MenuItem>
+        <MenuItem iconName="chevron-right">English</MenuItem>
+        <MenuItem iconName={isDarkTheme ? 'light-theme' : 'dark-theme'} onClick={toggleTheme}>
+          {isDarkTheme ? `Light` : 'Dark'} Mode
+        </MenuItem>
+      </Flex>
+      <Divider />
+      <Flex gap={8} flexDirection="column" alignItems="stretch">
+        {externalLinks.map(({ link, name }) => (
+          <MenuItem key={link} iconName="share" href={link} external>
+            {name}
+          </MenuItem>
+        ))}
+      </Flex>
+    </MenuWrapper>
+  )
+}
 
 const SettingsMenu: React.FC = () => {
-  const { isDesktop } = useResponsive()
-  const { uiStore } = useRootStore()
+  const { uiStore, web3Store } = useRootStore()
+  const { address, onboardEns } = web3Store
   const [visible, setVisible] = useState(false)
   const { showLanguageList } = uiStore
+
   const handleVisibleChange = (flag: boolean): void => {
     setVisible(flag)
     // always show main menu on open
@@ -145,30 +136,29 @@ const SettingsMenu: React.FC = () => {
       uiStore.setShowLanguageList(false)
     }
   }
-  const { enabled } = useFeatureFlag(FeatureFlag.enableI18nLocally)
-  const menuListFiltered = useMemo(
-    () => (enabled ? menuList : menuList.filter((item) => item.key !== 'language')),
-    [enabled]
-  )
-  const router = useRouter()
-  const size = isDesktop ? '32px' : '24px'
-  const items = showLanguageList
-    ? languageList.map((item) => renderLangulageList(item, router))
-    : menuListFiltered.map((item) => renderItem(item, uiStore))
 
   return (
-    <Flex alignSelf="stretch" width={38}>
-      <StyledDropdown
+    <Flex alignSelf="stretch">
+      <Dropdown
         visible={visible}
         onVisibleChange={handleVisibleChange}
         destroyPopupOnHide
         trigger={['click']}
-        overlay={<StyledMenu items={items} onClick={(): void => setVisible(true)} />}
+        placement="bottomRight"
+        overlay={<SettingsCard onClose={(): void => setVisible(false)} />}
       >
-        <button type="button">
-          <Icon name="dots" width={size} height={size} color="neutral1" />
-        </button>
-      </StyledDropdown>
+        {address ? (
+          <Flex gap={8}>
+            <Identicon
+              account={address}
+              avatarUrl={onboardEns?.avatar?.url}
+              diameterDesktop={23}
+              diameterMobile={23}
+            />
+            {onboardEns?.name ?? getShortAccount(address)}
+          </Flex>
+        ) : null}
+      </Dropdown>
     </Flex>
   )
 }
