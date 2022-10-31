@@ -22,14 +22,14 @@ msgid "A range between two fully-diluted valuations, typically expressed in mill
 msgstr "A range between two fully-diluted valuations, typically expressed in millions or billions or dollars."
 
 #: src/components/SettingsMenu.tsx:66
-msgid "About"
-msgstr "About"
+#~ msgid "About"
+#~ msgstr "About"
 
 #: src/features/connect/AccountModal.tsx:39
 #~ msgid "Account"
 #~ msgstr "Account"
 
-#: src/features/market-overview/MarketOverview.tsx:90
+#: src/features/market-overview/MarketOverview.tsx:89
 msgid "Add Liquidity"
 msgstr "Add Liquidity"
 
@@ -70,7 +70,7 @@ msgstr "Buy PPO"
 msgid "Cancel Unstaking"
 msgstr "Cancel Unstaking"
 
-#: src/features/portfolio/Portfolio.tsx:98
+#: src/features/portfolio/Portfolio.tsx:76
 msgid "Cash Balance"
 msgstr "Cash Balance"
 
@@ -87,7 +87,7 @@ msgstr "Close Position"
 msgid "Coming Soon"
 msgstr "Coming Soon"
 
-#: src/features/ppo/ButtonLink.tsx:137
+#: src/features/ppo/ButtonLink.tsx:131
 #: src/features/ppo/history/PpoHistoryItems.tsx:41
 msgid "Coming soon"
 msgstr "Coming soon"
@@ -96,7 +96,7 @@ msgstr "Coming soon"
 msgid "Confirm Unstaking"
 msgstr "Confirm Unstaking"
 
-#: src/features/connect/ConnectButton.tsx:62
+#: src/features/connect/ConnectButton.tsx:32
 msgid "Connect Wallet"
 msgstr "Connect Wallet"
 
@@ -132,7 +132,7 @@ msgstr "Delegates"
 msgid "Delegators"
 msgstr "Delegators"
 
-#: src/features/portfolio/Portfolio.tsx:138
+#: src/features/portfolio/Portfolio.tsx:116
 msgid "Deposit"
 msgstr "Deposit"
 
@@ -140,13 +140,13 @@ msgstr "Deposit"
 #~ msgid "Disconnect"
 #~ msgstr "Disconnect"
 
-#: src/features/ppo/govern/Participate.tsx:41
+#: src/features/ppo/govern/Participate.tsx:37
 msgid "Discuss on Discord"
 msgstr "Discuss on Discord"
 
 #: src/components/SettingsMenu.tsx:69
-msgid "Docs"
-msgstr "Docs"
+#~ msgid "Docs"
+#~ msgstr "Docs"
 
 #: src/features/ppo/stake/StakeWarningMessages.tsx:79
 msgid "During the unstaking process, the amount being unstacked will lose all associated PPO Power."
@@ -173,15 +173,15 @@ msgstr "Estimated deposit amount after fees."
 msgid "Explore Markets"
 msgstr "Explore Markets"
 
-#: src/features/ppo/history/PpoHistoryActionBar.tsx:48
+#: src/features/ppo/history/PpoHistoryActionBar.tsx:42
 msgid "Export CSV"
 msgstr "Export CSV"
 
-#: src/features/testnet-onboarding/TokenSaleWhitelistBanner.tsx:14
+#: src/features/testnet-onboarding/TokenSaleWhitelistBanner.tsx:15
 msgid "Fill out <0><1>this form</1></0> for testnet funds."
 msgstr "Fill out <0><1>this form</1></0> for testnet funds."
 
-#: src/features/ppo/history/PpoHistoryActionBar.tsx:55
+#: src/features/ppo/history/PpoHistoryActionBar.tsx:47
 msgid "Filter"
 msgstr "Filter"
 
@@ -225,15 +225,15 @@ msgid "LP to Earn"
 msgstr "LP to Earn"
 
 #: src/components/SettingsMenu.tsx:71
-msgid "Language"
-msgstr "Language"
+#~ msgid "Language"
+#~ msgstr "Language"
 
 #: src/features/definitions/index.tsx:13
 #: src/features/ppo/stake/StakeWarningMessages.tsx:42
 msgid "Learn More"
 msgstr "Learn More"
 
-#: src/features/ppo/govern/Participate.tsx:43
+#: src/features/ppo/govern/Participate.tsx:39
 msgid "Learn about Governance"
 msgstr "Learn about Governance"
 
@@ -294,7 +294,7 @@ msgstr "PPO Stats"
 msgid "PPO is prePO's governance and utility token.<0/> PPO's tokenomics design incentivizes high-quality, active participation and long-term alignment."
 msgstr "PPO is prePO's governance and utility token.<0/> PPO's tokenomics design incentivizes high-quality, active participation and long-term alignment."
 
-#: src/features/ppo/govern/Participate.tsx:57
+#: src/features/ppo/govern/Participate.tsx:53
 msgid "Participate"
 msgstr "Participate"
 
@@ -310,11 +310,11 @@ msgstr "Permanent"
 #~ msgid "Portfolio"
 #~ msgstr "Portfolio"
 
-#: src/features/portfolio/Portfolio.tsx:154
+#: src/features/portfolio/Portfolio.tsx:132
 msgid "Portfolio Breakdown"
 msgstr "Portfolio Breakdown"
 
-#: src/features/portfolio/Portfolio.tsx:122
+#: src/features/portfolio/Portfolio.tsx:100
 msgid "Portfolio Value"
 msgstr "Portfolio Value"
 
@@ -357,12 +357,12 @@ msgid "Staking APY"
 msgstr "Staking APY"
 
 #: src/components/SettingsMenu.tsx:70
-msgid "Switch to Dark"
-msgstr "Switch to Dark"
+#~ msgid "Switch to Dark"
+#~ msgstr "Switch to Dark"
 
 #: src/components/SettingsMenu.tsx:83
-msgid "Switch to Light"
-msgstr "Switch to Light"
+#~ msgid "Switch to Light"
+#~ msgstr "Switch to Light"
 
 #: src/features/profile/TotalMultiplier.tsx:83
 msgid "Temporary +"
@@ -413,7 +413,7 @@ msgstr "Trade Now"
 msgid "Trade to Earn"
 msgstr "Trade to Earn"
 
-#: src/features/portfolio/Portfolio.tsx:103
+#: src/features/portfolio/Portfolio.tsx:81
 msgid "Trading Positions"
 msgstr "Trading Positions"
 
@@ -470,7 +470,7 @@ msgstr "View Profile"
 msgid "Volume"
 msgstr "Volume"
 
-#: src/features/ppo/govern/Participate.tsx:40
+#: src/features/ppo/govern/Participate.tsx:36
 msgid "Vote on Snapshot"
 msgstr "Vote on Snapshot"
 
@@ -482,7 +482,7 @@ msgstr "Voting Power Delegated To"
 msgid "Weeks"
 msgstr "Weeks"
 
-#: src/features/portfolio/Portfolio.tsx:142
+#: src/features/portfolio/Portfolio.tsx:120
 msgid "Withdraw"
 msgstr "Withdraw"
 
