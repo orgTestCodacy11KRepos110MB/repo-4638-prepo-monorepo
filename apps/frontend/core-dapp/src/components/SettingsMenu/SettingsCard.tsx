@@ -1,8 +1,10 @@
 import { observer } from 'mobx-react-lite'
 import { Flex, spacingIncrement, ThemeModes } from 'prepo-ui'
 import styled from 'styled-components'
-import ConnectionInfo from './ConnectionInfo'
+import NetworkStatus from './NetworkStatus'
 import SettingsMenuItem from './SettingsMenuItem'
+import SocialFooter from './SocialFooter'
+import WalletInfo from './WalletInfo'
 import { useRootStore } from '../../context/RootStoreProvider'
 import { Routes } from '../../lib/routes'
 import { numberFormatter } from '../../utils/numberFormatter'
@@ -28,7 +30,7 @@ const MenuWrapper = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${spacingIncrement(12)};
-  margin-top: ${spacingIncrement(12)};
+  margin-top: ${spacingIncrement(6)};
   padding: ${spacingIncrement(20)} 0;
   width: ${spacingIncrement(240)};
 `
@@ -37,11 +39,12 @@ const NonInteractiveText = styled.span`
   color: ${({ theme }): string => theme.color.neutral3};
 `
 
-const SettingsCard: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  const { web3Store, uiStore, portfolioStore } = useRootStore()
-  const { portfolioValue } = portfolioStore
+const SettingsCard: React.FC<{ onClose: () => void; portfolioValue?: string }> = ({
+  onClose,
+  portfolioValue,
+}) => {
+  const { uiStore } = useRootStore()
   const { selectedTheme, setTheme } = uiStore
-  const { address } = web3Store
   const isDarkTheme = selectedTheme === ThemeModes.Dark
   const { significantDigits } = numberFormatter
 
@@ -52,14 +55,14 @@ const SettingsCard: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   return (
     <MenuWrapper>
       <Flex gap={8} flexDirection="column" alignItems="stretch">
-        {address !== undefined ? <ConnectionInfo onClose={onClose} /> : null}
+        <WalletInfo onClose={onClose} />
+        <NetworkStatus />
         <SettingsMenuItem href={Routes.Portfolio} iconName="portfolio" onClick={onClose}>
           Portfolio{' '}
           {portfolioValue ? (
             <NonInteractiveText>(${significantDigits(portfolioValue)})</NonInteractiveText>
           ) : null}
         </SettingsMenuItem>
-        <SettingsMenuItem iconName="chevron-right">English</SettingsMenuItem>
         <SettingsMenuItem
           iconName={isDarkTheme ? 'light-theme' : 'dark-theme'}
           onClick={toggleTheme}
@@ -70,11 +73,12 @@ const SettingsCard: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       <Divider />
       <Flex gap={8} flexDirection="column" alignItems="stretch">
         {externalLinks.map(({ link, name }) => (
-          <SettingsMenuItem key={link} iconName="share" href={link} external>
+          <SettingsMenuItem key={link} iconName="arrow-up-right" href={link} external>
             {name}
           </SettingsMenuItem>
         ))}
       </Flex>
+      <SocialFooter />
     </MenuWrapper>
   )
 }

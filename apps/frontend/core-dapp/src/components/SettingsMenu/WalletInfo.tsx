@@ -16,6 +16,7 @@ type ActionIconProps = {
 
 const NonInteractiveText = styled.span`
   color: ${({ theme }): string => theme.color.neutral2};
+  font-size: ${({ theme }): string => theme.fontSize.base};
   font-weight: ${({ theme }): number => theme.fontWeight.medium};
 `
 
@@ -52,7 +53,7 @@ const ActionIcon: React.FC<ActionIconProps> = ({ iconName, href, onClick, overla
   )
 }
 
-const ConnectionInfo: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+const WalletInfo: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const { web3Store } = useRootStore()
   const { address } = web3Store
   const [copied, setCopied] = useState(false)
@@ -95,4 +96,4 @@ const ConnectionInfo: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   )
 }
 
-export default observer(ConnectionInfo)
+export default observer(WalletInfo)

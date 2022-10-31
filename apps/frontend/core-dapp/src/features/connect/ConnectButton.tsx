@@ -2,7 +2,6 @@ import { observer } from 'mobx-react-lite'
 import styled from 'styled-components'
 import { Button } from 'prepo-ui'
 import { Trans } from '@lingui/macro'
-import AccountModal from './AccountModal'
 import { useRootStore } from '../../context/RootStoreProvider'
 
 const Wrapper = styled.div`
@@ -26,7 +25,6 @@ const ConnectButton: React.FC = () => {
   if (account) return null
   return (
     <Wrapper>
-      <AccountModal />
       <Flex>
         <Button type="primary" onClick={onClickLogin} size="sm">
           <Trans>Connect Wallet</Trans>

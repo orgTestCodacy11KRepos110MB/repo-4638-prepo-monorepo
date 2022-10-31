@@ -7,8 +7,9 @@ import Identicon from '../../features/connect/Identicon'
 import { getShortAccount } from '../../utils/account-utils'
 
 const SettingsDropdown: React.FC = () => {
-  const { uiStore, web3Store } = useRootStore()
+  const { portfolioStore, uiStore, web3Store } = useRootStore()
   const { address, onboardEns } = web3Store
+  const { portfolioValue } = portfolioStore
   const [visible, setVisible] = useState(false)
   const { showLanguageList } = uiStore
 
@@ -28,7 +29,11 @@ const SettingsDropdown: React.FC = () => {
         destroyPopupOnHide
         trigger={['click']}
         placement="bottomRight"
-        overlay={<SettingsCard onClose={(): void => setVisible(false)} />}
+        overlay={
+          // pass portfolioValue from here instead of accesing it inside SettingsCard component
+          // so it doesnt become unobserved on close to avoid a brief moment of flashing
+          <SettingsCard portfolioValue={portfolioValue} onClose={(): void => setVisible(false)} />
+        }
       >
         {address ? (
           <Flex gap={8}>

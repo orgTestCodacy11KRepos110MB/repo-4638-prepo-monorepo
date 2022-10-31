@@ -69,6 +69,7 @@ import ChevronRightIcon from './ChevronRightIcon'
 import ChevronUpIcon from './ChevronUpIcon'
 import ChevronDownIcon from './ChevronDownIcon'
 import PowerIcon from './PowerIcon'
+import ArrowUpRightIcon from './ArrowUpRightIcon'
 
 export const applicationIcons = {
   'arrow-down': ArrowDownIcon,
@@ -76,6 +77,7 @@ export const applicationIcons = {
   'arrow-right': ArrowRightIcon,
   'arrow-right-2': ArrowRightIcon2,
   'arrow-right-3': ArrowRightIcon3,
+  'arrow-up-right': ArrowUpRightIcon,
   'brand-logo': BrandLogoIcon,
   burger: BurgerIcon,
   calendar: CalendarIcon,

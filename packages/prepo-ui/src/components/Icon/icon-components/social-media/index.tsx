@@ -1,14 +1,16 @@
 import DiscordOutlinedIcon from './DiscordOutlinedIcon'
-import DiscordSocialMediaIcon from './DiscordSocialMediaIcon'
+import DiscordIcon from './DiscordIcon'
 import LinkedinIcon from './LinkedinIcon'
 import TelegramIcon from './TelegramIcon'
 import TwitterIcon from './TwitterIcon'
 import TwitterOutlinedIcon from './TwitterOutlinedIcon'
+import MediumIcon from './MediumIcon'
 
 export const socialMediaIcons = {
-  discordSocialMedia: DiscordSocialMediaIcon,
+  discord: DiscordIcon,
   'discord-outlined': DiscordOutlinedIcon,
   linkedin: LinkedinIcon,
+  medium: MediumIcon,
   telegram: TelegramIcon,
   twitter: TwitterIcon,
   'twitter-outlined': TwitterOutlinedIcon,

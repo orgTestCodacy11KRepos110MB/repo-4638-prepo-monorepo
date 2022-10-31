@@ -1,13 +1,17 @@
 import Link from 'next/link'
 import { Icon, IconName, spacingIncrement } from 'prepo-ui'
-import styled from 'styled-components'
+import styled, { Color } from 'styled-components'
 
 type MenuItemProps = {
+  color?: keyof Color
+  hoverColor?: keyof Color
   iconName: IconName
   href?: string
   external?: boolean
   onClick?: () => void
 }
+
+type MenuItemButtonProps = { external?: boolean; color: keyof Color; hoverColor: keyof Color }
 
 const Wrapper = styled.div`
   align-items: center;
@@ -15,12 +19,12 @@ const Wrapper = styled.div`
   padding: 0 ${spacingIncrement(18)};
 `
 
-const MenuItemButton = styled.button<{ external?: boolean }>`
+const MenuItemButton = styled.button<MenuItemButtonProps>`
   align-items: center;
   background-color: ${({ theme }): string => theme.color.neutral10};
   border: none;
   border-radius: ${({ theme }): string => theme.borderRadius.xs};
-  color: ${({ theme }): string => theme.color.neutral1};
+  color: ${({ color, theme }): string => theme.color[color]};
   cursor: pointer;
   display: flex;
   font-size: ${({ theme, external }): string => theme.fontSize[external ? 'xs' : 'sm']};
@@ -30,7 +34,7 @@ const MenuItemButton = styled.button<{ external?: boolean }>`
   width: 100%;
   :hover {
     background-color: ${({ theme }): string => theme.color.accentPrimary};
-    color: ${({ theme }): string => theme.color.primary};
+    color: ${({ hoverColor, theme }): string => theme.color[hoverColor]};
   }
   p {
     margin-bottom: 0;
@@ -39,6 +43,8 @@ const MenuItemButton = styled.button<{ external?: boolean }>`
 
 const SettingsMenuItem: React.FC<MenuItemProps> = ({
   children,
+  color = 'neutral1',
+  hoverColor = 'primary',
   external,
   iconName,
   href,
@@ -48,11 +54,12 @@ const SettingsMenuItem: React.FC<MenuItemProps> = ({
   const linkProps = external ? { target: '_blank', rel: 'noreferrer' } : {}
 
   const menuButton = (
-    <MenuItemButton external={external} onClick={onClick}>
+    <MenuItemButton color={color} hoverColor={hoverColor} external={external} onClick={onClick}>
       <p>{children}</p>
       <Icon name={iconName} height={iconSize} width={iconSize} />
     </MenuItemButton>
   )
+
   if (href)
     return (
       <Wrapper onClick={onClick}>
