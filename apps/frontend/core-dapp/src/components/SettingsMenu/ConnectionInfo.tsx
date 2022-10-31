@@ -80,7 +80,7 @@ const ConnectionInfo: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           <CopyToClipboard text={address} onCopy={onCopy}>
             <ActionIcon
               overlay={copied ? 'Copied!' : 'Copy'}
-              iconName={copied ? 'check-icon' : 'copy'}
+              iconName={copied ? 'check' : 'copy'}
             />
           </CopyToClipboard>
           <ActionIcon

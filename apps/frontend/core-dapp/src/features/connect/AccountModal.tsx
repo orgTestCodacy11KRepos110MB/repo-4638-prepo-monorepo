@@ -130,7 +130,7 @@ const AccountModal: React.FC = () => {
               <Button
                 icon={
                   <Icon
-                    name={copied ? 'check-icon' : 'copy'}
+                    name={copied ? 'check' : 'copy'}
                     height="16"
                     width="16"
                     color={copied ? 'success' : undefined}

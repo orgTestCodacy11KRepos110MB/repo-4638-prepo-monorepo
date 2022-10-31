@@ -68,6 +68,7 @@ import CopyIcon from './CopyIcon'
 import ChevronRightIcon from './ChevronRightIcon'
 import ChevronUpIcon from './ChevronUpIcon'
 import ChevronDownIcon from './ChevronDownIcon'
+import PowerIcon from './PowerIcon'
 
 export const applicationIcons = {
   'arrow-down': ArrowDownIcon,
@@ -80,7 +81,7 @@ export const applicationIcons = {
   calendar: CalendarIcon,
   'charts-candlestick': ChartsCandlestickIcon,
   'charts-line': ChartsLineIcon,
-  'check-icon': CheckIcon,
+  check: CheckIcon,
   'chevron-down': ChevronDownIcon,
   'chevron-right': ChevronRightIcon,
   'chevron-up': ChevronUpIcon,
@@ -120,6 +121,7 @@ export const applicationIcons = {
   plus: PlusIcon,
   portfolio: PortfolioIcon,
   'ppo-logo': PpoLogoIcon,
+  power: PowerIcon,
   prepo: PrepoIcon,
   priest: PriestIcon,
   profile: ProfileIcon,
