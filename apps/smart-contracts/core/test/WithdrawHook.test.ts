@@ -1,19 +1,23 @@
-import { expect } from 'chai'
+import chai, { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { id, parseEther } from 'ethers/lib/utils'
 import { ZERO_ADDRESS } from 'prepo-constants'
+import { Contract } from 'ethers'
+import { MockContract, smock } from '@defi-wonderland/smock'
 import { withdrawHookFixture } from './fixtures/HookFixture'
-import { collateralDepositRecordFixture } from './fixtures/CollateralDepositRecordFixture'
+import { smockCollateralDepositRecordFixture } from './fixtures/CollateralDepositRecordFixture'
 import { grantAndAcceptRole } from './utils'
-import { CollateralDepositRecord, WithdrawHook } from '../typechain'
+import { WithdrawHook } from '../typechain'
+
+chai.use(smock.matchers)
 
 describe('=> WithdrawHook', () => {
   let withdrawHook: WithdrawHook
   let deployer: SignerWithAddress
   let user: SignerWithAddress
   let vault: SignerWithAddress
-  let depositRecord: CollateralDepositRecord
+  let depositRecord: MockContract<Contract>
   const TEST_GLOBAL_DEPOSIT_CAP = parseEther('50000')
   const TEST_ACCOUNT_DEPOSIT_CAP = parseEther('50')
   const TEST_AMOUNT_ONE = parseEther('1')
@@ -21,7 +25,7 @@ describe('=> WithdrawHook', () => {
 
   beforeEach(async () => {
     ;[deployer, user, vault] = await ethers.getSigners()
-    depositRecord = await collateralDepositRecordFixture(
+    depositRecord = await smockCollateralDepositRecordFixture(
       TEST_GLOBAL_DEPOSIT_CAP,
       TEST_ACCOUNT_DEPOSIT_CAP
     )
@@ -74,20 +78,10 @@ describe('=> WithdrawHook', () => {
       ).to.revertedWith('msg.sender != collateral')
     })
 
-    it('should update deposit records on the CollateralDepositRecord contract', async () => {
-      const testDepositToWithdrawFrom = parseEther('5')
-      await depositRecord.connect(user).recordDeposit(user.address, testDepositToWithdrawFrom)
-      const globalDepositsBefore = await depositRecord.getGlobalNetDepositAmount()
-      const userDepositsBefore = await depositRecord.getUserDepositAmount(user.address)
-
+    it('should call recordWithdrawal with the correct parameters', async () => {
       await withdrawHook.connect(vault).hook(user.address, TEST_AMOUNT_ONE, TEST_AMOUNT_TWO)
 
-      expect(await depositRecord.getGlobalNetDepositAmount()).to.eq(
-        globalDepositsBefore.sub(TEST_AMOUNT_TWO)
-      )
-      expect(await depositRecord.getUserDepositAmount(user.address)).to.eq(
-        userDepositsBefore.sub(TEST_AMOUNT_TWO)
-      )
+      expect(depositRecord.recordWithdrawal).to.be.calledWith(user.address, TEST_AMOUNT_TWO)
     })
   })
 
