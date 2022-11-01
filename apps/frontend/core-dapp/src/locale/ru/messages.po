@@ -96,7 +96,7 @@ msgstr "Скоро"
 msgid "Confirm Unstaking"
 msgstr "Подтвердить Анстейкинг"
 
-#: src/features/connect/ConnectButton.tsx:32
+#: src/features/connect/ConnectButton.tsx:30
 msgid "Connect Wallet"
 msgstr "Подключить Кошелек"
 
