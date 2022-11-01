@@ -42,10 +42,10 @@ const ActionContainer: React.FC = () => {
 
   return (
     <Wrapper>
-      <Button block type="ghost" onClick={onCancel} size="xs">
+      <Button block type="ghost" onClick={onCancel}>
         {leftButtonText}
       </Button>
-      <Button block type="primary" onClick={onConfirm} disabled={calendarNotComplete} size="xs">
+      <Button block type="primary" onClick={onConfirm} disabled={calendarNotComplete}>
         Confirm
       </Button>
     </Wrapper>

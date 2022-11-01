@@ -45,7 +45,6 @@ const TransactionSummaryButton: React.FC<Props> = ({
     <Button
       block
       type="primary"
-      size="md"
       onClick={isNetworkSupported ? onClick : (): void => web3Store.setNetwork(network)}
       loading={loading && connected && isNetworkSupported}
       disabled={disableButton}

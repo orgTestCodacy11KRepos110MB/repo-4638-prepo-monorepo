@@ -80,7 +80,7 @@ export const InputContainer = styled.div<{ customStyles?: CustomStyles; size: Si
     theme.color[customStyles?.backgroundColor || 'neutral9']};
   border: 1px solid
     ${({ customStyles, theme }): string => theme.color[customStyles?.borderColor || 'neutral8']};
-  border-radius: ${({ theme }): number => theme.borderRadius}px;
+  border-radius: ${({ theme }): string => theme.borderRadius.base};
   padding: ${spacingIncrement(6)} ${spacingIncrement(12)};
   transition: border 0.3s;
   ${({ size, theme }): FlattenSimpleInterpolation => {

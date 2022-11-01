@@ -5,7 +5,7 @@ import { centered, spacingIncrement } from 'prepo-ui'
 const Wrapper = styled.div`
   &&& {
     ${centered}
-    border-radius: ${({ theme }): number => theme.borderRadius * 4}px;
+    border-radius: ${({ theme }): string => theme.borderRadius.base};
     .ant-card {
       background-color: ${({ theme }): string => theme.color.neutral10};
       box-shadow: 0px 4px 22px rgba(98, 100, 216, 0.11);

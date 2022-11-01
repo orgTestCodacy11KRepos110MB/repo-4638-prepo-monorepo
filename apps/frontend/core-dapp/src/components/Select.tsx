@@ -74,7 +74,7 @@ const SelectWrapper = styled.div<{ hasDescription: boolean; styles: SelectStyles
 export const { Option } = ASelect
 
 const defaultDropdownStyles = {
-  borderRadius,
+  borderRadius: borderRadius.xs,
   padding: 0,
 }
 

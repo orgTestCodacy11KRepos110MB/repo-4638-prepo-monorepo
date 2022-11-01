@@ -22,14 +22,14 @@ msgid "A range between two fully-diluted valuations, typically expressed in mill
 msgstr "Диапазон между двумя оценками, обычно выражаемый в миллионах, миллиардах или долларах."
 
 #: src/components/SettingsMenu.tsx:66
-msgid "About"
-msgstr "О Нас"
+#~ msgid "About"
+#~ msgstr "О Нас"
 
 #: src/features/connect/AccountModal.tsx:39
 #~ msgid "Account"
 #~ msgstr "Аккаунт"
 
-#: src/features/market-overview/MarketOverview.tsx:90
+#: src/features/market-overview/MarketOverview.tsx:89
 msgid "Add Liquidity"
 msgstr "Добавить Ликвидности"
 
@@ -70,7 +70,7 @@ msgstr "Купить PPO"
 msgid "Cancel Unstaking"
 msgstr "Отменить Анстейкинг"
 
-#: src/features/portfolio/Portfolio.tsx:98
+#: src/features/portfolio/Portfolio.tsx:76
 msgid "Cash Balance"
 msgstr "Денежный Баланс"
 
@@ -87,7 +87,7 @@ msgstr "Закрыть Позицию"
 msgid "Coming Soon"
 msgstr "Скоро"
 
-#: src/features/ppo/ButtonLink.tsx:137
+#: src/features/ppo/ButtonLink.tsx:131
 #: src/features/ppo/history/PpoHistoryItems.tsx:41
 msgid "Coming soon"
 msgstr "Скоро"
@@ -96,7 +96,7 @@ msgstr "Скоро"
 msgid "Confirm Unstaking"
 msgstr "Подтвердить Анстейкинг"
 
-#: src/features/connect/ConnectButton.tsx:62
+#: src/features/connect/ConnectButton.tsx:30
 msgid "Connect Wallet"
 msgstr "Подключить Кошелек"
 
@@ -132,7 +132,7 @@ msgstr "делегировано"
 msgid "Delegators"
 msgstr "Делегаты"
 
-#: src/features/portfolio/Portfolio.tsx:138
+#: src/features/portfolio/Portfolio.tsx:116
 msgid "Deposit"
 msgstr "Депозит"
 
@@ -140,13 +140,13 @@ msgstr "Депозит"
 #~ msgid "Disconnect"
 #~ msgstr "Отключиться"
 
-#: src/features/ppo/govern/Participate.tsx:41
+#: src/features/ppo/govern/Participate.tsx:37
 msgid "Discuss on Discord"
 msgstr "Обсудить в Дискорде"
 
 #: src/components/SettingsMenu.tsx:69
-msgid "Docs"
-msgstr "Документация"
+#~ msgid "Docs"
+#~ msgstr "Документация"
 
 #: src/features/ppo/stake/StakeWarningMessages.tsx:79
 msgid "During the unstaking process, the amount being unstacked will lose all associated PPO Power."
@@ -173,15 +173,15 @@ msgstr "Предполагаемая сумма депозита после ко
 msgid "Explore Markets"
 msgstr "Исследуйте Рынки"
 
-#: src/features/ppo/history/PpoHistoryActionBar.tsx:48
+#: src/features/ppo/history/PpoHistoryActionBar.tsx:42
 msgid "Export CSV"
 msgstr "Экспорт CSV"
 
-#: src/features/testnet-onboarding/TokenSaleWhitelistBanner.tsx:14
+#: src/features/testnet-onboarding/TokenSaleWhitelistBanner.tsx:15
 msgid "Fill out <0><1>this form</1></0> for testnet funds."
 msgstr "Заполните <0><1>эту форму</1></0> для тестнета."
 
-#: src/features/ppo/history/PpoHistoryActionBar.tsx:55
+#: src/features/ppo/history/PpoHistoryActionBar.tsx:47
 msgid "Filter"
 msgstr "Фильтр"
 
@@ -225,15 +225,15 @@ msgid "LP to Earn"
 msgstr "Получить LP"
 
 #: src/components/SettingsMenu.tsx:71
-msgid "Language"
-msgstr "Язык"
+#~ msgid "Language"
+#~ msgstr "Язык"
 
 #: src/features/definitions/index.tsx:13
 #: src/features/ppo/stake/StakeWarningMessages.tsx:42
 msgid "Learn More"
 msgstr "Узнать Больше"
 
-#: src/features/ppo/govern/Participate.tsx:43
+#: src/features/ppo/govern/Participate.tsx:39
 msgid "Learn about Governance"
 msgstr "Узнать Больше о Управлении"
 
@@ -290,7 +290,7 @@ msgstr "PPO Статы"
 msgid "PPO is prePO's governance and utility token.<0/> PPO's tokenomics design incentivizes high-quality, active participation and long-term alignment."
 msgstr "PPO — это токен управления и утилиты prePO.<0/> Дизайн токеномики PPO стимулирует качественное, активное участие и долгосрочное согласование."
 
-#: src/features/ppo/govern/Participate.tsx:57
+#: src/features/ppo/govern/Participate.tsx:53
 msgid "Participate"
 msgstr "Прими участие"
 
@@ -306,11 +306,11 @@ msgstr "Постоянный"
 #~ msgid "Portfolio"
 #~ msgstr "Портфолио"
 
-#: src/features/portfolio/Portfolio.tsx:154
+#: src/features/portfolio/Portfolio.tsx:132
 msgid "Portfolio Breakdown"
 msgstr "Разбивка Портфолио"
 
-#: src/features/portfolio/Portfolio.tsx:122
+#: src/features/portfolio/Portfolio.tsx:100
 msgid "Portfolio Value"
 msgstr "Ценность Портфолио"
 
@@ -353,12 +353,12 @@ msgid "Staking APY"
 msgstr "Стейкинг APY"
 
 #: src/components/SettingsMenu.tsx:70
-msgid "Switch to Dark"
-msgstr "Темная Тема"
+#~ msgid "Switch to Dark"
+#~ msgstr "Темная Тема"
 
 #: src/components/SettingsMenu.tsx:83
-msgid "Switch to Light"
-msgstr "Светлая Тема"
+#~ msgid "Switch to Light"
+#~ msgstr "Светлая Тема"
 
 #: src/features/profile/TotalMultiplier.tsx:83
 msgid "Temporary +"
@@ -409,7 +409,7 @@ msgstr "Торговать Сейчас"
 msgid "Trade to Earn"
 msgstr "Торгуйте чтобы Заработать"
 
-#: src/features/portfolio/Portfolio.tsx:103
+#: src/features/portfolio/Portfolio.tsx:81
 msgid "Trading Positions"
 msgstr "Торгуемые позизции"
 
@@ -466,7 +466,7 @@ msgstr "Просмотр Профиля"
 msgid "Volume"
 msgstr "Объём"
 
-#: src/features/ppo/govern/Participate.tsx:40
+#: src/features/ppo/govern/Participate.tsx:36
 msgid "Vote on Snapshot"
 msgstr "Голосовать на Snapshot"
 
@@ -478,7 +478,7 @@ msgstr "Право голоса делегировано"
 msgid "Weeks"
 msgstr "Недели"
 
-#: src/features/portfolio/Portfolio.tsx:142
+#: src/features/portfolio/Portfolio.tsx:120
 msgid "Withdraw"
 msgstr "Вывести"
 

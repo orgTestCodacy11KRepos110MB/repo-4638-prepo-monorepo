@@ -65,7 +65,7 @@ const IconWrapper = styled.div`
 
 const StyledInput = styled(Input)`
   && {
-    border-radius: ${({ theme }): number => theme.borderRadius}px;
+    border-radius: ${({ theme }): string => theme.borderRadius.base};
   }
   ::placeholder {
     color: ${({ theme }): string => theme.color.neutral4} !important;

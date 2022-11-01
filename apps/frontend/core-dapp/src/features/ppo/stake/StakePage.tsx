@@ -53,7 +53,7 @@ export const StyledLabel = styled(LabelWrapper)`
 
 const StyledCheckbox = styled(Checkbox)`
   background: ${({ theme }): string => theme.color.primaryAccent};
-  border-radius: ${({ theme }): number => theme.borderRadius}px;
+  border-radius: ${({ theme }): string => theme.borderRadius.xs};
   padding: ${spacingIncrement(10)} ${spacingIncrement(11)};
   ${media.desktop`
     padding: ${spacingIncrement(18)} ${spacingIncrement(12)};

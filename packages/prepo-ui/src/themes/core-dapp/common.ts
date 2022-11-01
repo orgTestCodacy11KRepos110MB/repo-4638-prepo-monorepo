@@ -1,5 +1,12 @@
 // General
-export const borderRadius = 4
+
+export const borderRadius = {
+  lg: '24px',
+  base: '20px',
+  md: '16px',
+  sm: '14px',
+  xs: '12px',
+}
 
 // Borders
 export const boxRadiusPx = '6px'

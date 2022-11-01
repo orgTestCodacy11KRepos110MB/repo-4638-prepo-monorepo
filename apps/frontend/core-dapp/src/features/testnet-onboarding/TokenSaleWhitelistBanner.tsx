@@ -4,6 +4,7 @@ import { Trans } from '@lingui/macro'
 import { PREPO_TESTNET_FORM } from '../../lib/constants'
 
 const StyledText = styled(Typography)`
+  margin-bottom: 0;
   text-align: center;
   text-overflow: ellipsis;
   width: 100%;

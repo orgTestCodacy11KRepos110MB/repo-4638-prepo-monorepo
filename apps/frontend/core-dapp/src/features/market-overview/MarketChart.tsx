@@ -21,7 +21,7 @@ const { significantDigits } = numberFormatter
 const ChartBox = styled.div`
   background-color: ${({ theme }): string => theme.color.marketChartBackground};
   border: 1px solid ${({ theme }): string => theme.color.neutral8};
-  border-radius: ${({ theme }): number => theme.borderRadius}px;
+  border-radius: ${({ theme }): string => theme.borderRadius.xs};
   padding: ${spacingIncrement(16)} 0 ${spacingIncrement(20)} 0;
 `
 

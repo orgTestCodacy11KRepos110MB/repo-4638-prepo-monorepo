@@ -33,7 +33,7 @@ const RadioGroupWrapper = styled(Radio.Group)<Props>`
       background-color: ${({ theme }): string => theme.color.neutral9};
       border: 1px solid ${({ theme }): string => theme.color.neutral8};
       /* Stop height glitching when border gets 1px larger by adding 1px to padding when not checked */
-      border-radius: ${({ theme }): string => `${theme.borderRadius}px`};
+      border-radius: ${({ theme }): string => theme.borderRadius.base};
       padding: calc(0.75rem);
     }
 

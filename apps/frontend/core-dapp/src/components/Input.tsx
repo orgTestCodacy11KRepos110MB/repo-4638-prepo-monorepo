@@ -129,8 +129,8 @@ const InputContainer = styled.div<{ customStyles?: CustomStyles }>`
     theme.color[customStyles?.backgroundColor || 'neutral9']};
   border: 1px solid
     ${({ customStyles, theme }): string => theme.color[customStyles?.borderColor || 'neutral8']};
-  border-radius: ${({ customStyles, theme }): number =>
-    customStyles?.rounded ? theme.borderRadius : 0}px;
+  border-radius: ${({ customStyles, theme }): string =>
+    customStyles?.rounded ? theme.borderRadius.base : '0'};
   transition: border 0.3s;
   :focus-within {
     border: 1px solid ${({ theme }): string => theme.color.primary};

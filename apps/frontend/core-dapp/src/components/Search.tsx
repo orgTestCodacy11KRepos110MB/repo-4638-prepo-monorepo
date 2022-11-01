@@ -52,7 +52,7 @@ const Wrapper = styled.div`
       .ant-input-affix-wrapper.ant-select-selection-search-input {
         background-color: ${({ theme }): string => theme.color.accent1};
         border: 1px solid ${({ theme }): string => theme.color.accent1};
-        border-radius: ${({ theme }): number => theme.borderRadius}px;
+        border-radius: ${({ theme }): string => theme.borderRadius.xs};
         height: ${spacingIncrement(38)};
         ${media.desktop`
           height: ${spacingIncrement(54)};

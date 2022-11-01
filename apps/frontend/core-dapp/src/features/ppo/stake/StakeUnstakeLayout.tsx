@@ -12,12 +12,11 @@ import useFeatureFlag, { FeatureFlag } from '../../../hooks/useFeatureFlag'
 
 const ControlPanel = styled.div`
   border: 1px solid ${({ theme }): string => theme.color.neutral6};
-  border-radius: ${({ theme }): number => theme.borderRadius}px;
+  border-radius: ${({ theme }): string => theme.borderRadius.xs};
   display: flex;
   flex-direction: column;
   gap: ${spacingIncrement(16)};
-  padding: ${spacingIncrement(15)} ${spacingIncrement(12)} ${spacingIncrement(16)}
-    ${spacingIncrement(15)};
+  padding: ${spacingIncrement(15)};
   width: 100%;
   ${media.desktop`
     padding: ${spacingIncrement(20)} ${spacingIncrement(15)}

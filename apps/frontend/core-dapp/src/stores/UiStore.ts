@@ -8,7 +8,6 @@ export class UiStore {
   root: RootStore
   showLanguageList = false
   accountModalOpen = false
-  mobileNavigationHeight = 0
   message: typeof message
   modalHeight: number | undefined
   maxScreenHeight = 0
@@ -58,10 +57,6 @@ export class UiStore {
 
   setAccountModalOpen(value: boolean): void {
     this.accountModalOpen = value
-  }
-
-  setMobileNavigationHeight(value: number): void {
-    this.mobileNavigationHeight = value
   }
 
   setMaxScreenHeight(height: number): void {

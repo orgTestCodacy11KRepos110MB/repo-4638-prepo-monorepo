@@ -73,6 +73,8 @@ export const colors = {
   purple11: '#CB8DFC',
   /** #9B9DFF opacity 40% */
   purple12: 'rgba(155, 157, 255, 0.4)',
+  /** #E5E5FB */
+  purple13: '#E5E5FB',
   /** #FEF7F7 */
   red1: '#FEF7F7',
   /** #EB5757 */

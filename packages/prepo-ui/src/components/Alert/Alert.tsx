@@ -17,7 +17,7 @@ const Wrapper = styled.div<{ background?: keyof Color; color?: keyof Color }>`
       margin-right: 0;
     }
     .ant-alert {
-      border-radius: ${({ theme }): number => theme.borderRadius}px;
+      border-radius: ${({ theme }): string => theme.borderRadius.xs};
       border-width: 0;
       font-family: ${({ theme }): string => theme.fontFamily.primary};
       font-size: ${({ theme }): string => theme.fontSize.xs};

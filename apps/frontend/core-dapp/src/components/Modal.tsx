@@ -24,8 +24,8 @@ const modalPositionBottomCss = css<Props>`
 const bottomModalBorderCss = css`
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
-  border-top-left-radius: ${({ theme }): number => theme.borderRadius}px;
-  border-top-right-radius: ${({ theme }): number => theme.borderRadius}px;
+  border-top-left-radius: ${({ theme }): string => theme.borderRadius.xs};
+  border-top-right-radius: ${({ theme }): string => theme.borderRadius.xs};
 `
 
 export const modalStylesCss = css<Props>`

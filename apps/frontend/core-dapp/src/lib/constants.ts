@@ -2,6 +2,7 @@ export const PROJECT_NAME = 'core-dapp'
 export const PREPO_WEBSITE = 'https://prepo.io'
 export const PREPO_TWITTER = 'https://twitter.com/prepo_io'
 export const PREPO_DISCORD = 'https://url.prepo.io/discord-dapp'
+export const PREPO_MEDIUM = 'https://medium.com/prepo'
 export const PREPO_TESTNET_FORM = 'https://url.prepo.io/whitelist-dapp'
 
 export const FEE_DENOMINATOR = 1000000

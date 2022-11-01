@@ -62,7 +62,7 @@ const TransactionSummaryLayout: React.FC<Props> = ({
     )}
     {Boolean(message) && <MessageText>{message}</MessageText>}
     {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-    {button && <Button block size="xs" {...button} />}
+    {button && <Button block {...button} />}
     {txUrl && (
       <Link href={txUrl} target="_blank">
         <TxUrlWrapper>

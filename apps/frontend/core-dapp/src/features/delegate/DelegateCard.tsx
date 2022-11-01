@@ -152,7 +152,7 @@ const DelegateCard: React.FC<Props> = ({ delegateEntity }) => {
   return (
     <Wrapper>
       <Container selected={selected} onClick={onSelect}>
-        <SelectedIcon name="check-icon" color="accent2" selected={selected} />
+        <SelectedIcon name="check" color="accent2" selected={selected} />
         <Section>
           <AddressAvatar
             loading={!delegateEntity.profileFetched}

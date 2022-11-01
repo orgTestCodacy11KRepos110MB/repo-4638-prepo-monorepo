@@ -65,6 +65,11 @@ import GovernOutlinedIcon from './GovernOutlinedIcon'
 import GradientLogoIcon from './GradientLogoIcon'
 import ExclamationTriangle from './ExclamationTriangle'
 import CopyIcon from './CopyIcon'
+import ChevronRightIcon from './ChevronRightIcon'
+import ChevronUpIcon from './ChevronUpIcon'
+import ChevronDownIcon from './ChevronDownIcon'
+import PowerIcon from './PowerIcon'
+import ArrowUpRightIcon from './ArrowUpRightIcon'
 
 export const applicationIcons = {
   'arrow-down': ArrowDownIcon,
@@ -72,12 +77,16 @@ export const applicationIcons = {
   'arrow-right': ArrowRightIcon,
   'arrow-right-2': ArrowRightIcon2,
   'arrow-right-3': ArrowRightIcon3,
+  'arrow-up-right': ArrowUpRightIcon,
   'brand-logo': BrandLogoIcon,
   burger: BurgerIcon,
   calendar: CalendarIcon,
   'charts-candlestick': ChartsCandlestickIcon,
   'charts-line': ChartsLineIcon,
-  'check-icon': CheckIcon,
+  check: CheckIcon,
+  'chevron-down': ChevronDownIcon,
+  'chevron-right': ChevronRightIcon,
+  'chevron-up': ChevronUpIcon,
   'colored-bond': ColoredBond,
   'colored-legal': ColoredLegal,
   'colored-liquidity': ColoredLiquiditity,
@@ -114,6 +123,7 @@ export const applicationIcons = {
   plus: PlusIcon,
   portfolio: PortfolioIcon,
   'ppo-logo': PpoLogoIcon,
+  power: PowerIcon,
   prepo: PrepoIcon,
   priest: PriestIcon,
   profile: ProfileIcon,

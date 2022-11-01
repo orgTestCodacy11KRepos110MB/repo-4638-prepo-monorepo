@@ -9,7 +9,7 @@ export default css`
     font-family: ${({ theme }): string => theme.fontFamily.primary} !important;
     z-index: ${Z_INDEX.navigation};
     .bn-onboard-modal-content {
-      border-radius: ${({ theme }): string => `${theme.borderRadius * 2}px`};
+      border-radius: ${({ theme }): string => theme.borderRadius.xs};
       background-color: ${({ theme }): string => theme.color.neutral9};
     }
     .bn-onboard-modal-content-header {

@@ -100,7 +100,7 @@ const CalendarWrapper = styled.div`
     .react-calendar__tile {
       ${centered};
       height: ${spacingIncrement(27)};
-      border-radius: ${({ theme }): number => theme.borderRadius}px;
+      border-radius: ${({ theme }): string => theme.borderRadius.xs};
       text-align: center;
       background: none;
       padding: ${spacingIncrement(5)} ${spacingIncrement(10)};
@@ -135,31 +135,26 @@ const DateRangeWrapper = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  padding: ${spacingIncrement(30)} ${spacingIncrement(6)} ${spacingIncrement(20)}
-    ${spacingIncrement(6)};
+  padding: ${spacingIncrement(12)};
 `
 
 const DateTextContainer = styled.div<{ active?: boolean }>`
   ${centered};
   border: 1px solid
     ${({ theme, active }): string => (active ? theme.color.primary : theme.color.neutral7)};
-  border-radius: ${({ theme }): number => theme.borderRadius}px;
+  border-radius: ${({ theme }): string => theme.borderRadius.xs};
   color: ${({ theme }): string => theme.color.neutral1};
   font-size: ${({ theme }): string => theme.fontSize.xs};
+  font-size: ${({ theme }): string => theme.fontSize.sm};
   font-weight: ${({ theme }): number => theme.fontWeight.medium};
-  height: ${spacingIncrement(40)};
-  width: ${spacingIncrement(120)};
-  ${media.desktop`
-    font-size: ${({ theme }): string => theme.fontSize.sm};
-    height: ${spacingIncrement(45)};
-    width: ${spacingIncrement(140)};
-  `}
+  height: ${spacingIncrement(45)};
+  width: ${spacingIncrement(140)};
 `
 
 const NavWrapper = styled.div`
   ${centered};
   border: 1px solid ${({ theme }): string => theme.color.neutral7};
-  border-radius: ${({ theme }): number => theme.borderRadius}px;
+  border-radius: ${({ theme }): string => theme.borderRadius.xs};
   height: ${spacingIncrement(32)};
   width: ${spacingIncrement(32)};
 `
