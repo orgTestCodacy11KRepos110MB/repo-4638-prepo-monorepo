@@ -3,6 +3,7 @@ import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { id, parseEther } from 'ethers/lib/utils'
 import { ZERO_ADDRESS } from 'prepo-constants'
+import { utils } from 'prepo-hardhat'
 import { Contract } from 'ethers'
 import { MockContract, smock } from '@defi-wonderland/smock'
 import { withdrawHookFixture } from './fixtures/HookFixture'
@@ -12,6 +13,8 @@ import { WithdrawHook } from '../typechain'
 
 chai.use(smock.matchers)
 
+const { getLastTimestamp, setNextTimestamp } = utils
+
 describe('=> WithdrawHook', () => {
   let withdrawHook: WithdrawHook
   let deployer: SignerWithAddress
@@ -20,8 +23,12 @@ describe('=> WithdrawHook', () => {
   let depositRecord: MockContract<Contract>
   const TEST_GLOBAL_DEPOSIT_CAP = parseEther('50000')
   const TEST_ACCOUNT_DEPOSIT_CAP = parseEther('50')
-  const TEST_AMOUNT_ONE = parseEther('1')
-  const TEST_AMOUNT_TWO = parseEther('2')
+  const TEST_AMOUNT_BEFORE_FEE = parseEther('1.01')
+  const TEST_AMOUNT_AFTER_FEE = parseEther('1')
+  const TEST_GLOBAL_PERIOD_LENGTH = 20
+  const TEST_USER_PERIOD_LENGTH = 10
+  const TEST_GLOBAL_WITHDRAW_LIMIT = TEST_AMOUNT_AFTER_FEE.mul(3)
+  const TEST_USER_WITHDRAW_LIMIT = TEST_AMOUNT_AFTER_FEE.mul(2)
 
   beforeEach(async () => {
     ;[deployer, user, vault] = await ethers.getSigners()
@@ -41,6 +48,36 @@ describe('=> WithdrawHook', () => {
       deployer,
       deployer,
       await withdrawHook.SET_DEPOSIT_RECORD_ROLE()
+    )
+    await grantAndAcceptRole(
+      withdrawHook,
+      deployer,
+      deployer,
+      await withdrawHook.SET_WITHDRAWALS_ALLOWED_ROLE()
+    )
+    await grantAndAcceptRole(
+      withdrawHook,
+      deployer,
+      deployer,
+      await withdrawHook.SET_GLOBAL_PERIOD_LENGTH_ROLE()
+    )
+    await grantAndAcceptRole(
+      withdrawHook,
+      deployer,
+      deployer,
+      await withdrawHook.SET_USER_PERIOD_LENGTH_ROLE()
+    )
+    await grantAndAcceptRole(
+      withdrawHook,
+      deployer,
+      deployer,
+      await withdrawHook.SET_GLOBAL_WITHDRAW_LIMIT_PER_PERIOD_ROLE()
+    )
+    await grantAndAcceptRole(
+      withdrawHook,
+      deployer,
+      deployer,
+      await withdrawHook.SET_USER_WITHDRAW_LIMIT_PER_PERIOD_ROLE()
     )
     await depositRecord.connect(deployer).setAllowedHook(user.address, true)
     await depositRecord.connect(deployer).setAllowedHook(withdrawHook.address, true)
@@ -62,26 +99,222 @@ describe('=> WithdrawHook', () => {
       expect(await withdrawHook.SET_DEPOSIT_RECORD_ROLE()).to.eq(
         id('WithdrawHook_setDepositRecord(address)')
       )
+      expect(await withdrawHook.SET_WITHDRAWALS_ALLOWED_ROLE()).to.eq(
+        id('WithdrawHook_setWithdrawalsAllowed(bool)')
+      )
+      expect(await withdrawHook.SET_GLOBAL_PERIOD_LENGTH_ROLE()).to.eq(
+        id('WithdrawHook_setGlobalPeriodLength(uint256)')
+      )
+      expect(await withdrawHook.SET_USER_PERIOD_LENGTH_ROLE()).to.eq(
+        id('WithdrawHook_setUserPeriodLength(uint256)')
+      )
+      expect(await withdrawHook.SET_GLOBAL_WITHDRAW_LIMIT_PER_PERIOD_ROLE()).to.eq(
+        id('WithdrawHook_setGlobalWithdrawLimitPerPeriod(uint256)')
+      )
+      expect(await withdrawHook.SET_USER_WITHDRAW_LIMIT_PER_PERIOD_ROLE()).to.eq(
+        id('WithdrawHook_setUserWithdrawLimitPerPeriod(uint256)')
+      )
     })
   })
 
   describe('# hook', () => {
     beforeEach(async () => {
       await withdrawHook.setCollateral(vault.address)
+      await withdrawHook.connect(deployer).setWithdrawalsAllowed(true)
+      await withdrawHook.connect(deployer).setGlobalPeriodLength(TEST_GLOBAL_PERIOD_LENGTH)
+      await withdrawHook.connect(deployer).setUserPeriodLength(TEST_USER_PERIOD_LENGTH)
+      await withdrawHook
+        .connect(deployer)
+        .setGlobalWithdrawLimitPerPeriod(TEST_GLOBAL_WITHDRAW_LIMIT)
+      await withdrawHook.connect(deployer).setUserWithdrawLimitPerPeriod(TEST_USER_WITHDRAW_LIMIT)
     })
 
     it('should only usable by the vault', async () => {
       expect(await withdrawHook.getCollateral()).to.not.eq(user.address)
 
       await expect(
-        withdrawHook.connect(user).hook(user.address, TEST_AMOUNT_ONE, TEST_AMOUNT_TWO)
+        withdrawHook.connect(user).hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
       ).to.revertedWith('msg.sender != collateral')
     })
 
     it('should call recordWithdrawal with the correct parameters', async () => {
-      await withdrawHook.connect(vault).hook(user.address, TEST_AMOUNT_ONE, TEST_AMOUNT_TWO)
+      await withdrawHook
+        .connect(vault)
+        .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
 
-      expect(depositRecord.recordWithdrawal).to.be.calledWith(user.address, TEST_AMOUNT_TWO)
+      expect(depositRecord.recordWithdrawal).to.be.calledWith(user.address, TEST_AMOUNT_BEFORE_FEE)
+    })
+
+    describe('global withdraw limit testing', () => {
+      it('sets last global reset to current time if 0', async () => {
+        expect(await withdrawHook.getLastGlobalPeriodReset()).to.eq(0)
+
+        await withdrawHook
+          .connect(vault)
+          .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+
+        expect(await withdrawHook.getLastGlobalPeriodReset()).to.eq(
+          await getLastTimestamp(ethers.provider)
+        )
+      })
+
+      it('sets last global reset to current time if global period passed', async () => {
+        await withdrawHook
+          .connect(vault)
+          .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+        const previousResetTimestamp = await getLastTimestamp(ethers.provider)
+        expect(await withdrawHook.getLastGlobalPeriodReset()).to.eq(previousResetTimestamp)
+        await setNextTimestamp(
+          ethers.provider,
+          previousResetTimestamp + TEST_GLOBAL_PERIOD_LENGTH + 1
+        )
+
+        await withdrawHook
+          .connect(vault)
+          .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+
+        const currentResetTimestamp = await getLastTimestamp(ethers.provider)
+        expect(currentResetTimestamp).to.be.gt(previousResetTimestamp)
+        expect(await withdrawHook.getLastGlobalPeriodReset()).to.eq(currentResetTimestamp)
+      })
+
+      it('sets global amount withdrawn to current amount being withdrawn if global period passed', async () => {
+        await withdrawHook
+          .connect(vault)
+          .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+        const differentAmountToWithdraw = 1
+        expect(await withdrawHook.getGlobalAmountWithdrawnThisPeriod()).to.not.eq(
+          differentAmountToWithdraw
+        )
+        const previousResetTimestamp = await getLastTimestamp(ethers.provider)
+        await setNextTimestamp(
+          ethers.provider,
+          previousResetTimestamp + TEST_GLOBAL_PERIOD_LENGTH + 1
+        )
+
+        await withdrawHook
+          .connect(vault)
+          .hook(user.address, differentAmountToWithdraw, differentAmountToWithdraw)
+
+        expect(await withdrawHook.getGlobalAmountWithdrawnThisPeriod()).to.eq(
+          differentAmountToWithdraw
+        )
+      })
+
+      it("doesn't update last global reset if global period exactly reached", async () => {
+        await withdrawHook
+          .connect(vault)
+          .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+        const previousResetTimestamp = await getLastTimestamp(ethers.provider)
+        expect(await withdrawHook.getLastGlobalPeriodReset()).to.eq(previousResetTimestamp)
+        await setNextTimestamp(ethers.provider, previousResetTimestamp + TEST_GLOBAL_PERIOD_LENGTH)
+
+        await withdrawHook
+          .connect(vault)
+          .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+
+        expect(await withdrawHook.getLastGlobalPeriodReset()).to.eq(previousResetTimestamp)
+      })
+
+      it('adds to amount withdrawn if global period exactly reached', async () => {
+        await withdrawHook
+          .connect(vault)
+          .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+        const previousGlobalAmountWithdrawn =
+          await withdrawHook.getGlobalAmountWithdrawnThisPeriod()
+        const previousResetTimestamp = await getLastTimestamp(ethers.provider)
+        await setNextTimestamp(ethers.provider, previousResetTimestamp + TEST_GLOBAL_PERIOD_LENGTH)
+
+        await withdrawHook
+          .connect(vault)
+          .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+
+        expect(await withdrawHook.getGlobalAmountWithdrawnThisPeriod()).to.eq(
+          previousGlobalAmountWithdrawn.add(TEST_AMOUNT_BEFORE_FEE)
+        )
+      })
+
+      it("doesn't update last global reset if global period not reached", async () => {
+        await withdrawHook
+          .connect(vault)
+          .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+        const previousResetTimestamp = await getLastTimestamp(ethers.provider)
+        expect(await withdrawHook.getLastGlobalPeriodReset()).to.eq(previousResetTimestamp)
+        await setNextTimestamp(
+          ethers.provider,
+          previousResetTimestamp + TEST_GLOBAL_PERIOD_LENGTH - 1
+        )
+
+        await withdrawHook
+          .connect(vault)
+          .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+
+        expect(await withdrawHook.getLastGlobalPeriodReset()).to.eq(previousResetTimestamp)
+      })
+
+      it('adds to global amount withdrawn if global period not reached', async () => {
+        await withdrawHook
+          .connect(vault)
+          .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+        const previousGlobalAmountWithdrawn =
+          await withdrawHook.getGlobalAmountWithdrawnThisPeriod()
+        const previousResetTimestamp = await getLastTimestamp(ethers.provider)
+        await setNextTimestamp(
+          ethers.provider,
+          previousResetTimestamp + TEST_GLOBAL_PERIOD_LENGTH - 1
+        )
+
+        await withdrawHook
+          .connect(vault)
+          .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+
+        expect(await withdrawHook.getGlobalAmountWithdrawnThisPeriod()).to.eq(
+          previousGlobalAmountWithdrawn.add(TEST_AMOUNT_BEFORE_FEE)
+        )
+      })
+
+      it('adds to global amount withdrawn if global withdraw limit exactly reached for period', async () => {
+        // Using deployer and user since we need 2 users to meet global cap
+        await withdrawHook
+          .connect(vault)
+          .hook(deployer.address, TEST_USER_WITHDRAW_LIMIT, TEST_USER_WITHDRAW_LIMIT)
+        const globalWithdrawnBefore = await withdrawHook.getGlobalAmountWithdrawnThisPeriod()
+        const previousResetTimestamp = await getLastTimestamp(ethers.provider)
+        await setNextTimestamp(
+          ethers.provider,
+          previousResetTimestamp + TEST_GLOBAL_PERIOD_LENGTH - 1
+        )
+        const amountToReachGlobalLimit = TEST_GLOBAL_WITHDRAW_LIMIT.sub(globalWithdrawnBefore)
+
+        await expect(
+          withdrawHook
+            .connect(vault)
+            .hook(user.address, amountToReachGlobalLimit, amountToReachGlobalLimit)
+        ).to.not.reverted
+      })
+
+      it('reverts if global withdraw limit exceeded for period', async () => {
+        // Using deployer and user since we need 2 users to exceed global cap
+        await withdrawHook
+          .connect(vault)
+          .hook(deployer.address, TEST_USER_WITHDRAW_LIMIT, TEST_USER_WITHDRAW_LIMIT)
+        const amountToReachGlobalLimit = TEST_GLOBAL_WITHDRAW_LIMIT.sub(TEST_USER_WITHDRAW_LIMIT)
+        await withdrawHook
+          .connect(vault)
+          .hook(user.address, amountToReachGlobalLimit, amountToReachGlobalLimit)
+        expect(await withdrawHook.getGlobalAmountWithdrawnThisPeriod()).to.eq(
+          TEST_GLOBAL_WITHDRAW_LIMIT
+        )
+        const previousResetTimestamp = await getLastTimestamp(ethers.provider)
+        await setNextTimestamp(
+          ethers.provider,
+          previousResetTimestamp + TEST_GLOBAL_PERIOD_LENGTH - 1
+        )
+
+        await expect(withdrawHook.connect(vault).hook(user.address, 1, 1)).to.revertedWith(
+          'global withdraw limit exceeded'
+        )
+      })
     })
   })
 
@@ -125,7 +358,7 @@ describe('=> WithdrawHook', () => {
       expect(await withdrawHook.getCollateral()).to.eq(vault.address)
     })
 
-    it('should emit a CollateralChange event', async () => {
+    it('emits CollateralChange', async () => {
       const tx = await withdrawHook.connect(deployer).setCollateral(vault.address)
 
       await expect(tx).to.emit(withdrawHook, 'CollateralChange').withArgs(vault.address)
@@ -172,6 +405,287 @@ describe('=> WithdrawHook', () => {
       await withdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
 
       expect(await withdrawHook.getDepositRecord()).to.eq(depositRecord.address)
+    })
+
+    it('emits DepositRecordChange', async () => {
+      const tx = await withdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
+
+      await expect(tx).to.emit(withdrawHook, 'DepositRecordChange').withArgs(depositRecord.address)
+    })
+  })
+
+  describe('# setWithdrawalsAllowed', () => {
+    it('reverts if not role holder', async () => {
+      expect(
+        await withdrawHook.hasRole(await withdrawHook.SET_WITHDRAWALS_ALLOWED_ROLE(), user.address)
+      ).to.eq(false)
+
+      await expect(withdrawHook.connect(user).setWithdrawalsAllowed(true)).revertedWith(
+        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await withdrawHook.SET_WITHDRAWALS_ALLOWED_ROLE()}`
+      )
+    })
+
+    it('sets to false', async () => {
+      await withdrawHook.connect(deployer).setWithdrawalsAllowed(true)
+      expect(await withdrawHook.withdrawalsAllowed()).to.not.eq(false)
+
+      await withdrawHook.connect(deployer).setWithdrawalsAllowed(false)
+
+      expect(await withdrawHook.withdrawalsAllowed()).to.eq(false)
+    })
+
+    it('sets to true', async () => {
+      expect(await withdrawHook.withdrawalsAllowed()).to.not.eq(true)
+
+      await withdrawHook.connect(deployer).setWithdrawalsAllowed(true)
+
+      expect(await withdrawHook.withdrawalsAllowed()).to.eq(true)
+    })
+
+    it('is idempotent', async () => {
+      expect(await withdrawHook.withdrawalsAllowed()).to.not.eq(true)
+
+      await withdrawHook.connect(deployer).setWithdrawalsAllowed(true)
+
+      expect(await withdrawHook.withdrawalsAllowed()).to.eq(true)
+
+      await withdrawHook.connect(deployer).setWithdrawalsAllowed(true)
+
+      expect(await withdrawHook.withdrawalsAllowed()).to.eq(true)
+    })
+
+    it('emits WithdrawalsAllowedChange', async () => {
+      const tx = await withdrawHook.connect(deployer).setWithdrawalsAllowed(true)
+
+      await expect(tx).to.emit(withdrawHook, 'WithdrawalsAllowedChange').withArgs(true)
+    })
+  })
+
+  describe('# setGlobalPeriodLength', () => {
+    it('reverts if not role holder', async () => {
+      expect(
+        await withdrawHook.hasRole(await withdrawHook.SET_GLOBAL_PERIOD_LENGTH_ROLE(), user.address)
+      ).to.eq(false)
+
+      await expect(
+        withdrawHook.connect(user).setGlobalPeriodLength(TEST_GLOBAL_PERIOD_LENGTH)
+      ).revertedWith(
+        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await withdrawHook.SET_GLOBAL_PERIOD_LENGTH_ROLE()}`
+      )
+    })
+
+    it('sets to zero', async () => {
+      await withdrawHook.connect(deployer).setGlobalPeriodLength(TEST_GLOBAL_PERIOD_LENGTH)
+      expect(await withdrawHook.getGlobalPeriodLength()).to.not.eq(0)
+
+      await withdrawHook.connect(deployer).setGlobalPeriodLength(0)
+
+      expect(await withdrawHook.getGlobalPeriodLength()).to.eq(0)
+    })
+
+    it('sets to non-zero value', async () => {
+      expect(await withdrawHook.getGlobalPeriodLength()).to.not.eq(TEST_GLOBAL_PERIOD_LENGTH)
+
+      await withdrawHook.connect(deployer).setGlobalPeriodLength(TEST_GLOBAL_PERIOD_LENGTH)
+
+      expect(await withdrawHook.getGlobalPeriodLength()).to.eq(TEST_GLOBAL_PERIOD_LENGTH)
+    })
+
+    it('is idempotent', async () => {
+      expect(await withdrawHook.getGlobalPeriodLength()).to.not.eq(TEST_GLOBAL_PERIOD_LENGTH)
+
+      await withdrawHook.connect(deployer).setGlobalPeriodLength(TEST_GLOBAL_PERIOD_LENGTH)
+
+      expect(await withdrawHook.getGlobalPeriodLength()).to.eq(TEST_GLOBAL_PERIOD_LENGTH)
+
+      await withdrawHook.connect(deployer).setGlobalPeriodLength(TEST_GLOBAL_PERIOD_LENGTH)
+
+      expect(await withdrawHook.getGlobalPeriodLength()).to.eq(TEST_GLOBAL_PERIOD_LENGTH)
+    })
+
+    it('emits GlobalPeriodLengthChange', async () => {
+      const tx = await withdrawHook
+        .connect(deployer)
+        .setGlobalPeriodLength(TEST_GLOBAL_PERIOD_LENGTH)
+
+      await expect(tx)
+        .to.emit(withdrawHook, 'GlobalPeriodLengthChange')
+        .withArgs(TEST_GLOBAL_PERIOD_LENGTH)
+    })
+  })
+
+  describe('# setUserPeriodLength', () => {
+    it('reverts if not role holder', async () => {
+      expect(
+        await withdrawHook.hasRole(await withdrawHook.SET_USER_PERIOD_LENGTH_ROLE(), user.address)
+      ).to.eq(false)
+
+      await expect(
+        withdrawHook.connect(user).setUserPeriodLength(TEST_USER_PERIOD_LENGTH)
+      ).revertedWith(
+        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await withdrawHook.SET_USER_PERIOD_LENGTH_ROLE()}`
+      )
+    })
+
+    it('sets to zero', async () => {
+      await withdrawHook.connect(deployer).setUserPeriodLength(TEST_USER_PERIOD_LENGTH)
+      expect(await withdrawHook.getUserPeriodLength()).to.not.eq(0)
+
+      await withdrawHook.connect(deployer).setUserPeriodLength(0)
+
+      expect(await withdrawHook.getUserPeriodLength()).to.eq(0)
+    })
+
+    it('sets to non-zero value', async () => {
+      expect(await withdrawHook.getUserPeriodLength()).to.not.eq(TEST_USER_PERIOD_LENGTH)
+
+      await withdrawHook.connect(deployer).setUserPeriodLength(TEST_USER_PERIOD_LENGTH)
+
+      expect(await withdrawHook.getUserPeriodLength()).to.eq(TEST_USER_PERIOD_LENGTH)
+    })
+
+    it('is idempotent', async () => {
+      expect(await withdrawHook.getUserPeriodLength()).to.not.eq(TEST_USER_PERIOD_LENGTH)
+
+      await withdrawHook.connect(deployer).setUserPeriodLength(TEST_USER_PERIOD_LENGTH)
+
+      expect(await withdrawHook.getUserPeriodLength()).to.eq(TEST_USER_PERIOD_LENGTH)
+
+      await withdrawHook.connect(deployer).setUserPeriodLength(TEST_USER_PERIOD_LENGTH)
+
+      expect(await withdrawHook.getUserPeriodLength()).to.eq(TEST_USER_PERIOD_LENGTH)
+    })
+
+    it('emits UserPeriodLengthChange', async () => {
+      const tx = await withdrawHook.connect(deployer).setUserPeriodLength(TEST_USER_PERIOD_LENGTH)
+
+      await expect(tx)
+        .to.emit(withdrawHook, 'UserPeriodLengthChange')
+        .withArgs(TEST_USER_PERIOD_LENGTH)
+    })
+  })
+
+  describe('# setGlobalWithdrawLimitPerPeriod', () => {
+    it('reverts if not role holder', async () => {
+      expect(
+        await withdrawHook.hasRole(
+          await withdrawHook.SET_GLOBAL_WITHDRAW_LIMIT_PER_PERIOD_ROLE(),
+          user.address
+        )
+      ).to.eq(false)
+
+      await expect(
+        withdrawHook.connect(user).setGlobalWithdrawLimitPerPeriod(TEST_GLOBAL_WITHDRAW_LIMIT)
+      ).revertedWith(
+        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await withdrawHook.SET_GLOBAL_WITHDRAW_LIMIT_PER_PERIOD_ROLE()}`
+      )
+    })
+
+    it('sets to zero', async () => {
+      await withdrawHook
+        .connect(deployer)
+        .setGlobalWithdrawLimitPerPeriod(TEST_GLOBAL_WITHDRAW_LIMIT)
+      expect(await withdrawHook.getGlobalWithdrawLimitPerPeriod()).to.not.eq(0)
+
+      await withdrawHook.connect(deployer).setGlobalWithdrawLimitPerPeriod(0)
+
+      expect(await withdrawHook.getGlobalWithdrawLimitPerPeriod()).to.eq(0)
+    })
+
+    it('sets to non-zero value', async () => {
+      expect(await withdrawHook.getGlobalWithdrawLimitPerPeriod()).to.not.eq(
+        TEST_GLOBAL_WITHDRAW_LIMIT
+      )
+
+      await withdrawHook
+        .connect(deployer)
+        .setGlobalWithdrawLimitPerPeriod(TEST_GLOBAL_WITHDRAW_LIMIT)
+
+      expect(await withdrawHook.getGlobalWithdrawLimitPerPeriod()).to.eq(TEST_GLOBAL_WITHDRAW_LIMIT)
+    })
+
+    it('is idempotent', async () => {
+      expect(await withdrawHook.getGlobalWithdrawLimitPerPeriod()).to.not.eq(
+        TEST_GLOBAL_WITHDRAW_LIMIT
+      )
+
+      await withdrawHook
+        .connect(deployer)
+        .setGlobalWithdrawLimitPerPeriod(TEST_GLOBAL_WITHDRAW_LIMIT)
+
+      expect(await withdrawHook.getGlobalWithdrawLimitPerPeriod()).to.eq(TEST_GLOBAL_WITHDRAW_LIMIT)
+
+      await withdrawHook
+        .connect(deployer)
+        .setGlobalWithdrawLimitPerPeriod(TEST_GLOBAL_WITHDRAW_LIMIT)
+
+      expect(await withdrawHook.getGlobalWithdrawLimitPerPeriod()).to.eq(TEST_GLOBAL_WITHDRAW_LIMIT)
+    })
+
+    it('emits GlobalWithdrawLimitPerPeriodChange', async () => {
+      const tx = await withdrawHook
+        .connect(deployer)
+        .setGlobalWithdrawLimitPerPeriod(TEST_GLOBAL_WITHDRAW_LIMIT)
+
+      await expect(tx)
+        .to.emit(withdrawHook, 'GlobalWithdrawLimitPerPeriodChange')
+        .withArgs(TEST_GLOBAL_WITHDRAW_LIMIT)
+    })
+  })
+
+  describe('# setUserWithdrawLimitPerPeriod', () => {
+    it('reverts if not role holder', async () => {
+      expect(
+        await withdrawHook.hasRole(
+          await withdrawHook.SET_USER_WITHDRAW_LIMIT_PER_PERIOD_ROLE(),
+          user.address
+        )
+      ).to.eq(false)
+
+      await expect(
+        withdrawHook.connect(user).setUserWithdrawLimitPerPeriod(TEST_USER_WITHDRAW_LIMIT)
+      ).revertedWith(
+        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await withdrawHook.SET_USER_WITHDRAW_LIMIT_PER_PERIOD_ROLE()}`
+      )
+    })
+
+    it('sets to zero', async () => {
+      await withdrawHook.connect(deployer).setUserWithdrawLimitPerPeriod(TEST_USER_WITHDRAW_LIMIT)
+      expect(await withdrawHook.getUserWithdrawLimitPerPeriod()).to.not.eq(0)
+
+      await withdrawHook.connect(deployer).setUserWithdrawLimitPerPeriod(0)
+
+      expect(await withdrawHook.getUserWithdrawLimitPerPeriod()).to.eq(0)
+    })
+
+    it('sets to non-zero value', async () => {
+      expect(await withdrawHook.getUserWithdrawLimitPerPeriod()).to.not.eq(TEST_USER_WITHDRAW_LIMIT)
+
+      await withdrawHook.connect(deployer).setUserWithdrawLimitPerPeriod(TEST_USER_WITHDRAW_LIMIT)
+
+      expect(await withdrawHook.getUserWithdrawLimitPerPeriod()).to.eq(TEST_USER_WITHDRAW_LIMIT)
+    })
+
+    it('is idempotent', async () => {
+      expect(await withdrawHook.getUserWithdrawLimitPerPeriod()).to.not.eq(TEST_USER_WITHDRAW_LIMIT)
+
+      await withdrawHook.connect(deployer).setUserWithdrawLimitPerPeriod(TEST_USER_WITHDRAW_LIMIT)
+
+      expect(await withdrawHook.getUserWithdrawLimitPerPeriod()).to.eq(TEST_USER_WITHDRAW_LIMIT)
+
+      await withdrawHook.connect(deployer).setUserWithdrawLimitPerPeriod(TEST_USER_WITHDRAW_LIMIT)
+
+      expect(await withdrawHook.getUserWithdrawLimitPerPeriod()).to.eq(TEST_USER_WITHDRAW_LIMIT)
+    })
+
+    it('emits UserWithdrawLimitPerPeriodChange', async () => {
+      const tx = await withdrawHook
+        .connect(deployer)
+        .setUserWithdrawLimitPerPeriod(TEST_USER_WITHDRAW_LIMIT)
+
+      await expect(tx)
+        .to.emit(withdrawHook, 'UserWithdrawLimitPerPeriodChange')
+        .withArgs(TEST_USER_WITHDRAW_LIMIT)
     })
   })
 })
