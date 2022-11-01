@@ -26,8 +26,8 @@ msgid "About"
 msgstr "О Нас"
 
 #: src/features/connect/AccountModal.tsx:39
-msgid "Account"
-msgstr "Аккаунт"
+#~ msgid "Account"
+#~ msgstr "Аккаунт"
 
 #: src/features/market-overview/MarketOverview.tsx:90
 msgid "Add Liquidity"
@@ -101,8 +101,8 @@ msgid "Connect Wallet"
 msgstr "Подключить Кошелек"
 
 #: src/features/connect/AccountModal.tsx:48
-msgid "Connected"
-msgstr "Подключен"
+#~ msgid "Connected"
+#~ msgstr "Подключен"
 
 #: src/features/testnet-onboarding/TestnetBanner.tsx:24
 msgid "Connected to Testnet (Goerli)"
@@ -113,8 +113,8 @@ msgid "Cooldown period ends in: <0>{days}d {hours}h {minutes}m.</0>"
 msgstr "Период восстановления заканчивается через"
 
 #: src/features/connect/AccountModal.tsx:61
-msgid "Copy to Clipboard"
-msgstr "Копировать в Буфер"
+#~ msgid "Copy to Clipboard"
+#~ msgstr "Копировать в Буфер"
 
 #: src/features/ppo/stake/StakeDelegate.tsx:99
 msgid "Delegate Voting Power"
@@ -137,8 +137,8 @@ msgid "Deposit"
 msgstr "Депозит"
 
 #: src/features/connect/AccountModal.tsx:51
-msgid "Disconnect"
-msgstr "Отключиться"
+#~ msgid "Disconnect"
+#~ msgstr "Отключиться"
 
 #: src/features/ppo/govern/Participate.tsx:41
 msgid "Discuss on Discord"
@@ -242,7 +242,7 @@ msgstr "Узнать Больше о Управлении"
 msgid "Liquidity"
 msgstr "Ликвидность"
 
-#: src/features/profile/LookupUser.tsx:68
+#: src/features/profile/LookupUser.tsx:87
 msgid "Lookup User"
 msgstr "Поиск Пользователя"
 
@@ -458,7 +458,7 @@ msgstr "Диапозон оценки"
 msgid "Value"
 msgstr "Значение"
 
-#: src/features/profile/LookupUser.tsx:77
+#: src/features/profile/LookupUser.tsx:96
 msgid "View Profile"
 msgstr "Просмотр Профиля"
 
