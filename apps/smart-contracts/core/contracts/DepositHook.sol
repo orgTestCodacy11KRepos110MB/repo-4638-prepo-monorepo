@@ -1,18 +1,21 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity =0.8.7;
 
-import "./interfaces/IHook.sol";
+import "./interfaces/IDepositHook.sol";
 import "./interfaces/ICollateralDepositRecord.sol";
 import "prepo-shared-contracts/contracts/SafeAccessControlEnumerable.sol";
 
-contract DepositHook is IHook, SafeAccessControlEnumerable {
+contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
   ICollateral private _collateral;
   ICollateralDepositRecord private _depositRecord;
+  bool private _depositsAllowed;
 
   bytes32 public constant SET_COLLATERAL_ROLE =
     keccak256("DepositHook_setCollateral(address)");
   bytes32 public constant SET_DEPOSIT_RECORD_ROLE =
     keccak256("DepositHook_setDepositRecord(address)");
+  bytes32 public constant SET_DEPOSITS_ALLOWED_ROLE =
+    keccak256("DepositHook_setDepositsAllowed(bool)");
 
   constructor(address _newDepositRecord) {
     _depositRecord = ICollateralDepositRecord(_newDepositRecord);
@@ -25,10 +28,11 @@ contract DepositHook is IHook, SafeAccessControlEnumerable {
 
   function hook(
     address _sender,
-    uint256 _initialAmount,
-    uint256 _finalAmount
+    uint256 _amountBeforeFee,
+    uint256 _amountAfterFee
   ) external override onlyCollateral {
-    _depositRecord.recordDeposit(_sender, _finalAmount);
+    require(_depositsAllowed, "deposits not allowed");
+    _depositRecord.recordDeposit(_sender, _amountAfterFee);
   }
 
   function setCollateral(ICollateral _newCollateral)
@@ -40,11 +44,22 @@ contract DepositHook is IHook, SafeAccessControlEnumerable {
     emit CollateralChange(address(_newCollateral));
   }
 
-  function setDepositRecord(address _newDepositRecord)
+  function setDepositRecord(ICollateralDepositRecord _newDepositRecord)
     external
+    override
     onlyRole(SET_DEPOSIT_RECORD_ROLE)
   {
-    _depositRecord = ICollateralDepositRecord(_newDepositRecord);
+    _depositRecord = _newDepositRecord;
+    emit DepositRecordChange(address(_newDepositRecord));
+  }
+
+  function setDepositsAllowed(bool _newDepositsAllowed)
+    external
+    override
+    onlyRole(SET_DEPOSITS_ALLOWED_ROLE)
+  {
+    _depositsAllowed = _newDepositsAllowed;
+    emit DepositsAllowedChange(_newDepositsAllowed);
   }
 
   function getCollateral() external view override returns (ICollateral) {
@@ -54,8 +69,13 @@ contract DepositHook is IHook, SafeAccessControlEnumerable {
   function getDepositRecord()
     external
     view
+    override
     returns (ICollateralDepositRecord)
   {
     return _depositRecord;
+  }
+
+  function depositsAllowed() external view override returns (bool) {
+    return _depositsAllowed;
   }
 }

@@ -20,8 +20,8 @@ describe('=> DepositHook', () => {
   let mockCollateralDepositRecord: MockContract<Contract>
   const TEST_GLOBAL_DEPOSIT_CAP = parseEther('50000')
   const TEST_ACCOUNT_DEPOSIT_CAP = parseEther('50')
-  const TEST_AMOUNT_ONE = parseEther('1')
-  const TEST_AMOUNT_TWO = parseEther('2')
+  const TEST_AMOUNT_BEFORE_FEE = parseEther('1.01')
+  const TEST_AMOUNT_AFTER_FEE = parseEther('1')
 
   beforeEach(async () => {
     ;[deployer, user, vault] = await ethers.getSigners()
@@ -42,6 +42,12 @@ describe('=> DepositHook', () => {
       deployer,
       await depositHook.SET_DEPOSIT_RECORD_ROLE()
     )
+    await grantAndAcceptRole(
+      depositHook,
+      deployer,
+      deployer,
+      await depositHook.SET_DEPOSITS_ALLOWED_ROLE()
+    )
     await mockCollateralDepositRecord.connect(deployer).setAllowedHook(depositHook.address, true)
   })
 
@@ -61,28 +67,44 @@ describe('=> DepositHook', () => {
       expect(await depositHook.SET_DEPOSIT_RECORD_ROLE()).to.eq(
         id('DepositHook_setDepositRecord(address)')
       )
+      expect(await depositHook.SET_DEPOSITS_ALLOWED_ROLE()).to.eq(
+        id('DepositHook_setDepositsAllowed(bool)')
+      )
     })
   })
 
   describe('# hook', () => {
     beforeEach(async () => {
-      await depositHook.setCollateral(vault.address)
+      await depositHook.connect(deployer).setCollateral(vault.address)
+      await depositHook.connect(deployer).setDepositsAllowed(true)
     })
 
     it('should only usable by the vault', async () => {
       expect(await depositHook.getCollateral()).to.not.eq(user.address)
 
       await expect(
-        depositHook.connect(user).hook(user.address, TEST_AMOUNT_ONE, TEST_AMOUNT_TWO)
+        depositHook.connect(user).hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
       ).to.revertedWith('msg.sender != collateral')
     })
 
+    it('reverts if deposits not allowed', async () => {
+      await depositHook.connect(deployer).setDepositsAllowed(false)
+      expect(await depositHook.depositsAllowed()).to.eq(false)
+
+      await expect(
+        depositHook.connect(vault).hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+      ).to.revertedWith('deposits not allowed')
+    })
+
     it('should call recordDeposit with the correct parameters', async () => {
-      await depositHook.connect(vault).hook(user.address, TEST_AMOUNT_ONE, TEST_AMOUNT_TWO)
+      expect(TEST_AMOUNT_BEFORE_FEE).to.not.eq(TEST_AMOUNT_AFTER_FEE)
+      await depositHook
+        .connect(vault)
+        .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
 
       expect(mockCollateralDepositRecord.recordDeposit).to.be.calledWith(
         user.address,
-        TEST_AMOUNT_TWO
+        TEST_AMOUNT_AFTER_FEE
       )
     })
   })
@@ -127,7 +149,7 @@ describe('=> DepositHook', () => {
       expect(await depositHook.getCollateral()).to.eq(vault.address)
     })
 
-    it('should emit a CollateralChange event', async () => {
+    it('emits CollateralChange', async () => {
       const tx = await depositHook.connect(deployer).setCollateral(vault.address)
 
       await expect(tx).to.emit(depositHook, 'CollateralChange').withArgs(vault.address)
@@ -176,6 +198,63 @@ describe('=> DepositHook', () => {
       await depositHook.connect(deployer).setDepositRecord(mockCollateralDepositRecord.address)
 
       expect(await depositHook.getDepositRecord()).to.eq(mockCollateralDepositRecord.address)
+    })
+
+    it('emits DepositRecordChange', async () => {
+      const tx = await depositHook
+        .connect(deployer)
+        .setDepositRecord(mockCollateralDepositRecord.address)
+
+      await expect(tx)
+        .to.emit(depositHook, 'DepositRecordChange')
+        .withArgs(mockCollateralDepositRecord.address)
+    })
+  })
+
+  describe('# setDepositsAllowed', () => {
+    it('reverts if not role holder', async () => {
+      expect(
+        await depositHook.hasRole(await depositHook.SET_DEPOSITS_ALLOWED_ROLE(), user.address)
+      ).to.eq(false)
+
+      await expect(depositHook.connect(user).setDepositsAllowed(true)).revertedWith(
+        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await depositHook.SET_DEPOSITS_ALLOWED_ROLE()}`
+      )
+    })
+
+    it('sets to false', async () => {
+      await depositHook.connect(deployer).setDepositsAllowed(true)
+      expect(await depositHook.depositsAllowed()).to.not.eq(false)
+
+      await depositHook.connect(deployer).setDepositsAllowed(false)
+
+      expect(await depositHook.depositsAllowed()).to.eq(false)
+    })
+
+    it('sets to true', async () => {
+      expect(await depositHook.depositsAllowed()).to.not.eq(true)
+
+      await depositHook.connect(deployer).setDepositsAllowed(true)
+
+      expect(await depositHook.depositsAllowed()).to.eq(true)
+    })
+
+    it('is idempotent', async () => {
+      expect(await depositHook.depositsAllowed()).to.not.eq(true)
+
+      await depositHook.connect(deployer).setDepositsAllowed(true)
+
+      expect(await depositHook.depositsAllowed()).to.eq(true)
+
+      await depositHook.connect(deployer).setDepositsAllowed(true)
+
+      expect(await depositHook.depositsAllowed()).to.eq(true)
+    })
+
+    it('emits DepositsAllowedChange', async () => {
+      const tx = await depositHook.connect(deployer).setDepositsAllowed(true)
+
+      await expect(tx).to.emit(depositHook, 'DepositsAllowedChange').withArgs(true)
     })
   })
 })
