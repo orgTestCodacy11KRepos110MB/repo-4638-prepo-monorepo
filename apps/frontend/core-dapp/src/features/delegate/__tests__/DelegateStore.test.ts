@@ -20,7 +20,6 @@ describe('DelegateStore tests', () => {
   let spyResolveName: jest.SpyInstance
   let spyGetAvatar: jest.SpyInstance
   let spyLookupAddress: jest.SpyInstance
-  jest.resetAllMocks()
   beforeEach(() => {
     spyResolveName = jest.spyOn(rootStore.web3Store.coreProvider, 'resolveName').mockImplementation(
       (nameOrAddress) =>
