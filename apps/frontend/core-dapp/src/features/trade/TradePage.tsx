@@ -151,7 +151,7 @@ const TradePage: React.FC<Props> = ({ markets, staticSelectedMarket }) => {
             color="error"
             icon={<Icon name="short" />}
           >
-            Short
+            Shor
           </StyledRadio>
         </RadioGroup>
       </FormItem>
