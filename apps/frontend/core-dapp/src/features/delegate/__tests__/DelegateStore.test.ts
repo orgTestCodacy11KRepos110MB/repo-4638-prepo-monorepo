@@ -20,6 +20,7 @@ describe('DelegateStore tests', () => {
   let spyResolveName: jest.SpyInstance
   let spyGetAvatar: jest.SpyInstance
   let spyLookupAddress: jest.SpyInstance
+  jest.resetAllMocks()
   beforeEach(() => {
     spyResolveName = jest.spyOn(rootStore.web3Store.coreProvider, 'resolveName').mockImplementation(
       (nameOrAddress) =>
@@ -86,13 +87,13 @@ describe('DelegateStore tests', () => {
     expect(rootStore.delegateStore.alreadySelected).toBe(true)
   })
 
-  // it('should return empty address when not found from ens name', async () => {
-  //   const event = { target: { value: 'prepo.eth' } } as any
-  //   rootStore.delegateStore.onChangeEnsNameInput(event)
-  //   await when(() => !rootStore.delegateStore.customDelegate?.delegateAddress)
+  it('should return empty address when not found from ens name', async () => {
+    const event = { target: { value: 'prepo.eth' } } as any
+    rootStore.delegateStore.onChangeEnsNameInput(event)
+    await when(() => !rootStore.delegateStore.customDelegate?.delegateAddress)
 
-  //   expect(rootStore.delegateStore.customDelegate?.delegateAddress).toBe(undefined)
-  // })
+    expect(rootStore.delegateStore.customDelegate?.delegateAddress).toBe(undefined)
+  })
 
   it('should return empty address when invalid address is given', async () => {
     const event = { target: { value: '0x1231232123' } } as any
