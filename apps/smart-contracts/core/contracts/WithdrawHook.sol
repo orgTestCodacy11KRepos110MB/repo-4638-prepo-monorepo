@@ -14,6 +14,7 @@ contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
   uint256 private _globalWithdrawLimitPerPeriod;
   uint256 private _userWithdrawLimitPerPeriod;
   uint256 private _lastGlobalPeriodReset;
+  uint256 private _lastUserPeriodReset;
   uint256 private _globalAmountWithdrawnThisPeriod;
   mapping(address => uint256) private _userToAmountWithdrawnThisPeriod;
 
@@ -41,6 +42,11 @@ contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
     _;
   }
 
+  /*
+   * @dev While we could include the period length in the last reset
+   * timestamp, not initially adding it means that a change in period will
+   * be reflected immediately.
+   */
   function hook(
     address _sender,
     uint256 _amountBeforeFee,
@@ -57,6 +63,17 @@ contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
         "global withdraw limit exceeded"
       );
       _globalAmountWithdrawnThisPeriod += _amountBeforeFee;
+    }
+    if (_lastUserPeriodReset + _userPeriodLength < block.timestamp) {
+      _lastUserPeriodReset = block.timestamp;
+      _userToAmountWithdrawnThisPeriod[_sender] = _amountBeforeFee;
+    } else {
+      require(
+        _userToAmountWithdrawnThisPeriod[_sender] + _amountBeforeFee <=
+          _userWithdrawLimitPerPeriod,
+        "user withdraw limit exceeded"
+      );
+      _userToAmountWithdrawnThisPeriod[_sender] += _amountBeforeFee;
     }
     _depositRecord.recordWithdrawal(_sender, _amountBeforeFee);
   }
@@ -170,6 +187,10 @@ contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
     returns (uint256)
   {
     return _lastGlobalPeriodReset;
+  }
+
+  function getLastUserPeriodReset() external view override returns (uint256) {
+    return _lastUserPeriodReset;
   }
 
   function getGlobalAmountWithdrawnThisPeriod()

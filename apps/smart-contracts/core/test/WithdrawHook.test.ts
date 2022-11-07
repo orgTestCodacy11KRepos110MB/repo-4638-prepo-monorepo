@@ -27,8 +27,8 @@ describe('=> WithdrawHook', () => {
   const TEST_AMOUNT_AFTER_FEE = parseEther('1')
   const TEST_GLOBAL_PERIOD_LENGTH = 20
   const TEST_USER_PERIOD_LENGTH = 10
-  const TEST_GLOBAL_WITHDRAW_LIMIT = TEST_AMOUNT_AFTER_FEE.mul(3)
-  const TEST_USER_WITHDRAW_LIMIT = TEST_AMOUNT_AFTER_FEE.mul(2)
+  const TEST_GLOBAL_WITHDRAW_LIMIT = TEST_AMOUNT_BEFORE_FEE.mul(3)
+  const TEST_USER_WITHDRAW_LIMIT = TEST_AMOUNT_BEFORE_FEE.mul(2)
 
   beforeEach(async () => {
     ;[deployer, user, vault] = await ethers.getSigners()
@@ -92,6 +92,14 @@ describe('=> WithdrawHook', () => {
       expect(await withdrawHook.getDepositRecord()).to.eq(depositRecord.address)
     })
 
+    it('sets last global period reset to 0', async () => {
+      expect(await withdrawHook.getLastGlobalPeriodReset()).to.eq(0)
+    })
+
+    it('sets last user period reset to 0', async () => {
+      expect(await withdrawHook.getLastUserPeriodReset()).to.eq(0)
+    })
+
     it('sets role constants to the correct hash', async () => {
       expect(await withdrawHook.SET_COLLATERAL_ROLE()).to.eq(
         id('WithdrawHook_setCollateral(address)')
@@ -143,6 +151,10 @@ describe('=> WithdrawHook', () => {
         .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
 
       expect(depositRecord.recordWithdrawal).to.be.calledWith(user.address, TEST_AMOUNT_BEFORE_FEE)
+    })
+
+    it("doesn't revert if withdrawing 0", async () => {
+      await withdrawHook.connect(vault).hook(user.address, 0, 0)
     })
 
     describe('global withdraw limit testing', () => {
@@ -313,6 +325,194 @@ describe('=> WithdrawHook', () => {
 
         await expect(withdrawHook.connect(vault).hook(user.address, 1, 1)).to.revertedWith(
           'global withdraw limit exceeded'
+        )
+      })
+    })
+
+    describe('user withdraw limit testing', () => {
+      it('sets last user reset to current time if 0', async () => {
+        expect(await withdrawHook.getLastUserPeriodReset()).to.eq(0)
+
+        await withdrawHook
+          .connect(vault)
+          .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+
+        expect(await withdrawHook.getLastUserPeriodReset()).to.eq(
+          await getLastTimestamp(ethers.provider)
+        )
+      })
+
+      it('sets last user reset to current time if user period passed', async () => {
+        await withdrawHook
+          .connect(vault)
+          .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+        const previousResetTimestamp = await getLastTimestamp(ethers.provider)
+        expect(await withdrawHook.getLastUserPeriodReset()).to.eq(previousResetTimestamp)
+        await setNextTimestamp(
+          ethers.provider,
+          previousResetTimestamp + TEST_USER_PERIOD_LENGTH + 1
+        )
+
+        await withdrawHook
+          .connect(vault)
+          .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+
+        const currentResetTimestamp = await getLastTimestamp(ethers.provider)
+        expect(await withdrawHook.getLastUserPeriodReset()).to.eq(currentResetTimestamp)
+      })
+
+      it('sets user amount withdrawn to current amount being withdrawn if user period passed', async () => {
+        await withdrawHook
+          .connect(vault)
+          .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+        /**
+         * Using a different withdrawal amount to prevent a false positive if
+         * the last amount withdrawn doesn't change. Using 2 as a value since
+         * we want to show that `amountBeforeFee` is used rather than
+         * `amountAfterFee` and 1 is already the smallest non-zero value.
+         */
+        const differentAmountToWithdraw = 2
+        expect(await withdrawHook.getAmountWithdrawnThisPeriod(user.address)).to.not.eq(
+          differentAmountToWithdraw
+        )
+        const previousResetTimestamp = await getLastTimestamp(ethers.provider)
+        await setNextTimestamp(
+          ethers.provider,
+          previousResetTimestamp + TEST_USER_PERIOD_LENGTH + 1
+        )
+
+        await withdrawHook
+          .connect(vault)
+          .hook(user.address, differentAmountToWithdraw, differentAmountToWithdraw - 1)
+
+        expect(await withdrawHook.getAmountWithdrawnThisPeriod(user.address)).to.eq(
+          differentAmountToWithdraw
+        )
+      })
+
+      it("doesn't update last user reset if user period exactly reached", async () => {
+        await withdrawHook
+          .connect(vault)
+          .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+        const previousResetTimestamp = await getLastTimestamp(ethers.provider)
+        expect(await withdrawHook.getLastUserPeriodReset()).to.eq(previousResetTimestamp)
+        await setNextTimestamp(ethers.provider, previousResetTimestamp + TEST_USER_PERIOD_LENGTH)
+
+        await withdrawHook
+          .connect(vault)
+          .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+
+        expect(await withdrawHook.getLastUserPeriodReset()).to.eq(previousResetTimestamp)
+      })
+
+      it('adds to amount withdrawn if user period exactly reached', async () => {
+        await withdrawHook
+          .connect(vault)
+          .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+        const previousUserAmountWithdrawn = await withdrawHook.getAmountWithdrawnThisPeriod(
+          user.address
+        )
+        const previousResetTimestamp = await getLastTimestamp(ethers.provider)
+        await setNextTimestamp(ethers.provider, previousResetTimestamp + TEST_USER_PERIOD_LENGTH)
+
+        await withdrawHook
+          .connect(vault)
+          .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+
+        expect(await withdrawHook.getAmountWithdrawnThisPeriod(user.address)).to.eq(
+          previousUserAmountWithdrawn.add(TEST_AMOUNT_BEFORE_FEE)
+        )
+      })
+
+      it("doesn't update last user reset if user period not reached", async () => {
+        await withdrawHook
+          .connect(vault)
+          .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+        const previousResetTimestamp = await getLastTimestamp(ethers.provider)
+        expect(await withdrawHook.getLastUserPeriodReset()).to.eq(previousResetTimestamp)
+        await setNextTimestamp(
+          ethers.provider,
+          previousResetTimestamp + TEST_USER_PERIOD_LENGTH - 1
+        )
+
+        await withdrawHook
+          .connect(vault)
+          .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+
+        expect(await withdrawHook.getLastUserPeriodReset()).to.eq(previousResetTimestamp)
+      })
+
+      it('adds to user amount withdrawn if user period not reached', async () => {
+        await withdrawHook
+          .connect(vault)
+          .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+        const previousUserAmountWithdrawn = await withdrawHook.getAmountWithdrawnThisPeriod(
+          user.address
+        )
+        const previousResetTimestamp = await getLastTimestamp(ethers.provider)
+        await setNextTimestamp(
+          ethers.provider,
+          previousResetTimestamp + TEST_USER_PERIOD_LENGTH - 1
+        )
+
+        await withdrawHook
+          .connect(vault)
+          .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+
+        expect(await withdrawHook.getAmountWithdrawnThisPeriod(user.address)).to.eq(
+          previousUserAmountWithdrawn.add(TEST_AMOUNT_BEFORE_FEE)
+        )
+      })
+
+      it('reverts if user withdraw limit exceeded for period', async () => {
+        await withdrawHook
+          .connect(vault)
+          .hook(user.address, TEST_USER_WITHDRAW_LIMIT, TEST_USER_WITHDRAW_LIMIT)
+        expect(await withdrawHook.getAmountWithdrawnThisPeriod(user.address)).to.eq(
+          TEST_USER_WITHDRAW_LIMIT
+        )
+        const previousResetTimestamp = await getLastTimestamp(ethers.provider)
+        await setNextTimestamp(
+          ethers.provider,
+          previousResetTimestamp + TEST_USER_PERIOD_LENGTH - 1
+        )
+
+        await expect(withdrawHook.connect(vault).hook(user.address, 1, 1)).to.revertedWith(
+          'user withdraw limit exceeded'
+        )
+      })
+
+      it('adds to user amount withdrawn if user withdraw limit exactly reached for period', async () => {
+        const previousResetTimestamp = await getLastTimestamp(ethers.provider)
+        await setNextTimestamp(
+          ethers.provider,
+          previousResetTimestamp + TEST_GLOBAL_PERIOD_LENGTH - 1
+        )
+        await withdrawHook
+          .connect(vault)
+          .hook(user.address, TEST_USER_WITHDRAW_LIMIT.sub(1), TEST_USER_WITHDRAW_LIMIT.sub(1))
+
+        await expect(withdrawHook.connect(vault).hook(user.address, 1, 1)).to.not.reverted
+        expect(await withdrawHook.getAmountWithdrawnThisPeriod(user.address)).to.eq(
+          TEST_USER_WITHDRAW_LIMIT
+        )
+      })
+
+      it('reverts if user withdraw limit exceeded for period', async () => {
+        await withdrawHook
+          .connect(vault)
+          .hook(user.address, TEST_USER_WITHDRAW_LIMIT, TEST_USER_WITHDRAW_LIMIT)
+        expect(await withdrawHook.getAmountWithdrawnThisPeriod(user.address)).to.eq(
+          TEST_USER_WITHDRAW_LIMIT
+        )
+        const previousResetTimestamp = await getLastTimestamp(ethers.provider)
+        await setNextTimestamp(
+          ethers.provider,
+          previousResetTimestamp + TEST_USER_PERIOD_LENGTH - 1
+        )
+
+        await expect(withdrawHook.connect(vault).hook(user.address, 1, 1)).to.revertedWith(
+          'user withdraw limit exceeded'
         )
       })
     })

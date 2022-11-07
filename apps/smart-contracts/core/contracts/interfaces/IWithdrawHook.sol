@@ -39,6 +39,8 @@ interface IWithdrawHook is IDepositRecordHook {
 
   function getLastGlobalPeriodReset() external view returns (uint256);
 
+  function getLastUserPeriodReset() external view returns (uint256);
+
   function getGlobalAmountWithdrawnThisPeriod()
     external
     view
