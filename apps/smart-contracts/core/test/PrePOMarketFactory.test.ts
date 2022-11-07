@@ -2,7 +2,7 @@ import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { utils } from 'prepo-hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
-import { mockERC20Fixture } from './fixtures/MockERC20Fixture'
+import { testERC20Fixture } from './fixtures/TestERC20Fixture'
 import { LongShortTokenAttachFixture } from './fixtures/LongShortTokenFixture'
 import { prePOMarketAttachFixture } from './fixtures/PrePOMarketFixture'
 import {
@@ -12,13 +12,13 @@ import {
 } from './fixtures/PrePOMarketFactoryFixture'
 import { getCollateralValidityChangedEvent } from './events'
 import { PrePOMarketFactory } from '../typechain/PrePOMarketFactory'
-import { MockERC20 } from '../typechain/MockERC20'
+import { TestERC20 } from '../typechain/TestERC20'
 
 const { nowPlusMonths, revertReason } = utils
 
 describe('=> PrePOMarketFactory', () => {
   let prePOMarketFactory: PrePOMarketFactory
-  let collateralToken: MockERC20
+  let collateralToken: TestERC20
   let deployer: SignerWithAddress
   let user: SignerWithAddress
   let user2: SignerWithAddress
@@ -36,7 +36,7 @@ describe('=> PrePOMarketFactory', () => {
 
   beforeEach(async () => {
     ;[deployer, user, user2, treasury] = await ethers.getSigners()
-    collateralToken = await mockERC20Fixture('prePO Collateral Token', 'preCT')
+    collateralToken = await testERC20Fixture('prePO USDC Collateral', 'preUSD', 18)
     await collateralToken.mint(deployer.address, MOCK_COLLATERAL_SUPPLY)
     prePOMarketFactory = await prePOMarketFactoryFixture()
   })
@@ -125,7 +125,7 @@ describe('=> PrePOMarketFactory', () => {
     })
 
     it('should not allow invalid collateral', async () => {
-      const invalidCollateral = await mockERC20Fixture('Invalid', 'INVLD')
+      const invalidCollateral = await testERC20Fixture('Invalid', 'INVLD', 18)
 
       await expect(
         createMarket({

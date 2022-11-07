@@ -4,7 +4,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-wit
 import { BigNumber } from 'ethers'
 import { ZERO_ADDRESS } from 'prepo-constants'
 import { utils } from 'prepo-hardhat'
-import { mockERC20Fixture } from './fixtures/MockERC20Fixture'
+import { testERC20Fixture } from './fixtures/TestERC20Fixture'
 import { LongShortTokenAttachFixture } from './fixtures/LongShortTokenFixture'
 import { prePOMarketAttachFixture } from './fixtures/PrePOMarketFixture'
 import {
@@ -24,12 +24,12 @@ import { MAX_PRICE, calculateFee, FEE_LIMIT, FEE_DENOMINATOR, getLastTimestamp }
 import { PrePOMarketFactory } from '../typechain/PrePOMarketFactory'
 import { PrePOMarket } from '../typechain/PrePOMarket'
 import { LongShortToken } from '../typechain/LongShortToken'
-import { MockERC20 } from '../typechain/MockERC20'
+import { TestERC20 } from '../typechain/TestERC20'
 
 const { nowPlusMonths, revertReason } = utils
 
 describe('=> prePOMarket', () => {
-  let collateralToken: MockERC20
+  let collateralToken: TestERC20
   let prePOMarket: PrePOMarket
   let prePOMarketFactory: PrePOMarketFactory
   let deployer: SignerWithAddress
@@ -53,7 +53,7 @@ describe('=> prePOMarket', () => {
 
   beforeEach(async () => {
     ;[deployer, user, user2, treasury] = await ethers.getSigners()
-    collateralToken = await mockERC20Fixture('prePO Collateral Token', 'preCT')
+    collateralToken = await testERC20Fixture('prePO USDC Collateral', 'preUSD', 18)
     await collateralToken.mint(deployer.address, MOCK_COLLATERAL_SUPPLY)
     prePOMarketFactory = await prePOMarketFactoryFixture()
     await prePOMarketFactory.setCollateralValidity(collateralToken.address, true)
