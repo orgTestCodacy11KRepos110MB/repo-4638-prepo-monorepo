@@ -47,10 +47,9 @@ interface ICollateralDepositRecord {
    * user-specific deposit totals.
    *
    * Only callable by allowed hooks.
-   * @param sender The account making the Collateral withdrawal
    * @param amount The amount actually withdrawn by the user
    */
-  function recordWithdrawal(address sender, uint256 amount) external;
+  function recordWithdrawal(uint256 amount) external;
 
   /**
    * @notice Sets the global cap on assets backing Collateral in circulation.

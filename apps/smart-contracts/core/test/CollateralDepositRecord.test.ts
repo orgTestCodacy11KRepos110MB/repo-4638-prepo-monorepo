@@ -106,64 +106,122 @@ describe('=> CollateralDepositRecord', () => {
   })
 
   describe('# recordWithdrawal', () => {
-    const testDepositToWithdrawFrom = parseEther('5')
     beforeEach(async () => {
-      await depositRecord.connect(user).recordDeposit(user.address, testDepositToWithdrawFrom)
+      await depositRecord
+        .connect(user)
+        .recordDeposit(user.address, TEST_AMOUNT_ONE.add(TEST_AMOUNT_TWO))
     })
 
-    it('should only be callable by allowed contracts', async () => {
+    it('reverts if caller not allowed', async () => {
       expect(await depositRecord.isHookAllowed(user2.address)).to.eq(false)
 
       await expect(
-        depositRecord.connect(user2).recordWithdrawal(user.address, TEST_AMOUNT_TWO)
+        depositRecord.connect(user2).recordWithdrawal(TEST_AMOUNT_TWO)
       ).to.be.revertedWith('msg.sender != allowed hook')
     })
 
-    it("should correctly subtract 'amount' from both deposited totals when starting from a non-zero value", async () => {
-      expect(await depositRecord.getGlobalNetDepositAmount()).to.be.gt(0)
-      expect(await depositRecord.getUserDepositAmount(user.address)).to.be.gt(0)
+    it('subtracts from global deposits if withdrawal > 0 and global deposits > 0', async () => {
       const globalDepositsBefore = await depositRecord.getGlobalNetDepositAmount()
-      const accountDepositsBefore = await depositRecord.getUserDepositAmount(user.address)
+      expect(globalDepositsBefore).to.be.gt(0)
 
-      await depositRecord.connect(user).recordWithdrawal(user.address, TEST_AMOUNT_TWO)
+      await depositRecord.connect(user).recordWithdrawal(TEST_AMOUNT_TWO)
 
       expect(await depositRecord.getGlobalNetDepositAmount()).to.eq(
         globalDepositsBefore.sub(TEST_AMOUNT_TWO)
       )
-      expect(await depositRecord.getUserDepositAmount(user.address)).to.eq(
-        accountDepositsBefore.sub(TEST_AMOUNT_TWO)
+    })
+
+    it('leaves user deposits unchanged if withdrawal > 0 and user deposit > 0', async () => {
+      const userDepositBefore = await depositRecord.getUserDepositAmount(user.address)
+      expect(userDepositBefore).to.be.gt(0)
+
+      await depositRecord.connect(user).recordWithdrawal(TEST_AMOUNT_TWO)
+
+      expect(await depositRecord.getUserDepositAmount(user.address)).to.eq(userDepositBefore)
+    })
+
+    it('leaves global deposits unchanged if withdrawal = 0 and global deposits > 0', async () => {
+      const globalDepositsBefore = await depositRecord.getGlobalNetDepositAmount()
+      expect(globalDepositsBefore).to.be.gt(0)
+
+      await depositRecord.connect(user).recordWithdrawal(0)
+
+      expect(await depositRecord.getGlobalNetDepositAmount()).to.eq(globalDepositsBefore)
+    })
+
+    it('leaves user deposits unchanged if withdrawal = 0 and user deposit > 0', async () => {
+      const userDepositBefore = await depositRecord.getUserDepositAmount(user.address)
+      expect(userDepositBefore).to.be.gt(0)
+
+      await depositRecord.connect(user).recordWithdrawal(0)
+
+      expect(await depositRecord.getUserDepositAmount(user.address)).to.eq(userDepositBefore)
+    })
+
+    it('leaves global deposits unchanged if withdrawal = 0 and global deposits = 0', async () => {
+      await depositRecord
+        .connect(user)
+        .recordWithdrawal(await depositRecord.getGlobalNetDepositAmount())
+      const globalDepositsBefore = await depositRecord.getGlobalNetDepositAmount()
+      expect(globalDepositsBefore).to.be.eq(0)
+
+      await depositRecord.connect(user).recordWithdrawal(0)
+
+      expect(await depositRecord.getGlobalNetDepositAmount()).to.eq(globalDepositsBefore)
+    })
+
+    it('leaves user deposits unchanged if withdrawal = 0 and user deposit = 0', async () => {
+      await depositRecord
+        .connect(user)
+        .recordWithdrawal(await depositRecord.getUserDepositAmount(user.address))
+      const userDepositBefore = await depositRecord.getUserDepositAmount(user.address)
+      expect(userDepositBefore).to.be.gt(0)
+
+      await depositRecord.connect(user).recordWithdrawal(0)
+
+      expect(await depositRecord.getUserDepositAmount(user.address)).to.eq(userDepositBefore)
+    })
+
+    it('sets global deposits to 0 if withdrawal > global deposits', async () => {
+      const globalDepositsBefore = await depositRecord.getGlobalNetDepositAmount()
+      expect(globalDepositsBefore).to.be.gt(0)
+
+      await depositRecord.connect(user).recordWithdrawal(globalDepositsBefore.add(1))
+
+      expect(await depositRecord.getGlobalNetDepositAmount()).to.eq(0)
+    })
+
+    it('leaves user deposits unchanged if withdrawal > global deposits', async () => {
+      const userDepositBefore = await depositRecord.getUserDepositAmount(user.address)
+      expect(userDepositBefore).to.be.gt(0)
+
+      await depositRecord.connect(user).recordWithdrawal(userDepositBefore.add(1))
+
+      expect(await depositRecord.getUserDepositAmount(user.address)).to.eq(userDepositBefore)
+    })
+
+    it('subtracts from global deposits if called again', async () => {
+      await depositRecord.connect(user).recordWithdrawal(1)
+      const globalDepositsBeforeSecondWithdrawal = await depositRecord.getGlobalNetDepositAmount()
+
+      await depositRecord.connect(user).recordWithdrawal(TEST_AMOUNT_TWO)
+
+      expect(await depositRecord.getGlobalNetDepositAmount()).to.eq(
+        globalDepositsBeforeSecondWithdrawal.sub(TEST_AMOUNT_TWO)
       )
     })
 
-    it("should correctly subtract 'amount' from both deposited totals when called again", async () => {
-      await depositRecord.connect(user).recordWithdrawal(user.address, TEST_AMOUNT_TWO)
-      const globalDepositsBeforeSecondWithdrawal = await depositRecord.getGlobalNetDepositAmount()
-      const accountDepositsBeforeSecondWithdrawal = await depositRecord.getUserDepositAmount(
+    it('leaves user deposits unchanged if called again', async () => {
+      await depositRecord.connect(user).recordWithdrawal(1)
+      const userDepositBeforeSecondWithdrawal = await depositRecord.getUserDepositAmount(
         user.address
       )
 
-      await depositRecord.connect(user).recordWithdrawal(user.address, TEST_AMOUNT_ONE)
+      await depositRecord.connect(user).recordWithdrawal(TEST_AMOUNT_TWO)
 
-      expect(await depositRecord.getGlobalNetDepositAmount()).to.eq(
-        globalDepositsBeforeSecondWithdrawal.sub(TEST_AMOUNT_ONE)
-      )
       expect(await depositRecord.getUserDepositAmount(user.address)).to.eq(
-        accountDepositsBeforeSecondWithdrawal.sub(TEST_AMOUNT_ONE)
+        userDepositBeforeSecondWithdrawal
       )
-    })
-
-    it('should set the deposit total to zero instead of underflowing if withdrawal amount is greater than the existing total', async () => {
-      expect(await depositRecord.getGlobalNetDepositAmount()).to.be.eq(testDepositToWithdrawFrom)
-      expect(await depositRecord.getUserDepositAmount(user.address)).to.be.eq(
-        testDepositToWithdrawFrom
-      )
-
-      await depositRecord
-        .connect(user)
-        .recordWithdrawal(user.address, testDepositToWithdrawFrom.add(1))
-
-      expect(await depositRecord.getGlobalNetDepositAmount()).to.eq(0)
-      expect(await depositRecord.getUserDepositAmount(user.address)).to.eq(0)
     })
   })
 

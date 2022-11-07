@@ -150,7 +150,7 @@ describe('=> WithdrawHook', () => {
         .connect(vault)
         .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
 
-      expect(depositRecord.recordWithdrawal).to.be.calledWith(user.address, TEST_AMOUNT_BEFORE_FEE)
+      expect(depositRecord.recordWithdrawal).to.be.calledWith(TEST_AMOUNT_BEFORE_FEE)
     })
 
     it("doesn't revert if withdrawing 0", async () => {

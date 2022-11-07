@@ -38,7 +38,7 @@ contract CollateralDepositRecord is ICollateralDepositRecord, Ownable {
     _userToDeposits[_sender] += _amount;
   }
 
-  function recordWithdrawal(address _sender, uint256 _amount)
+  function recordWithdrawal(uint256 _amount)
     external
     override
     onlyAllowedHooks
@@ -47,11 +47,6 @@ contract CollateralDepositRecord is ICollateralDepositRecord, Ownable {
       _globalNetDepositAmount -= _amount;
     } else {
       _globalNetDepositAmount = 0;
-    }
-    if (_userToDeposits[_sender] > _amount) {
-      _userToDeposits[_sender] -= _amount;
-    } else {
-      _userToDeposits[_sender] = 0;
     }
   }
 

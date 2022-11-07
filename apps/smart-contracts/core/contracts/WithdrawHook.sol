@@ -46,6 +46,9 @@ contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
    * @dev While we could include the period length in the last reset
    * timestamp, not initially adding it means that a change in period will
    * be reflected immediately.
+   *
+   * We use `_amountBeforeFee` for withdrawals since the fee should be
+   * included in the reduction of liabilities to Collateral depositors.
    */
   function hook(
     address _sender,
@@ -75,7 +78,7 @@ contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
       );
       _userToAmountWithdrawnThisPeriod[_sender] += _amountBeforeFee;
     }
-    _depositRecord.recordWithdrawal(_sender, _amountBeforeFee);
+    _depositRecord.recordWithdrawal(_amountBeforeFee);
   }
 
   function setCollateral(ICollateral _newCollateral)
