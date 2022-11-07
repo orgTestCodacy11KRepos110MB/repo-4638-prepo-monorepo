@@ -29,7 +29,7 @@ const Value = styled.p`
 const Wrapper = styled.div`
   background-color: ${({ theme }): string => theme.color.marketChartFloatingCard};
   border: 1px solid ${({ theme }): string => theme.color.primaryAccent};
-  border-radius: ${({ theme }): number => theme.borderRadius}px;
+  border-radius: ${({ theme }): string => theme.borderRadius.base};
   padding: ${spacingIncrement(14)};
   text-align: center;
   width: max-content;

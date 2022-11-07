@@ -4,16 +4,7 @@ import { observer } from 'mobx-react-lite'
 import { useMemo } from 'react'
 import Skeleton from 'react-loading-skeleton'
 import styled from 'styled-components'
-import {
-  media,
-  spacingIncrement,
-  Button,
-  Icon,
-  ButtonProps,
-  Flex,
-  Typography,
-  Grid,
-} from 'prepo-ui'
+import { media, spacingIncrement, Button, Icon, Flex, Typography, Grid } from 'prepo-ui'
 import { t, Trans } from '@lingui/macro'
 import PortfolioBreakdownItem from './PortfolioBreakdownItem'
 import PositionsAndHistory from './PositionsAndHistory'
@@ -26,7 +17,7 @@ const { toUsd } = numberFormatter
 
 const Box = styled(Col)`
   border: 1px solid ${({ theme }): string => theme.color.neutral8};
-  border-radius: ${({ theme }): number => theme.borderRadius}px;
+  border-radius: ${({ theme }): string => theme.borderRadius.xs};
 `
 
 const BalanceText = styled.p`
@@ -51,19 +42,6 @@ const PortfolioBreakdownWrapper = styled.div<{ show: boolean }>`
   overflow: hidden;
   transition: 0.3s ease-out;
 `
-
-const commonButtonProps: ButtonProps = {
-  sizes: {
-    desktop: {
-      height: 54,
-      fontSize: 'md',
-    },
-    mobile: {
-      height: 38,
-      fontSize: 'xs',
-    },
-  },
-}
 
 const Portfolio: React.FC = () => {
   const {
@@ -134,11 +112,11 @@ const Portfolio: React.FC = () => {
             </Flex>
             <Grid gap={22} gridTemplateColumns="1fr 1fr" maxWidth={540} mt={17} width="100%">
               {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-              <Button type="primary" block href="/portfolio/deposit" {...commonButtonProps}>
+              <Button block href="/portfolio/deposit">
                 <Trans>Deposit</Trans>
               </Button>
               {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-              <Button href="/portfolio/withdraw" {...commonButtonProps}>
+              <Button type="default" href="/portfolio/withdraw" block>
                 <Trans>Withdraw</Trans>
               </Button>
             </Grid>

@@ -23,11 +23,13 @@ type ComponentProps = {
 */
 
 const Wrapper = styled.div<ComponentProps>`
-  background-color: ${({ theme }): string => theme.color.neutral6};
+  align-items: center;
   background-image: url(${({ avatarUrl }): string | undefined => avatarUrl});
   background-position: top center;
   background-size: cover;
+  display: flex;
   height: ${({ diameterMobile }): string => spacingIncrement(diameterMobile)};
+  justify-content: center;
   width: ${({ diameterMobile }): string => spacingIncrement(diameterMobile)};
 
   .paper {

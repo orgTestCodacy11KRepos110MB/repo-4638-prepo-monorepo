@@ -82,7 +82,7 @@ const PositionsAndHistory: React.FC = () => {
     <Box
       border="1px solid"
       borderColor="neutral8"
-      borderRadius={borderRadius}
+      borderRadius={borderRadius.xs}
       mt={{ desktop: 32, mobile: 24 }}
       width="100%"
     >

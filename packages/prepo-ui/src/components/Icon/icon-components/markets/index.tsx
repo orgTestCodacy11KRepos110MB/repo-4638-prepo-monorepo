@@ -1,4 +1,3 @@
-import DiscordIcon from './DiscordIcon'
 import OpenSeaIcon from './OpenSeaIcon'
 import PreFakeStockIcon from './PreFakeStock'
 import PreFakeTokenIcon from './PreFakeToken'
@@ -7,7 +6,6 @@ import StripeIcon from './StripeIcon'
 import ZapperIcon from './ZapperIcon'
 
 export const marketsIcons = {
-  discord: DiscordIcon,
   opensea: OpenSeaIcon,
   spacex: SpacexIcon,
   stripe: StripeIcon,

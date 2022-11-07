@@ -1,16 +1,11 @@
-import { CHARACTERS_ON_WALLET } from '../lib/constants'
-
-const TWELVE_CHARACTERS = CHARACTERS_ON_WALLET / 7
-const THIRTY_FOUR_CHARACTERS = CHARACTERS_ON_WALLET / 2.5
-
 export const getShortAccount = (
   account: string | null | undefined,
   size: 'small' | 'medium' = 'small'
 ): string | null => {
-  const subtractValue = size === 'small' ? TWELVE_CHARACTERS : THIRTY_FOUR_CHARACTERS
+  const subtractValue = size === 'small' ? [6, 3] : [6, 7]
   return account
-    ? `${account.substring(0, subtractValue)}...${account.substring(
-        account.length - (subtractValue + 1),
+    ? `${account.substring(0, subtractValue[0])}...${account.substring(
+        account.length - subtractValue[1],
         account.length
       )}`
     : null

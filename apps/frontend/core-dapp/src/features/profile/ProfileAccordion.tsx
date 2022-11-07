@@ -9,8 +9,8 @@ const StyledAccordion = styled(Accordion)`
   > button {
     border: 1px solid ${({ theme }): string => `${theme.color.profileBorderColor}`};
     border-bottom: none;
-    border-top-left-radius: ${({ theme }): string => `${theme.borderRadius}px`};
-    border-top-right-radius: ${({ theme }): string => `${theme.borderRadius}px`};
+    border-top-left-radius: ${({ theme }): string => theme.borderRadius.base};
+    border-top-right-radius: ${({ theme }): string => theme.borderRadius.base};
     padding: ${spacingIncrement(15)} ${spacingIncrement(21)};
     ${media.desktop`
       padding: ${spacingIncrement(25)}  ${spacingIncrement(23)};
@@ -18,8 +18,8 @@ const StyledAccordion = styled(Accordion)`
   }
   > div {
     border: 1px solid ${({ theme }): string => `${theme.color.profileBorderColor}`};
-    border-bottom-left-radius: ${({ theme }): string => `${theme.borderRadius}px`};
-    border-bottom-right-radius: ${({ theme }): string => `${theme.borderRadius}px`};
+    border-bottom-left-radius: ${({ theme }): string => theme.borderRadius.base};
+    border-bottom-right-radius: ${({ theme }): string => theme.borderRadius.base};
     border-top: none;
     padding: 0;
   }

@@ -12,7 +12,7 @@ type Props = { messages: MessageType[] }
 
 const StyledList = styled.div`
   border: 1px solid ${({ theme }): string => theme.color.neutral6};
-  border-radius: ${({ theme }): number => theme.borderRadius}px;
+  border-radius: ${({ theme }): string => theme.borderRadius.xs};
   margin: 0;
   padding: 0;
   ${media.desktop`

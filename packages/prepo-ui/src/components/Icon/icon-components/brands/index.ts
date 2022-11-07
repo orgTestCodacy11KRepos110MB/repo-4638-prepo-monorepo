@@ -1,13 +1,5 @@
-import AppleIcon from './AppleIcon'
-import GoogleIcon from './GoogleIcon'
-import O365Icon from './O365Icon'
-import OutlookIcon from './OutlookIcon'
-import YahooIcon from './YahooIcon'
+import EtherscanIcon from './EtherscanIcon'
 
 export const brandIcons = {
-  apple: AppleIcon,
-  google: GoogleIcon,
-  o365: O365Icon,
-  outlook: OutlookIcon,
-  yahoo: YahooIcon,
+  etherscan: EtherscanIcon,
 }

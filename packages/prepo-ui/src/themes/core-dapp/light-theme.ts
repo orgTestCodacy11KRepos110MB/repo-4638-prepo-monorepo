@@ -34,6 +34,8 @@ const neutral9 = colors.white
 const neutral10 = colors.white
 const neutral11 = colors.gray12
 
+const purpleStroke = colors.purple13
+
 // semantic
 const info = colors.blue3
 const error = colors.red2
@@ -144,6 +146,7 @@ const lightTheme: DefaultTheme = {
     accentSuccess,
     accentWarning,
     accentPurple,
+    purpleStroke,
     alertBoxInfo,
     alertBoxSuccess,
     alertBoxError,

@@ -75,7 +75,7 @@ const MarketSubNavigation: React.FC<Props> = ({ selectedMarket }) => {
     <Col xs={24} md={12} lg={8}>
       <Row gutter={[16, 0]}>
         <Col xs={12} lg={8}>
-          <Button type="primary" size="lg" block href={`/markets/${urlId}/trade`}>
+          <Button type="primary" block href={`/markets/${urlId}/trade`}>
             <Trans>Trade</Trans>
           </Button>
         </Col>
@@ -83,7 +83,6 @@ const MarketSubNavigation: React.FC<Props> = ({ selectedMarket }) => {
           <Button
             block
             type="text"
-            size="lg"
             href={`/markets/${urlId}/liquidity`}
             icon={<Icon name="plus" color="primaryLight" height={iconSize} width={iconSize} />}
           >

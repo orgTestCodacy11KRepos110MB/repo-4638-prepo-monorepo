@@ -4,7 +4,7 @@ import { PpoEventObject, PpoHistoryEnum, PpoEventColors } from './ppo-history.ty
 
 const Container = styled.div<{ $colors: PpoEventColors }>`
   background-color: ${({ theme, $colors }): string => theme.color[$colors.accent]};
-  border-radius: ${({ theme }): number => theme.borderRadius}px;
+  border-radius: ${({ theme }): string => theme.borderRadius.md};
   color: ${({ theme, $colors }): string => theme.color[$colors.primary]};
   font-size: ${({ theme }): string => theme.fontSize.xs};
   font-weight: ${({ theme }): number => theme.fontWeight.semiBold};

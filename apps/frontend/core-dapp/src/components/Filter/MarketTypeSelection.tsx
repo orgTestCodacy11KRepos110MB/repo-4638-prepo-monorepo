@@ -20,7 +20,7 @@ const SingleFilterItem = styled.div<{ selected?: boolean }>`
   background-color: ${({ theme, selected }): string =>
     selected ? theme.color.neutral7 : theme.color.neutral9};
   border: 1px solid ${({ theme }): string => theme.color.neutral7};
-  border-radius: ${({ theme }): number => theme.borderRadius}px;
+  border-radius: ${({ theme }): string => theme.borderRadius.xs};
   color: ${({ theme }): string => theme.color.neutral1};
   cursor: pointer;
   font-size: ${({ theme }): string => theme.fontSize.xs};

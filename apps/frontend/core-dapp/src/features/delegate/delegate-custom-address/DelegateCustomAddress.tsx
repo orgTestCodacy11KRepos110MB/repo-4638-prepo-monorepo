@@ -106,7 +106,6 @@ const DelegateCustomAddress: React.FC = () => {
           type="primary"
           disabled={!showAddress || alreadySelected || loading || disableMocks}
           block
-          size="md"
           onClick={(): void => setSelectedDelegate(customDelegate)}
         >
           Delegate to Custom Address

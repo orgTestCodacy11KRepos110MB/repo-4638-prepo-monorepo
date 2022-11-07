@@ -3,9 +3,7 @@ import ArrowLeftIcon from './ArrowLeftIcon'
 import ArrowRightIcon from './ArrowRightIcon'
 import ArrowRightIcon2 from './ArrowRightIcon2'
 import ArrowRightIcon3 from './ArrowRightIcon3'
-import BurgerIcon from './BurgerIcon'
 import CalendarIcon from './CalendarIcon'
-import ChartsCandlestickIcon from './ChartsCandlestickIcon'
 import ChartsLineIcon from './ChartsLineIcon'
 import CheckIcon from './CheckIcon'
 import CrossIcon from './CrossIcon'
@@ -25,8 +23,6 @@ import PrepoIcon from './PrepoIcon'
 import ResetIcon from './ResetIcon'
 import SearchIcon from './SearchIcon'
 import SortDownIcon from './SortDownIcon'
-import ZoomInIcon from './ZoomInIcon'
-import ZoomOutIcon from './ZoomOutIcon'
 import LongIcon from './LongIcon'
 import ShareIcon from './ShareIcon'
 import ShoppingCartArrowDownIcon from './ShoppingCartArrowDownIcon'
@@ -36,7 +32,6 @@ import StakeIcon from './StakeIcon'
 import MoneyBagIcon from './MoneyBagIcon'
 import PercentIcon from './PercentIcon'
 import ProfileIcon from './ProfileIcon'
-import ProfileCircleIcon from './ProfileCircleIcon'
 import GrowthIcon from './GrowthIcon'
 import WaterDropIcon from './WaterDropIcon'
 import EyeSlashIcon from './EyeSlashIcon'
@@ -57,14 +52,16 @@ import DotsIcon from './DotsIcon'
 import DarkThemeIcon from './DarkThemeIcon'
 import LightThemeIcon from './LightThemeIcon'
 import LanguageIcon from './LanguageIcon'
-import SoundOffIcon from './SoundOffIcon'
-import SoundOnIcon from './SoundOnIcon'
 import InfoOutlinedIcon from './InfoOutlinedIcon'
 import DocsOutlinedIcon from './DocsOutlinedIcon'
 import GovernOutlinedIcon from './GovernOutlinedIcon'
-import GradientLogoIcon from './GradientLogoIcon'
 import ExclamationTriangle from './ExclamationTriangle'
 import CopyIcon from './CopyIcon'
+import ChevronRightIcon from './ChevronRightIcon'
+import ChevronUpIcon from './ChevronUpIcon'
+import ChevronDownIcon from './ChevronDownIcon'
+import PowerIcon from './PowerIcon'
+import ArrowUpRightIcon from './ArrowUpRightIcon'
 
 export const applicationIcons = {
   'arrow-down': ArrowDownIcon,
@@ -72,12 +69,14 @@ export const applicationIcons = {
   'arrow-right': ArrowRightIcon,
   'arrow-right-2': ArrowRightIcon2,
   'arrow-right-3': ArrowRightIcon3,
+  'arrow-up-right': ArrowUpRightIcon,
   'brand-logo': BrandLogoIcon,
-  burger: BurgerIcon,
   calendar: CalendarIcon,
-  'charts-candlestick': ChartsCandlestickIcon,
   'charts-line': ChartsLineIcon,
-  'check-icon': CheckIcon,
+  check: CheckIcon,
+  'chevron-down': ChevronDownIcon,
+  'chevron-right': ChevronRightIcon,
+  'chevron-up': ChevronUpIcon,
   'colored-bond': ColoredBond,
   'colored-legal': ColoredLegal,
   'colored-liquidity': ColoredLiquiditity,
@@ -95,7 +94,6 @@ export const applicationIcons = {
   'exclamation-triangle': ExclamationTriangle,
   eye: EyeIcon,
   'eye-slash': EyeSlashIcon,
-  'gradient-logo': GradientLogoIcon,
   growth: GrowthIcon,
   'govern-outlined': GovernOutlinedIcon,
   history: HistoryIcon,
@@ -114,10 +112,10 @@ export const applicationIcons = {
   plus: PlusIcon,
   portfolio: PortfolioIcon,
   'ppo-logo': PpoLogoIcon,
+  power: PowerIcon,
   prepo: PrepoIcon,
   priest: PriestIcon,
   profile: ProfileIcon,
-  'profile-circle': ProfileCircleIcon,
   search: SearchIcon,
   share: ShareIcon,
   'shopping-cart-arrow-down': ShoppingCartArrowDownIcon,
@@ -125,13 +123,9 @@ export const applicationIcons = {
   short: ShortIcon,
   settings: SettingsIcon,
   'sort-down': SortDownIcon,
-  'sound-off': SoundOffIcon,
-  'sound-on': SoundOnIcon,
   stake: StakeIcon,
   'water-drop': WaterDropIcon,
   reset: ResetIcon,
   'zoom-in-two': ZoomInIconTwo,
   'zoom-out-two': ZoomOutIconTwo,
-  'zoom-in': ZoomInIcon,
-  'zoom-out': ZoomOutIcon,
 }

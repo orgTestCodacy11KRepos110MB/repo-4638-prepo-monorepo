@@ -34,13 +34,7 @@ const DropDownWrapper = styled(Dropdown)`
 
 const PpoLabel = (): JSX.Element => (
   <PpoWrapper>
-    <NavigationItem
-      iconName="ppo-logo"
-      href={Routes.PPO}
-      iconColor="neutral5"
-      iconSize={{ height: '20', width: '20' }}
-      name="PPO"
-    />
+    <NavigationItem iconName="ppo-logo" path={Routes.PPO} name="PPO" />
   </PpoWrapper>
 )
 

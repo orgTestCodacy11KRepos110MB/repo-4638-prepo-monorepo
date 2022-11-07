@@ -36,14 +36,9 @@ const StyledIcon = styled(Icon)<{ $customStyles?: ButtonGridStyles }>`
   left: ${({ $customStyles }): string =>
     $customStyles?.iconStyles?.mobile?.left ?? spacingIncrement(37)};
   position: absolute;
-  top: ${({ $customStyles }): string =>
-    $customStyles?.iconStyles?.mobile?.top ?? spacingIncrement(20)};
-
   ${media.desktop<{ $customStyles?: ButtonGridStyles }>`
     left: ${({ $customStyles }): string =>
       $customStyles?.iconStyles?.desktop?.left ?? spacingIncrement(56)};
-    top: ${({ $customStyles }): string =>
-      $customStyles?.iconStyles?.desktop?.top ?? spacingIncrement(28)};
   `}
 `
 
@@ -71,11 +66,10 @@ const TextWrapper = styled.div`
     font-size: ${({ theme }): string => theme.fontSize.xs};
   }
 `
-const StyledButton = styled(Button)<{
-  disabled?: boolean
-  customColors?: ButtonColors
-}>`
+const StyledButton = styled(Button)<{ disabled?: boolean; customColors?: ButtonColors }>`
   &&&& {
+    display: flex;
+    flex: 1;
     .ant-btn:hover {
       border-color: ${({ disabled, theme, customColors }): string | undefined =>
         disabled ? theme.color.neutral6 : customColors?.hoverBorder};
@@ -115,10 +109,10 @@ const ButtonLink: React.FC<ButtonLinkProps> = ({
   )
   return (
     <StyledButton
+      block
       href={href}
       target={target}
-      customColors={customStyles}
-      type={customStyles ? undefined : 'primary'}
+      type={customStyles ? 'ghost' : 'primary'}
       disabled={!href || disabled}
     >
       {iconName && Boolean(iconSize) && (

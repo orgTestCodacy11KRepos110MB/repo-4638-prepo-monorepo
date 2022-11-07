@@ -2,6 +2,18 @@ import { ThemeModes, coreDappTheme } from './index'
 import 'styled-components'
 
 declare module 'styled-components' {
+  export interface BorderRadius {
+    /** 24px */
+    lg: string
+    /** 20px */
+    base: string
+    /** 16px */
+    md: string
+    /** 14px */
+    sm: string
+    /** 12px */
+    xs: string
+  }
   export interface Color {
     /** #3335CC */
     darkPrimary: string
@@ -63,6 +75,8 @@ declare module 'styled-components' {
     accentWarning: string
     /** #FAF5FE | #212429 */
     accentPurple: string
+    /** #E5E5FB | #40444F */
+    purpleStroke: string
     /** #FAFDFF | #40444F */
     alertBoxInfo: string
     /** #F4FBF7 | #40444F */
@@ -183,7 +197,7 @@ declare module 'styled-components' {
       secondary: string
     }
     fontWeight: Weight
-    borderRadius: number
+    borderRadius: BorderRadius
     boxRadiusPx: string
     mode: ThemeModes
     isDarkMode: boolean

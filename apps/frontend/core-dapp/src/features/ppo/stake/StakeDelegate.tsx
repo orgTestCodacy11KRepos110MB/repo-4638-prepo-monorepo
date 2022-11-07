@@ -11,7 +11,7 @@ import AddressAvatar from '../../delegate/AddressAvatar'
 const AddressWrapper = styled.div`
   align-items: center;
   border: 1px solid ${({ theme }): string => theme.color.neutral6};
-  border-radius: ${({ theme }): number => theme.borderRadius}px;
+  border-radius: ${({ theme }): string => theme.borderRadius.xs};
   display: flex;
   flex-wrap: nowrap;
   gap: ${spacingIncrement(12)};
@@ -43,9 +43,9 @@ const Label = styled.div`
   color: ${({ theme }): string => theme.color.neutral3};
   display: flex;
   font-size: ${({ theme }): string => theme.fontSize.xs};
+  font-weight: ${({ theme }): number => theme.fontWeight.medium};
   gap: ${spacingIncrement(5)};
   line-height: ${spacingIncrement(16)};
-  weight: ${({ theme }): number => theme.fontWeight.medium};
   ${media.desktop`
     font-size: ${({ theme }): string => theme.fontSize.base};
     line-height: ${spacingIncrement(20)};
@@ -75,7 +75,7 @@ const Content: React.FC = observer(() => {
         avatarUrl={delegate.avatar}
       />
       <Text>{getShortAccount(delegate.delegateAddress)}</Text>
-      <Button size="xs" href={Routes.Delegate_Custom_Address} disabled={disableMocks}>
+      <Button size="sm" type="ghost" href={Routes.Delegate_Custom_Address} disabled={disableMocks}>
         <Trans>Change Delegate</Trans>
       </Button>
     </AddressWrapper>
