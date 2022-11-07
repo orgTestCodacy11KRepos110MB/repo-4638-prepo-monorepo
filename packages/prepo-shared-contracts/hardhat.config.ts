@@ -7,6 +7,7 @@ import '@typechain/hardhat'
 import { generateHardhatConfig, generateHardhatLocalConfig } from 'prepo-hardhat'
 import { config as dotenvConfig } from 'dotenv'
 import 'hardhat-contract-sizer'
+import 'hardhat-deploy'
 import 'hardhat-gas-reporter'
 import { HardhatUserConfig, subtask } from 'hardhat/config'
 import { TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD } from 'hardhat/builtin-tasks/task-names'
@@ -51,23 +52,6 @@ const config: HardhatUserConfig = {
           },
         },
       },
-      {
-        version: '0.8.6',
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
-          },
-          outputSelection: {
-            '*': {
-              Masset: ['storageLayout'],
-              FeederPool: ['storageLayout'],
-              EmissionsController: ['storageLayout'],
-              SavingsContract: ['storageLayout'],
-            },
-          },
-        },
-      },
     ],
   },
   typechain: {
@@ -75,7 +59,21 @@ const config: HardhatUserConfig = {
     target: 'ethers-v5',
   },
   etherscan: {
-    apiKey: hardhatLocalConfig.ETHERSCAN_API_KEY,
+    apiKey: {
+      // ethereum
+      mainnet: hardhatLocalConfig.ETHERSCAN_API_KEY,
+      ropsten: hardhatLocalConfig.ETHERSCAN_API_KEY,
+      rinkeby: hardhatLocalConfig.ETHERSCAN_API_KEY,
+      goerli: hardhatLocalConfig.ETHERSCAN_API_KEY,
+
+      // arbitrum
+      arbitrumOne: hardhatLocalConfig.ARBISCAN_API_KEY,
+      arbitrumTestnet: hardhatLocalConfig.ARBISCAN_API_KEY,
+
+      // polygon
+      polygon: hardhatLocalConfig.POLYGONSCAN_API_KEY,
+      polygonMumbai: hardhatLocalConfig.POLYGONSCAN_API_KEY,
+    },
   },
   contractSizer: {
     alphaSort: true,
