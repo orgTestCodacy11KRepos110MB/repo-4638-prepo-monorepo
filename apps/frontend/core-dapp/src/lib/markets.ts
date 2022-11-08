@@ -3,9 +3,9 @@ import { Market, SupportedMarketID } from '../types/market.types'
 const fakestock: Market = {
   address: 'PREFAKESTOCK_MARKET_ADDRESS',
   iconName: 'prefakestock',
-  name: 'preFakeStock',
+  name: 'Fake Stock',
   type: 'preIPO',
-  companyName: 'preFakeStock',
+  companyName: 'Fake Stock',
   urlId: 'fakestock',
   long: {
     tokenAddress: 'PREFAKESTOCK_LONG_TOKEN',
@@ -23,9 +23,9 @@ const fakestock: Market = {
 const faketoken: Market = {
   address: 'PREFAKETOKEN_MARKET_ADDRESS',
   iconName: 'prefaketoken',
-  name: 'preFakeToken',
+  name: 'Fake Token',
   type: 'preICO',
-  companyName: 'preMarketName',
+  companyName: 'Fake Token',
   urlId: 'faketoken',
   long: {
     tokenAddress: 'PREFAKETOKEN_LONG_TOKEN',
