@@ -3,9 +3,9 @@ import { Market, SupportedMarketID } from '../types/market.types'
 const fakestock: Market = {
   address: 'PREFAKESTOCK_MARKET_ADDRESS',
   iconName: 'prefakestock',
-  name: 'Fake Stock',
+  name: 'preFakeStock',
   type: 'preIPO',
-  companyName: 'Fake Stock',
+  companyName: 'preFakeStock',
   urlId: 'fakestock',
   long: {
     tokenAddress: 'PREFAKESTOCK_LONG_TOKEN',
@@ -23,13 +23,9 @@ const fakestock: Market = {
 const faketoken: Market = {
   address: 'PREFAKETOKEN_MARKET_ADDRESS',
   iconName: 'prefaketoken',
-  name: 'Fake Token',
+  name: 'preFakeToken',
   type: 'preICO',
-<<<<<<< HEAD
-  companyName: 'Fake Token',
-=======
   companyName: 'preMarketName',
->>>>>>> 9a9d9a9 (feat: trade as default route with query parameters)
   urlId: 'faketoken',
   long: {
     tokenAddress: 'PREFAKETOKEN_LONG_TOKEN',
@@ -44,15 +40,8 @@ const faketoken: Market = {
   },
 }
 
-<<<<<<< HEAD
 export const markets = [fakestock, faketoken]
 export const marketsMap: { [key in SupportedMarketID]: Market } = {
   fakestock,
   faketoken,
-=======
-export const markets = [prefakestock, prefaketoken]
-export const marketsMap: { [key in SupportedMarketID]: Market } = {
-  fakestock: prefakestock,
-  faketoken: prefaketoken,
->>>>>>> 9a9d9a9 (feat: trade as default route with query parameters)
 }
