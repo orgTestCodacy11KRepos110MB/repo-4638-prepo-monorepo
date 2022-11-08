@@ -6,8 +6,6 @@ import SettingsMenuItem from './SettingsMenuItem'
 import SocialFooter from './SocialFooter'
 import WalletInfo from './WalletInfo'
 import { useRootStore } from '../../context/RootStoreProvider'
-import { Routes } from '../../lib/routes'
-import { numberFormatter } from '../../utils/numberFormatter'
 
 const externalLinks = [{ link: 'https://docs.prepo.io/', name: 'Documentation' }]
 
@@ -35,18 +33,10 @@ const MenuWrapper = styled.div`
   width: ${spacingIncrement(240)};
 `
 
-const NonInteractiveText = styled.span`
-  color: ${({ theme }): string => theme.color.neutral3};
-`
-
-const SettingsCard: React.FC<{ onClose: () => void; portfolioValue?: string }> = ({
-  onClose,
-  portfolioValue,
-}) => {
+const SettingsCard: React.FC<{ onClose: () => void; portfolioValue?: string }> = ({ onClose }) => {
   const { uiStore } = useRootStore()
   const { selectedTheme, setTheme } = uiStore
   const isDarkTheme = selectedTheme === ThemeModes.Dark
-  const { significantDigits } = numberFormatter
 
   const toggleTheme = (): void => {
     setTheme(selectedTheme === ThemeModes.Dark ? ThemeModes.Light : ThemeModes.Dark)
@@ -57,12 +47,6 @@ const SettingsCard: React.FC<{ onClose: () => void; portfolioValue?: string }> =
       <Flex gap={8} flexDirection="column" alignItems="stretch">
         <WalletInfo onClose={onClose} />
         <NetworkStatus />
-        <SettingsMenuItem href={Routes.Portfolio} iconName="portfolio" onClick={onClose}>
-          Portfolio{' '}
-          {portfolioValue ? (
-            <NonInteractiveText>(${significantDigits(portfolioValue)})</NonInteractiveText>
-          ) : null}
-        </SettingsMenuItem>
         <SettingsMenuItem
           iconName={isDarkTheme ? 'light-theme' : 'dark-theme'}
           onClick={toggleTheme}
