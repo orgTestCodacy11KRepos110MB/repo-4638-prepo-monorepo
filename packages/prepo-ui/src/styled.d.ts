@@ -87,8 +87,6 @@ declare module 'styled-components' {
     alertBoxWarning: string
     /** #EFF2F5 | #1B1E22 */
     exploreCardBorder: string
-    /** #525252 | #EFF2F5 */
-    inputPlaceholder: string
     /** #14154F | #EEA900 */
     liquidityBrush: string
     /** #FFFFFF | #1C1E22 */
@@ -105,8 +103,6 @@ declare module 'styled-components' {
     switchHandler: string
     /** #14154F | #40444F */
     tabActiveBackground: string
-    /** #525252 | #9B9DFF */
-    tradeSettingReset: string
     /** #8500EE | #8500EE */
     bondingEvent: string
     /** #14154F */
@@ -115,24 +111,6 @@ declare module 'styled-components' {
     white: string
     /** orange */
     orange: string
-    buttonDefaultBackground: string
-    buttonDefaultBorder: string
-    buttonDefaultLabel: string
-    buttonDefaultHoverBackground: string
-    buttonDefaultHoverBorder: string
-    buttonDefaultHoverLabel: string
-    buttonPrimaryBackground: string
-    buttonPrimaryBorder: string
-    buttonPrimaryLabel: string
-    buttonPrimaryHoverBackground: string
-    buttonPrimaryHoverBorder: string
-    buttonPrimaryHoverLabel: string
-    buttonTextBackground: string
-    buttonTextBorder: string
-    buttonTextLabel: string
-    buttonTextHoverBackground: string
-    buttonTextHoverBorder: string
-    buttonTextHoverLabel: string
     elitePregenBackground: string
     executiveBackground: string
     executiveIconFill: string

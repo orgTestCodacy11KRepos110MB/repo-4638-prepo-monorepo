@@ -47,7 +47,7 @@ const Positions: React.FC = () => {
             buttonLabel={t`Close Position`}
             buttonStyles={{
               backgroundColor: 'primaryAccent',
-              color: 'buttonDefaultLabel',
+              color: 'primaryWhite',
             }}
             data={[
               {

@@ -1,6 +1,5 @@
 import { configure } from 'mobx'
 import { AppProps } from 'next/app'
-import Script from 'next/script'
 import { usePanelbear } from '@panelbear/panelbear-nextjs'
 import { I18nProvider } from '@lingui/react'
 import { useRouter } from 'next/router'
@@ -52,7 +51,6 @@ const App = ({ Component, pageProps }: AppProps): React.ReactElement => {
               <Component {...pageProps} />
             </Layout>
           </AppBootstrap>
-          <Script src="/scripts/userback.js" />
         </LightWeightChartProvider>
       </I18nProvider>
     </RootStoreProvider>

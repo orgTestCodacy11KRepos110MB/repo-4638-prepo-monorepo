@@ -56,32 +56,8 @@ const alertBoxInfo = colors.blue1
 const alertBoxError = colors.red1
 const alertBoxWarning = colors.orange2
 
-// button variants
-// default
-const buttonDefaultBackground = colors.white
-const buttonDefaultBorder = primary
-const buttonDefaultLabel = primary
-const buttonDefaultHoverBackground = primaryAccent
-const buttonDefaultHoverBorder = primary
-const buttonDefaultHoverLabel = primary
-// primary
-const buttonPrimaryBackground = primary
-const buttonPrimaryBorder = primary
-const buttonPrimaryLabel = colors.white
-const buttonPrimaryHoverBackground = darkPrimary
-const buttonPrimaryHoverBorder = darkPrimary
-const buttonPrimaryHoverLabel = colors.white
-// text
-const buttonTextBackground = TRANSPARENT
-const buttonTextBorder = TRANSPARENT
-const buttonTextLabel = primary
-const buttonTextHoverBackground = primaryAccent
-const buttonTextHoverBorder = primaryAccent
-const buttonTextHoverLabel = primary
-
 // componets specific
 const exploreCardBorder = colors.gray1
-const inputPlaceholder = colors.gray4
 const liquidityBrush = colors.blue2
 const marketChartBackground = colors.white
 const marketChartFloatingCard = colors.white
@@ -90,7 +66,6 @@ const searchInputBorder = colors.purple3
 const sliderTooltipBackground = colors.blue2
 const switchHandler = colors.gray1
 const tabActiveBackground = colors.blue2
-const tradeSettingReset = colors.gray4
 const bondingEvent = colors.purple10
 
 // profile banners
@@ -152,7 +127,6 @@ const lightTheme: DefaultTheme = {
     alertBoxError,
     alertBoxWarning,
     exploreCardBorder,
-    inputPlaceholder,
     liquidityBrush,
     marketChartBackground,
     marketChartFloatingCard,
@@ -161,29 +135,10 @@ const lightTheme: DefaultTheme = {
     sliderTooltipBackground,
     switchHandler,
     tabActiveBackground,
-    tradeSettingReset,
     bondingEvent,
     darkBlue: colors.blue2,
     white: colors.white,
     orange: colors.orange4,
-    buttonDefaultBackground,
-    buttonDefaultBorder,
-    buttonDefaultLabel,
-    buttonDefaultHoverBackground,
-    buttonDefaultHoverBorder,
-    buttonDefaultHoverLabel,
-    buttonPrimaryBackground,
-    buttonPrimaryBorder,
-    buttonPrimaryLabel,
-    buttonPrimaryHoverBackground,
-    buttonPrimaryHoverBorder,
-    buttonPrimaryHoverLabel,
-    buttonTextBackground,
-    buttonTextBorder,
-    buttonTextLabel,
-    buttonTextHoverBackground,
-    buttonTextHoverBorder,
-    buttonTextHoverLabel,
     elitePregenBackground,
     executiveBackground,
     executiveIconFill,

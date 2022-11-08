@@ -11,7 +11,7 @@ const Grid = styled(ButtonGrid)`
 `
 
 const buttonsCustomStyles: ButtonGridStyles = {
-  background: 'buttonDefaultBackground',
+  background: 'neutral9',
   label: 'neutral5',
   hoverBackground: 'accentPrimary',
   hoverLabel: 'primary',

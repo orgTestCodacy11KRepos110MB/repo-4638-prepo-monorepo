@@ -8,7 +8,7 @@ import Record, { RecordButtonColors, RecordSkeleton } from '../portfolio/Record'
 
 const DEFAULT_COLORS: RecordButtonColors = {
   backgroundColor: 'accentPrimary',
-  color: 'buttonDefaultLabel',
+  color: 'primaryWhite',
 }
 
 const buttonColors: { [key: string]: RecordButtonColors } = {
