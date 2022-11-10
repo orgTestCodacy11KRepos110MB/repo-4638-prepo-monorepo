@@ -11,11 +11,7 @@ export async function collateralFixture(
   return (await upgrades.deployProxy(Factory, [name, symbol, baseToken])) as Collateral
 }
 
-export async function smockCollateralFixture(
-  name: string,
-  symbol: string,
-  baseToken: string
-): Promise<MockContract> {
+export async function smockCollateralFixture(): Promise<MockContract> {
   const smockCollateral = await smock.mock('Collateral')
-  return (await smockCollateral.deploy(name, symbol, baseToken)) as MockContract
+  return (await smockCollateral.deploy()) as MockContract
 }

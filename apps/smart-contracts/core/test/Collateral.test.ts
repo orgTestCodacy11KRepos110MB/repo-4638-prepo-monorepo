@@ -384,4 +384,18 @@ describe('=> Collateral', () => {
       await expect(tx).to.emit(collateral, 'ManagerWithdrawHookChange').withArgs(user1.address)
     })
   })
+
+  describe('# getReserve', () => {
+    beforeEach(async () => {
+      await setupCollateral()
+    })
+
+    it("returns contract's base token balance", async () => {
+      await baseToken.connect(deployer).mint(collateral.address, parseEther('1'))
+      const contractBalance = await baseToken.balanceOf(collateral.address)
+      expect(contractBalance).to.be.eq(parseEther('1'))
+
+      expect(await collateral.getReserve()).to.eq(contractBalance)
+    })
+  })
 })

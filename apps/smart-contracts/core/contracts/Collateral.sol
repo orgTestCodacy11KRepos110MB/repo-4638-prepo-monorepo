@@ -115,4 +115,8 @@ contract Collateral is
   function getManagerWithdrawHook() external view override returns (IHook) {
     return _managerWithdrawHook;
   }
+
+  function getReserve() external view override returns (uint256) {
+    return _baseToken.balanceOf(address(this));
+  }
 }
