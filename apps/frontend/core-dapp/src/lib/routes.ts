@@ -12,5 +12,6 @@ export enum Routes {
   PPO = '/ppo',
   Profile = '/profile',
   Stake = '/ppo/stake',
+  Trade = '/trade',
   Withdraw = '/portfolio/withdraw',
 }

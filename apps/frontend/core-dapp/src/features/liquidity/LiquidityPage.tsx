@@ -17,7 +17,6 @@ import { formatNumber } from 'prepo-utils'
 import LiquidityTransactionSummary from './LiquidityTransactionSummary'
 import MarketDropdown from '../../components/MarketDropdown'
 import SecondaryNavigation from '../../components/SecondaryNavigation'
-import { Market } from '../../types/market.types'
 import { makeAddStep, makeMinusStep } from '../../utils/number-utils'
 import StepNumberInput from '../../components/StepNumberInput'
 import LiquidityChartRangeInput from '../../components/LiquidityChartRangeInput'
@@ -29,16 +28,12 @@ import MultiCurrencySelect from '../../components/MultiCurrencySelect'
 import AdvancedSettingsModal from '../../components/AdvancedSettingsModal'
 import CurrenciesBreakdown from '../../components/CurrenciesBreakdown'
 import useSelectedMarket from '../../hooks/useSelectedMarket'
-import { markets } from '../../lib/markets'
 import { useRootStore } from '../../context/RootStoreProvider'
 import ComingSoonTooltip from '../../components/ComingSoonTooltip'
 import { numberFormatter } from '../../utils/numberFormatter'
 
 const { significantDigits } = numberFormatter
 
-type Props = {
-  staticSelectedMarket: Market
-}
 const {
   roundedBorder,
   Z_INDEX: { onboardModal },
@@ -238,7 +233,7 @@ const Wrapper: React.FC = ({ children }) => {
   return <CardWrapper>{children}</CardWrapper>
 }
 
-const LiquidityPage: React.FC<Props> = ({ staticSelectedMarket }) => {
+const LiquidityPage: React.FC = () => {
   const selectedMarket = useSelectedMarket()
   const router = useRouter()
   const [amount, setAmount] = useState(0)
@@ -341,11 +336,7 @@ const LiquidityPage: React.FC<Props> = ({ staticSelectedMarket }) => {
         <Col xs={24} md={10}>
           <Row gutter={[24, 40]}>
             <Col xs={24}>
-              <MarketDropdown
-                selectedMarket={staticSelectedMarket}
-                markets={markets}
-                onSelectMarket={onSelectMarket}
-              />
+              <MarketDropdown selectedMarket={selectedMarket} onSelectMarket={onSelectMarket} />
             </Col>
             <Col xs={24}>
               <MultiCurrencySelect

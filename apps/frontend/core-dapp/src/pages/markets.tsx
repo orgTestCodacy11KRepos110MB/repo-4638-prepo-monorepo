@@ -1,16 +1,15 @@
-import { NextPage } from 'next'
-import SEO from '../components/SEO'
-import ExploreMarkets from '../features/explore-markets/ExploreMarkets'
+import { GetServerSideProps, NextPage } from 'next'
+import { Routes } from '../lib/routes'
 
-const Markets: NextPage = () => (
-  <>
-    <SEO
-      title="Markets | prePO"
-      description="The decentralized Pre-IPO & Pre-Token trading platform"
-      ogImageUrl="/prepo-og-image.png"
-    />
-    <ExploreMarkets />
-  </>
-)
+const Markets: NextPage = () => null
+
+// eslint-disable-next-line require-await
+export const getServerSideProps: GetServerSideProps = async () => ({
+  redirect: {
+    permanent: true, // https://nextjs.org/learn/seo/crawling-and-indexing/status-codes
+    destination: Routes.Trade,
+  },
+  props: {},
+})
 
 export default Markets

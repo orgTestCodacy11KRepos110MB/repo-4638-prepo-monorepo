@@ -32,6 +32,7 @@ type Props = {
   onComplete?: () => void
   onConfirm?: HandlerWithCallbacks
   onRetry?: HandlerWithCallbacks
+  overrideText?: string
   successButtonText?: string
   title?: React.ReactNode
   transactionHash?: string
@@ -53,6 +54,7 @@ const TransactionSummary: React.FC<Props> = ({
   onComplete,
   onConfirm,
   onRetry,
+  overrideText,
   successButtonText,
   title,
   transactionHash,
@@ -171,6 +173,7 @@ const TransactionSummary: React.FC<Props> = ({
           disabled={disabled || buttonLoading}
           loading={buttonLoading}
           onClick={showModal}
+          overrideText={overrideText}
           unlock={unlock}
         />
       )}

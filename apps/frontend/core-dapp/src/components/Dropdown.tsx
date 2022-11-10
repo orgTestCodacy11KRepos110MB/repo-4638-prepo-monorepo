@@ -74,7 +74,7 @@ const DropdownButton = styled.div<Props>`
   }}
   font-weight: ${({ theme }): number => theme.fontWeight.medium};
   line-height: 20px;
-  padding: 0 ${spacingIncrement(11)} 0 ${spacingIncrement(19)};
+  padding: ${spacingIncrement(12)} ${spacingIncrement(16)};
   :hover {
     cursor: pointer;
   }

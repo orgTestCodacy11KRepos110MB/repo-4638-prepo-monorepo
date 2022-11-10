@@ -29,7 +29,11 @@ export class TradeStore {
 
   subscribeOpenTradeAmountOut(): void {
     reaction(
-      () => ({ selectedMarket: this.selectedMarket, openTradeAmountBN: this.openTradeAmountBN }),
+      () => ({
+        selectedMarket: this.selectedMarket,
+        openTradeAmountBN: this.openTradeAmountBN,
+        direction: this.direction,
+      }),
       async ({ openTradeAmountBN, selectedMarket }) => {
         if (!selectedMarket || openTradeAmountBN === undefined) {
           this.openTradeAmountOutBN = undefined
@@ -49,7 +53,8 @@ export class TradeStore {
     )
   }
 
-  openTradeUILoading(selectedMarket: MarketEntity): boolean {
+  openTradeUILoading(selectedMarket?: MarketEntity): boolean {
+    if (selectedMarket === undefined) return false
     return (
       selectedMarket[`${this.direction}TokenPrice`] === undefined ||
       this.openTradeAmountOutBN === undefined

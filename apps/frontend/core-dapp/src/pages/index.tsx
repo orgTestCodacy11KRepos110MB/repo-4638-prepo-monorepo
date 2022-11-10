@@ -7,7 +7,7 @@ const Index: NextPage = () => null
 export const getServerSideProps: GetServerSideProps = async () => ({
   redirect: {
     permanent: true, // https://nextjs.org/learn/seo/crawling-and-indexing/status-codes
-    destination: Routes.Markets,
+    destination: Routes.Trade,
   },
   props: {},
 })

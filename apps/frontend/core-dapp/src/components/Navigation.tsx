@@ -15,8 +15,8 @@ type PathProps = {
 const navigationPaths: PathProps[] = [
   {
     iconName: 'home',
-    name: 'Markets',
-    path: Routes.Markets,
+    name: 'Trade',
+    path: Routes.Trade,
   },
   {
     iconName: 'portfolio',

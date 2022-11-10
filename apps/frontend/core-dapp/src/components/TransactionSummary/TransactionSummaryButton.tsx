@@ -9,10 +9,12 @@ type Props = {
   disabled?: boolean
   loading?: boolean
   onClick: () => void
+  overrideText?: string
   unlock?: UnlockOptions
 } & ButtonProps
 
 const TransactionSummaryButton: React.FC<Props> = ({
+  overrideText,
   buttonText = 'Continue',
   disabled,
   loading = false,
@@ -33,6 +35,7 @@ const TransactionSummaryButton: React.FC<Props> = ({
   }, [loading, connected, isNetworkSupported, disabled, insufficientBalance, emptyAmount])
 
   const getText = (): string => {
+    if (overrideText) return overrideText
     if (!connected) return 'Connect Your Wallet'
     if (!isNetworkSupported) return `Switch to ${network.chainName}`
     if (loading) return 'Loading'

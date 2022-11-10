@@ -19,6 +19,7 @@ export class MarketStore {
       searchQuery: observable,
       setSearchQuery: action.bound,
     })
+    this.init()
   }
 
   init(): void {

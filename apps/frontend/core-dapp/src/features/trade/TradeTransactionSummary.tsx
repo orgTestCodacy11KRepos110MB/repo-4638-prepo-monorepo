@@ -1,11 +1,9 @@
 import { useRouter } from 'next/router'
 import { observer } from 'mobx-react-lite'
-import { useEffect } from 'react'
 import EstimateProfitLoss from './EstimateProfitLoss'
 import TransactionSummary from '../../components/TransactionSummary/TransactionSummary'
 import { Callback } from '../../types/common.types'
 import { useRootStore } from '../../context/RootStoreProvider'
-import useSelectedMarket from '../../hooks/useSelectedMarket'
 import { EstimatedValuation } from '../definitions'
 import { Routes } from '../../lib/routes'
 import { numberFormatter } from '../../utils/numberFormatter'
@@ -21,19 +19,16 @@ const TradeTransactionSummary: React.FC = () => {
     advancedSettingsStore: { slippage },
   } = useRootStore()
   const {
+    openTradeAmountBN,
     openTradeAmount,
     openTradeHash,
     openTradeUILoading,
     setOpenTradeHash,
     tradeDisabled,
+    selectedMarket,
     valuation: { raw, afterSlippage },
     direction,
   } = tradeStore
-  const selectedMarket = useSelectedMarket()
-
-  useEffect(() => {
-    tradeStore.setSelectedMarket(selectedMarket)
-  }, [selectedMarket, tradeStore])
 
   const valuationDirection = direction === 'long' ? 'Maximum' : 'Minimum'
 
@@ -64,10 +59,8 @@ const TradeTransactionSummary: React.FC = () => {
     }
   }
 
-  if (selectedMarket === undefined) return null
-
   const estimatedValuation = raw ?? 0
-  const currentValuation = selectedMarket.estimatedValuation?.value
+  const currentValuation = selectedMarket?.estimatedValuation?.value
   const valuationImpact = currentValuation
     ? numberFormatter.rawPercent(estimatedValuation / currentValuation - 1)
     : undefined
@@ -79,7 +72,7 @@ const TradeTransactionSummary: React.FC = () => {
     },
     {
       label: 'Expected Valuation',
-      tooltip: <EstimatedValuation marketName={selectedMarket.name} />,
+      tooltip: <EstimatedValuation marketName={selectedMarket?.name ?? ''} />,
       amount: `$${significantDigits(estimatedValuation)}`,
       ignoreFormatAmount: true,
     },
@@ -100,9 +93,10 @@ const TradeTransactionSummary: React.FC = () => {
 
   return (
     <TransactionSummary
-      loading={openTradeUILoading(selectedMarket)}
+      overrideText={selectedMarket === undefined ? 'Select a Market' : undefined}
+      loading={openTradeUILoading(selectedMarket) || openTradeAmountBN === undefined}
       data={tradeTransactionSummary}
-      disabled={tradeDisabled || raw === undefined}
+      disabled={tradeDisabled || raw === undefined || selectedMarket === undefined}
       onComplete={onComplete}
       onConfirm={handlePlaceTrade}
       onRetry={handlePlaceTrade}
@@ -115,7 +109,7 @@ const TradeTransactionSummary: React.FC = () => {
         contentType: 'openTrade',
       }}
     >
-      {selectedMarket.sliderSettings && (
+      {selectedMarket?.sliderSettings && (
         <EstimateProfitLoss
           sliderSettings={selectedMarket.sliderSettings}
           getProfitLossOnExit={selectedMarket.getProfitLossOnExit}

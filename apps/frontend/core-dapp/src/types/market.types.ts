@@ -30,7 +30,7 @@ export enum ChartTimeframe {
 
 export type Range = [number, number]
 
-export type SupportedMarketID = 'prefakestock' | 'prefaketoken'
+export type SupportedMarketID = 'fakestock' | 'faketoken'
 
 export type MarketType = 'preICO' | 'preIPO'
 

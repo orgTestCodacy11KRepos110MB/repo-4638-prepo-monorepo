@@ -1,12 +1,12 @@
 import { Market, SupportedMarketID } from '../types/market.types'
 
-const prefakestock: Market = {
+const fakestock: Market = {
   address: 'PREFAKESTOCK_MARKET_ADDRESS',
   iconName: 'prefakestock',
-  name: 'preFakeStock',
+  name: 'Fake Stock',
   type: 'preIPO',
-  companyName: 'preFakeStock',
-  urlId: 'prefakestock',
+  companyName: 'Fake Stock',
+  urlId: 'fakestock',
   long: {
     tokenAddress: 'PREFAKESTOCK_LONG_TOKEN',
     poolAddress: 'PREFAKESTOCK_LONG_POOL',
@@ -20,13 +20,13 @@ const prefakestock: Market = {
   },
 }
 
-const prefaketoken: Market = {
+const faketoken: Market = {
   address: 'PREFAKETOKEN_MARKET_ADDRESS',
   iconName: 'prefaketoken',
-  name: 'preFakeToken',
+  name: 'Fake Token',
   type: 'preICO',
-  companyName: 'preMarketName',
-  urlId: 'prefaketoken',
+  companyName: 'Fake Token',
+  urlId: 'faketoken',
   long: {
     tokenAddress: 'PREFAKETOKEN_LONG_TOKEN',
     poolAddress: 'PREFAKETOKEN_LONG_POOL',
@@ -40,5 +40,8 @@ const prefaketoken: Market = {
   },
 }
 
-export const markets = [prefakestock, prefaketoken]
-export const marketsMap: { [key in SupportedMarketID]: Market } = { prefakestock, prefaketoken }
+export const markets = [fakestock, faketoken]
+export const marketsMap: { [key in SupportedMarketID]: Market } = {
+  fakestock,
+  faketoken,
+}

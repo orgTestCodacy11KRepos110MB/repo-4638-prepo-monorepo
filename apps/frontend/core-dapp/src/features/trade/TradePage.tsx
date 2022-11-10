@@ -4,23 +4,18 @@ import { observer } from 'mobx-react-lite'
 import { useRouter } from 'next/router'
 import { spacingIncrement, Alert, media, Icon, TokenInput } from 'prepo-ui'
 import TradeTransactionSummary from './TradeTransactionSummary'
+import useTradePage from './useTradePage'
 import Link from '../../components/Link'
 import RadioGroup from '../../components/RadioGroup'
 import Radio from '../../components/Radio'
 import SecondaryNavigation from '../../components/SecondaryNavigation'
 import Card from '../../components/Card'
 import { useRootStore } from '../../context/RootStoreProvider'
-import { Market } from '../../types/market.types'
 import MarketDropdown from '../../components/MarketDropdown'
 import useResponsive from '../../hooks/useResponsive'
 import CurrenciesBreakdown from '../../components/CurrenciesBreakdown'
-import useSelectedMarket from '../../hooks/useSelectedMarket'
 import { Routes } from '../../lib/routes'
-
-type Props = {
-  markets: Market[]
-  staticSelectedMarket: Market
-}
+import { makeQueryString } from '../../utils/makeQueryString'
 
 const AlertWrapper = styled.div`
   div[class*='ant-alert-message'] {
@@ -99,38 +94,41 @@ const Wrapper: React.FC = ({ children }) => {
   return <CardWrapper>{children}</CardWrapper>
 }
 
-const TradePage: React.FC<Props> = ({ markets, staticSelectedMarket }) => {
+const TradePage: React.FC = () => {
+  useTradePage()
   const router = useRouter()
   const { tradeStore, web3Store, preCTTokenStore } = useRootStore()
-  const { direction, openTradeAmount, openTradeAmountBN, setDirection, setOpenTradeAmount } =
+  const { direction, openTradeAmount, openTradeAmountBN, setOpenTradeAmount, selectedMarket } =
     tradeStore
   const { balanceOfSigner, tokenBalanceFormat } = preCTTokenStore
   const {
     connected,
     network: { testNetwork = true },
   } = web3Store
-  const selectedMarket = useSelectedMarket()
+
+  const makeTradeUrl = (marketId?: string, newDirection?: string): string => {
+    const queryString = makeQueryString({ marketId, direction: newDirection })
+    return `${Routes.Trade}${queryString}`
+  }
 
   const onSelectDirection = (e: RadioChangeEvent): void => {
-    setDirection(e.target.value, selectedMarket)
+    const tradeUrl = makeTradeUrl(selectedMarket?.urlId, e.target.value)
+    router.push(tradeUrl)
   }
 
   const onSelectMarket = (key: string): void => {
-    const url = `/markets/${key}/trade`
-    router.push(url)
+    const tradeUrl = makeTradeUrl(key, direction)
+    router.push(tradeUrl)
   }
-
-  if (selectedMarket === undefined || openTradeAmountBN === undefined) return null
 
   return (
     <Wrapper>
-      <Navigation backUrl={`/markets/${selectedMarket.urlId}`} title="Trade" showAdvancedSettings />
+      <Navigation title="Trade" />
       <FormItem>
         <MartketDropdownWrapper>
           <MarketDropdown
             label="I want to trade"
-            selectedMarket={staticSelectedMarket}
-            markets={markets}
+            selectedMarket={selectedMarket}
             onSelectMarket={onSelectMarket}
           />
         </MartketDropdownWrapper>
@@ -172,23 +170,24 @@ const TradePage: React.FC<Props> = ({ markets, staticSelectedMarket }) => {
       <FormItem>
         <TradeTransactionSummary />
       </FormItem>
-      {(balanceOfSigner?.lt(openTradeAmountBN) || balanceOfSigner?.eq(0)) && (
-        <FormItem>
-          <AlertWrapper>
-            <Alert
-              message={
-                <Message>
-                  You need to <Link href={Routes.Deposit}>deposit more funds</Link> to make this
-                  trade.
-                </Message>
-              }
-              type="warning"
-              showIcon
-              icon={<Icon name="info" color="warning" />}
-            />
-          </AlertWrapper>
-        </FormItem>
-      )}
+      {openTradeAmountBN !== undefined &&
+        (balanceOfSigner?.lt(openTradeAmountBN) || balanceOfSigner?.eq(0)) && (
+          <FormItem>
+            <AlertWrapper>
+              <Alert
+                message={
+                  <Message>
+                    You need to <Link href={Routes.Deposit}>deposit more funds</Link> to make this
+                    trade.
+                  </Message>
+                }
+                type="warning"
+                showIcon
+                icon={<Icon name="info" color="warning" />}
+              />
+            </AlertWrapper>
+          </FormItem>
+        )}
       <FormItem>
         {!testNetwork && (
           <AlertWrapper>

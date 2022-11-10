@@ -6,7 +6,7 @@ import GlobalStyle, { AntdGlobalStyle } from './GlobalStyle'
 import { useRootStore } from '../context/RootStoreProvider'
 
 const AppBootstrap: React.FC = ({ children }) => {
-  const { localStorageStore, web3Store, uiStore, marketStore } = useRootStore()
+  const { localStorageStore, web3Store, uiStore } = useRootStore()
 
   useEffect(() => {
     localStorageStore.load()
@@ -21,10 +21,6 @@ const AppBootstrap: React.FC = ({ children }) => {
   useEffect(() => {
     uiStore.setMaxScreenHeight(window.innerHeight)
   }, [uiStore])
-
-  useEffect(() => {
-    marketStore.init()
-  }, [marketStore])
 
   useEffect(() => {
     if (uiStore.selectedTheme === undefined) {

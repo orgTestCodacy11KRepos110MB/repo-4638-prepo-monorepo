@@ -7,7 +7,7 @@ import { useRootStore } from '../context/RootStoreProvider'
 type Props = {
   title: string
   showAdvancedSettings?: boolean
-  backUrl: string
+  backUrl?: string
   className?: string
 }
 
@@ -25,6 +25,8 @@ const Title = styled.div`
   color: ${({ theme }): string => theme.color.secondary};
   font-size: ${({ theme }): string => theme.fontSize.md};
   font-weight: ${({ theme }): number => theme.fontWeight.semiBold};
+  text-align: center;
+  width: 100%;
   ${media.desktop`
     font-size: ${({ theme }): string => theme.fontSize.xl};
   `}
@@ -46,15 +48,17 @@ const SecondaryNavigation: React.FC<Props> = ({
   return (
     <Wrapper className={className}>
       <AdvancedSettingsModal />
-      <BackArrowWrapper href={backUrl}>
-        <Icon name="arrow-left" color="neutral5" />
-      </BackArrowWrapper>
+      {backUrl ? (
+        <BackArrowWrapper href={backUrl}>
+          <Icon name="arrow-left" color="neutral5" />
+        </BackArrowWrapper>
+      ) : null}
       <Title>{title}</Title>
-      <SettingsWrapper>
-        {showAdvancedSettings && (
+      {showAdvancedSettings && (
+        <SettingsWrapper>
           <Icon name="settings" color="neutral5" width="19" height="20" onClick={onClickSettings} />
-        )}
-      </SettingsWrapper>
+        </SettingsWrapper>
+      )}
     </Wrapper>
   )
 }
