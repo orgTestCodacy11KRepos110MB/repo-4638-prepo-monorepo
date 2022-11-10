@@ -25,6 +25,8 @@ declare module 'styled-components' {
     primaryLight: string
     /** #6264D8 | #FFFFFF */
     primaryWhite: string
+    /** #454699 | #9B9DFF */
+    dartkPrimaryLight: string
     /** #FCFAFF | #1B1E22 */
     accent1: string
     /** #FCFAFF | #191B1F */
@@ -120,6 +122,10 @@ declare module 'styled-components' {
     preacherIconFill: string
     preacherTextColor: string
     profileBorderColor: string
+    /** #F7F8FA | #1B1E22 */
+    currencyInputBackground: string
+    /** #EDEEF2 | #212429 */
+    currencyInputDropdownBackground: string
     transparent: 'transparent'
   }
 

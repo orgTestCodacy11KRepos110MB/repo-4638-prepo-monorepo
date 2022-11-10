@@ -12,6 +12,7 @@ const primary = colors.purple3
 const primaryAccent = colors.purple1
 const primaryLight = colors.purple3
 const primaryWhite = colors.purple3
+const dartkPrimaryLight = colors.purple6
 
 // accent colors
 const accent1 = colors.purple1
@@ -79,6 +80,10 @@ const preacherIconFill = `linear-gradient(${colors.purple7}, ${colors.purple8})`
 const preacherTextColor = colors.gray11
 const profileBorderColor = colors.purple12
 
+// currency input
+const currencyInputBackground = colors.gray13
+const currencyInputDropdownBackground = colors.gray14
+
 // Mode
 const mode = ThemeModes.Light
 
@@ -96,6 +101,7 @@ const lightTheme: DefaultTheme = {
     primaryAccent,
     primaryLight,
     primaryWhite,
+    dartkPrimaryLight,
     accent1,
     accent2,
     accent3,
@@ -148,6 +154,8 @@ const lightTheme: DefaultTheme = {
     preacherIconFill,
     preacherTextColor,
     profileBorderColor,
+    currencyInputBackground,
+    currencyInputDropdownBackground,
     transparent: TRANSPARENT,
   },
   positionType,

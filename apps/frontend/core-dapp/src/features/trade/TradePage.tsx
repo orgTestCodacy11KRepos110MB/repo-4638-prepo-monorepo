@@ -1,7 +1,7 @@
 import styled from 'styled-components'
 import { observer } from 'mobx-react-lite'
 import { useRouter } from 'next/router'
-import { spacingIncrement, Alert, media, Icon, TokenInput } from 'prepo-ui'
+import { spacingIncrement, Alert, media, Icon } from 'prepo-ui'
 import DirectionRadio from './DirectionRadio'
 import useTradePage from './useTradePage'
 import TradeTransactionSummary from './TradeTransactionSummary'
@@ -10,6 +10,7 @@ import Card from '../../components/Card'
 import { useRootStore } from '../../context/RootStoreProvider'
 import MarketDropdown from '../../components/MarketDropdown'
 import { Routes } from '../../lib/routes'
+import CurrencyInput from '../../components/CurrencyInput'
 
 const AlertWrapper = styled.div`
   div[class*='ant-alert-message'] {
@@ -65,10 +66,9 @@ const Message = styled.div`
 const TradePage: React.FC = () => {
   useTradePage()
   const router = useRouter()
-  const { tradeStore, web3Store, preCTTokenStore } = useRootStore()
+  const { tradeStore, preCTTokenStore } = useRootStore()
   const { openTradeAmount, openTradeAmountBN, setOpenTradeAmount, selectedMarket } = tradeStore
   const { balanceOfSigner, tokenBalanceFormat } = preCTTokenStore
-  const { connected } = web3Store
 
   const onSelectMarket = (key: string): void => {
     const tradeUrl = tradeStore.setSelectedMarket(key)
@@ -82,13 +82,14 @@ const TradePage: React.FC = () => {
           <MarketDropdown selectedMarket={selectedMarket} onSelectMarket={onSelectMarket} />
         </MartketDropdownWrapper>
         <DirectionRadio />
-        <TokenInput
+        <CurrencyInput
           balance={tokenBalanceFormat}
-          connected={connected}
+          isBalanceZero={balanceOfSigner?.eq(0)}
+          currency={{ icon: 'cash', text: 'USD' }}
           onChange={setOpenTradeAmount}
-          max={tokenBalanceFormat}
-          usd
           value={openTradeAmount}
+          placeholder="0"
+          showBalance
         />
 
         <TradeTransactionSummary />

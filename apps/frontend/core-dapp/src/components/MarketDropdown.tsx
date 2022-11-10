@@ -19,7 +19,7 @@ const MarketIcon = styled.div`
 `
 
 const MarketName = styled.p`
-  color: ${({ theme }): string => theme.color.neutral2};
+  color: ${({ theme }): string => theme.color.neutral1};
   font-size: ${({ theme }): string => theme.fontSize.md};
   font-weight: ${({ theme }): number => theme.fontWeight.semiBold};
   margin-bottom: 0;

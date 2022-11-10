@@ -37,6 +37,10 @@ export const colors = {
   gray11: '#FAFDFF',
   /** #929AA2 */
   gray12: '#929AA2',
+  /** #F7F8FA */
+  gray13: '#F7F8FA',
+  /** #EDEEF2 */
+  gray14: '#EDEEF2',
   /** #F4FBF7 */
   green1: '#F4FBF7',
   /** #27AE60 */

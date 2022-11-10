@@ -35,9 +35,9 @@ const TransactionSummaryButton: React.FC<Props> = ({
   }, [loading, connected, isNetworkSupported, disabled, insufficientBalance, emptyAmount])
 
   const getText = (): string => {
+    if (!isNetworkSupported) return `Switch to ${network.chainName}`
     if (overrideText) return overrideText
     if (!connected) return 'Connect Your Wallet'
-    if (!isNetworkSupported) return `Switch to ${network.chainName}`
     if (loading) return 'Loading'
     if (insufficientBalance) return 'Insufficient Balance'
     if (emptyAmount) return 'Enter an Amount'
