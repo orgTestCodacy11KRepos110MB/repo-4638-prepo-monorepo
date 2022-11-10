@@ -13,10 +13,7 @@ const useTradePage = (): void => {
 
       // handle market selcetion by marketId
       if (typeof marketId === 'string') {
-        const foundMarket = Object.entries(markets).find(
-          ([id]) => id.toLowerCase() === marketId.toLowerCase()
-        )
-        if (foundMarket) tradeStore.setSelectedMarket(foundMarket[1])
+        tradeStore.setSelectedMarket(marketId)
       }
 
       // handle direction selection

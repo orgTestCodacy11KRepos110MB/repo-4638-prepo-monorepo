@@ -8,6 +8,7 @@ import { MarketEntity } from '../../stores/entities/MarketEntity'
 import { RootStore } from '../../stores/RootStore'
 import { TradeType } from '../../stores/SwapStore'
 import { debounce } from '../../utils/debounce'
+import { makeQueryString } from '../../utils/makeQueryString'
 import { calculateValuation } from '../../utils/market-utils'
 
 export type Direction = 'long' | 'short'
@@ -65,13 +66,20 @@ export class TradeStore {
     this.closeTradeHash = hash
   }
 
-  setDirection(direction: Direction, selectedMarket?: MarketEntity): void {
+  setDirection(direction: Direction, selectedMarket?: MarketEntity): string {
     this.direction = direction
     selectedMarket?.setSelectedPool(direction)
+    return this.tradeUrl
   }
 
-  setSelectedMarket(market?: MarketEntity): void {
+  setSelectedMarket(marketUrlId?: string): string {
+    if (!marketUrlId) {
+      this.selectedMarket = undefined
+      return this.tradeUrl
+    }
+    const market = this.root.marketStore.markets[marketUrlId]
     this.selectedMarket = market
+    return this.tradeUrl
   }
 
   setOpenTradeAmount(amount: string): void {
@@ -91,6 +99,10 @@ export class TradeStore {
 
   get openTradeAmountBN(): BigNumber | undefined {
     return this.root.preCTTokenStore.parseUnits(this.openTradeAmount)
+  }
+
+  get tradeUrl(): string {
+    return makeQueryString({ marketId: this.selectedMarket?.urlId, direction: this.direction })
   }
 
   get valuation(): { raw?: number | undefined; afterSlippage?: number | undefined } {
