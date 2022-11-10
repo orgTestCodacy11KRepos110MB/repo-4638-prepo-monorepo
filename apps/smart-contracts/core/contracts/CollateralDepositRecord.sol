@@ -2,14 +2,24 @@
 pragma solidity =0.8.7;
 
 import "./interfaces/ICollateralDepositRecord.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "prepo-shared-contracts/contracts/SafeAccessControlEnumerable.sol";
 
-contract CollateralDepositRecord is ICollateralDepositRecord, Ownable {
+contract CollateralDepositRecord is
+  ICollateralDepositRecord,
+  SafeAccessControlEnumerable
+{
   uint256 private _globalNetDepositCap;
   uint256 private _globalNetDepositAmount;
   uint256 private _userDepositCap;
   mapping(address => uint256) private _userToDeposits;
   mapping(address => bool) private _allowedHooks;
+
+  bytes32 public constant SET_GLOBAL_NET_DEPOSIT_CAP_ROLE =
+    keccak256("CollateralDepositRecord_setGlobalNetDepositCap(uint256)");
+  bytes32 public constant SET_USER_DEPOSIT_CAP_ROLE =
+    keccak256("CollateralDepositRecord_setUserDepositCap(uint256)");
+  bytes32 public constant SET_ALLOWED_HOOK_ROLE =
+    keccak256("CollateralDepositRecord_setAllowedHook(address)");
 
   modifier onlyAllowedHooks() {
     require(_allowedHooks[msg.sender], "msg.sender != allowed hook");
@@ -53,7 +63,7 @@ contract CollateralDepositRecord is ICollateralDepositRecord, Ownable {
   function setGlobalNetDepositCap(uint256 _newGlobalNetDepositCap)
     external
     override
-    onlyOwner
+    onlyRole(SET_GLOBAL_NET_DEPOSIT_CAP_ROLE)
   {
     _globalNetDepositCap = _newGlobalNetDepositCap;
     emit GlobalNetDepositCapChange(_globalNetDepositCap);
@@ -62,7 +72,7 @@ contract CollateralDepositRecord is ICollateralDepositRecord, Ownable {
   function setUserDepositCap(uint256 _newUserDepositCap)
     external
     override
-    onlyOwner
+    onlyRole(SET_USER_DEPOSIT_CAP_ROLE)
   {
     _userDepositCap = _newUserDepositCap;
     emit UserDepositCapChange(_newUserDepositCap);
@@ -71,7 +81,7 @@ contract CollateralDepositRecord is ICollateralDepositRecord, Ownable {
   function setAllowedHook(address _hook, bool _allowed)
     external
     override
-    onlyOwner
+    onlyRole(SET_ALLOWED_HOOK_ROLE)
   {
     _allowedHooks[_hook] = _allowed;
     emit AllowedHooksChange(_hook, _allowed);

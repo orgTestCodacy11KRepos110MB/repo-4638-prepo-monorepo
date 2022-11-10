@@ -79,6 +79,12 @@ describe('=> WithdrawHook', () => {
       deployer,
       await withdrawHook.SET_USER_WITHDRAW_LIMIT_PER_PERIOD_ROLE()
     )
+    await grantAndAcceptRole(
+      depositRecord,
+      deployer,
+      deployer,
+      await depositRecord.SET_ALLOWED_HOOK_ROLE()
+    )
     await depositRecord.connect(deployer).setAllowedHook(user.address, true)
     await depositRecord.connect(deployer).setAllowedHook(withdrawHook.address, true)
   })

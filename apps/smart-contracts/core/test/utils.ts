@@ -4,6 +4,7 @@ import { ethers } from 'hardhat'
 import { MerkleTree } from 'merkletreejs'
 import keccak256 from 'keccak256'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
+import { MockContract } from '@defi-wonderland/smock'
 
 export const FEE_DENOMINATOR = 1000000
 export const FEE_LIMIT = 50000
@@ -54,7 +55,7 @@ export function generateMerkleTree(addresses: string[]): MerkleTree {
 }
 
 export async function grantAndAcceptRole(
-  contract: Contract,
+  contract: Contract | MockContract,
   admin: SignerWithAddress,
   nominee: SignerWithAddress,
   role: string

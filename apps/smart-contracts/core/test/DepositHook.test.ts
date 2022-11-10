@@ -48,6 +48,12 @@ describe('=> DepositHook', () => {
       deployer,
       await depositHook.SET_DEPOSITS_ALLOWED_ROLE()
     )
+    await grantAndAcceptRole(
+      mockCollateralDepositRecord,
+      deployer,
+      deployer,
+      await mockCollateralDepositRecord.SET_ALLOWED_HOOK_ROLE()
+    )
     await mockCollateralDepositRecord.connect(deployer).setAllowedHook(depositHook.address, true)
   })
 

@@ -1,8 +1,10 @@
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
-import { parseEther } from 'ethers/lib/utils'
+import { id, parseEther } from 'ethers/lib/utils'
+import { DEFAULT_ADMIN_ROLE } from 'prepo-constants'
 import { collateralDepositRecordFixture } from './fixtures/CollateralDepositRecordFixture'
+import { grantAndAcceptRole } from './utils'
 import { CollateralDepositRecord } from '../typechain'
 
 describe('=> CollateralDepositRecord', () => {
@@ -11,34 +13,76 @@ describe('=> CollateralDepositRecord', () => {
   let user: SignerWithAddress
   let user2: SignerWithAddress
   const TEST_GLOBAL_DEPOSIT_CAP = parseEther('50000')
-  const TEST_ACCOUNT_DEPOSIT_CAP = parseEther('10000')
+  const TEST_USER_DEPOSIT_CAP = parseEther('10000')
   const TEST_AMOUNT_ONE = parseEther('1')
   const TEST_AMOUNT_TWO = parseEther('2')
 
-  beforeEach(async () => {
+  const getSignersAndDeployRecord = async (): Promise<void> => {
     ;[deployer, user, user2] = await ethers.getSigners()
     depositRecord = await collateralDepositRecordFixture(
       TEST_GLOBAL_DEPOSIT_CAP,
-      TEST_ACCOUNT_DEPOSIT_CAP
+      TEST_USER_DEPOSIT_CAP
+    )
+  }
+
+  const setupDepositRecord = async (): Promise<void> => {
+    await getSignersAndDeployRecord()
+    await grantAndAcceptRole(
+      depositRecord,
+      deployer,
+      deployer,
+      await depositRecord.SET_GLOBAL_NET_DEPOSIT_CAP_ROLE()
+    )
+    await grantAndAcceptRole(
+      depositRecord,
+      deployer,
+      deployer,
+      await depositRecord.SET_USER_DEPOSIT_CAP_ROLE()
+    )
+    await grantAndAcceptRole(
+      depositRecord,
+      deployer,
+      deployer,
+      await depositRecord.SET_ALLOWED_HOOK_ROLE()
     )
     await depositRecord.connect(deployer).setAllowedHook(user.address, true)
-  })
+  }
 
   describe('initial state', () => {
+    beforeEach(async () => {
+      await getSignersAndDeployRecord()
+    })
+
     it('sets global deposit cap from constructor', async () => {
       expect(await depositRecord.getGlobalNetDepositCap()).to.eq(TEST_GLOBAL_DEPOSIT_CAP)
     })
 
     it('sets user deposit cap from constructor', async () => {
-      expect(await depositRecord.getUserDepositCap()).to.eq(TEST_ACCOUNT_DEPOSIT_CAP)
+      expect(await depositRecord.getUserDepositCap()).to.eq(TEST_USER_DEPOSIT_CAP)
     })
 
-    it('sets owner to deployer', async () => {
-      expect(await depositRecord.owner()).to.eq(deployer.address)
+    it('sets DEFAULT_ADMIN_ROLE holder to deployer', async () => {
+      expect(await depositRecord.hasRole(DEFAULT_ADMIN_ROLE, deployer.address)).to.eq(true)
+    })
+
+    it('sets role constants to the correct hash', async () => {
+      expect(await depositRecord.SET_GLOBAL_NET_DEPOSIT_CAP_ROLE()).to.eq(
+        id('CollateralDepositRecord_setGlobalNetDepositCap(uint256)')
+      )
+      expect(await depositRecord.SET_USER_DEPOSIT_CAP_ROLE()).to.eq(
+        id('CollateralDepositRecord_setUserDepositCap(uint256)')
+      )
+      expect(await depositRecord.SET_ALLOWED_HOOK_ROLE()).to.eq(
+        id('CollateralDepositRecord_setAllowedHook(address)')
+      )
     })
   })
 
   describe('# recordDeposit', () => {
+    beforeEach(async () => {
+      await setupDepositRecord()
+    })
+
     it('should only be callable by allowed contracts', async () => {
       expect(await depositRecord.isHookAllowed(user2.address)).to.eq(false)
 
@@ -73,9 +117,9 @@ describe('=> CollateralDepositRecord', () => {
     })
 
     it('should revert if per-account deposit cap is exceeded', async () => {
-      await depositRecord.connect(user).recordDeposit(user.address, TEST_ACCOUNT_DEPOSIT_CAP)
-      expect(await depositRecord.getGlobalNetDepositAmount()).to.eq(TEST_ACCOUNT_DEPOSIT_CAP)
-      expect(await depositRecord.getUserDepositAmount(user.address)).to.eq(TEST_ACCOUNT_DEPOSIT_CAP)
+      await depositRecord.connect(user).recordDeposit(user.address, TEST_USER_DEPOSIT_CAP)
+      expect(await depositRecord.getGlobalNetDepositAmount()).to.eq(TEST_USER_DEPOSIT_CAP)
+      expect(await depositRecord.getUserDepositAmount(user.address)).to.eq(TEST_USER_DEPOSIT_CAP)
 
       await expect(depositRecord.connect(user).recordDeposit(user.address, 1)).to.be.revertedWith(
         'User deposit cap exceeded'
@@ -83,17 +127,17 @@ describe('=> CollateralDepositRecord', () => {
     })
 
     it('should revert if global deposit cap is exceeded', async () => {
-      const accountsToReachCap = TEST_GLOBAL_DEPOSIT_CAP.div(TEST_ACCOUNT_DEPOSIT_CAP).toNumber()
+      const accountsToReachCap = TEST_GLOBAL_DEPOSIT_CAP.div(TEST_USER_DEPOSIT_CAP).toNumber()
       const allSigners = await ethers.getSigners()
       for (let i = 0; i < accountsToReachCap; i++) {
         const currentAccountAddress = allSigners[i].address
         // eslint-disable-next-line no-await-in-loop
         await depositRecord
           .connect(user)
-          .recordDeposit(currentAccountAddress, TEST_ACCOUNT_DEPOSIT_CAP)
+          .recordDeposit(currentAccountAddress, TEST_USER_DEPOSIT_CAP)
         // eslint-disable-next-line no-await-in-loop
         expect(await depositRecord.getUserDepositAmount(currentAccountAddress)).to.eq(
-          TEST_ACCOUNT_DEPOSIT_CAP
+          TEST_USER_DEPOSIT_CAP
         )
       }
       expect(await depositRecord.getGlobalNetDepositAmount()).to.eq(TEST_GLOBAL_DEPOSIT_CAP)
@@ -107,6 +151,7 @@ describe('=> CollateralDepositRecord', () => {
 
   describe('# recordWithdrawal', () => {
     beforeEach(async () => {
+      await setupDepositRecord()
       await depositRecord
         .connect(user)
         .recordDeposit(user.address, TEST_AMOUNT_ONE.add(TEST_AMOUNT_TWO))
@@ -227,16 +272,32 @@ describe('=> CollateralDepositRecord', () => {
 
   describe('# setGlobalNetDepositCap', () => {
     const differentCapToTestWith = TEST_GLOBAL_DEPOSIT_CAP.add(1)
-    it('should only be callable by the owner', async () => {
-      expect(await depositRecord.owner()).to.not.eq(user.address)
+    beforeEach(async () => {
+      await getSignersAndDeployRecord()
+      await grantAndAcceptRole(
+        depositRecord,
+        deployer,
+        deployer,
+        await depositRecord.SET_GLOBAL_NET_DEPOSIT_CAP_ROLE()
+      )
+    })
+
+    it('reverts if not role holder', async () => {
+      expect(
+        await depositRecord.hasRole(
+          await depositRecord.SET_GLOBAL_NET_DEPOSIT_CAP_ROLE(),
+          user.address
+        )
+      ).to.eq(false)
 
       await expect(
         depositRecord.connect(user).setGlobalNetDepositCap(differentCapToTestWith)
-      ).to.revertedWith('Ownable: caller is not the owner')
+      ).revertedWith(
+        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await depositRecord.SET_GLOBAL_NET_DEPOSIT_CAP_ROLE()}`
+      )
     })
 
     it('should be settable to a non-zero value', async () => {
-      expect(await depositRecord.owner()).to.eq(deployer.address)
       expect(await depositRecord.getGlobalNetDepositCap()).to.not.eq(differentCapToTestWith)
 
       await depositRecord.connect(deployer).setGlobalNetDepositCap(differentCapToTestWith)
@@ -245,7 +306,7 @@ describe('=> CollateralDepositRecord', () => {
     })
 
     it('should be settable to zero', async () => {
-      expect(await depositRecord.owner()).to.eq(deployer.address)
+      await depositRecord.connect(deployer).setGlobalNetDepositCap(differentCapToTestWith)
       expect(await depositRecord.getGlobalNetDepositCap()).to.not.eq(0)
 
       await depositRecord.connect(deployer).setGlobalNetDepositCap(0)
@@ -254,7 +315,6 @@ describe('=> CollateralDepositRecord', () => {
     })
 
     it('should correctly set the same value twice', async () => {
-      expect(await depositRecord.owner()).to.eq(deployer.address)
       expect(await depositRecord.getGlobalNetDepositCap()).to.not.eq(differentCapToTestWith)
       await depositRecord.connect(deployer).setGlobalNetDepositCap(differentCapToTestWith)
       expect(await depositRecord.getGlobalNetDepositCap()).to.eq(differentCapToTestWith)
@@ -276,17 +336,30 @@ describe('=> CollateralDepositRecord', () => {
   })
 
   describe('# setUserDepositCap', () => {
-    const differentCapToTestWith = TEST_ACCOUNT_DEPOSIT_CAP.add(1)
-    it('should only be callable by the owner', async () => {
-      expect(await depositRecord.owner()).to.not.eq(user.address)
+    const differentCapToTestWith = TEST_USER_DEPOSIT_CAP.add(1)
+    beforeEach(async () => {
+      await getSignersAndDeployRecord()
+      await grantAndAcceptRole(
+        depositRecord,
+        deployer,
+        deployer,
+        await depositRecord.SET_USER_DEPOSIT_CAP_ROLE()
+      )
+    })
+
+    it('reverts if not role holder', async () => {
+      expect(
+        await depositRecord.hasRole(await depositRecord.SET_USER_DEPOSIT_CAP_ROLE(), user.address)
+      ).to.eq(false)
 
       await expect(
         depositRecord.connect(user).setUserDepositCap(differentCapToTestWith)
-      ).to.revertedWith('Ownable: caller is not the owner')
+      ).revertedWith(
+        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await depositRecord.SET_USER_DEPOSIT_CAP_ROLE()}`
+      )
     })
 
     it('should be settable to a non-zero value', async () => {
-      expect(await depositRecord.owner()).to.eq(deployer.address)
       expect(await depositRecord.getUserDepositCap()).to.not.eq(differentCapToTestWith)
 
       await depositRecord.connect(deployer).setUserDepositCap(differentCapToTestWith)
@@ -295,7 +368,7 @@ describe('=> CollateralDepositRecord', () => {
     })
 
     it('should be settable to zero', async () => {
-      expect(await depositRecord.owner()).to.eq(deployer.address)
+      await depositRecord.connect(deployer).setUserDepositCap(differentCapToTestWith)
       expect(await depositRecord.getUserDepositCap()).to.not.eq(0)
 
       await depositRecord.connect(deployer).setUserDepositCap(0)
@@ -304,7 +377,6 @@ describe('=> CollateralDepositRecord', () => {
     })
 
     it('should correctly set the same value twice', async () => {
-      expect(await depositRecord.owner()).to.eq(deployer.address)
       await depositRecord.connect(deployer).setUserDepositCap(differentCapToTestWith)
       expect(await depositRecord.getUserDepositCap()).to.eq(differentCapToTestWith)
 
@@ -323,16 +395,27 @@ describe('=> CollateralDepositRecord', () => {
   })
 
   describe('# setAllowedHook', () => {
-    it('should only be callable by the owner', async () => {
-      expect(await depositRecord.owner()).to.not.eq(user.address)
+    beforeEach(async () => {
+      await getSignersAndDeployRecord()
+      await grantAndAcceptRole(
+        depositRecord,
+        deployer,
+        deployer,
+        await depositRecord.SET_ALLOWED_HOOK_ROLE()
+      )
+    })
 
-      await expect(
-        depositRecord.connect(user).setAllowedHook(deployer.address, true)
-      ).to.revertedWith('Ownable: caller is not the owner')
+    it('reverts if not role holder', async () => {
+      expect(
+        await depositRecord.hasRole(await depositRecord.SET_ALLOWED_HOOK_ROLE(), user.address)
+      ).to.eq(false)
+
+      await expect(depositRecord.connect(user).setAllowedHook(deployer.address, true)).revertedWith(
+        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await depositRecord.SET_ALLOWED_HOOK_ROLE()}`
+      )
     })
 
     it('should be able to set the allowed status of an account to true', async () => {
-      expect(await depositRecord.owner()).to.eq(deployer.address)
       expect(await depositRecord.isHookAllowed(deployer.address)).to.eq(false)
 
       await depositRecord.connect(deployer).setAllowedHook(deployer.address, true)
@@ -341,7 +424,6 @@ describe('=> CollateralDepositRecord', () => {
     })
 
     it('should be able to set the allowed status of an account to false', async () => {
-      expect(await depositRecord.owner()).to.eq(deployer.address)
       await depositRecord.connect(deployer).setAllowedHook(deployer.address, true)
       expect(await depositRecord.isHookAllowed(deployer.address)).to.eq(true)
 
@@ -351,7 +433,6 @@ describe('=> CollateralDepositRecord', () => {
     })
 
     it('should be able to set the allowed status of an account to true more than once', async () => {
-      expect(await depositRecord.owner()).to.eq(deployer.address)
       await depositRecord.connect(deployer).setAllowedHook(deployer.address, true)
       expect(await depositRecord.isHookAllowed(deployer.address)).to.eq(true)
 
@@ -361,7 +442,6 @@ describe('=> CollateralDepositRecord', () => {
     })
 
     it('should be able to set the allowed status of an account to false more than once', async () => {
-      expect(await depositRecord.owner()).to.eq(deployer.address)
       await depositRecord.connect(deployer).setAllowedHook(deployer.address, false)
       expect(await depositRecord.isHookAllowed(deployer.address)).to.eq(false)
 
