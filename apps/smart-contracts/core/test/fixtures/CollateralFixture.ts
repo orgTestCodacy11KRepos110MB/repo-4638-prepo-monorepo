@@ -5,13 +5,20 @@ import { Collateral } from '../../typechain'
 export async function collateralFixture(
   name: string,
   symbol: string,
-  baseToken: string
+  baseToken: string,
+  baseTokenDecimals: number
 ): Promise<Collateral> {
   const Factory = await ethers.getContractFactory('Collateral')
-  return (await upgrades.deployProxy(Factory, [name, symbol, baseToken])) as Collateral
+  return (await upgrades.deployProxy(Factory, [name, symbol], {
+    unsafeAllow: ['constructor', 'state-variable-immutable'],
+    constructorArgs: [baseToken, baseTokenDecimals],
+  })) as Collateral
 }
 
-export async function smockCollateralFixture(): Promise<MockContract> {
+export async function smockCollateralFixture(
+  baseToken: string,
+  baseTokenDecimals: number
+): Promise<MockContract> {
   const smockCollateral = await smock.mock('Collateral')
-  return (await smockCollateral.deploy()) as MockContract
+  return (await smockCollateral.deploy(baseToken, baseTokenDecimals)) as MockContract
 }

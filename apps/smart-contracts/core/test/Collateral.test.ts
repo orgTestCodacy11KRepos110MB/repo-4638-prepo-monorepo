@@ -1,8 +1,8 @@
 import chai, { expect } from 'chai'
-import { ethers } from 'hardhat'
+import { ethers, upgrades } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { id, parseEther } from 'ethers/lib/utils'
-import { Contract } from 'ethers'
+import { BigNumber, Contract } from 'ethers'
 import { MockContract, smock } from '@defi-wonderland/smock'
 import { DEFAULT_ADMIN_ROLE, ZERO_ADDRESS } from 'prepo-constants'
 import { depositHookFixture } from './fixtures/HookFixture'
@@ -17,19 +17,27 @@ describe('=> Collateral', () => {
   let deployer: SignerWithAddress
   let user1: SignerWithAddress
   let user2: SignerWithAddress
+  let treasury: SignerWithAddress
   let baseToken: TestERC20
   let collateral: Collateral
   const TEST_DEPOSIT_FEE = 1000 // 0.1%
   const TEST_WITHDRAW_FEE = 2000 // 0.2%
+  const USDC_DECIMALS = 6
 
   const getSignersAndDeployCollateral = async (): Promise<void> => {
-    ;[deployer, user1, user2] = await ethers.getSigners()
-    baseToken = await testERC20Fixture('USD Coin', 'USDC', 6)
-    collateral = await collateralFixture('prePO USDC Collateral', 'preUSD', baseToken.address)
+    ;[deployer, treasury, user1, user2] = await ethers.getSigners()
+    baseToken = await testERC20Fixture('USD Coin', 'USDC', USDC_DECIMALS)
+    collateral = await collateralFixture(
+      'prePO USDC Collateral',
+      'preUSD',
+      baseToken.address,
+      USDC_DECIMALS
+    )
   }
 
   const setupCollateral = async (): Promise<void> => {
     await getSignersAndDeployCollateral()
+    await grantAndAcceptRole(collateral, deployer, deployer, await collateral.SET_TREASURY_ROLE())
     await grantAndAcceptRole(
       collateral,
       deployer,
@@ -62,9 +70,17 @@ describe('=> Collateral', () => {
     )
   }
 
+  before(() => {
+    upgrades.silenceWarnings()
+  })
+
   describe('initial state', () => {
     beforeEach(async () => {
       await getSignersAndDeployCollateral()
+    })
+
+    it('sets base token from constructor', async () => {
+      expect(await collateral.getBaseToken()).to.eq(baseToken.address)
     })
 
     it('sets name from initialize', async () => {
@@ -79,11 +95,8 @@ describe('=> Collateral', () => {
       expect(await collateral.hasRole(DEFAULT_ADMIN_ROLE, deployer.address)).to.eq(true)
     })
 
-    it('sets base token from initialize', async () => {
-      expect(await collateral.getBaseToken()).to.eq(baseToken.address)
-    })
-
     it('sets role constants to the correct hash', async () => {
+      expect(await collateral.SET_TREASURY_ROLE()).to.eq(id('Collateral_setTreasury(address)'))
       expect(await collateral.SET_DEPOSIT_FEE_ROLE()).to.eq(id('Collateral_setDepositFee(uint256)'))
       expect(await collateral.SET_WITHDRAW_FEE_ROLE()).to.eq(
         id('Collateral_setWithdrawFee(uint256)')
@@ -95,6 +108,58 @@ describe('=> Collateral', () => {
       expect(await collateral.SET_MANAGER_WITHDRAW_HOOK_ROLE()).to.eq(
         id('Collateral_setManagerWithdrawHook(IHook)')
       )
+    })
+  })
+
+  describe('# setTreasury', () => {
+    beforeEach(async () => {
+      await getSignersAndDeployCollateral()
+      await grantAndAcceptRole(collateral, deployer, deployer, await collateral.SET_TREASURY_ROLE())
+    })
+
+    it('reverts if not role holder', async () => {
+      expect(await collateral.hasRole(await collateral.SET_TREASURY_ROLE(), user1.address)).to.eq(
+        false
+      )
+
+      await expect(collateral.connect(user1).setTreasury(treasury.address)).revertedWith(
+        `AccessControl: account ${user1.address.toLowerCase()} is missing role ${await collateral.SET_TREASURY_ROLE()}`
+      )
+    })
+
+    it('sets to non-zero address', async () => {
+      expect(await collateral.getTreasury()).to.not.eq(treasury.address)
+
+      await collateral.connect(deployer).setTreasury(treasury.address)
+
+      expect(await collateral.getTreasury()).to.eq(treasury.address)
+    })
+
+    it('sets to zero address', async () => {
+      await collateral.connect(deployer).setTreasury(treasury.address)
+      expect(await collateral.getTreasury()).to.not.eq(ZERO_ADDRESS)
+
+      await collateral.connect(deployer).setTreasury(ZERO_ADDRESS)
+
+      expect(await collateral.getTreasury()).to.eq(ZERO_ADDRESS)
+    })
+
+    it('is idempotent', async () => {
+      expect(await collateral.getTreasury()).to.not.eq(treasury.address)
+
+      await collateral.connect(deployer).setTreasury(treasury.address)
+
+      expect(await collateral.getTreasury()).to.eq(treasury.address)
+
+      await collateral.connect(deployer).setTreasury(treasury.address)
+
+      expect(await collateral.getTreasury()).to.eq(treasury.address)
+    })
+
+    it('emits TreasuryChange', async () => {
+      const tx = await collateral.connect(deployer).setTreasury(treasury.address)
+
+      await expect(tx).to.emit(collateral, 'TreasuryChange').withArgs(treasury.address)
     })
   })
 

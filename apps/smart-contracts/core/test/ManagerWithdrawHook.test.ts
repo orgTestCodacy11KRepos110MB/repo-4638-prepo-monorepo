@@ -6,10 +6,11 @@ import { Contract } from 'ethers'
 import { MockContract, smock } from '@defi-wonderland/smock'
 import { ZERO_ADDRESS } from 'prepo-constants'
 import { managerWithdrawHookFixture } from './fixtures/HookFixture'
+import { testERC20Fixture } from './fixtures/TestERC20Fixture'
 import { smockCollateralDepositRecordFixture } from './fixtures/CollateralDepositRecordFixture'
 import { grantAndAcceptRole, PERCENT_DENOMINATOR } from './utils'
 import { smockCollateralFixture } from './fixtures/CollateralFixture'
-import { ManagerWithdrawHook } from '../typechain'
+import { ManagerWithdrawHook, TestERC20 } from '../typechain'
 
 chai.use(smock.matchers)
 
@@ -17,6 +18,7 @@ describe('=> ManagerWithdrawHook', () => {
   let deployer: SignerWithAddress
   let user: SignerWithAddress
   let managerWithdrawHook: ManagerWithdrawHook
+  let baseToken: TestERC20
   let depositRecord: MockContract<Contract>
   let collateral: MockContract<Contract>
   const TEST_GLOBAL_DEPOSIT_CAP = parseEther('50000')
@@ -29,7 +31,8 @@ describe('=> ManagerWithdrawHook', () => {
       TEST_GLOBAL_DEPOSIT_CAP,
       TEST_USER_DEPOSIT_CAP
     )
-    collateral = await smockCollateralFixture()
+    baseToken = await testERC20Fixture('USD Coin', 'USDC', 6)
+    collateral = await smockCollateralFixture(baseToken.address, await baseToken.decimals())
     managerWithdrawHook = await managerWithdrawHookFixture(depositRecord.address)
   }
 
