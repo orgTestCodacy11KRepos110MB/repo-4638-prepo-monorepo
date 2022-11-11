@@ -47,8 +47,8 @@ contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
    * timestamp, not initially adding it means that a change in period will
    * be reflected immediately.
    *
-   * We use `_amountBeforeFee` for withdrawals since the fee should be
-   * included in the reduction of liabilities to Collateral depositors.
+   * We use `_amountBeforeFee` for updating global net deposits for a more 
+   * accurate value.
    */
   function hook(
     address _sender,

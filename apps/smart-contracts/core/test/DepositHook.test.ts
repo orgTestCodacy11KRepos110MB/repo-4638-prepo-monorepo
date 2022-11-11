@@ -80,6 +80,10 @@ describe('=> DepositHook', () => {
   })
 
   describe('# hook', () => {
+    /**
+     * Tests below use different values for TEST_AMOUNT_BEFORE_FEE and
+     * TEST_AMOUNT_AFTER_FEE to ensure TEST_AMOUNT_BEFORE_FEE is ignored.
+     */
     beforeEach(async () => {
       await depositHook.connect(deployer).setCollateral(vault.address)
       await depositHook.connect(deployer).setDepositsAllowed(true)
