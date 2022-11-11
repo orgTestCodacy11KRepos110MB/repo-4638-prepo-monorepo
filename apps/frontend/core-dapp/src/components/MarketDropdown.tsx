@@ -42,6 +42,11 @@ const SelectMarketText = styled.p`
   margin-bottom: 0;
 `
 
+const StyledDropdown = styled(Dropdown)<{ showShadow: boolean }>`
+  box-shadow: ${({ showShadow }): string =>
+    showShadow ? `0px 4px 22px rgba(98, 100, 217, 0.11)` : 'unset'};
+`
+
 const Market: React.FC<{ market: MarketEntity; showBalance?: boolean }> = ({ market }) => (
   <MarketWrapper>
     <MarketIcon>
@@ -75,7 +80,8 @@ const MarketDropdown: React.FC<Props> = ({ onSelectMarket, selectedMarket }) => 
   )
 
   return (
-    <Dropdown
+    <StyledDropdown
+      showShadow={!selectedMarket}
       overlay={getMarketsDropdownMenu}
       trigger={['click']}
       block
@@ -87,7 +93,7 @@ const MarketDropdown: React.FC<Props> = ({ onSelectMarket, selectedMarket }) => 
       ) : (
         <SelectMarketText>Select a Market</SelectMarketText>
       )}
-    </Dropdown>
+    </StyledDropdown>
   )
 }
 
