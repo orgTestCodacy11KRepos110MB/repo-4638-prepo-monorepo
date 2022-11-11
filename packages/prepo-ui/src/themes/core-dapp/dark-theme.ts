@@ -12,6 +12,7 @@ const primary = colors.purple3
 const primaryAccent = colors.gray5
 const primaryLight = colors.purple2
 const primaryWhite = colors.white
+const dartkPrimaryLight = colors.purple2
 
 // accent colors
 const accent1 = colors.gray8
@@ -79,6 +80,10 @@ const preacherIconFill = `linear-gradient(${colors.purple7}, ${colors.purple8})`
 const preacherTextColor = colors.gray11
 const profileBorderColor = colors.purple2
 
+// currency input
+const neutral12 = colors.gray8
+const neutral13 = colors.gray6
+
 // Mode
 const mode = ThemeModes.Dark
 
@@ -96,6 +101,7 @@ const darkTheme: DefaultTheme = {
     primaryAccent,
     primaryLight,
     primaryWhite,
+    dartkPrimaryLight,
     accent1,
     accent2,
     accent3,
@@ -111,6 +117,8 @@ const darkTheme: DefaultTheme = {
     neutral9,
     neutral10,
     neutral11,
+    neutral12,
+    neutral13,
     info,
     error,
     success,

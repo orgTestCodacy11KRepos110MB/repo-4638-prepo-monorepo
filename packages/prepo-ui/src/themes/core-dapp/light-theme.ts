@@ -12,6 +12,7 @@ const primary = colors.purple3
 const primaryAccent = colors.purple1
 const primaryLight = colors.purple3
 const primaryWhite = colors.purple3
+const dartkPrimaryLight = colors.purple6
 
 // accent colors
 const accent1 = colors.purple1
@@ -33,6 +34,8 @@ const neutral8 = colors.gray1
 const neutral9 = colors.white
 const neutral10 = colors.white
 const neutral11 = colors.gray12
+const neutral12 = colors.gray13
+const neutral13 = colors.gray14
 
 const purpleStroke = colors.purple13
 
@@ -96,6 +99,7 @@ const lightTheme: DefaultTheme = {
     primaryAccent,
     primaryLight,
     primaryWhite,
+    dartkPrimaryLight,
     accent1,
     accent2,
     accent3,
@@ -111,6 +115,8 @@ const lightTheme: DefaultTheme = {
     neutral9,
     neutral10,
     neutral11,
+    neutral12,
+    neutral13,
     info,
     error,
     success,

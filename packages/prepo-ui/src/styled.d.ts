@@ -25,6 +25,8 @@ declare module 'styled-components' {
     primaryLight: string
     /** #6264D8 | #FFFFFF */
     primaryWhite: string
+    /** #454699 | #9B9DFF */
+    dartkPrimaryLight: string
     /** #FCFAFF | #1B1E22 */
     accent1: string
     /** #FCFAFF | #191B1F */
@@ -55,6 +57,10 @@ declare module 'styled-components' {
     neutral10: string
     /** #929AA2 | #A6B0C3 */
     neutral11: string
+    /** #F7F8FA | #1B1E22 */
+    neutral12: string
+    /** #EDEEF2 | #212429 */
+    neutral13: string
     /** #47AFF8 */
     info: string
     /** #EB5757 */

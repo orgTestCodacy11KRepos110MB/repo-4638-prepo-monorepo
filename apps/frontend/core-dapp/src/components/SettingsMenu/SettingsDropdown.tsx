@@ -29,6 +29,7 @@ const SettingsDropdown: React.FC = () => {
         destroyPopupOnHide
         trigger={['click']}
         placement="bottomRight"
+        size="sm"
         overlay={
           // pass portfolioValue from here instead of accesing it inside SettingsCard component
           // so it doesnt become unobserved on close to avoid a brief moment of flashing
