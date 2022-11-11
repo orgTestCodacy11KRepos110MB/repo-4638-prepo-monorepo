@@ -33,6 +33,30 @@ describe('=> ManagerWithdrawHook', () => {
     managerWithdrawHook = await managerWithdrawHookFixture(depositRecord.address)
   }
 
+  const setupManagerWithdrawHook = async (): Promise<void> => {
+    await getSignersAndDeployHook()
+    await grantAndAcceptRole(
+      managerWithdrawHook,
+      deployer,
+      deployer,
+      await managerWithdrawHook.SET_COLLATERAL_ROLE()
+    )
+    await grantAndAcceptRole(
+      managerWithdrawHook,
+      deployer,
+      deployer,
+      await managerWithdrawHook.SET_DEPOSIT_RECORD_ROLE()
+    )
+    await grantAndAcceptRole(
+      managerWithdrawHook,
+      deployer,
+      deployer,
+      await managerWithdrawHook.SET_MIN_RESERVE_PERCENTAGE_ROLE()
+    )
+    await managerWithdrawHook.connect(deployer).setCollateral(collateral.address)
+    await managerWithdrawHook.connect(deployer).setMinReservePercentage(TEST_MIN_RESERVE_PERCENTAGE)
+  }
+
   describe('initial state', () => {
     beforeEach(async () => {
       await getSignersAndDeployHook()
@@ -64,6 +88,291 @@ describe('=> ManagerWithdrawHook', () => {
 
     it('sets deposit record from constructor', async () => {
       expect(await managerWithdrawHook.getDepositRecord()).to.eq(depositRecord.address)
+    })
+  })
+
+  describe('# setCollateral', () => {
+    beforeEach(async () => {
+      await getSignersAndDeployHook()
+      await grantAndAcceptRole(
+        managerWithdrawHook,
+        deployer,
+        deployer,
+        await managerWithdrawHook.SET_COLLATERAL_ROLE()
+      )
+    })
+
+    it('reverts if not role holder', async () => {
+      expect(
+        await managerWithdrawHook.hasRole(
+          await managerWithdrawHook.SET_COLLATERAL_ROLE(),
+          user.address
+        )
+      ).to.eq(false)
+
+      await expect(
+        managerWithdrawHook.connect(user).setCollateral(collateral.address)
+      ).revertedWith(
+        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await managerWithdrawHook.SET_COLLATERAL_ROLE()}`
+      )
+    })
+
+    it('sets to non-zero address', async () => {
+      expect(await managerWithdrawHook.getCollateral()).to.eq(ZERO_ADDRESS)
+
+      await managerWithdrawHook.connect(deployer).setCollateral(collateral.address)
+
+      expect(await managerWithdrawHook.getCollateral()).to.eq(collateral.address)
+    })
+
+    it('sets to zero address', async () => {
+      await managerWithdrawHook.connect(deployer).setCollateral(collateral.address)
+      expect(await managerWithdrawHook.getCollateral()).to.eq(collateral.address)
+
+      await managerWithdrawHook.connect(deployer).setCollateral(ZERO_ADDRESS)
+
+      expect(await managerWithdrawHook.getCollateral()).to.eq(ZERO_ADDRESS)
+    })
+
+    it('is idempotent', async () => {
+      expect(await managerWithdrawHook.getCollateral()).to.eq(ZERO_ADDRESS)
+
+      await managerWithdrawHook.connect(deployer).setCollateral(collateral.address)
+
+      expect(await managerWithdrawHook.getCollateral()).to.eq(collateral.address)
+
+      await managerWithdrawHook.connect(deployer).setCollateral(collateral.address)
+
+      expect(await managerWithdrawHook.getCollateral()).to.eq(collateral.address)
+    })
+
+    it('emits CollateralChange', async () => {
+      const tx = await managerWithdrawHook.connect(deployer).setCollateral(collateral.address)
+
+      await expect(tx).to.emit(managerWithdrawHook, 'CollateralChange').withArgs(collateral.address)
+    })
+  })
+
+  describe('# setDepositRecord', () => {
+    beforeEach(async () => {
+      await getSignersAndDeployHook()
+      await grantAndAcceptRole(
+        managerWithdrawHook,
+        deployer,
+        deployer,
+        await managerWithdrawHook.SET_DEPOSIT_RECORD_ROLE()
+      )
+    })
+
+    it('reverts if not role holder', async () => {
+      expect(
+        await managerWithdrawHook.hasRole(
+          await managerWithdrawHook.SET_DEPOSIT_RECORD_ROLE(),
+          user.address
+        )
+      ).to.eq(false)
+
+      await expect(
+        managerWithdrawHook.connect(user).setDepositRecord(depositRecord.address)
+      ).revertedWith(
+        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await managerWithdrawHook.SET_DEPOSIT_RECORD_ROLE()}`
+      )
+    })
+
+    it('sets to non-zero address', async () => {
+      await managerWithdrawHook.connect(deployer).setDepositRecord(ZERO_ADDRESS)
+      expect(depositRecord.address).to.not.eq(ZERO_ADDRESS)
+      expect(await managerWithdrawHook.getDepositRecord()).to.not.eq(depositRecord.address)
+
+      await managerWithdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
+
+      expect(await managerWithdrawHook.getDepositRecord()).to.eq(depositRecord.address)
+    })
+
+    it('sets to zero address', async () => {
+      expect(await managerWithdrawHook.getDepositRecord()).to.not.eq(ZERO_ADDRESS)
+
+      await managerWithdrawHook.connect(deployer).setDepositRecord(ZERO_ADDRESS)
+
+      expect(await managerWithdrawHook.getDepositRecord()).to.eq(ZERO_ADDRESS)
+    })
+
+    it('is idempotent', async () => {
+      await managerWithdrawHook.connect(deployer).setDepositRecord(ZERO_ADDRESS)
+      expect(await managerWithdrawHook.getDepositRecord()).to.not.eq(depositRecord.address)
+
+      await managerWithdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
+
+      expect(await managerWithdrawHook.getDepositRecord()).to.eq(depositRecord.address)
+
+      await managerWithdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
+
+      expect(await managerWithdrawHook.getDepositRecord()).to.eq(depositRecord.address)
+    })
+
+    it('emits DepositRecordChange', async () => {
+      const tx = await managerWithdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
+
+      await expect(tx)
+        .to.emit(managerWithdrawHook, 'DepositRecordChange')
+        .withArgs(depositRecord.address)
+    })
+  })
+
+  describe('# setMinReservePercentage', () => {
+    beforeEach(async () => {
+      await getSignersAndDeployHook()
+      await grantAndAcceptRole(
+        managerWithdrawHook,
+        deployer,
+        deployer,
+        await managerWithdrawHook.SET_MIN_RESERVE_PERCENTAGE_ROLE()
+      )
+    })
+
+    it('reverts if not role holder', async () => {
+      expect(
+        await managerWithdrawHook.hasRole(
+          await managerWithdrawHook.SET_MIN_RESERVE_PERCENTAGE_ROLE(),
+          user.address
+        )
+      ).to.eq(false)
+
+      await expect(
+        managerWithdrawHook.connect(user).setMinReservePercentage(TEST_MIN_RESERVE_PERCENTAGE)
+      ).revertedWith(
+        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await managerWithdrawHook.SET_MIN_RESERVE_PERCENTAGE_ROLE()}`
+      )
+    })
+
+    it('reverts if >100%', async () => {
+      await expect(
+        managerWithdrawHook.connect(deployer).setMinReservePercentage(PERCENT_DENOMINATOR + 1)
+      ).revertedWith('>100%')
+    })
+
+    it('sets to non-zero value', async () => {
+      expect(await managerWithdrawHook.getMinReservePercentage()).to.not.eq(PERCENT_DENOMINATOR - 1)
+
+      await managerWithdrawHook.connect(deployer).setMinReservePercentage(PERCENT_DENOMINATOR - 1)
+
+      expect(await managerWithdrawHook.getMinReservePercentage()).to.eq(PERCENT_DENOMINATOR - 1)
+    })
+
+    it('sets to 100%', async () => {
+      expect(await managerWithdrawHook.getMinReservePercentage()).to.not.eq(PERCENT_DENOMINATOR)
+
+      await managerWithdrawHook.connect(deployer).setMinReservePercentage(PERCENT_DENOMINATOR)
+
+      expect(await managerWithdrawHook.getMinReservePercentage()).to.eq(PERCENT_DENOMINATOR)
+    })
+
+    it('sets to 0%', async () => {
+      await managerWithdrawHook
+        .connect(deployer)
+        .setMinReservePercentage(TEST_MIN_RESERVE_PERCENTAGE)
+      expect(await managerWithdrawHook.getMinReservePercentage()).to.not.eq(0)
+
+      await managerWithdrawHook.connect(deployer).setMinReservePercentage(0)
+
+      expect(await managerWithdrawHook.getMinReservePercentage()).to.eq(0)
+    })
+
+    it('is idempotent', async () => {
+      expect(await managerWithdrawHook.getMinReservePercentage()).to.not.eq(
+        TEST_MIN_RESERVE_PERCENTAGE
+      )
+
+      await managerWithdrawHook
+        .connect(deployer)
+        .setMinReservePercentage(TEST_MIN_RESERVE_PERCENTAGE)
+
+      expect(await managerWithdrawHook.getMinReservePercentage()).to.eq(TEST_MIN_RESERVE_PERCENTAGE)
+
+      await managerWithdrawHook
+        .connect(deployer)
+        .setMinReservePercentage(TEST_MIN_RESERVE_PERCENTAGE)
+
+      expect(await managerWithdrawHook.getMinReservePercentage()).to.eq(TEST_MIN_RESERVE_PERCENTAGE)
+    })
+
+    it('emits MinReservePercentageChange', async () => {
+      const tx = await managerWithdrawHook
+        .connect(deployer)
+        .setMinReservePercentage(TEST_MIN_RESERVE_PERCENTAGE)
+
+      await expect(tx)
+        .to.emit(managerWithdrawHook, 'MinReservePercentageChange')
+        .withArgs(TEST_MIN_RESERVE_PERCENTAGE)
+    })
+  })
+
+  describe('# getMinReserve', () => {
+    beforeEach(async () => {
+      await setupManagerWithdrawHook()
+    })
+
+    it('reverts if deposit record not set', async () => {
+      await managerWithdrawHook.connect(deployer).setDepositRecord(ZERO_ADDRESS)
+
+      await expect(managerWithdrawHook.getMinReserve()).reverted
+    })
+
+    it('returns required reserve', async () => {
+      depositRecord.getGlobalNetDepositAmount.returns(TEST_GLOBAL_DEPOSIT_CAP)
+      const expectedRequiredReserve = TEST_GLOBAL_DEPOSIT_CAP.mul(TEST_MIN_RESERVE_PERCENTAGE).div(
+        PERCENT_DENOMINATOR
+      )
+
+      expect(await managerWithdrawHook.getMinReserve()).to.be.eq(expectedRequiredReserve)
+    })
+  })
+
+  describe('# hook', () => {
+    const IGNORED_ARGUMENT = parseEther('69.420')
+    beforeEach(async () => {
+      await setupManagerWithdrawHook()
+    })
+
+    it('reverts if withdrawal brings reserve below minimum', async () => {
+      depositRecord.getGlobalNetDepositAmount.returns(TEST_GLOBAL_DEPOSIT_CAP)
+      const requiredReserve = TEST_GLOBAL_DEPOSIT_CAP.mul(TEST_MIN_RESERVE_PERCENTAGE).div(
+        PERCENT_DENOMINATOR
+      )
+      collateral.getReserve.returns(requiredReserve)
+      const amountToWithdraw = 1
+      expect(await collateral.getReserve()).to.be.lt(requiredReserve.add(amountToWithdraw))
+      expect(IGNORED_ARGUMENT).to.not.eq(amountToWithdraw)
+
+      await expect(
+        managerWithdrawHook.connect(user).hook(user.address, IGNORED_ARGUMENT, amountToWithdraw)
+      ).to.revertedWith('reserve would fall below minimum')
+    })
+
+    it('allows withdrawal down to exactly reserve minimum', async () => {
+      depositRecord.getGlobalNetDepositAmount.returns(TEST_GLOBAL_DEPOSIT_CAP)
+      const requiredReserve = TEST_GLOBAL_DEPOSIT_CAP.mul(TEST_MIN_RESERVE_PERCENTAGE).div(
+        PERCENT_DENOMINATOR
+      )
+      const amountToWithdraw = 1
+      collateral.getReserve.returns(requiredReserve.add(amountToWithdraw))
+      expect(await collateral.getReserve()).to.be.eq(requiredReserve.add(amountToWithdraw))
+      expect(IGNORED_ARGUMENT).to.not.eq(amountToWithdraw)
+
+      await managerWithdrawHook.connect(user).hook(user.address, IGNORED_ARGUMENT, amountToWithdraw)
+    })
+
+    it('allows withdrawal down to above reserve minimum', async () => {
+      depositRecord.getGlobalNetDepositAmount.returns(TEST_GLOBAL_DEPOSIT_CAP)
+      const requiredReserve = TEST_GLOBAL_DEPOSIT_CAP.mul(TEST_MIN_RESERVE_PERCENTAGE).div(
+        PERCENT_DENOMINATOR
+      )
+      const amountToWithdraw = 1
+      collateral.getReserve.returns(requiredReserve.add(amountToWithdraw).add(1))
+      expect(await collateral.getReserve()).to.be.gt(requiredReserve.add(amountToWithdraw))
+      expect(IGNORED_ARGUMENT).to.not.eq(amountToWithdraw)
+
+      await managerWithdrawHook.connect(user).hook(user.address, IGNORED_ARGUMENT, amountToWithdraw)
     })
   })
 })

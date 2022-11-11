@@ -24,28 +24,44 @@ contract ManagerWithdrawHook is
     _depositRecord = ICollateralDepositRecord(_newDepositRecord);
   }
 
-  modifier onlyCollateral() {
-    require(msg.sender == address(_collateral), "msg.sender != collateral");
-    _;
-  }
-
   function hook(
     address _sender,
     uint256 _amountBeforeFee,
     uint256 _amountAfterFee
-  ) external override {}
+  ) external override {
+    require(
+      _collateral.getReserve() - _amountAfterFee >= getMinReserve(),
+      "reserve would fall below minimum"
+    );
+  }
 
-  function setCollateral(ICollateral _newCollateral) external override {}
+  function setCollateral(ICollateral _newCollateral)
+    external
+    override
+    onlyRole(SET_COLLATERAL_ROLE)
+  {
+    _collateral = _newCollateral;
+    emit CollateralChange(address(_newCollateral));
+  }
 
   function setDepositRecord(ICollateralDepositRecord _newDepositRecord)
     external
     override
-  {}
+    onlyRole(SET_DEPOSIT_RECORD_ROLE)
+  {
+    _depositRecord = _newDepositRecord;
+    emit DepositRecordChange(address(_newDepositRecord));
+  }
 
   function setMinReservePercentage(uint256 _newMinReservePercentage)
     external
     override
-  {}
+    onlyRole(SET_MIN_RESERVE_PERCENTAGE_ROLE)
+  {
+    require(_newMinReservePercentage <= PERCENT_DENOMINATOR, ">100%");
+    _minReservePercentage = _newMinReservePercentage;
+    emit MinReservePercentageChange(_newMinReservePercentage);
+  }
 
   function getCollateral() external view override returns (ICollateral) {
     return _collateral;
@@ -62,5 +78,11 @@ contract ManagerWithdrawHook is
 
   function getMinReservePercentage() external view override returns (uint256) {
     return _minReservePercentage;
+  }
+
+  function getMinReserve() public view override returns (uint256) {
+    return
+      (_depositRecord.getGlobalNetDepositAmount() * _minReservePercentage) /
+      PERCENT_DENOMINATOR;
   }
 }

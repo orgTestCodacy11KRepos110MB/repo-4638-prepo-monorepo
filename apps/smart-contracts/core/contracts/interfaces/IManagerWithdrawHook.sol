@@ -9,4 +9,6 @@ interface IManagerWithdrawHook is IDepositRecordHook {
   function setMinReservePercentage(uint256 newMinReservePercentage) external;
 
   function getMinReservePercentage() external view returns (uint256);
+
+  function getMinReserve() external view returns (uint256);
 }
