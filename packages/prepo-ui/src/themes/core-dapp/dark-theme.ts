@@ -34,6 +34,8 @@ const neutral8 = colors.gray6
 const neutral9 = colors.gray6
 const neutral10 = colors.gray9
 const neutral11 = colors.gray2
+const neutral12 = colors.gray8
+const neutral13 = colors.gray6
 
 const purpleStroke = colors.gray5
 
@@ -79,10 +81,6 @@ const preacherIconBackground = `linear-gradient(${colors.blue4}, ${colors.blue5}
 const preacherIconFill = `linear-gradient(${colors.purple7}, ${colors.purple8})`
 const preacherTextColor = colors.gray11
 const profileBorderColor = colors.purple2
-
-// currency input
-const neutral12 = colors.gray8
-const neutral13 = colors.gray6
 
 // Mode
 const mode = ThemeModes.Dark
