@@ -66,7 +66,8 @@ const Message = styled.div`
 const TradePage: React.FC = () => {
   useTradePage()
   const router = useRouter()
-  const { tradeStore, preCTTokenStore } = useRootStore()
+  const { tradeStore, preCTTokenStore, web3Store } = useRootStore()
+  const { connected, isNetworkSupported } = web3Store
   const { openTradeAmount, openTradeAmountBN, setOpenTradeAmount, selectedMarket } = tradeStore
   const { balanceOfSigner, tokenBalanceFormat } = preCTTokenStore
 
@@ -85,6 +86,7 @@ const TradePage: React.FC = () => {
         <CurrencyInput
           balance={tokenBalanceFormat}
           isBalanceZero={balanceOfSigner?.eq(0)}
+          disabled={!connected || !isNetworkSupported}
           currency={{ icon: 'cash', text: 'USD' }}
           onChange={setOpenTradeAmount}
           value={openTradeAmount}

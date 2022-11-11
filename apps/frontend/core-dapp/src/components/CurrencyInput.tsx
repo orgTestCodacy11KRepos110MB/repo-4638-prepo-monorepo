@@ -169,7 +169,7 @@ const CurrencyInput: React.FC<
       </Flex>
       {showBalance && (
         <Balance alignSelf="flex-end" height={16}>
-          {balance !== undefined && isNetworkSupported && (
+          {balance !== undefined && !disabled && (
             <>
               {`Balance: ${displayDecimals(balance)}`}
               {inputValue !== balance && !isBalanceZero && (
