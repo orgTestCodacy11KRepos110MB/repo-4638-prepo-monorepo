@@ -57,6 +57,10 @@ declare module 'styled-components' {
     neutral10: string
     /** #929AA2 | #A6B0C3 */
     neutral11: string
+    /** #F7F8FA | #1B1E22 */
+    neutral12: string
+    /** #EDEEF2 | #212429 */
+    neutral13: string
     /** #47AFF8 */
     info: string
     /** #EB5757 */
@@ -122,10 +126,6 @@ declare module 'styled-components' {
     preacherIconFill: string
     preacherTextColor: string
     profileBorderColor: string
-    /** #F7F8FA | #1B1E22 */
-    currencyInputBackground: string
-    /** #EDEEF2 | #212429 */
-    currencyInputDropdownBackground: string
     transparent: 'transparent'
   }
 

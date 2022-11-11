@@ -34,6 +34,8 @@ const neutral8 = colors.gray1
 const neutral9 = colors.white
 const neutral10 = colors.white
 const neutral11 = colors.gray12
+const neutral12 = colors.gray13
+const neutral13 = colors.gray14
 
 const purpleStroke = colors.purple13
 
@@ -80,10 +82,6 @@ const preacherIconFill = `linear-gradient(${colors.purple7}, ${colors.purple8})`
 const preacherTextColor = colors.gray11
 const profileBorderColor = colors.purple12
 
-// currency input
-const currencyInputBackground = colors.gray13
-const currencyInputDropdownBackground = colors.gray14
-
 // Mode
 const mode = ThemeModes.Light
 
@@ -117,6 +115,8 @@ const lightTheme: DefaultTheme = {
     neutral9,
     neutral10,
     neutral11,
+    neutral12,
+    neutral13,
     info,
     error,
     success,
@@ -154,8 +154,6 @@ const lightTheme: DefaultTheme = {
     preacherIconFill,
     preacherTextColor,
     profileBorderColor,
-    currencyInputBackground,
-    currencyInputDropdownBackground,
     transparent: TRANSPARENT,
   },
   positionType,

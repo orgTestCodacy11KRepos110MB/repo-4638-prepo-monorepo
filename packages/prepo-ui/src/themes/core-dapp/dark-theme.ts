@@ -81,8 +81,8 @@ const preacherTextColor = colors.gray11
 const profileBorderColor = colors.purple2
 
 // currency input
-const currencyInputBackground = colors.gray8
-const currencyInputDropdownBackground = colors.gray6
+const neutral12 = colors.gray8
+const neutral13 = colors.gray6
 
 // Mode
 const mode = ThemeModes.Dark
@@ -117,6 +117,8 @@ const darkTheme: DefaultTheme = {
     neutral9,
     neutral10,
     neutral11,
+    neutral12,
+    neutral13,
     info,
     error,
     success,
@@ -154,8 +156,6 @@ const darkTheme: DefaultTheme = {
     preacherIconFill,
     preacherTextColor,
     profileBorderColor,
-    currencyInputBackground,
-    currencyInputDropdownBackground,
     transparent: TRANSPARENT,
   },
   positionType,
