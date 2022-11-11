@@ -1,7 +1,7 @@
 import { Icon, IconName, spacingIncrement } from 'prepo-ui'
 import { observer } from 'mobx-react-lite'
 import { useRouter } from 'next/router'
-import styled, { Color } from 'styled-components'
+import styled, { Color, css, FlattenSimpleInterpolation } from 'styled-components'
 import { Direction } from './TradeStore'
 import { useRootStore } from '../../context/RootStoreProvider'
 
@@ -13,22 +13,37 @@ const Wrapper = styled.div`
   gap: ${spacingIncrement(8)};
 `
 
-const RadioButtonWrapper = styled.div<{ selected?: boolean }>`
+const RadioButtonWrapper = styled.div<{ disabled: boolean; selected?: boolean }>`
   align-items: center;
-  background-color: ${({ theme, selected }): string =>
-    theme.color[selected ? 'neutral8' : 'transparent']};
+  background-color: ${({ disabled, theme, selected }): string => {
+    if (disabled) return theme.color.neutral12
+    return theme.color[selected ? 'neutral8' : 'transparent']
+  }};
   border: solid 1px ${({ theme }): string => theme.color.neutral8};
   border-radius: ${({ theme }): string => theme.borderRadius.base};
-  cursor: pointer;
+  cursor: ${({ disabled }): string => (disabled ? 'not-allowed' : 'pointer')};
   display: flex;
   gap: ${spacingIncrement(8)};
   justify-content: center;
   padding: ${spacingIncrement(16)};
   width: 100%;
-  :hover {
-    border: solid 1px
-      ${({ theme, selected }): string => theme.color[selected ? 'neutral8' : 'neutral5']};
-  }
+  ${({ theme, disabled, selected }): FlattenSimpleInterpolation => {
+    if (disabled) {
+      return css`
+        background-color: ${theme.color.neutral12};
+        cursor: not-allowed;
+        opacity: 60%;
+      `
+    }
+
+    return css`
+      background-color: ${theme.color[selected ? 'neutral8' : 'transparent']};
+      cursor: pointer;
+      :hover {
+        border: solid 1px ${theme.color[selected ? 'neutral8' : 'neutral5']};
+      }
+    `
+  }}
 `
 
 const RadioTitle = styled.p<{ color: keyof Color }>`
@@ -40,9 +55,10 @@ const RadioTitle = styled.p<{ color: keyof Color }>`
 `
 const RadioButton: React.FC<{
   direction: Direction
+  disabled: boolean
   selected: boolean
   onClick: (direction: Direction) => void
-}> = ({ direction, selected, onClick }) => {
+}> = ({ direction, disabled, selected, onClick }) => {
   const name = direction === 'long' ? 'Long' : 'Short'
   const iconName: IconName = direction === 'long' ? 'long' : 'short'
 
@@ -51,14 +67,14 @@ const RadioButton: React.FC<{
   }
 
   return (
-    <RadioButtonWrapper selected={selected} onClick={handleClick}>
+    <RadioButtonWrapper disabled={disabled} selected={selected} onClick={handleClick}>
       <RadioTitle color={direction === 'long' ? 'success' : 'error'}>{name}</RadioTitle>
       <Icon name={iconName} />
     </RadioButtonWrapper>
   )
 }
 
-const DirectionRadio: React.FC = () => {
+const DirectionRadio: React.FC<{ disabled: boolean }> = ({ disabled }) => {
   const router = useRouter()
   const { tradeStore } = useRootStore()
   const { direction } = tradeStore
@@ -73,6 +89,7 @@ const DirectionRadio: React.FC = () => {
     <Wrapper>
       {directions.map((value) => (
         <RadioButton
+          disabled={disabled}
           key={value}
           direction={value}
           selected={direction === value}

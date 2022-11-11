@@ -1,10 +1,8 @@
 import { InputProps } from 'antd'
-import { observer } from 'mobx-react-lite'
 import { Flex, Icon, IconName } from 'prepo-ui'
 import { displayDecimals } from 'prepo-utils'
 import { useMemo, useState } from 'react'
 import styled, { css, DefaultTheme, FlattenInterpolation, ThemeProps } from 'styled-components'
-import { useRootStore } from '../context/RootStoreProvider'
 
 export type CurrencyType = { icon: IconName; text: string }
 
@@ -38,19 +36,19 @@ const MaxButton = styled.button`
 `
 
 const Wrapper = styled(Flex)<{ disabled?: boolean }>`
-  border: 1px solid ${({ theme }): string => theme.color.currencyInputBackground};
+  border: 1px solid ${({ theme }): string => theme.color.neutral12};
   cursor: ${({ disabled }): string => (disabled ? 'not-allowed' : 'auto')};
   :hover {
     border: 1px solid
-      ${({ disabled, theme }): string =>
-        theme.color[disabled ? 'currencyInputBackground' : 'neutral7']};
+      ${({ disabled, theme }): string => theme.color[disabled ? 'neutral12' : 'neutral7']};
   }
 `
 
-const StyledInput = styled.input`
+const StyledInput = styled.input<{ disabled?: boolean }>`
   background: transparent;
   border: none;
   color: ${({ theme }): string => theme.color.neutral1};
+  cursor: ${({ disabled }): string => (disabled ? 'not-allowed' : 'auto')};
   font-size: ${({ theme }): string => theme.fontSize['2xl']};
   font-weight: ${({ theme }): number => theme.fontWeight.regular};
   min-width: 40px;
@@ -82,7 +80,7 @@ const Currency: React.FC<{ disabled?: boolean } & CurrencyType> = ({ disabled, i
     borderRadius={16}
     p={8}
     pr={12}
-    background="currencyInputDropdownBackground"
+    background="neutral13"
     gap={8}
     height={40}
   >
@@ -109,8 +107,6 @@ const CurrencyInput: React.FC<
   children,
   showBalance,
 }) => {
-  const { web3Store } = useRootStore()
-  const { isNetworkSupported } = web3Store
   const [focused, setFocused] = useState(false)
 
   const handleFocus = (e: React.FocusEvent<HTMLInputElement, Element>): void => {
@@ -148,7 +144,7 @@ const CurrencyInput: React.FC<
   return (
     <Wrapper
       opacity={disabled ? 0.6 : 1}
-      background="currencyInputBackground"
+      background="neutral12"
       borderRadius={20}
       p={16}
       alignItems="stretch"
@@ -186,4 +182,4 @@ const CurrencyInput: React.FC<
   )
 }
 
-export default observer(CurrencyInput)
+export default CurrencyInput

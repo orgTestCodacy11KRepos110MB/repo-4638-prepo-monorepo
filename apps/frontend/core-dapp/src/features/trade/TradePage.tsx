@@ -82,11 +82,11 @@ const TradePage: React.FC = () => {
         <MartketDropdownWrapper>
           <MarketDropdown selectedMarket={selectedMarket} onSelectMarket={onSelectMarket} />
         </MartketDropdownWrapper>
-        <DirectionRadio />
+        <DirectionRadio disabled={!selectedMarket} />
         <CurrencyInput
           balance={tokenBalanceFormat}
           isBalanceZero={balanceOfSigner?.eq(0)}
-          disabled={!connected || !isNetworkSupported}
+          disabled={!connected || !isNetworkSupported || !selectedMarket}
           currency={{ icon: 'cash', text: 'USD' }}
           onChange={setOpenTradeAmount}
           value={openTradeAmount}
