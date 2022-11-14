@@ -30,3 +30,10 @@ export async function smockWithdrawHookFixture(
   const smockWithdrawHookFactory = await smock.mock('WithdrawHook')
   return smockWithdrawHookFactory.deploy(depositRecordAddress)
 }
+
+export async function smockManagerWithdrawHookFixture(
+  depositRecordAddress: string
+): Promise<MockContract> {
+  const smockManagerWithdrawHookFactory = await smock.mock('ManagerWithdrawHook')
+  return smockManagerWithdrawHookFactory.deploy(depositRecordAddress)
+}

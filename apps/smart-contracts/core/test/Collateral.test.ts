@@ -1,14 +1,15 @@
 import chai, { expect } from 'chai'
 import { ethers, upgrades } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
-import { id, parseEther } from 'ethers/lib/utils'
+import { id, parseEther, parseUnits } from 'ethers/lib/utils'
 import { BigNumber, Contract } from 'ethers'
 import { MockContract, smock } from '@defi-wonderland/smock'
 import { DEFAULT_ADMIN_ROLE, ZERO_ADDRESS } from 'prepo-constants'
-import { depositHookFixture } from './fixtures/HookFixture'
+import { smockManagerWithdrawHookFixture } from './fixtures/HookFixture'
 import { collateralFixture } from './fixtures/CollateralFixture'
+import { smockCollateralDepositRecordFixture } from './fixtures/CollateralDepositRecordFixture'
 import { testERC20Fixture } from './fixtures/TestERC20Fixture'
-import { grantAndAcceptRole } from './utils'
+import { FEE_DENOMINATOR, grantAndAcceptRole, PERCENT_DENOMINATOR } from './utils'
 import { Collateral, TestERC20 } from '../typechain'
 
 chai.use(smock.matchers)
@@ -17,15 +18,20 @@ describe('=> Collateral', () => {
   let deployer: SignerWithAddress
   let user1: SignerWithAddress
   let user2: SignerWithAddress
-  let treasury: SignerWithAddress
+  let manager: SignerWithAddress
   let baseToken: TestERC20
   let collateral: Collateral
+  let depositRecord: MockContract<Contract>
+  let managerWithdrawHook: MockContract<Contract>
   const TEST_DEPOSIT_FEE = 1000 // 0.1%
   const TEST_WITHDRAW_FEE = 2000 // 0.2%
+  const TEST_GLOBAL_DEPOSIT_CAP = parseEther('50000')
+  const TEST_USER_DEPOSIT_CAP = parseEther('50')
+  const TEST_MIN_RESERVE_PERCENTAGE = 250000 // 25%
   const USDC_DECIMALS = 6
 
   const getSignersAndDeployCollateral = async (): Promise<void> => {
-    ;[deployer, treasury, user1, user2] = await ethers.getSigners()
+    ;[deployer, manager, user1, user2] = await ethers.getSigners()
     baseToken = await testERC20Fixture('USD Coin', 'USDC', USDC_DECIMALS)
     collateral = await collateralFixture(
       'prePO USDC Collateral',
@@ -33,11 +39,36 @@ describe('=> Collateral', () => {
       baseToken.address,
       USDC_DECIMALS
     )
+    depositRecord = await smockCollateralDepositRecordFixture(
+      TEST_GLOBAL_DEPOSIT_CAP,
+      TEST_USER_DEPOSIT_CAP
+    )
+    managerWithdrawHook = await smockManagerWithdrawHookFixture(depositRecord.address)
+    await grantAndAcceptRole(
+      managerWithdrawHook,
+      deployer,
+      deployer,
+      await managerWithdrawHook.SET_COLLATERAL_ROLE()
+    )
+    await grantAndAcceptRole(
+      managerWithdrawHook,
+      deployer,
+      deployer,
+      await managerWithdrawHook.SET_MIN_RESERVE_PERCENTAGE_ROLE()
+    )
+    await managerWithdrawHook.connect(deployer).setCollateral(collateral.address)
+    await managerWithdrawHook.connect(deployer).setMinReservePercentage(TEST_MIN_RESERVE_PERCENTAGE)
   }
 
   const setupCollateral = async (): Promise<void> => {
     await getSignersAndDeployCollateral()
-    await grantAndAcceptRole(collateral, deployer, deployer, await collateral.SET_TREASURY_ROLE())
+    await grantAndAcceptRole(
+      collateral,
+      deployer,
+      deployer,
+      await collateral.MANAGER_WITHDRAW_ROLE()
+    )
+    await grantAndAcceptRole(collateral, deployer, deployer, await collateral.SET_MANAGER_ROLE())
     await grantAndAcceptRole(
       collateral,
       deployer,
@@ -68,6 +99,7 @@ describe('=> Collateral', () => {
       deployer,
       await collateral.SET_MANAGER_WITHDRAW_HOOK_ROLE()
     )
+    await collateral.connect(deployer).setManager(manager.address)
   }
 
   before(() => {
@@ -96,7 +128,10 @@ describe('=> Collateral', () => {
     })
 
     it('sets role constants to the correct hash', async () => {
-      expect(await collateral.SET_TREASURY_ROLE()).to.eq(id('Collateral_setTreasury(address)'))
+      expect(await collateral.MANAGER_WITHDRAW_ROLE()).to.eq(
+        id('Collateral_managerWithdraw(uint256)')
+      )
+      expect(await collateral.SET_MANAGER_ROLE()).to.eq(id('Collateral_setManager(address)'))
       expect(await collateral.SET_DEPOSIT_FEE_ROLE()).to.eq(id('Collateral_setDepositFee(uint256)'))
       expect(await collateral.SET_WITHDRAW_FEE_ROLE()).to.eq(
         id('Collateral_setWithdrawFee(uint256)')
@@ -111,55 +146,55 @@ describe('=> Collateral', () => {
     })
   })
 
-  describe('# setTreasury', () => {
+  describe('# setManager ', () => {
     beforeEach(async () => {
       await getSignersAndDeployCollateral()
-      await grantAndAcceptRole(collateral, deployer, deployer, await collateral.SET_TREASURY_ROLE())
+      await grantAndAcceptRole(collateral, deployer, deployer, await collateral.SET_MANAGER_ROLE())
     })
 
     it('reverts if not role holder', async () => {
-      expect(await collateral.hasRole(await collateral.SET_TREASURY_ROLE(), user1.address)).to.eq(
+      expect(await collateral.hasRole(await collateral.SET_MANAGER_ROLE(), user1.address)).to.eq(
         false
       )
 
-      await expect(collateral.connect(user1).setTreasury(treasury.address)).revertedWith(
-        `AccessControl: account ${user1.address.toLowerCase()} is missing role ${await collateral.SET_TREASURY_ROLE()}`
+      await expect(collateral.connect(user1).setManager(manager.address)).revertedWith(
+        `AccessControl: account ${user1.address.toLowerCase()} is missing role ${await collateral.SET_MANAGER_ROLE()}`
       )
     })
 
     it('sets to non-zero address', async () => {
-      expect(await collateral.getTreasury()).to.not.eq(treasury.address)
+      expect(await collateral.getManager()).to.not.eq(manager.address)
 
-      await collateral.connect(deployer).setTreasury(treasury.address)
+      await collateral.connect(deployer).setManager(manager.address)
 
-      expect(await collateral.getTreasury()).to.eq(treasury.address)
+      expect(await collateral.getManager()).to.eq(manager.address)
     })
 
     it('sets to zero address', async () => {
-      await collateral.connect(deployer).setTreasury(treasury.address)
-      expect(await collateral.getTreasury()).to.not.eq(ZERO_ADDRESS)
+      await collateral.connect(deployer).setManager(manager.address)
+      expect(await collateral.getManager()).to.not.eq(ZERO_ADDRESS)
 
-      await collateral.connect(deployer).setTreasury(ZERO_ADDRESS)
+      await collateral.connect(deployer).setManager(ZERO_ADDRESS)
 
-      expect(await collateral.getTreasury()).to.eq(ZERO_ADDRESS)
+      expect(await collateral.getManager()).to.eq(ZERO_ADDRESS)
     })
 
     it('is idempotent', async () => {
-      expect(await collateral.getTreasury()).to.not.eq(treasury.address)
+      expect(await collateral.getManager()).to.not.eq(manager.address)
 
-      await collateral.connect(deployer).setTreasury(treasury.address)
+      await collateral.connect(deployer).setManager(manager.address)
 
-      expect(await collateral.getTreasury()).to.eq(treasury.address)
+      expect(await collateral.getManager()).to.eq(manager.address)
 
-      await collateral.connect(deployer).setTreasury(treasury.address)
+      await collateral.connect(deployer).setManager(manager.address)
 
-      expect(await collateral.getTreasury()).to.eq(treasury.address)
+      expect(await collateral.getManager()).to.eq(manager.address)
     })
 
-    it('emits TreasuryChange', async () => {
-      const tx = await collateral.connect(deployer).setTreasury(treasury.address)
+    it('emits ManagerChange', async () => {
+      const tx = await collateral.connect(deployer).setManager(manager.address)
 
-      await expect(tx).to.emit(collateral, 'TreasuryChange').withArgs(treasury.address)
+      await expect(tx).to.emit(collateral, 'ManagerChange').withArgs(manager.address)
     })
   })
 
@@ -461,6 +496,76 @@ describe('=> Collateral', () => {
       expect(contractBalance).to.be.eq(parseEther('1'))
 
       expect(await collateral.getReserve()).to.eq(contractBalance)
+    })
+  })
+
+  describe('# managerWithdraw', () => {
+    beforeEach(async () => {
+      await setupCollateral()
+      await baseToken.mint(collateral.address, parseUnits('1', 6))
+      await collateral.connect(deployer).setManagerWithdrawHook(managerWithdrawHook.address)
+    })
+
+    it('reverts if not role holder', async () => {
+      expect(
+        await collateral.hasRole(await collateral.MANAGER_WITHDRAW_ROLE(), user1.address)
+      ).to.eq(false)
+
+      await expect(collateral.connect(user1).managerWithdraw(1)).revertedWith(
+        `AccessControl: account ${user1.address.toLowerCase()} is missing role ${await collateral.MANAGER_WITHDRAW_ROLE()}`
+      )
+    })
+
+    it('reverts if hook reverts', async () => {
+      /**
+       * Still providing valid inputs to ensure withdrawals are only reverting due to smock
+       * since we cannot verify revert by message.
+       */
+      const contractBT = await baseToken.balanceOf(collateral.address)
+      const baseTokenManagerCanWithdraw = contractBT
+        .mul(TEST_MIN_RESERVE_PERCENTAGE)
+        .div(PERCENT_DENOMINATOR)
+      const amountToWithdraw = baseTokenManagerCanWithdraw
+      expect(amountToWithdraw).to.be.gt(0)
+      managerWithdrawHook.hook.reverts()
+
+      await expect(collateral.connect(deployer).managerWithdraw(amountToWithdraw)).reverted
+    })
+
+    it('calls manager withdraw hook with correct parameters', async () => {
+      const contractBT = await baseToken.balanceOf(collateral.address)
+      const baseTokenManagerCanWithdraw = contractBT
+        .mul(TEST_MIN_RESERVE_PERCENTAGE)
+        .div(PERCENT_DENOMINATOR)
+      const amountToWithdraw = baseTokenManagerCanWithdraw
+      expect(amountToWithdraw).to.be.gt(0)
+
+      await collateral.connect(deployer).managerWithdraw(amountToWithdraw)
+
+      expect(managerWithdrawHook.hook).to.be.calledWith(
+        deployer.address,
+        amountToWithdraw,
+        amountToWithdraw
+      )
+    })
+
+    it('transfers base tokens to manager', async () => {
+      const contractBTBefore = await baseToken.balanceOf(collateral.address)
+      const baseTokenManagerCanWithdraw = contractBTBefore
+        .mul(TEST_MIN_RESERVE_PERCENTAGE)
+        .div(PERCENT_DENOMINATOR)
+      const managerBTBefore = await baseToken.balanceOf(manager.address)
+      const amountToWithdraw = baseTokenManagerCanWithdraw
+      expect(amountToWithdraw).to.be.gt(0)
+
+      await collateral.connect(deployer).managerWithdraw(amountToWithdraw)
+
+      expect(await baseToken.balanceOf(collateral.address)).to.eq(
+        contractBTBefore.sub(amountToWithdraw)
+      )
+      expect(await baseToken.balanceOf(manager.address)).to.eq(
+        managerBTBefore.add(amountToWithdraw)
+      )
     })
   })
 })

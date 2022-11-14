@@ -4,17 +4,19 @@ pragma solidity =0.8.7;
 import "./interfaces/ICollateral.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-ERC20PermitUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "prepo-shared-contracts/contracts/SafeAccessControlEnumerableUpgradeable.sol";
 
 contract Collateral is
   ICollateral,
   ERC20Upgradeable,
   ERC20PermitUpgradeable,
-  SafeAccessControlEnumerableUpgradeable
+  SafeAccessControlEnumerableUpgradeable,
+  ReentrancyGuardUpgradeable
 {
   IERC20 private immutable _baseToken;
   uint256 private immutable _baseTokenDenominator;
-  address private _treasury;
+  address private _manager;
   uint256 private _depositFee;
   uint256 private _withdrawFee;
   IHook private _depositHook;
@@ -22,8 +24,10 @@ contract Collateral is
   IHook private _managerWithdrawHook;
 
   uint256 public constant FEE_DENOMINATOR = 1000000;
-  bytes32 public constant SET_TREASURY_ROLE =
-    keccak256("Collateral_setTreasury(address)");
+  bytes32 public constant MANAGER_WITHDRAW_ROLE =
+    keccak256("Collateral_managerWithdraw(uint256)");
+  bytes32 public constant SET_MANAGER_ROLE =
+    keccak256("Collateral_setManager(address)");
   bytes32 public constant SET_DEPOSIT_FEE_ROLE =
     keccak256("Collateral_setDepositFee(uint256)");
   bytes32 public constant SET_WITHDRAW_FEE_ROLE =
@@ -53,15 +57,25 @@ contract Collateral is
 
   function withdraw(uint256 _amount) external override {}
 
-  function managerWithdraw(uint256 _amount) external override {}
-
-  function setTreasury(address _newTreasury)
+  function managerWithdraw(uint256 _amount)
     external
     override
-    onlyRole(SET_TREASURY_ROLE)
+    onlyRole(MANAGER_WITHDRAW_ROLE)
+    nonReentrant
   {
-    _treasury = _newTreasury;
-    emit TreasuryChange(_newTreasury);
+    if (address(_managerWithdrawHook) != address(0)) {
+      _managerWithdrawHook.hook(msg.sender, _amount, _amount);
+    }
+    _baseToken.transfer(_manager, _amount);
+  }
+
+  function setManager(address _newManager)
+    external
+    override
+    onlyRole(SET_MANAGER_ROLE)
+  {
+    _manager = _newManager;
+    emit ManagerChange(_newManager);
   }
 
   function setDepositFee(uint256 _newDepositFee)
@@ -113,8 +127,8 @@ contract Collateral is
     return _baseToken;
   }
 
-  function getTreasury() external view override returns (address) {
-    return _treasury;
+  function getManager() external view override returns (address) {
+    return _manager;
   }
 
   function getDepositFee() external view override returns (uint256) {

@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
 interface ICollateral is IERC20Upgradeable {
-  event TreasuryChange(address treasury);
+  event ManagerChange(address manager);
 
   event DepositFeeChange(uint256 fee);
 
@@ -24,7 +24,7 @@ interface ICollateral is IERC20Upgradeable {
 
   function managerWithdraw(uint256 amount) external;
 
-  function setTreasury(address treasury) external;
+  function setManager(address newManager) external;
 
   function setDepositFee(uint256 newDepositFee) external;
 
@@ -38,7 +38,7 @@ interface ICollateral is IERC20Upgradeable {
 
   function getBaseToken() external view returns (IERC20);
 
-  function getTreasury() external view returns (address);
+  function getManager() external view returns (address);
 
   function getDepositFee() external view returns (uint256);
 
