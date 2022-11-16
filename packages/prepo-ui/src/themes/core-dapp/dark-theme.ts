@@ -1,6 +1,6 @@
 import { DefaultTheme } from 'styled-components'
 import { colors } from './colors'
-import { borderRadius, boxRadiusPx } from './common'
+import { borderRadius, boxRadiusPx, shadow } from './common'
 import { fontSize, fontFamily, fontWeight } from './font-utils'
 import { TRANSPARENT } from './utils'
 import { breakpoints } from './breakpoints'
@@ -33,6 +33,8 @@ const neutral8 = colors.gray6
 const neutral9 = colors.gray6
 const neutral10 = colors.gray9
 const neutral11 = colors.gray2
+const neutral12 = colors.gray8
+const neutral13 = colors.gray6
 
 const purpleStroke = colors.gray5
 
@@ -111,6 +113,8 @@ const darkTheme: DefaultTheme = {
     neutral9,
     neutral10,
     neutral11,
+    neutral12,
+    neutral13,
     info,
     error,
     success,
@@ -157,6 +161,7 @@ const darkTheme: DefaultTheme = {
   borderRadius,
   boxRadiusPx,
   mode,
+  shadow,
   isDarkMode: true,
 }
 

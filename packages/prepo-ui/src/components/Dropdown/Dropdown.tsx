@@ -1,16 +1,23 @@
 import { Dropdown as ADropdown, DropDownProps } from 'antd'
-import styled from 'styled-components'
+import { useMemo } from 'react'
+import styled, { css, FlattenSimpleInterpolation } from 'styled-components'
 import { spacingIncrement } from '../../common-utils'
 import Icon from '../Icon'
 
 type Props = {
+  block?: boolean
   iconHeight?: number
   iconWidth?: number
+  size?: 'base' | 'sm'
 }
 
 const StyledDropdown = styled(ADropdown)<DropDownProps>``
 
-const Handler = styled.button<{ visible?: boolean }>`
+const Handler = styled.button<{
+  block?: boolean
+  visible?: boolean
+  sizes: FlattenSimpleInterpolation
+}>`
   align-items: center;
   background-color: ${({ theme, visible }): string =>
     theme.color[visible ? 'neutral7' : 'transparent']};
@@ -20,34 +27,54 @@ const Handler = styled.button<{ visible?: boolean }>`
   cursor: pointer;
   display: flex;
   gap: ${spacingIncrement(8)};
-  height: ${spacingIncrement(40)};
   justify-content: space-between;
   line-height: 1;
   padding: ${spacingIncrement(8)} ${spacingIncrement(11)};
+  ${({ sizes }): FlattenSimpleInterpolation => sizes}
+  ${({ block }): string => (block ? 'width: 100%;' : '')}
   :hover {
     border-color: ${({ theme, visible }): string => theme.color[visible ? 'neutral7' : 'neutral5']};
   }
 `
 
 const Dropdown: React.FC<Props & DropDownProps> = ({
+  block,
   iconHeight = 16,
   iconWidth = 16,
   children,
+  size,
   visible,
   ...props
-}) => (
-  // eslint-disable-next-line react/jsx-props-no-spreading
-  <StyledDropdown visible={visible} {...props}>
-    <Handler visible={visible}>
-      {children}
-      <Icon
-        name={visible ? 'chevron-up' : 'chevron-down'}
-        width={spacingIncrement(iconWidth)}
-        height={spacingIncrement(iconHeight)}
-        color="neutral1"
-      />
-    </Handler>
-  </StyledDropdown>
-)
+}) => {
+  const sizes = useMemo(() => {
+    switch (size) {
+      case 'sm':
+        return css`
+          height: ${spacingIncrement(40)};
+          padding: ${spacingIncrement(8)} ${spacingIncrement(11)};
+        `
+      default:
+        return css`
+          height: ${spacingIncrement(60)};
+          padding: ${spacingIncrement(16)};
+        `
+    }
+  }, [size])
+
+  return (
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <StyledDropdown visible={visible} {...props}>
+      <Handler block={block} sizes={sizes} visible={visible}>
+        {children}
+        <Icon
+          name={visible ? 'chevron-up' : 'chevron-down'}
+          width={spacingIncrement(iconWidth)}
+          height={spacingIncrement(iconHeight)}
+          color="neutral1"
+        />
+      </Handler>
+    </StyledDropdown>
+  )
+}
 
 export default Dropdown

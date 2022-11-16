@@ -1,8 +1,8 @@
 import { observer } from 'mobx-react-lite'
+import { useState } from 'react'
+import { Dropdown, Icon, spacingIncrement } from 'prepo-ui'
 import styled from 'styled-components'
-import Dropdown from './Dropdown'
 import Menu from './Menu'
-import MarketIconTitle from './MarketIconTitle'
 import { MarketEntity } from '../stores/entities/MarketEntity'
 import { useRootStore } from '../context/RootStoreProvider'
 
@@ -12,21 +12,56 @@ type Props = {
   onSelectMarket?: (key: string) => unknown
 }
 
+const MarketIcon = styled.div`
+  align-items: center;
+  display: flex;
+  gap: ${spacingIncrement(12)};
+`
+
+const MarketName = styled.p`
+  color: ${({ theme }): string => theme.color.neutral1};
+  font-size: ${({ theme }): string => theme.fontSize.md};
+  font-weight: ${({ theme }): number => theme.fontWeight.semiBold};
+  margin-bottom: 0;
+`
+const MarketWrapper = styled.div`
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+`
+
+const RowWrapper = styled.div`
+  padding: ${spacingIncrement(11)} ${spacingIncrement(4)};
+  padding-right: ${spacingIncrement(12)};
+`
+
 const SelectMarketText = styled.p`
   color: ${({ theme }): string => theme.color.neutral3};
-  font-size: ${({ theme }): string => theme.fontSize.base};
+  font-size: ${({ theme }): string => theme.fontSize.md};
+  line-height: ${spacingIncrement(28)};
   margin-bottom: 0;
 `
 
-const MarketDropdown: React.FC<Props> = ({
-  label = 'Select Market',
-  onSelectMarket,
-  selectedMarket,
-}) => {
+const StyledDropdown = styled(Dropdown)<{ showShadow: boolean }>`
+  box-shadow: ${({ showShadow, theme }): string => (showShadow ? theme.shadow.prepo : 'unset')};
+`
+
+const Market: React.FC<{ market: MarketEntity; showBalance?: boolean }> = ({ market }) => (
+  <MarketWrapper>
+    <MarketIcon>
+      <Icon name={market.iconName} height="28" width="28" />
+      <MarketName>{market.name}</MarketName>
+    </MarketIcon>
+  </MarketWrapper>
+)
+
+const MarketDropdown: React.FC<Props> = ({ onSelectMarket, selectedMarket }) => {
   const { marketStore } = useRootStore()
   const { markets } = marketStore
+  const [showDropdown, setShowDropdown] = useState(false)
   const onClick = ({ key }: { key: string }): void => {
     if (typeof onSelectMarket === 'function') onSelectMarket(key)
+    setShowDropdown(false)
   }
   const getMarketsDropdownMenu = (
     <Menu
@@ -35,24 +70,29 @@ const MarketDropdown: React.FC<Props> = ({
       items={Object.values(markets).map((market) => ({
         key: market.urlId,
         label: (
-          <MarketIconTitle iconName={market.iconName} size="sm">
-            {market.name}
-          </MarketIconTitle>
+          <RowWrapper>
+            <Market market={market} />
+          </RowWrapper>
         ),
       }))}
     />
   )
 
   return (
-    <Dropdown label={label} overlay={getMarketsDropdownMenu} variant="outline" size="md">
+    <StyledDropdown
+      showShadow={!selectedMarket}
+      overlay={getMarketsDropdownMenu}
+      trigger={['click']}
+      block
+      visible={showDropdown}
+      onVisibleChange={setShowDropdown}
+    >
       {selectedMarket ? (
-        <MarketIconTitle iconName={selectedMarket.iconName} size="sm">
-          {selectedMarket.name}
-        </MarketIconTitle>
+        <Market market={selectedMarket} />
       ) : (
         <SelectMarketText>Select a Market</SelectMarketText>
       )}
-    </Dropdown>
+    </StyledDropdown>
   )
 }
 

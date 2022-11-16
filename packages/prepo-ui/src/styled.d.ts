@@ -14,6 +14,11 @@ declare module 'styled-components' {
     /** 12px */
     xs: string
   }
+
+  export interface Shadow {
+    /** 0px 4px 22px rgba(98, 100, 217, 0.11) */
+    prepo: string
+  }
   export interface Color {
     /** #3335CC */
     darkPrimary: string
@@ -55,6 +60,10 @@ declare module 'styled-components' {
     neutral10: string
     /** #929AA2 | #A6B0C3 */
     neutral11: string
+    /** #F7F8FA | #1B1E22 */
+    neutral12: string
+    /** #EDEEF2 | #212429 */
+    neutral13: string
     /** #47AFF8 */
     info: string
     /** #EB5757 */
@@ -178,6 +187,7 @@ declare module 'styled-components' {
     borderRadius: BorderRadius
     boxRadiusPx: string
     mode: ThemeModes
+    shadow: Shadow
     isDarkMode: boolean
   }
 }

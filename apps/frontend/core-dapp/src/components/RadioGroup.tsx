@@ -116,7 +116,7 @@ const RadioGroup: React.FC<Props> = forwardRef(
 
     return (
       <>
-        <Label disabled={disabled}>{label}</Label>
+        {label !== undefined ? <Label disabled={disabled}>{label}</Label> : null}
         <RadioGroupWrapper
           ref={ref}
           childRadioGroup={childRadioGroup}
