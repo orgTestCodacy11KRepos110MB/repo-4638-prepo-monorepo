@@ -5,9 +5,9 @@ import "./interfaces/IMiniSales.sol";
 import "prepo-shared-contracts/contracts/WithdrawERC20.sol";
 
 contract MiniSales is IMiniSales, WithdrawERC20 {
-  IERC20Metadata private immutable _saleToken;
-  IERC20Metadata private immutable _paymentToken;
-  uint256 private immutable _saleTokenDecimals;
+  IERC20 private immutable _saleToken;
+  IERC20 private immutable _paymentToken;
+  uint256 private immutable _saleTokenDenominator;
   uint256 private _price;
   IPurchaseHook private _purchaseHook;
 
@@ -16,9 +16,9 @@ contract MiniSales is IMiniSales, WithdrawERC20 {
     address _newPaymentToken,
     uint256 _newSaleTokenDecimals
   ) {
-    _saleToken = IERC20Metadata(_newSaleToken);
-    _paymentToken = IERC20Metadata(_newPaymentToken);
-    _saleTokenDecimals = 10**_newSaleTokenDecimals;
+    _saleToken = IERC20(_newSaleToken);
+    _paymentToken = IERC20(_newPaymentToken);
+    _saleTokenDenominator = 10**_newSaleTokenDecimals;
   }
 
   function purchase(
@@ -39,7 +39,7 @@ contract MiniSales is IMiniSales, WithdrawERC20 {
       );
     }
     uint256 _paymentTokenAmount = (_saleTokenAmount * _purchasePrice) /
-      _saleTokenDecimals;
+      _saleTokenDenominator;
     _paymentToken.transferFrom(
       _msgSender(),
       address(this),
@@ -63,11 +63,11 @@ contract MiniSales is IMiniSales, WithdrawERC20 {
     emit PurchaseHookChange(_newPurchaseHook);
   }
 
-  function getSaleToken() external view override returns (IERC20Metadata) {
+  function getSaleToken() external view override returns (IERC20) {
     return _saleToken;
   }
 
-  function getPaymentToken() external view override returns (IERC20Metadata) {
+  function getPaymentToken() external view override returns (IERC20) {
     return _paymentToken;
   }
 

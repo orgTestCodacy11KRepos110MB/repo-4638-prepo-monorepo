@@ -2,7 +2,7 @@
 pragma solidity =0.8.7;
 
 import "./IPurchaseHook.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
  * @notice Accepts a payment token in a one-way immediate exchange for a sale
@@ -91,10 +91,10 @@ interface IMiniSales {
   function setPurchaseHook(IPurchaseHook newPurchaseHook) external;
 
   /// @return The ERC20 token being sold
-  function getSaleToken() external view returns (IERC20Metadata);
+  function getSaleToken() external view returns (IERC20);
 
   /// @return The ERC20 token used for payment
-  function getPaymentToken() external view returns (IERC20Metadata);
+  function getPaymentToken() external view returns (IERC20);
 
   /// @return The fixed price of sale token in terms of payment token
   function getPrice() external view returns (uint256);
