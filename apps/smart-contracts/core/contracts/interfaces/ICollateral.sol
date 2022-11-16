@@ -6,6 +6,18 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
 interface ICollateral is IERC20Upgradeable {
+  event Deposit(
+    address indexed depositor,
+    uint256 amountAfterFee,
+    uint256 fee
+  );
+
+  event Withdraw(
+    address indexed withdrawer,
+    uint256 amountAfterFee,
+    uint256 fee
+  );
+
   event ManagerChange(address manager);
 
   event DepositFeeChange(uint256 fee);

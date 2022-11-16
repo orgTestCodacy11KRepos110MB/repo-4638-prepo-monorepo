@@ -53,9 +53,51 @@ contract Collateral is
     __ERC20Permit_init(_name);
   }
 
-  function deposit(uint256 _amount) external override {}
+  /**
+   * @dev If hook not set, fees remain within the contract as extra reserves
+   * (withdrawable by manager). Converts amount after fee from base token
+   * units to collateral token units.
+   */
+  function deposit(uint256 _amount) external override nonReentrant {
+    uint256 _fee = (_amount * _depositFee) / FEE_DENOMINATOR;
+    if (_depositFee > 0) {
+      require(_fee > 0, "fee = 0");
+    } else {
+      require(_amount > 0, "amount = 0");
+    }
+    _baseToken.transferFrom(msg.sender, address(this), _amount);
+    uint256 _amountAfterFee = _amount - _fee;
+    if (address(_depositHook) != address(0)) {
+      _baseToken.approve(address(_depositHook), _fee);
+      _depositHook.hook(msg.sender, _amount, _amountAfterFee);
+    }
+    /// Converts amount after fee from base token units to collateral token units.
+    _mint(msg.sender, (_amountAfterFee * 1e18) / _baseTokenDenominator);
+    emit Deposit(msg.sender, _amountAfterFee, _fee);
+  }
 
-  function withdraw(uint256 _amount) external override {}
+  /// @dev Converts amount from collateral token units to base token units.
+  function withdraw(uint256 _amount) external override nonReentrant {
+    uint256 _baseTokenAmount = (_amount * _baseTokenDenominator) / 1e18;
+    uint256 _fee = (_baseTokenAmount * _withdrawFee) / FEE_DENOMINATOR;
+    if (_withdrawFee > 0) {
+      require(_fee > 0, "fee = 0");
+    } else {
+      require(_baseTokenAmount > 0, "amount = 0");
+    }
+    _burn(msg.sender, _amount);
+    uint256 _baseTokenAmountAfterFee = _baseTokenAmount - _fee;
+    if (address(_withdrawHook) != address(0)) {
+      _baseToken.approve(address(_withdrawHook), _fee);
+      _withdrawHook.hook(
+        msg.sender,
+        _baseTokenAmount,
+        _baseTokenAmountAfterFee
+      );
+    }
+    _baseToken.transfer(msg.sender, _baseTokenAmountAfterFee);
+    emit Withdraw(msg.sender, _baseTokenAmountAfterFee, _fee);
+  }
 
   function managerWithdraw(uint256 _amount)
     external
