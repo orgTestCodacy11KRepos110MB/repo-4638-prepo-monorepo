@@ -1,13 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity =0.8.7;
 
-import "./interfaces/ICollateralDepositRecord.sol";
+import "./interfaces/IDepositRecord.sol";
 import "prepo-shared-contracts/contracts/SafeAccessControlEnumerable.sol";
 
-contract CollateralDepositRecord is
-  ICollateralDepositRecord,
-  SafeAccessControlEnumerable
-{
+contract DepositRecord is IDepositRecord, SafeAccessControlEnumerable {
   uint256 private _globalNetDepositCap;
   uint256 private _globalNetDepositAmount;
   uint256 private _userDepositCap;
@@ -15,11 +12,11 @@ contract CollateralDepositRecord is
   mapping(address => bool) private _allowedHooks;
 
   bytes32 public constant SET_GLOBAL_NET_DEPOSIT_CAP_ROLE =
-    keccak256("CollateralDepositRecord_setGlobalNetDepositCap(uint256)");
+    keccak256("DepositRecord_setGlobalNetDepositCap(uint256)");
   bytes32 public constant SET_USER_DEPOSIT_CAP_ROLE =
-    keccak256("CollateralDepositRecord_setUserDepositCap(uint256)");
+    keccak256("DepositRecord_setUserDepositCap(uint256)");
   bytes32 public constant SET_ALLOWED_HOOK_ROLE =
-    keccak256("CollateralDepositRecord_setAllowedHook(address)");
+    keccak256("DepositRecord_setAllowedHook(address)");
 
   modifier onlyAllowedHooks() {
     require(_allowedHooks[msg.sender], "msg.sender != allowed hook");

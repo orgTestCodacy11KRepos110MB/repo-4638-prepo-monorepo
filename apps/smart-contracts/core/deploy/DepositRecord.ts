@@ -14,7 +14,7 @@ const deployFunction: DeployFunction = async function ({
 }: HardhatRuntimeEnvironment) {
   const { deploy } = deployments
   const { deployer } = await getNamedAccounts()
-  console.log('Running CollateralDepositRecord deployment script with', deployer, 'as the deployer')
+  console.log('Running DepositRecord deployment script with', deployer, 'as the deployer')
   const currentChain = await getChainId()
   /**
    * Make sure this script is not accidentally targeted towards a production environment.
@@ -23,21 +23,21 @@ const deployFunction: DeployFunction = async function ({
   assertIsTestnetChain(currentChain as unknown as ChainId)
   const globalDepositCap = parseEther('100000')
   const accountDepositCap = parseEther('1000')
-  const { address: depositRecordAddress, newlyDeployed } = await deploy('CollateralDepositRecord', {
+  const { address: depositRecordAddress, newlyDeployed } = await deploy('DepositRecord', {
     from: deployer,
-    contract: 'CollateralDepositRecord',
+    contract: 'DepositRecord',
     deterministicDeployment: false,
     args: [globalDepositCap, accountDepositCap],
     skipIfAlreadyDeployed: true,
   })
   if (newlyDeployed) {
-    console.log('Deployed CollateralDepositRecord to', depositRecordAddress)
+    console.log('Deployed DepositRecord to', depositRecordAddress)
   } else {
-    console.log('Existing CollateralDepositRecord at', depositRecordAddress)
+    console.log('Existing DepositRecord at', depositRecordAddress)
   }
   console.log('')
 }
 
 export default deployFunction
 
-deployFunction.tags = ['CollateralDepositRecord']
+deployFunction.tags = ['DepositRecord']

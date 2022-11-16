@@ -6,7 +6,7 @@ import { Contract } from 'ethers'
 import { MockContract, smock } from '@defi-wonderland/smock'
 import { ZERO_ADDRESS } from 'prepo-constants'
 import { depositHookFixture } from './fixtures/HookFixture'
-import { smockCollateralDepositRecordFixture } from './fixtures/CollateralDepositRecordFixture'
+import { smockDepositRecordFixture } from './fixtures/DepositRecordFixture'
 import { grantAndAcceptRole } from './utils'
 import { DepositHook } from '../typechain'
 
@@ -17,7 +17,7 @@ describe('=> DepositHook', () => {
   let deployer: SignerWithAddress
   let user: SignerWithAddress
   let vault: SignerWithAddress
-  let mockCollateralDepositRecord: MockContract<Contract>
+  let mockDepositRecord: MockContract<Contract>
   const TEST_GLOBAL_DEPOSIT_CAP = parseEther('50000')
   const TEST_ACCOUNT_DEPOSIT_CAP = parseEther('50')
   const TEST_AMOUNT_BEFORE_FEE = parseEther('1.01')
@@ -25,11 +25,11 @@ describe('=> DepositHook', () => {
 
   beforeEach(async () => {
     ;[deployer, user, vault] = await ethers.getSigners()
-    mockCollateralDepositRecord = await smockCollateralDepositRecordFixture(
+    mockDepositRecord = await smockDepositRecordFixture(
       TEST_GLOBAL_DEPOSIT_CAP,
       TEST_ACCOUNT_DEPOSIT_CAP
     )
-    depositHook = await depositHookFixture(mockCollateralDepositRecord.address)
+    depositHook = await depositHookFixture(mockDepositRecord.address)
     await grantAndAcceptRole(
       depositHook,
       deployer,
@@ -49,12 +49,12 @@ describe('=> DepositHook', () => {
       await depositHook.SET_DEPOSITS_ALLOWED_ROLE()
     )
     await grantAndAcceptRole(
-      mockCollateralDepositRecord,
+      mockDepositRecord,
       deployer,
       deployer,
-      await mockCollateralDepositRecord.SET_ALLOWED_HOOK_ROLE()
+      await mockDepositRecord.SET_ALLOWED_HOOK_ROLE()
     )
-    await mockCollateralDepositRecord.connect(deployer).setAllowedHook(depositHook.address, true)
+    await mockDepositRecord.connect(deployer).setAllowedHook(depositHook.address, true)
   })
 
   describe('initial state', () => {
@@ -63,7 +63,7 @@ describe('=> DepositHook', () => {
     })
 
     it('sets deposit record from constructor', async () => {
-      expect(await depositHook.getDepositRecord()).to.eq(mockCollateralDepositRecord.address)
+      expect(await depositHook.getDepositRecord()).to.eq(mockDepositRecord.address)
     })
 
     it('sets role constants to the correct hash', async () => {
@@ -112,10 +112,7 @@ describe('=> DepositHook', () => {
         .connect(vault)
         .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
 
-      expect(mockCollateralDepositRecord.recordDeposit).to.be.calledWith(
-        user.address,
-        TEST_AMOUNT_AFTER_FEE
-      )
+      expect(mockDepositRecord.recordDeposit).to.be.calledWith(user.address, TEST_AMOUNT_AFTER_FEE)
     })
   })
 
@@ -173,7 +170,7 @@ describe('=> DepositHook', () => {
       ).to.eq(false)
 
       await expect(
-        depositHook.connect(user).setDepositRecord(mockCollateralDepositRecord.address)
+        depositHook.connect(user).setDepositRecord(mockDepositRecord.address)
       ).revertedWith(
         `AccessControl: account ${user.address.toLowerCase()} is missing role ${await depositHook.SET_DEPOSIT_RECORD_ROLE()}`
       )
@@ -181,12 +178,12 @@ describe('=> DepositHook', () => {
 
     it('sets to non-zero address', async () => {
       await depositHook.connect(deployer).setDepositRecord(ZERO_ADDRESS)
-      expect(mockCollateralDepositRecord.address).to.not.eq(ZERO_ADDRESS)
-      expect(await depositHook.getDepositRecord()).to.not.eq(mockCollateralDepositRecord.address)
+      expect(mockDepositRecord.address).to.not.eq(ZERO_ADDRESS)
+      expect(await depositHook.getDepositRecord()).to.not.eq(mockDepositRecord.address)
 
-      await depositHook.connect(deployer).setDepositRecord(mockCollateralDepositRecord.address)
+      await depositHook.connect(deployer).setDepositRecord(mockDepositRecord.address)
 
-      expect(await depositHook.getDepositRecord()).to.eq(mockCollateralDepositRecord.address)
+      expect(await depositHook.getDepositRecord()).to.eq(mockDepositRecord.address)
     })
 
     it('sets to zero address', async () => {
@@ -199,25 +196,23 @@ describe('=> DepositHook', () => {
 
     it('is idempotent', async () => {
       await depositHook.connect(deployer).setDepositRecord(ZERO_ADDRESS)
-      expect(await depositHook.getDepositRecord()).to.not.eq(mockCollateralDepositRecord.address)
+      expect(await depositHook.getDepositRecord()).to.not.eq(mockDepositRecord.address)
 
-      await depositHook.connect(deployer).setDepositRecord(mockCollateralDepositRecord.address)
+      await depositHook.connect(deployer).setDepositRecord(mockDepositRecord.address)
 
-      expect(await depositHook.getDepositRecord()).to.eq(mockCollateralDepositRecord.address)
+      expect(await depositHook.getDepositRecord()).to.eq(mockDepositRecord.address)
 
-      await depositHook.connect(deployer).setDepositRecord(mockCollateralDepositRecord.address)
+      await depositHook.connect(deployer).setDepositRecord(mockDepositRecord.address)
 
-      expect(await depositHook.getDepositRecord()).to.eq(mockCollateralDepositRecord.address)
+      expect(await depositHook.getDepositRecord()).to.eq(mockDepositRecord.address)
     })
 
     it('emits DepositRecordChange', async () => {
-      const tx = await depositHook
-        .connect(deployer)
-        .setDepositRecord(mockCollateralDepositRecord.address)
+      const tx = await depositHook.connect(deployer).setDepositRecord(mockDepositRecord.address)
 
       await expect(tx)
         .to.emit(depositHook, 'DepositRecordChange')
-        .withArgs(mockCollateralDepositRecord.address)
+        .withArgs(mockDepositRecord.address)
     })
   })
 

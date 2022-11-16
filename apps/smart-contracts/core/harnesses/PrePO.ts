@@ -14,7 +14,7 @@
 //   PrePOMarketFactory,
 //   SingleStrategyController,
 //   MockBaseToken,
-//   CollateralDepositRecord,
+//   DepositRecord,
 //   DepositHook,
 //   WithdrawHook,
 // } from '../typechain'
@@ -51,7 +51,7 @@
 //   public strategyController!: SingleStrategyController
 //   public depositHook!: DepositHook
 //   public withdrawHook!: WithdrawHook
-//   public collateralDepositRecord!: CollateralDepositRecord
+//   public depositRecord!: DepositRecord
 //   public marketContractFactory!: ContractFactory
 //   public positionContractFactory!: ContractFactory
 //   public markets!: {
@@ -81,9 +81,9 @@
 //     this.strategyController = (await ethers.getContract(
 //       'SingleStrategyController'
 //     )) as unknown as SingleStrategyController
-//     this.collateralDepositRecord = (await ethers.getContract(
-//       'CollateralDepositRecord'
-//     )) as unknown as CollateralDepositRecord
+//     this.depositRecord = (await ethers.getContract(
+//       'DepositRecord'
+//     )) as unknown as DepositRecord
 //     this.marketContractFactory = (await ethers.getContractFactory(
 //       'PrePOMarket'
 //     )) as unknown as ContractFactory

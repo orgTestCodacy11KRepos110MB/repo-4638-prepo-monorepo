@@ -11,7 +11,7 @@ import {
   smockManagerWithdrawHookFixture,
 } from './fixtures/HookFixture'
 import { collateralFixture } from './fixtures/CollateralFixture'
-import { smockCollateralDepositRecordFixture } from './fixtures/CollateralDepositRecordFixture'
+import { smockDepositRecordFixture } from './fixtures/DepositRecordFixture'
 import { testERC20Fixture } from './fixtures/TestERC20Fixture'
 import { FEE_DENOMINATOR, grantAndAcceptRole, PERCENT_DENOMINATOR } from './utils'
 import { Collateral, TestERC20 } from '../typechain'
@@ -48,10 +48,7 @@ describe('=> Collateral', () => {
       baseToken.address,
       baseTokenDecimals
     )
-    depositRecord = await smockCollateralDepositRecordFixture(
-      TEST_GLOBAL_DEPOSIT_CAP,
-      TEST_USER_DEPOSIT_CAP
-    )
+    depositRecord = await smockDepositRecordFixture(TEST_GLOBAL_DEPOSIT_CAP, TEST_USER_DEPOSIT_CAP)
     depositHook = await smockDepositHookFixture(depositRecord.address)
     withdrawHook = await smockWithdrawHookFixture(depositRecord.address)
     await grantAndAcceptRole(

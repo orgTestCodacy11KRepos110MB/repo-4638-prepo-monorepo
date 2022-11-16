@@ -3,12 +3,12 @@ import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { id, parseEther } from 'ethers/lib/utils'
 import { DEFAULT_ADMIN_ROLE } from 'prepo-constants'
-import { collateralDepositRecordFixture } from './fixtures/CollateralDepositRecordFixture'
+import { depositRecordFixture } from './fixtures/DepositRecordFixture'
 import { grantAndAcceptRole } from './utils'
-import { CollateralDepositRecord } from '../typechain'
+import { DepositRecord } from '../typechain'
 
-describe('=> CollateralDepositRecord', () => {
-  let depositRecord: CollateralDepositRecord
+describe('=> DepositRecord', () => {
+  let depositRecord: DepositRecord
   let deployer: SignerWithAddress
   let user: SignerWithAddress
   let user2: SignerWithAddress
@@ -19,10 +19,7 @@ describe('=> CollateralDepositRecord', () => {
 
   const getSignersAndDeployRecord = async (): Promise<void> => {
     ;[deployer, user, user2] = await ethers.getSigners()
-    depositRecord = await collateralDepositRecordFixture(
-      TEST_GLOBAL_DEPOSIT_CAP,
-      TEST_USER_DEPOSIT_CAP
-    )
+    depositRecord = await depositRecordFixture(TEST_GLOBAL_DEPOSIT_CAP, TEST_USER_DEPOSIT_CAP)
   }
 
   const setupDepositRecord = async (): Promise<void> => {
@@ -67,13 +64,13 @@ describe('=> CollateralDepositRecord', () => {
 
     it('sets role constants to the correct hash', async () => {
       expect(await depositRecord.SET_GLOBAL_NET_DEPOSIT_CAP_ROLE()).to.eq(
-        id('CollateralDepositRecord_setGlobalNetDepositCap(uint256)')
+        id('DepositRecord_setGlobalNetDepositCap(uint256)')
       )
       expect(await depositRecord.SET_USER_DEPOSIT_CAP_ROLE()).to.eq(
-        id('CollateralDepositRecord_setUserDepositCap(uint256)')
+        id('DepositRecord_setUserDepositCap(uint256)')
       )
       expect(await depositRecord.SET_ALLOWED_HOOK_ROLE()).to.eq(
-        id('CollateralDepositRecord_setAllowedHook(address)')
+        id('DepositRecord_setAllowedHook(address)')
       )
     })
   })

@@ -7,7 +7,7 @@ import { MockContract, smock } from '@defi-wonderland/smock'
 import { ZERO_ADDRESS } from 'prepo-constants'
 import { managerWithdrawHookFixture } from './fixtures/HookFixture'
 import { testERC20Fixture } from './fixtures/TestERC20Fixture'
-import { smockCollateralDepositRecordFixture } from './fixtures/CollateralDepositRecordFixture'
+import { smockDepositRecordFixture } from './fixtures/DepositRecordFixture'
 import { grantAndAcceptRole, PERCENT_DENOMINATOR } from './utils'
 import { smockCollateralFixture } from './fixtures/CollateralFixture'
 import { ManagerWithdrawHook, TestERC20 } from '../typechain'
@@ -27,10 +27,7 @@ describe('=> ManagerWithdrawHook', () => {
 
   const getSignersAndDeployHook = async (): Promise<void> => {
     ;[deployer, user] = await ethers.getSigners()
-    depositRecord = await smockCollateralDepositRecordFixture(
-      TEST_GLOBAL_DEPOSIT_CAP,
-      TEST_USER_DEPOSIT_CAP
-    )
+    depositRecord = await smockDepositRecordFixture(TEST_GLOBAL_DEPOSIT_CAP, TEST_USER_DEPOSIT_CAP)
     baseToken = await testERC20Fixture('USD Coin', 'USDC', 6)
     collateral = await smockCollateralFixture(baseToken.address, await baseToken.decimals())
     managerWithdrawHook = await managerWithdrawHookFixture(depositRecord.address)

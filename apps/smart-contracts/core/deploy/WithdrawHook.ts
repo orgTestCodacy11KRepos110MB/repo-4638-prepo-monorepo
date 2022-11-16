@@ -3,7 +3,7 @@ import { DeployFunction } from 'hardhat-deploy/types'
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { ChainId } from 'prepo-constants'
 import { utils } from 'prepo-hardhat'
-import { CollateralDepositRecord } from '../typechain'
+import { DepositRecord } from '../typechain'
 
 const { assertIsTestnetChain } = utils
 
@@ -23,9 +23,7 @@ const deployFunction: DeployFunction = async function ({
    */
   assertIsTestnetChain(currentChain as unknown as ChainId)
   // Retrieve existing non-upgradeable deployments using hardhat-deploy
-  const collateralDepositRecord = (await ethers.getContract(
-    'CollateralDepositRecord'
-  )) as CollateralDepositRecord
+  const depositRecord = (await ethers.getContract('DepositRecord')) as DepositRecord
   // Deploy WithdrawHook and configure external contracts to point to it
   const { address: withdrawHookAddress, newlyDeployed: withdrawHookNewlyDeployed } = await deploy(
     'WithdrawHook',
@@ -33,7 +31,7 @@ const deployFunction: DeployFunction = async function ({
       from: deployer,
       contract: 'WithdrawHook',
       deterministicDeployment: false,
-      args: [collateralDepositRecord.address],
+      args: [depositRecord.address],
       skipIfAlreadyDeployed: true,
     }
   )
@@ -42,13 +40,13 @@ const deployFunction: DeployFunction = async function ({
   } else {
     console.log('Existing WithdrawHook at', withdrawHookAddress)
   }
-  if (!(await collateralDepositRecord.isHookAllowed(withdrawHookAddress))) {
+  if (!(await depositRecord.isHookAllowed(withdrawHookAddress))) {
     console.log(
-      'Configuring CollateralDepositRecord at',
-      collateralDepositRecord.address,
+      'Configuring DepositRecord at',
+      depositRecord.address,
       'to allow the WithdrawHook...'
     )
-    const setAllowedHookTx = await collateralDepositRecord.setAllowedHook(withdrawHookAddress, true)
+    const setAllowedHookTx = await depositRecord.setAllowedHook(withdrawHookAddress, true)
     await setAllowedHookTx.wait()
   }
   console.log('')
@@ -56,6 +54,6 @@ const deployFunction: DeployFunction = async function ({
 
 export default deployFunction
 
-deployFunction.dependencies = ['CollateralDepositRecord']
+deployFunction.dependencies = ['DepositRecord']
 
 deployFunction.tags = ['WithdrawHook']

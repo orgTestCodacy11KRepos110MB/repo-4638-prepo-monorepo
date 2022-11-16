@@ -7,7 +7,7 @@ import { utils } from 'prepo-hardhat'
 import { Contract } from 'ethers'
 import { MockContract, smock } from '@defi-wonderland/smock'
 import { withdrawHookFixture } from './fixtures/HookFixture'
-import { smockCollateralDepositRecordFixture } from './fixtures/CollateralDepositRecordFixture'
+import { smockDepositRecordFixture } from './fixtures/DepositRecordFixture'
 import { grantAndAcceptRole } from './utils'
 import { WithdrawHook } from '../typechain'
 
@@ -32,7 +32,7 @@ describe('=> WithdrawHook', () => {
 
   beforeEach(async () => {
     ;[deployer, user, vault] = await ethers.getSigners()
-    depositRecord = await smockCollateralDepositRecordFixture(
+    depositRecord = await smockDepositRecordFixture(
       TEST_GLOBAL_DEPOSIT_CAP,
       TEST_ACCOUNT_DEPOSIT_CAP
     )

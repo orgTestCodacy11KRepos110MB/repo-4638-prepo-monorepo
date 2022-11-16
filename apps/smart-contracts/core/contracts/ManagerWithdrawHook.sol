@@ -9,7 +9,7 @@ contract ManagerWithdrawHook is
   SafeAccessControlEnumerable
 {
   ICollateral private _collateral;
-  ICollateralDepositRecord private _depositRecord;
+  IDepositRecord private _depositRecord;
   uint256 private _minReservePercentage;
 
   uint256 public constant PERCENT_DENOMINATOR = 1000000;
@@ -21,7 +21,7 @@ contract ManagerWithdrawHook is
     keccak256("ManagerWithdrawHook_setMinReservePercentage(uint256)");
 
   constructor(address _newDepositRecord) {
-    _depositRecord = ICollateralDepositRecord(_newDepositRecord);
+    _depositRecord = IDepositRecord(_newDepositRecord);
   }
 
   function hook(
@@ -44,7 +44,7 @@ contract ManagerWithdrawHook is
     emit CollateralChange(address(_newCollateral));
   }
 
-  function setDepositRecord(ICollateralDepositRecord _newDepositRecord)
+  function setDepositRecord(IDepositRecord _newDepositRecord)
     external
     override
     onlyRole(SET_DEPOSIT_RECORD_ROLE)
@@ -67,12 +67,7 @@ contract ManagerWithdrawHook is
     return _collateral;
   }
 
-  function getDepositRecord()
-    external
-    view
-    override
-    returns (ICollateralDepositRecord)
-  {
+  function getDepositRecord() external view override returns (IDepositRecord) {
     return _depositRecord;
   }
 
