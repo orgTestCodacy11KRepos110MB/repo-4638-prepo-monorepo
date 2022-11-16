@@ -75,10 +75,10 @@ export async function getTreasuryChangedEvent(market: PrePOMarket): Promise<any>
   return events[0].args as any
 }
 
-export async function getFinalLongPriceSetEvent(market: PrePOMarket): Promise<any> {
+export async function getFinalLongPayoutSetEvent(market: PrePOMarket): Promise<any> {
   const filter = {
     address: market.address,
-    topics: [ethers.utils.id('FinalLongPriceSet(uint256)')],
+    topics: [ethers.utils.id('FinalLongPayoutSet(uint256)')],
   }
 
   const events = await market.queryFilter(filter, 'latest')
