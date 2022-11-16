@@ -6,7 +6,7 @@ import "./interfaces/IAccountList.sol";
 import "prepo-shared-contracts/contracts/SafeOwnable.sol";
 
 contract BlocklistTransferHook is IBlocklistTransferHook, SafeOwnable {
-  IAccountList private _blocklist;
+  IAccountList private blocklist;
 
   constructor() {}
 
@@ -15,7 +15,7 @@ contract BlocklistTransferHook is IBlocklistTransferHook, SafeOwnable {
     address _to,
     uint256 _amount
   ) public virtual override {
-    IAccountList _list = _blocklist;
+    IAccountList _list = blocklist;
     require(!_list.isIncluded(_from), "Sender blocked");
     require(!_list.isIncluded(_to), "Recipient blocked");
   }
@@ -25,11 +25,11 @@ contract BlocklistTransferHook is IBlocklistTransferHook, SafeOwnable {
     override
     onlyOwner
   {
-    _blocklist = _newBlocklist;
+    blocklist = _newBlocklist;
     emit BlocklistChange(_newBlocklist);
   }
 
   function getBlocklist() external view override returns (IAccountList) {
-    return _blocklist;
+    return blocklist;
   }
 }

@@ -13,8 +13,8 @@ contract PregenesisPoints is
   ReentrancyGuard,
   ERC20
 {
-  address private _shop;
-  bytes32 private _root;
+  address private shop;
+  bytes32 private root;
   mapping(address => bool) private _userToClaim;
 
   constructor(string memory _name, string memory _symbol)
@@ -22,11 +22,11 @@ contract PregenesisPoints is
   {}
 
   function setShop(address _newShop) external override onlyOwner {
-    _shop = _newShop;
+    shop = _newShop;
   }
 
   function setMerkleTreeRoot(bytes32 _newRoot) external override onlyOwner {
-    _root = _newRoot;
+    root = _newRoot;
   }
 
   function mint(address _to, uint256 _amount) external override onlyOwner {
@@ -48,18 +48,18 @@ contract PregenesisPoints is
   {
     require(!_userToClaim[_msgSender()], "Already claimed");
     bytes32 _leaf = keccak256(abi.encodePacked(_msgSender(), _amount));
-    bool _verified = MerkleProof.verify(_proof, _root, _leaf);
+    bool _verified = MerkleProof.verify(_proof, root, _leaf);
     require(_verified, "Invalid claim");
     _userToClaim[_msgSender()] = true;
     _mint(_msgSender(), _amount);
   }
 
   function getShop() external view override returns (address) {
-    return _shop;
+    return shop;
   }
 
   function getMerkleTreeRoot() external view override returns (bytes32) {
-    return _root;
+    return root;
   }
 
   function hasClaimed(address _account) external view override returns (bool) {
@@ -75,7 +75,7 @@ contract PregenesisPoints is
       require(_userToClaim[_msgSender()], "Unauthorized mint");
     } else {
       require(
-        _msgSender() == owner() || _msgSender() == _shop,
+        _msgSender() == owner() || _msgSender() == shop,
         "Unauthorized transfer"
       );
     }

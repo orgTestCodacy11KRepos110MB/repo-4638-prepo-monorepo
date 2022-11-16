@@ -4,13 +4,13 @@ pragma solidity =0.8.7;
 import "../Vesting.sol";
 
 contract MockVestingClaimer {
-  Vesting private _vesting;
+  Vesting private vesting;
 
   constructor(address _newVesting) {
-    _vesting = Vesting(_newVesting);
+    vesting = Vesting(_newVesting);
   }
 
   function claimFunds() external {
-    _vesting.claim();
+    vesting.claim();
   }
 }

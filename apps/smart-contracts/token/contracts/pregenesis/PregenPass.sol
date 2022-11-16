@@ -5,28 +5,28 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "prepo-shared-contracts/contracts/SafeOwnable.sol";
 
 contract PregenPass is SafeOwnable, ERC721Enumerable {
-  uint256 private _id;
-  string private _uri;
+  uint256 private id;
+  string private uri;
 
   constructor(string memory _newURI) ERC721("Pregen Pass", "PREGENPASS") {
-    _uri = _newURI;
+    uri = _newURI;
   }
 
   function setURI(string memory _newURI) external onlyOwner {
-    _uri = _newURI;
+    uri = _newURI;
   }
 
   function mint(address _to) external {
-    _safeMint(_to, _id++);
+    _safeMint(_to, id++);
   }
 
   function mintBatch(address[] memory _accounts) external {
-    uint256 _tempId = _id;
+    uint256 _tempId = id;
     uint256 _arrayLength = _accounts.length;
     for (uint256 i = 0; i < _arrayLength; ++i) {
       _safeMint(_accounts[i], _tempId++);
     }
-    _id = _tempId;
+    id = _tempId;
   }
 
   function burn(uint256 _tokenId) external {
@@ -47,7 +47,7 @@ contract PregenPass is SafeOwnable, ERC721Enumerable {
     override
     returns (string memory)
   {
-    return _uri;
+    return uri;
   }
 
   function _beforeTokenTransfer(

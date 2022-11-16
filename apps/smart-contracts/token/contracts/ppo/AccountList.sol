@@ -5,7 +5,7 @@ import "./interfaces/IAccountList.sol";
 import "prepo-shared-contracts/contracts/SafeOwnable.sol";
 
 contract AccountList is IAccountList, SafeOwnable {
-  uint256 private _resetIndex;
+  uint256 private resetIndex;
   mapping(uint256 => mapping(address => bool))
     private _resetIndexToAccountToIncluded;
 
@@ -19,7 +19,7 @@ contract AccountList is IAccountList, SafeOwnable {
     require(_accounts.length == _included.length, "Array length mismatch");
     uint256 _arrayLength = _accounts.length;
     for (uint256 i; i < _arrayLength; ) {
-      _resetIndexToAccountToIncluded[_resetIndex][_accounts[i]] = _included[i];
+      _resetIndexToAccountToIncluded[resetIndex][_accounts[i]] = _included[i];
       unchecked {
         ++i;
       }
@@ -31,10 +31,10 @@ contract AccountList is IAccountList, SafeOwnable {
     override
     onlyOwner
   {
-    _resetIndex++;
+    resetIndex++;
     uint256 _arrayLength = _newIncludedAccounts.length;
     for (uint256 i; i < _arrayLength; ) {
-      _resetIndexToAccountToIncluded[_resetIndex][
+      _resetIndexToAccountToIncluded[resetIndex][
         _newIncludedAccounts[i]
       ] = true;
       unchecked {
@@ -44,6 +44,6 @@ contract AccountList is IAccountList, SafeOwnable {
   }
 
   function isIncluded(address _account) external view override returns (bool) {
-    return _resetIndexToAccountToIncluded[_resetIndex][_account];
+    return _resetIndexToAccountToIncluded[resetIndex][_account];
   }
 }

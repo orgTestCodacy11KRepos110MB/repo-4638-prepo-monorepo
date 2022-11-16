@@ -5,20 +5,20 @@ import "./interfaces/IMiniSales.sol";
 import "prepo-shared-contracts/contracts/WithdrawERC20.sol";
 
 contract MiniSales is IMiniSales, WithdrawERC20 {
-  IERC20Metadata private immutable _saleToken;
-  IERC20Metadata private immutable _paymentToken;
-  uint256 private immutable _saleTokenDecimals;
-  uint256 private _price;
-  IPurchaseHook private _purchaseHook;
+  IERC20Metadata private immutable saleToken;
+  IERC20Metadata private immutable paymentToken;
+  uint256 private immutable saleTokenDecimals;
+  uint256 private price;
+  IPurchaseHook private purchaseHook;
 
   constructor(
     address _newSaleToken,
     address _newPaymentToken,
     uint256 _newSaleTokenDecimals
   ) {
-    _saleToken = IERC20Metadata(_newSaleToken);
-    _paymentToken = IERC20Metadata(_newPaymentToken);
-    _saleTokenDecimals = 10**_newSaleTokenDecimals;
+    saleToken = IERC20Metadata(_newSaleToken);
+    paymentToken = IERC20Metadata(_newPaymentToken);
+    saleTokenDecimals = 10**_newSaleTokenDecimals;
   }
 
   function purchase(
@@ -27,8 +27,8 @@ contract MiniSales is IMiniSales, WithdrawERC20 {
     uint256 _purchasePrice,
     bytes calldata _data
   ) external override nonReentrant {
-    require(_purchasePrice == _price, "Price mismatch");
-    IPurchaseHook _hook = _purchaseHook;
+    require(_purchasePrice == price, "Price mismatch");
+    IPurchaseHook _hook = purchaseHook;
     if (address(_hook) != address(0)) {
       _hook.hook(
         _msgSender(),
@@ -39,18 +39,18 @@ contract MiniSales is IMiniSales, WithdrawERC20 {
       );
     }
     uint256 _paymentTokenAmount = (_saleTokenAmount * _purchasePrice) /
-      _saleTokenDecimals;
-    _paymentToken.transferFrom(
+      saleTokenDecimals;
+    paymentToken.transferFrom(
       _msgSender(),
       address(this),
       _paymentTokenAmount
     );
-    _saleToken.transfer(_recipient, _saleTokenAmount);
+    saleToken.transfer(_recipient, _saleTokenAmount);
     emit Purchase(_msgSender(), _recipient, _saleTokenAmount, _purchasePrice);
   }
 
   function setPrice(uint256 _newPrice) external override onlyOwner {
-    _price = _newPrice;
+    price = _newPrice;
     emit PriceChange(_newPrice);
   }
 
@@ -59,23 +59,23 @@ contract MiniSales is IMiniSales, WithdrawERC20 {
     override
     onlyOwner
   {
-    _purchaseHook = _newPurchaseHook;
+    purchaseHook = _newPurchaseHook;
     emit PurchaseHookChange(_newPurchaseHook);
   }
 
   function getSaleToken() external view override returns (IERC20Metadata) {
-    return _saleToken;
+    return saleToken;
   }
 
   function getPaymentToken() external view override returns (IERC20Metadata) {
-    return _paymentToken;
+    return paymentToken;
   }
 
   function getPrice() external view override returns (uint256) {
-    return _price;
+    return price;
   }
 
   function getPurchaseHook() external view override returns (IPurchaseHook) {
-    return _purchaseHook;
+    return purchaseHook;
   }
 }

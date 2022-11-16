@@ -5,13 +5,13 @@ import "./interfaces/IMiniSalesFlag.sol";
 import "prepo-shared-contracts/contracts/SafeOwnable.sol";
 
 contract MiniSalesFlag is IMiniSalesFlag, SafeOwnable {
-  bool private _saleStarted;
+  bool private saleStarted;
 
   function setSaleStarted(bool _newSaleStarted) external override onlyOwner {
-    _saleStarted = _newSaleStarted;
+    saleStarted = _newSaleStarted;
   }
 
   function hasSaleStarted() external view override returns (bool) {
-    return _saleStarted;
+    return saleStarted;
   }
 }
