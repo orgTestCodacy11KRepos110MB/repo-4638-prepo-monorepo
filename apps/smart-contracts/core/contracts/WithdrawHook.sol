@@ -6,17 +6,17 @@ import "./interfaces/ICollateralDepositRecord.sol";
 import "prepo-shared-contracts/contracts/SafeAccessControlEnumerable.sol";
 
 contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
-  ICollateral private _collateral;
-  ICollateralDepositRecord private _depositRecord;
-  bool private _withdrawalsAllowed;
-  uint256 private _globalPeriodLength;
-  uint256 private _userPeriodLength;
-  uint256 private _globalWithdrawLimitPerPeriod;
-  uint256 private _userWithdrawLimitPerPeriod;
-  uint256 private _lastGlobalPeriodReset;
-  uint256 private _lastUserPeriodReset;
-  uint256 private _globalAmountWithdrawnThisPeriod;
-  mapping(address => uint256) private _userToAmountWithdrawnThisPeriod;
+  ICollateral private collateral;
+  ICollateralDepositRecord private depositRecord;
+  bool public override withdrawalsAllowed;
+  uint256 private globalPeriodLength;
+  uint256 private userPeriodLength;
+  uint256 private globalWithdrawLimitPerPeriod;
+  uint256 private userWithdrawLimitPerPeriod;
+  uint256 private lastGlobalPeriodReset;
+  uint256 private lastUserPeriodReset;
+  uint256 private globalAmountWithdrawnThisPeriod;
+  mapping(address => uint256) private userToAmountWithdrawnThisPeriod;
 
   bytes32 public constant SET_COLLATERAL_ROLE =
     keccak256("WithdrawHook_setCollateral(address)");
@@ -34,11 +34,11 @@ contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
     keccak256("WithdrawHook_setUserWithdrawLimitPerPeriod(uint256)");
 
   constructor(address _newDepositRecord) {
-    _depositRecord = ICollateralDepositRecord(_newDepositRecord);
+    depositRecord = ICollateralDepositRecord(_newDepositRecord);
   }
 
   modifier onlyCollateral() {
-    require(msg.sender == address(_collateral), "msg.sender != collateral");
+    require(msg.sender == address(collateral), "msg.sender != collateral");
     _;
   }
 
@@ -55,30 +55,30 @@ contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
     uint256 _amountBeforeFee,
     uint256 _amountAfterFee
   ) external override onlyCollateral {
-    require(_withdrawalsAllowed, "withdrawals not allowed");
-    if (_lastGlobalPeriodReset + _globalPeriodLength < block.timestamp) {
-      _lastGlobalPeriodReset = block.timestamp;
-      _globalAmountWithdrawnThisPeriod = _amountBeforeFee;
+    require(withdrawalsAllowed, "withdrawals not allowed");
+    if (lastGlobalPeriodReset + globalPeriodLength < block.timestamp) {
+      lastGlobalPeriodReset = block.timestamp;
+      globalAmountWithdrawnThisPeriod = _amountBeforeFee;
     } else {
       require(
-        _globalAmountWithdrawnThisPeriod + _amountBeforeFee <=
-          _globalWithdrawLimitPerPeriod,
+        globalAmountWithdrawnThisPeriod + _amountBeforeFee <=
+          globalWithdrawLimitPerPeriod,
         "global withdraw limit exceeded"
       );
-      _globalAmountWithdrawnThisPeriod += _amountBeforeFee;
+      globalAmountWithdrawnThisPeriod += _amountBeforeFee;
     }
-    if (_lastUserPeriodReset + _userPeriodLength < block.timestamp) {
-      _lastUserPeriodReset = block.timestamp;
-      _userToAmountWithdrawnThisPeriod[_sender] = _amountBeforeFee;
+    if (lastUserPeriodReset + userPeriodLength < block.timestamp) {
+      lastUserPeriodReset = block.timestamp;
+      userToAmountWithdrawnThisPeriod[_sender] = _amountBeforeFee;
     } else {
       require(
-        _userToAmountWithdrawnThisPeriod[_sender] + _amountBeforeFee <=
-          _userWithdrawLimitPerPeriod,
+        userToAmountWithdrawnThisPeriod[_sender] + _amountBeforeFee <=
+          userWithdrawLimitPerPeriod,
         "user withdraw limit exceeded"
       );
-      _userToAmountWithdrawnThisPeriod[_sender] += _amountBeforeFee;
+      userToAmountWithdrawnThisPeriod[_sender] += _amountBeforeFee;
     }
-    _depositRecord.recordWithdrawal(_amountBeforeFee);
+    depositRecord.recordWithdrawal(_amountBeforeFee);
   }
 
   function setCollateral(ICollateral _newCollateral)
@@ -86,7 +86,7 @@ contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
     override
     onlyRole(SET_COLLATERAL_ROLE)
   {
-    _collateral = _newCollateral;
+    collateral = _newCollateral;
     emit CollateralChange(address(_newCollateral));
   }
 
@@ -95,7 +95,7 @@ contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
     override
     onlyRole(SET_DEPOSIT_RECORD_ROLE)
   {
-    _depositRecord = _newDepositRecord;
+    depositRecord = _newDepositRecord;
     emit DepositRecordChange(address(_newDepositRecord));
   }
 
@@ -104,7 +104,7 @@ contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
     override
     onlyRole(SET_WITHDRAWALS_ALLOWED_ROLE)
   {
-    _withdrawalsAllowed = _newWithdrawalsAllowed;
+    withdrawalsAllowed = _newWithdrawalsAllowed;
     emit WithdrawalsAllowedChange(_newWithdrawalsAllowed);
   }
 
@@ -113,7 +113,7 @@ contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
     override
     onlyRole(SET_GLOBAL_PERIOD_LENGTH_ROLE)
   {
-    _globalPeriodLength = _newGlobalPeriodLength;
+    globalPeriodLength = _newGlobalPeriodLength;
     emit GlobalPeriodLengthChange(_newGlobalPeriodLength);
   }
 
@@ -122,26 +122,26 @@ contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
     override
     onlyRole(SET_USER_PERIOD_LENGTH_ROLE)
   {
-    _userPeriodLength = _newUserPeriodLength;
+    userPeriodLength = _newUserPeriodLength;
     emit UserPeriodLengthChange(_newUserPeriodLength);
   }
 
   function setGlobalWithdrawLimitPerPeriod(
     uint256 _newGlobalWithdrawLimitPerPeriod
   ) external override onlyRole(SET_GLOBAL_WITHDRAW_LIMIT_PER_PERIOD_ROLE) {
-    _globalWithdrawLimitPerPeriod = _newGlobalWithdrawLimitPerPeriod;
+    globalWithdrawLimitPerPeriod = _newGlobalWithdrawLimitPerPeriod;
     emit GlobalWithdrawLimitPerPeriodChange(_newGlobalWithdrawLimitPerPeriod);
   }
 
   function setUserWithdrawLimitPerPeriod(
     uint256 _newUserWithdrawLimitPerPeriod
   ) external override onlyRole(SET_USER_WITHDRAW_LIMIT_PER_PERIOD_ROLE) {
-    _userWithdrawLimitPerPeriod = _newUserWithdrawLimitPerPeriod;
+    userWithdrawLimitPerPeriod = _newUserWithdrawLimitPerPeriod;
     emit UserWithdrawLimitPerPeriodChange(_newUserWithdrawLimitPerPeriod);
   }
 
   function getCollateral() external view override returns (ICollateral) {
-    return _collateral;
+    return collateral;
   }
 
   function getDepositRecord()
@@ -150,19 +150,15 @@ contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
     override
     returns (ICollateralDepositRecord)
   {
-    return _depositRecord;
-  }
-
-  function withdrawalsAllowed() external view override returns (bool) {
-    return _withdrawalsAllowed;
+    return depositRecord;
   }
 
   function getGlobalPeriodLength() external view override returns (uint256) {
-    return _globalPeriodLength;
+    return globalPeriodLength;
   }
 
   function getUserPeriodLength() external view override returns (uint256) {
-    return _userPeriodLength;
+    return userPeriodLength;
   }
 
   function getGlobalWithdrawLimitPerPeriod()
@@ -171,7 +167,7 @@ contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
     override
     returns (uint256)
   {
-    return _globalWithdrawLimitPerPeriod;
+    return globalWithdrawLimitPerPeriod;
   }
 
   function getUserWithdrawLimitPerPeriod()
@@ -180,7 +176,7 @@ contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
     override
     returns (uint256)
   {
-    return _userWithdrawLimitPerPeriod;
+    return userWithdrawLimitPerPeriod;
   }
 
   function getLastGlobalPeriodReset()
@@ -189,11 +185,11 @@ contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
     override
     returns (uint256)
   {
-    return _lastGlobalPeriodReset;
+    return lastGlobalPeriodReset;
   }
 
   function getLastUserPeriodReset() external view override returns (uint256) {
-    return _lastUserPeriodReset;
+    return lastUserPeriodReset;
   }
 
   function getGlobalAmountWithdrawnThisPeriod()
@@ -202,7 +198,7 @@ contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
     override
     returns (uint256)
   {
-    return _globalAmountWithdrawnThisPeriod;
+    return globalAmountWithdrawnThisPeriod;
   }
 
   function getAmountWithdrawnThisPeriod(address _user)
@@ -211,6 +207,6 @@ contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
     override
     returns (uint256)
   {
-    return _userToAmountWithdrawnThisPeriod[_user];
+    return userToAmountWithdrawnThisPeriod[_user];
   }
 }
