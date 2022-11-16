@@ -2,12 +2,12 @@
 pragma solidity =0.8.7;
 
 import "./interfaces/IWithdrawHook.sol";
-import "./interfaces/ICollateralDepositRecord.sol";
+import "./interfaces/IDepositRecord.sol";
 import "prepo-shared-contracts/contracts/SafeAccessControlEnumerable.sol";
 
 contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
   ICollateral private collateral;
-  ICollateralDepositRecord private depositRecord;
+  IDepositRecord private depositRecord;
   bool public override withdrawalsAllowed;
   uint256 private globalPeriodLength;
   uint256 private userPeriodLength;
@@ -34,7 +34,7 @@ contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
     keccak256("WithdrawHook_setUserWithdrawLimitPerPeriod(uint256)");
 
   constructor(address _newDepositRecord) {
-    depositRecord = ICollateralDepositRecord(_newDepositRecord);
+    depositRecord = IDepositRecord(_newDepositRecord);
   }
 
   modifier onlyCollateral() {
@@ -90,7 +90,7 @@ contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
     emit CollateralChange(address(_newCollateral));
   }
 
-  function setDepositRecord(ICollateralDepositRecord _newDepositRecord)
+  function setDepositRecord(IDepositRecord _newDepositRecord)
     external
     override
     onlyRole(SET_DEPOSIT_RECORD_ROLE)
@@ -144,12 +144,7 @@ contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
     return collateral;
   }
 
-  function getDepositRecord()
-    external
-    view
-    override
-    returns (ICollateralDepositRecord)
-  {
+  function getDepositRecord() external view override returns (IDepositRecord) {
     return depositRecord;
   }
 

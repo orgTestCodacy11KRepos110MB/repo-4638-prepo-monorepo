@@ -2,12 +2,12 @@
 pragma solidity =0.8.7;
 
 import "./interfaces/IDepositHook.sol";
-import "./interfaces/ICollateralDepositRecord.sol";
+import "./interfaces/IDepositRecord.sol";
 import "prepo-shared-contracts/contracts/SafeAccessControlEnumerable.sol";
 
 contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
   ICollateral private collateral;
-  ICollateralDepositRecord private depositRecord;
+  IDepositRecord private depositRecord;
   bool public override depositsAllowed;
 
   bytes32 public constant SET_COLLATERAL_ROLE =
@@ -18,7 +18,7 @@ contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
     keccak256("DepositHook_setDepositsAllowed(bool)");
 
   constructor(address _newDepositRecord) {
-    depositRecord = ICollateralDepositRecord(_newDepositRecord);
+    depositRecord = IDepositRecord(_newDepositRecord);
   }
 
   modifier onlyCollateral() {
@@ -44,7 +44,7 @@ contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
     emit CollateralChange(address(_newCollateral));
   }
 
-  function setDepositRecord(ICollateralDepositRecord _newDepositRecord)
+  function setDepositRecord(IDepositRecord _newDepositRecord)
     external
     override
     onlyRole(SET_DEPOSIT_RECORD_ROLE)
@@ -66,12 +66,7 @@ contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
     return collateral;
   }
 
-  function getDepositRecord()
-    external
-    view
-    override
-    returns (ICollateralDepositRecord)
-  {
+  function getDepositRecord() external view override returns (IDepositRecord) {
     return depositRecord;
   }
 }

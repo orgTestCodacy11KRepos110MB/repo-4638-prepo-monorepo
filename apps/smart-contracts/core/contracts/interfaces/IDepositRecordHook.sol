@@ -2,13 +2,12 @@
 pragma solidity =0.8.7;
 
 import "./IHook.sol";
-import "./ICollateralDepositRecord.sol";
+import "./IDepositRecord.sol";
 
 interface IDepositRecordHook is IHook {
   event DepositRecordChange(address depositRecord);
 
-  function setDepositRecord(ICollateralDepositRecord newDepositRecord)
-    external;
+  function setDepositRecord(IDepositRecord newDepositRecord) external;
 
-  function getDepositRecord() external view returns (ICollateralDepositRecord);
+  function getDepositRecord() external view returns (IDepositRecord);
 }

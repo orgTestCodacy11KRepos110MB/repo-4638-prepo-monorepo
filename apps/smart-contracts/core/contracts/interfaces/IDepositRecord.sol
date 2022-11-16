@@ -3,8 +3,8 @@ pragma solidity =0.8.7;
 
 // TODO interface copy needs some further edits to reflect new implementation
 
-/// @notice Enforces collateral deposit caps.
-interface ICollateralDepositRecord {
+/// @notice Enforces deposit caps.
+interface IDepositRecord {
   /**
    * @dev Emitted via `setGlobalNetDepositCap()`.
    * @param cap New global deposit cap (net of withdrawals)
@@ -25,7 +25,7 @@ interface ICollateralDepositRecord {
   event AllowedHooksChange(address hook, bool allowed);
 
   /**
-   * @dev This function will be called by a Collateral hook before the fee
+   * @dev This function will be called by a hook before the fee
    * is subtracted from the initial `amount` passed in.
    *
    * Only callable by allowed hooks.
@@ -35,13 +35,13 @@ interface ICollateralDepositRecord {
    *
    * `amount` is added to both the global and user-specific
    * deposit totals.
-   * @param sender The account making the Collateral deposit
+   * @param sender The account making the deposit
    * @param amount The amount actually deposited by the user
    */
   function recordDeposit(address sender, uint256 amount) external;
 
   /**
-   * @notice Called by a Collateral hook before the fee is subtracted from
+   * @notice Called by a hook before the fee is subtracted from
    * the amount withdrawn from the Strategy.
    * @dev `amount` is subtracted from the global but not
    * user-specific deposit totals.
@@ -52,9 +52,9 @@ interface ICollateralDepositRecord {
   function recordWithdrawal(uint256 amount) external;
 
   /**
-   * @notice Sets the global cap on assets backing Collateral in circulation.
+   * @notice Sets the global net deposit cap.
    * @dev Only callable by owner().
-   * @param newGlobalNetDepositCap The new global deposit cap
+   * @param newGlobalNetDepositCap The new global net deposit cap
    */
   function setGlobalNetDepositCap(uint256 newGlobalNetDepositCap) external;
 

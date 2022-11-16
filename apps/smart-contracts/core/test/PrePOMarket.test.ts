@@ -18,9 +18,9 @@ import {
   getMarketMintingFeeChangedEvent,
   getMarketRedemptionFeeChangedEvent,
   getTreasuryChangedEvent,
-  getFinalLongPriceSetEvent,
+  getFinalLongPayoutSetEvent,
 } from './events'
-import { MAX_PRICE, calculateFee, FEE_LIMIT, FEE_DENOMINATOR, getLastTimestamp } from './utils'
+import { MAX_PAYOUT, calculateFee, FEE_LIMIT, FEE_DENOMINATOR, getLastTimestamp } from './utils'
 import { PrePOMarketFactory } from '../typechain/PrePOMarketFactory'
 import { PrePOMarket } from '../typechain/PrePOMarket'
 import { LongShortToken } from '../typechain/LongShortToken'
@@ -45,10 +45,10 @@ describe('=> prePOMarket', () => {
   const TEST_MINTING_FEE = 10
   const TEST_REDEMPTION_FEE = 20
   const TEST_EXPIRY = nowPlusMonths(2)
-  const TEST_FLOOR_PRICE = ethers.utils.parseEther('0.2')
-  const TEST_CEILING_PRICE = ethers.utils.parseEther('0.8')
+  const TEST_FLOOR_PAYOUT = ethers.utils.parseEther('0.2')
+  const TEST_CEILING_PAYOUT = ethers.utils.parseEther('0.8')
   const TEST_MINT_AMOUNT = ethers.utils.parseEther('1000')
-  const TEST_FINAL_LONG_PRICE = TEST_FLOOR_PRICE.add(TEST_CEILING_PRICE).div(2)
+  const TEST_FINAL_LONG_PAYOUT = TEST_FLOOR_PAYOUT.add(TEST_CEILING_PAYOUT).div(2)
   const MOCK_COLLATERAL_SUPPLY = ethers.utils.parseEther('1000000000')
 
   beforeEach(async () => {
@@ -64,8 +64,8 @@ describe('=> prePOMarket', () => {
       tokenSymbolSuffix: TEST_SYMBOL_SUFFIX,
       governance: treasury.address,
       collateral: collateralToken.address,
-      floorLongPrice: TEST_FLOOR_PRICE,
-      ceilingLongPrice: TEST_CEILING_PRICE,
+      floorLongPayout: TEST_FLOOR_PAYOUT,
+      ceilingLongPayout: TEST_CEILING_PAYOUT,
       floorValuation: TEST_FLOOR_VAL,
       ceilingValuation: TEST_CEILING_VAL,
       mintingFee: TEST_MINTING_FEE,
@@ -89,16 +89,16 @@ describe('=> prePOMarket', () => {
       expect(await prePOMarket.getCollateral()).to.eq(collateralToken.address)
       expect(await longToken.owner()).to.eq(prePOMarket.address)
       expect(await shortToken.owner()).to.eq(prePOMarket.address)
-      expect(await prePOMarket.getFloorLongPrice()).to.eq(TEST_FLOOR_PRICE)
-      expect(await prePOMarket.getCeilingLongPrice()).to.eq(TEST_CEILING_PRICE)
-      expect(await prePOMarket.getFinalLongPrice()).to.eq(MAX_PRICE.add(1))
+      expect(await prePOMarket.getFloorLongPayout()).to.eq(TEST_FLOOR_PAYOUT)
+      expect(await prePOMarket.getCeilingLongPayout()).to.eq(TEST_CEILING_PAYOUT)
+      expect(await prePOMarket.getFinalLongPayout()).to.eq(MAX_PAYOUT.add(1))
       expect(await prePOMarket.getFloorValuation()).to.eq(TEST_FLOOR_VAL)
       expect(await prePOMarket.getCeilingValuation()).to.eq(TEST_CEILING_VAL)
       expect(await prePOMarket.getMintingFee()).to.eq(TEST_MINTING_FEE)
       expect(await prePOMarket.getRedemptionFee()).to.eq(TEST_REDEMPTION_FEE)
       expect(await prePOMarket.getExpiryTime()).to.eq(TEST_EXPIRY)
       expect(await prePOMarket.isPublicMintingAllowed()).to.eq(false)
-      expect(await prePOMarket.getMaxPrice()).to.eq(MAX_PRICE)
+      expect(await prePOMarket.getMaxPayout()).to.eq(MAX_PAYOUT)
       expect(await prePOMarket.getFeeDenominator()).to.eq(FEE_DENOMINATOR)
       expect(await prePOMarket.getFeeLimit()).to.eq(FEE_LIMIT)
     })
@@ -113,7 +113,7 @@ describe('=> prePOMarket', () => {
       await expect(
         createMarket({
           ...defaultParams,
-          ceilingLongPrice: TEST_FLOOR_PRICE,
+          ceilingLongPayout: TEST_FLOOR_PAYOUT,
         })
       ).revertedWith(revertReason('Ceiling must exceed floor'))
     })
@@ -122,8 +122,8 @@ describe('=> prePOMarket', () => {
       await expect(
         createMarket({
           ...defaultParams,
-          floorLongPrice: TEST_CEILING_PRICE,
-          ceilingLongPrice: TEST_FLOOR_PRICE,
+          floorLongPayout: TEST_CEILING_PAYOUT,
+          ceilingLongPayout: TEST_FLOOR_PAYOUT,
         })
       ).revertedWith(revertReason('Ceiling must exceed floor'))
     })
@@ -132,7 +132,7 @@ describe('=> prePOMarket', () => {
       await expect(
         createMarket({
           ...defaultParams,
-          ceilingLongPrice: MAX_PRICE.add(1),
+          ceilingLongPayout: MAX_PAYOUT.add(1),
         })
       ).revertedWith(revertReason('Ceiling cannot exceed 1'))
     })
@@ -209,8 +209,8 @@ describe('=> prePOMarket', () => {
 
       expect(await prePOMarket.getLongToken()).to.eq(marketCreatedEvent.longToken)
       expect(await prePOMarket.getShortToken()).to.eq(marketCreatedEvent.shortToken)
-      expect(await prePOMarket.getFloorLongPrice()).to.eq(marketCreatedEvent.floorLongPrice)
-      expect(await prePOMarket.getCeilingLongPrice()).to.eq(marketCreatedEvent.ceilingLongPrice)
+      expect(await prePOMarket.getFloorLongPayout()).to.eq(marketCreatedEvent.floorLongPayout)
+      expect(await prePOMarket.getCeilingLongPayout()).to.eq(marketCreatedEvent.ceilingLongPayout)
       expect(TEST_FLOOR_VAL).to.eq(marketCreatedEvent.floorValuation)
       expect(TEST_CEILING_VAL).to.eq(marketCreatedEvent.ceilingValuation)
       expect(await prePOMarket.getMintingFee()).to.eq(marketCreatedEvent.mintingFee)
@@ -219,50 +219,50 @@ describe('=> prePOMarket', () => {
     })
   })
 
-  describe('# setFinalLongPrice', () => {
+  describe('# setFinalLongPayout', () => {
     beforeEach(async () => {
       prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
     })
 
     it('should only be usable by the owner', async () => {
-      await expect(prePOMarket.connect(user).setFinalLongPrice(MAX_PRICE)).to.revertedWith(
+      await expect(prePOMarket.connect(user).setFinalLongPayout(MAX_PAYOUT)).to.revertedWith(
         revertReason('Ownable: caller is not the owner')
       )
     })
 
     it('should not be settable beyond ceiling', async () => {
       await expect(
-        prePOMarket.connect(treasury).setFinalLongPrice(TEST_CEILING_PRICE.add(1))
-      ).to.revertedWith(revertReason('Price cannot exceed ceiling'))
+        prePOMarket.connect(treasury).setFinalLongPayout(TEST_CEILING_PAYOUT.add(1))
+      ).to.revertedWith(revertReason('Payout cannot exceed ceiling'))
     })
 
     it('should not be settable below floor', async () => {
       await expect(
-        prePOMarket.connect(treasury).setFinalLongPrice(TEST_FLOOR_PRICE.sub(1))
-      ).to.revertedWith(revertReason('Price cannot be below floor'))
+        prePOMarket.connect(treasury).setFinalLongPayout(TEST_FLOOR_PAYOUT.sub(1))
+      ).to.revertedWith(revertReason('Payout cannot be below floor'))
     })
 
-    it('should be settable to value between price and ceiling', async () => {
-      await prePOMarket.connect(treasury).setFinalLongPrice(TEST_CEILING_PRICE.sub(1))
+    it('should be settable to value between payout and ceiling', async () => {
+      await prePOMarket.connect(treasury).setFinalLongPayout(TEST_CEILING_PAYOUT.sub(1))
 
-      expect(await prePOMarket.getFinalLongPrice()).to.eq(TEST_CEILING_PRICE.sub(1))
+      expect(await prePOMarket.getFinalLongPayout()).to.eq(TEST_CEILING_PAYOUT.sub(1))
     })
 
     it('should correctly set the same value twice', async () => {
-      await prePOMarket.connect(treasury).setFinalLongPrice(TEST_CEILING_PRICE.sub(1))
+      await prePOMarket.connect(treasury).setFinalLongPayout(TEST_CEILING_PAYOUT.sub(1))
 
-      expect(await prePOMarket.getFinalLongPrice()).to.eq(TEST_CEILING_PRICE.sub(1))
+      expect(await prePOMarket.getFinalLongPayout()).to.eq(TEST_CEILING_PAYOUT.sub(1))
 
-      await prePOMarket.connect(treasury).setFinalLongPrice(TEST_CEILING_PRICE.sub(1))
+      await prePOMarket.connect(treasury).setFinalLongPayout(TEST_CEILING_PAYOUT.sub(1))
 
-      expect(await prePOMarket.getFinalLongPrice()).to.eq(TEST_CEILING_PRICE.sub(1))
+      expect(await prePOMarket.getFinalLongPayout()).to.eq(TEST_CEILING_PAYOUT.sub(1))
     })
 
-    it('should emit a FinalLongPriceSet event', async () => {
-      await prePOMarket.connect(treasury).setFinalLongPrice(TEST_CEILING_PRICE.sub(1))
-      const finalLongPriceSetEvent = await getFinalLongPriceSetEvent(prePOMarket)
+    it('should emit a FinalLongPayoutSet event', async () => {
+      await prePOMarket.connect(treasury).setFinalLongPayout(TEST_CEILING_PAYOUT.sub(1))
+      const finalLongPayoutSetEvent = await getFinalLongPayoutSetEvent(prePOMarket)
 
-      expect(finalLongPriceSetEvent.price).to.eq(TEST_CEILING_PRICE.sub(1))
+      expect(finalLongPayoutSetEvent.payout).to.eq(TEST_CEILING_PAYOUT.sub(1))
     })
   })
 
@@ -437,7 +437,7 @@ describe('=> prePOMarket', () => {
       await collateralToken.connect(deployer).transfer(user.address, TEST_MINT_AMOUNT)
       await collateralToken.connect(user).approve(prePOMarket.address, TEST_MINT_AMOUNT)
       await prePOMarket.connect(treasury).setPublicMinting(true)
-      await prePOMarket.connect(treasury).setFinalLongPrice(TEST_FINAL_LONG_PRICE)
+      await prePOMarket.connect(treasury).setFinalLongPayout(TEST_FINAL_LONG_PAYOUT)
 
       await expect(prePOMarket.connect(user).mintLongShortTokens(TEST_MINT_AMOUNT)).revertedWith(
         revertReason('Market ended')
@@ -557,12 +557,12 @@ describe('=> prePOMarket', () => {
     let calculateTotalOwed: (
       longToRedeem: BigNumber,
       shortToRedeem: BigNumber,
-      finalPriceSet: boolean
+      finalPayoutSet: boolean
     ) => Promise<BigNumber>
     let mintTestPosition: () => Promise<BigNumber>
     let approveTokensForRedemption: (owner: SignerWithAddress, amount: BigNumber) => Promise<void>
     let setupMarket: () => Promise<BigNumber>
-    let setupMarketToEnd: (finalLongPrice: BigNumber) => Promise<BigNumber>
+    let setupMarketToEnd: (finalLongPayout: BigNumber) => Promise<BigNumber>
     let longToken: LongShortToken
     let shortToken: LongShortToken
 
@@ -594,29 +594,29 @@ describe('=> prePOMarket', () => {
         return amountMinted
       }
 
-      setupMarketToEnd = async (finalLongPrice: BigNumber): Promise<BigNumber> => {
+      setupMarketToEnd = async (finalLongPayout: BigNumber): Promise<BigNumber> => {
         prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
         const amountMinted = await mintTestPosition()
         await approveTokensForRedemption(user, amountMinted)
-        await prePOMarket.connect(treasury).setFinalLongPrice(finalLongPrice)
+        await prePOMarket.connect(treasury).setFinalLongPayout(finalLongPayout)
         return amountMinted
       }
 
       calculateTotalOwed = async (
         longToRedeem: BigNumber,
         shortToRedeem: BigNumber,
-        finalPriceSet: boolean
+        finalPayoutSet: boolean
       ): Promise<BigNumber> => {
         let totalOwed: BigNumber
-        if (finalPriceSet) {
+        if (finalPayoutSet) {
           totalOwed = longToRedeem
         } else {
           const owedForLongs = longToRedeem
-            .mul(await prePOMarket.getFinalLongPrice())
-            .div(MAX_PRICE)
+            .mul(await prePOMarket.getFinalLongPayout())
+            .div(MAX_PAYOUT)
           const owedForShort = shortToRedeem
-            .mul(MAX_PRICE.sub(await prePOMarket.getFinalLongPrice()))
-            .div(MAX_PRICE)
+            .mul(MAX_PAYOUT.sub(await prePOMarket.getFinalLongPayout()))
+            .div(MAX_PAYOUT)
           totalOwed = owedForLongs.add(owedForShort)
         }
         return totalOwed
@@ -667,7 +667,7 @@ describe('=> prePOMarket', () => {
     })
 
     it('should correctly settle non-equal non-zero redemption amounts after market end', async () => {
-      const amountMinted = await setupMarketToEnd(TEST_FINAL_LONG_PRICE)
+      const amountMinted = await setupMarketToEnd(TEST_FINAL_LONG_PAYOUT)
       const longToRedeem = amountMinted
       const shortToRedeem = amountMinted.sub(1)
       const totalOwed = await calculateTotalOwed(longToRedeem, shortToRedeem, false)
@@ -683,7 +683,7 @@ describe('=> prePOMarket', () => {
     })
 
     it('should correctly settle redemption done with only long tokens after market end', async () => {
-      const amountMinted = await setupMarketToEnd(TEST_FINAL_LONG_PRICE)
+      const amountMinted = await setupMarketToEnd(TEST_FINAL_LONG_PAYOUT)
       const longToRedeem = amountMinted
       const shortToRedeem = ethers.utils.parseEther('0')
       const totalOwed = await calculateTotalOwed(longToRedeem, shortToRedeem, false)
@@ -699,7 +699,7 @@ describe('=> prePOMarket', () => {
     })
 
     it('should correctly settle redemption done with only short tokens after market end', async () => {
-      const amountMinted = await setupMarketToEnd(TEST_FINAL_LONG_PRICE)
+      const amountMinted = await setupMarketToEnd(TEST_FINAL_LONG_PAYOUT)
       const longToRedeem = ethers.utils.parseEther('0')
       const shortToRedeem = amountMinted
       const totalOwed = await calculateTotalOwed(longToRedeem, shortToRedeem, false)
@@ -725,7 +725,7 @@ describe('=> prePOMarket', () => {
     })
 
     it('should not allow redemption amounts too small for a fee after market end', async () => {
-      const amountMinted = await setupMarketToEnd(TEST_FINAL_LONG_PRICE)
+      const amountMinted = await setupMarketToEnd(TEST_FINAL_LONG_PAYOUT)
       const longToRedeem = ethers.utils.parseEther('0')
       const shortToRedeem = ethers.utils.parseEther('0')
 

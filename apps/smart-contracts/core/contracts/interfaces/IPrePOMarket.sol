@@ -6,7 +6,7 @@ import "./ILongShortToken.sol";
 /**
  * @notice Users can mint/redeem long/short positions on a specific asset in
  * exchange for Collateral tokens.
- * @dev Position settlement prices are bound by a floor and ceiling set
+ * @dev Position settlement payouts are bound by a floor and ceiling set
  * during market initialization.
  *
  * The value of a Long and Short token should always equal 1 Collateral.
@@ -16,8 +16,8 @@ interface IPrePOMarket {
   /// @param longToken Market Long token address
   /// @param shortToken Market Short token address
   /// @param shortToken Market Short token address
-  /// @param floorLongPrice Long token price floor
-  /// @param ceilingLongPrice Long token price ceiling
+  /// @param floorLongPayout Long token payout floor
+  /// @param ceilingLongPayout Long token payout ceiling
   /// @param floorValuation Market valuation floor
   /// @param ceilingValuation Market valuation ceiling
   /// @param mintingFee Market minting fee
@@ -26,8 +26,8 @@ interface IPrePOMarket {
   event MarketCreated(
     address longToken,
     address shortToken,
-    uint256 floorLongPrice,
-    uint256 ceilingLongPrice,
+    uint256 floorLongPayout,
+    uint256 ceilingLongPayout,
     uint256 floorValuation,
     uint256 ceilingValuation,
     uint256 mintingFee,
@@ -49,9 +49,9 @@ interface IPrePOMarket {
   /// @param treasury The new treasury address
   event TreasuryChanged(address treasury);
 
-  /// @dev Emitted via `setFinalLongPrice()`.
-  /// @param price The final Long price
-  event FinalLongPriceSet(uint256 price);
+  /// @dev Emitted via `setFinalLongPayout()`.
+  /// @param payout The final Long payout
+  event FinalLongPayoutSet(uint256 payout);
 
   /// @dev Emitted via `setMintingFee()`.
   /// @param fee The new minting fee
@@ -98,15 +98,15 @@ interface IPrePOMarket {
   function setTreasury(address newTreasury) external;
 
   /**
-   * @notice Sets the price a Long token can be redeemed for after the
+   * @notice Sets the payout a Long token can be redeemed for after the
    * market has ended (in wei units of Collateral).
-   * @dev The contract initializes this to > MAX_PRICE and knows the market
-   * has ended when it is set to <= MAX_PRICE.
+   * @dev The contract initializes this to > MAX_PAYOUT and knows the market
+   * has ended when it is set to <= MAX_PAYOUT.
    *
    * Only callable by `owner()`.
-   * @param newFinalLongPrice Price to set Long token redemptions
+   * @param newFinalLongPayout Payout to set Long token redemptions
    */
-  function setFinalLongPrice(uint256 newFinalLongPrice) external;
+  function setFinalLongPayout(uint256 newFinalLongPayout) external;
 
   /**
    * @notice Sets the fee for minting Long/Short tokens, must be a 4
@@ -151,39 +151,39 @@ interface IPrePOMarket {
   function getShortToken() external view returns (ILongShortToken);
 
   /**
-   * @notice Returns the lower bound of what a Long token can be priced at
+   * @notice Returns the lower bound of what a Long token can be paid out at
    * (in wei units of Collateral).
-   * @dev Must be less than ceilingLongPrice and MAX_PRICE.
-   * @return Minimum Long token price
+   * @dev Must be less than ceilingLongPayout and MAX_PAYOUT.
+   * @return Minimum Long token payout
    */
-  function getFloorLongPrice() external view returns (uint256);
+  function getFloorLongPayout() external view returns (uint256);
 
   /**
-   * @notice Returns the upper bound of what a Long token can be priced at
+   * @notice Returns the upper bound of what a Long token can be paid out at
    * (in wei units of Collateral).
-   * @dev Must be less than MAX_PRICE.
-   * @return Maximum Long token price
+   * @dev Must be less than MAX_PAYOUT.
+   * @return Maximum Long token payout
    */
-  function getCeilingLongPrice() external view returns (uint256);
+  function getCeilingLongPayout() external view returns (uint256);
 
   /**
-   * @notice Returns the price a Long token can be redeemed for after the
+   * @notice Returns the payout a Long token can be redeemed for after the
    * market has ended (in wei units of Collateral).
-   * @dev The contract initializes this to > MAX_PRICE and knows the market
-   * has ended when it is set to <= MAX_PRICE.
-   * @return Final Long token price
+   * @dev The contract initializes this to > MAX_PAYOUT and knows the market
+   * has ended when it is set to <= MAX_PAYOUT.
+   * @return Final Long token payout
    */
-  function getFinalLongPrice() external view returns (uint256);
+  function getFinalLongPayout() external view returns (uint256);
 
   /**
-   * @notice Returns valuation of a market when the price of a Long
+   * @notice Returns valuation of a market when the payout of a Long
    * token is at the floor.
    * @return Market valuation floor
    */
   function getFloorValuation() external view returns (uint256);
 
   /**
-   * @notice Returns valuation of a market when the price of a Long
+   * @notice Returns valuation of a market when the payout of a Long
    * token is at the ceiling.
    * @return Market valuation ceiling
    */
@@ -218,11 +218,11 @@ interface IPrePOMarket {
   function isPublicMintingAllowed() external view returns (bool);
 
   /**
-   * @notice Long prices cannot exceed this value, equivalent to 1 ether
+   * @notice Long payouts cannot exceed this value, equivalent to 1 ether
    * unit of Collateral.
-   * @return Max Long token price
+   * @return Max Long token payout
    */
-  function getMaxPrice() external pure returns (uint256);
+  function getMaxPayout() external pure returns (uint256);
 
   /**
    * @notice Returns the denominator for calculating fees from 4 decimal

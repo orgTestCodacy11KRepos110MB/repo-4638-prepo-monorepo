@@ -100,8 +100,8 @@ describe('=> PrePOMarketFactory', () => {
         tokenSymbolSuffix: TEST_SYMBOL_SUFFIX,
         collateral: collateralToken.address,
         governance: treasury.address,
-        floorLongPrice: TEST_FLOOR_PRICE,
-        ceilingLongPrice: TEST_CEILING_PRICE,
+        floorLongPayout: TEST_FLOOR_PRICE,
+        ceilingLongPayout: TEST_CEILING_PRICE,
         floorValuation: TEST_FLOOR_VAL,
         ceilingValuation: TEST_CEILING_VAL,
         mintingFee: TEST_MINTING_FEE,
@@ -157,8 +157,8 @@ describe('=> PrePOMarketFactory', () => {
       expect(await prePOMarket.getTreasury()).to.eq(treasury.address)
       expect(await longToken.owner()).to.eq(prePOMarket.address)
       expect(await shortToken.owner()).to.eq(prePOMarket.address)
-      expect(await prePOMarket.getFloorLongPrice()).to.eq(TEST_FLOOR_PRICE)
-      expect(await prePOMarket.getCeilingLongPrice()).to.eq(TEST_CEILING_PRICE)
+      expect(await prePOMarket.getFloorLongPayout()).to.eq(TEST_FLOOR_PRICE)
+      expect(await prePOMarket.getCeilingLongPayout()).to.eq(TEST_CEILING_PRICE)
       expect(await prePOMarket.getMintingFee()).to.eq(TEST_MINTING_FEE)
       expect(await prePOMarket.getRedemptionFee()).to.eq(TEST_REDEMPTION_FEE)
       expect(await prePOMarket.isPublicMintingAllowed()).to.eq(false)

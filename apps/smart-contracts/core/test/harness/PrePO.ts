@@ -14,12 +14,12 @@
 //   PrePOMarketFactory,
 //   SingleStrategyController,
 //   MockERC20,
-//   CollateralDepositRecord,
+//   DepositRecord,
 // } from '../../typechain'
 // import { getMarketAddedEvent } from '../events'
 // import { FEE_DENOMINATOR } from '../utils'
 // import { depositHookFixture, withdrawHookFixture } from '../fixtures/HookFixture'
-// import { collateralDepositRecordFixture } from '../fixtures/CollateralDepositRecordFixture'
+// import { depositRecordFixture } from '../fixtures/DepositRecordFixture'
 
 // const { setNextTimestamp } = utils
 
@@ -60,7 +60,7 @@
 //   public baseToken!: MockERC20
 //   public mockStrategy!: MockStrategy
 //   public collateral!: Collateral
-//   public depositRecord!: CollateralDepositRecord
+//   public depositRecord!: DepositRecord
 //   public marketFactory!: PrePOMarketFactory
 //   public strategyController!: SingleStrategyController
 //   public markets!: {
@@ -136,7 +136,7 @@
 //     ])) as Collateral
 //     await this.collateral.setMintingFee(TEST_MINTING_FEE)
 //     await this.collateral.setRedemptionFee(TEST_REDEMPTION_FEE)
-//     this.depositRecord = await collateralDepositRecordFixture(
+//     this.depositRecord = await depositRecordFixture(
 //       TEST_GLOBAL_DEPOSIT_CAP,
 //       TEST_ACCOUNT_DEPOSIT_CAP
 //     )

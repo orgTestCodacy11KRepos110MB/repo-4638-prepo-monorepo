@@ -11,8 +11,8 @@ export type CreateMarketParams = {
   tokenSymbolSuffix: string
   governance: string
   collateral: string
-  floorLongPrice: BigNumber
-  ceilingLongPrice: BigNumber
+  floorLongPayout: BigNumber
+  ceilingLongPayout: BigNumber
   floorValuation: BigNumber
   ceilingValuation: BigNumber
   mintingFee: number
@@ -35,8 +35,8 @@ export async function createMarketFixture(marketParams: CreateMarketParams): Pro
       marketParams.tokenSymbolSuffix,
       marketParams.governance,
       marketParams.collateral,
-      marketParams.floorLongPrice,
-      marketParams.ceilingLongPrice,
+      marketParams.floorLongPayout,
+      marketParams.ceilingLongPayout,
       marketParams.floorValuation,
       marketParams.ceilingValuation,
       marketParams.mintingFee,
