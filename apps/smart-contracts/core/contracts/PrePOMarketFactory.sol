@@ -14,8 +14,8 @@ contract PrePOMarketFactory is
   OwnableUpgradeable,
   ReentrancyGuardUpgradeable
 {
-  mapping(address => bool) private _validCollateral;
-  mapping(bytes32 => address) private _deployedMarkets;
+  mapping(address => bool) private validCollateral;
+  mapping(bytes32 => address) private deployedMarkets;
 
   function initialize() public initializer {
     OwnableUpgradeable.__Ownable_init();
@@ -27,7 +27,7 @@ contract PrePOMarketFactory is
     override
     returns (bool)
   {
-    return _validCollateral[_collateral];
+    return validCollateral[_collateral];
   }
 
   function getMarket(bytes32 _longShortHash)
@@ -36,7 +36,7 @@ contract PrePOMarketFactory is
     override
     returns (IPrePOMarket)
   {
-    return IPrePOMarket(_deployedMarkets[_longShortHash]);
+    return IPrePOMarket(deployedMarkets[_longShortHash]);
   }
 
   function createMarket(
@@ -52,7 +52,7 @@ contract PrePOMarketFactory is
     uint256 _redemptionFee,
     uint256 _expiryTime
   ) external override onlyOwner nonReentrant {
-    require(_validCollateral[_collateral], "Invalid collateral");
+    require(validCollateral[_collateral], "Invalid collateral");
 
     (
       LongShortToken _longToken,
@@ -74,7 +74,7 @@ contract PrePOMarketFactory is
       _expiryTime,
       false
     );
-    _deployedMarkets[_salt] = address(_newMarket);
+    deployedMarkets[_salt] = address(_newMarket);
 
     _longToken.transferOwnership(address(_newMarket));
     _shortToken.transferOwnership(address(_newMarket));
@@ -86,7 +86,7 @@ contract PrePOMarketFactory is
     override
     onlyOwner
   {
-    _validCollateral[_collateral] = _validity;
+    validCollateral[_collateral] = _validity;
     emit CollateralValidityChanged(_collateral, _validity);
   }
 

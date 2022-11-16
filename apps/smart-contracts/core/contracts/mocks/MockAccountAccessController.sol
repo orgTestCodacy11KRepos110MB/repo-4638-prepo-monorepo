@@ -7,10 +7,10 @@ contract MockAccountAccessController is AccountAccessController {
   constructor() {}
 
   function getAllowedAccountsIndex() external view returns (uint16) {
-    return _allowedAccountsIndex;
+    return allowedAccountsIndex;
   }
 
   function getBlockedAccountsIndex() external view returns (uint16) {
-    return _blockedAccountsIndex;
+    return blockedAccountsIndex;
   }
 }

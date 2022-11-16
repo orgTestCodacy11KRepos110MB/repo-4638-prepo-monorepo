@@ -5,14 +5,14 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract MockBaseToken is ERC20, Ownable {
-  address private _mockStrategy;
+  address private mockStrategy;
 
   constructor(string memory _newName, string memory _newSymbol)
     ERC20(_newName, _newSymbol)
   {}
 
   modifier onlyMockStrategy() {
-    require(msg.sender == _mockStrategy, "Caller is not MockStrategy");
+    require(msg.sender == mockStrategy, "Caller is not MockStrategy");
     _;
   }
 
@@ -28,10 +28,10 @@ contract MockBaseToken is ERC20, Ownable {
   }
 
   function setMockStrategy(address _newMockStrategy) external onlyOwner {
-    _mockStrategy = _newMockStrategy;
+    mockStrategy = _newMockStrategy;
   }
 
   function getMockStrategy() external view returns (address) {
-    return _mockStrategy;
+    return mockStrategy;
   }
 }
