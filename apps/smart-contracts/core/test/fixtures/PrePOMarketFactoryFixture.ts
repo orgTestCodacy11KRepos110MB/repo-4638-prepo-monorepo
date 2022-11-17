@@ -1,5 +1,5 @@
 import { ethers, upgrades } from 'hardhat'
-import { BigNumber } from 'ethers'
+import { BigNumber, ContractTransaction } from 'ethers'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { PrePOMarketFactory } from '../../typechain/PrePOMarketFactory'
 import { getMarketAddedEvent } from '../events'
@@ -20,6 +20,11 @@ export type CreateMarketParams = {
   expiryTime: number
 }
 
+export type CreateMarketResult = {
+  tx: ContractTransaction
+  market: string
+}
+
 export async function prePOMarketFactoryFixture(): Promise<PrePOMarketFactory> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const prePOMarketFactory: any = await ethers.getContractFactory('PrePOMarketFactory')
@@ -27,8 +32,10 @@ export async function prePOMarketFactoryFixture(): Promise<PrePOMarketFactory> {
 }
 
 // passing in factory so that block time is not incremented by factory initialization prior to createMarket call, returns address of deployed market
-export async function createMarketFixture(marketParams: CreateMarketParams): Promise<string> {
-  await marketParams.factory
+export async function createMarketFixture(
+  marketParams: CreateMarketParams
+): Promise<CreateMarketResult> {
+  const tx = await marketParams.factory
     .connect(marketParams.caller)
     .createMarket(
       marketParams.tokenNameSuffix,
@@ -44,5 +51,8 @@ export async function createMarketFixture(marketParams: CreateMarketParams): Pro
       marketParams.expiryTime
     )
   const events = await getMarketAddedEvent(marketParams.factory)
-  return events.market
+  return {
+    tx,
+    market: events.market,
+  }
 }

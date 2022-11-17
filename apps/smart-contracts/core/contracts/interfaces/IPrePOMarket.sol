@@ -47,7 +47,7 @@ interface IPrePOMarket {
 
   /// @dev Emitted via `setTreasury()`.
   /// @param treasury The new treasury address
-  event TreasuryChanged(address treasury);
+  event TreasuryChange(address treasury);
 
   /// @dev Emitted via `setFinalLongPayout()`.
   /// @param payout The final Long payout
@@ -55,15 +55,15 @@ interface IPrePOMarket {
 
   /// @dev Emitted via `setMintingFee()`.
   /// @param fee The new minting fee
-  event MintingFeeChanged(uint256 fee);
+  event MintingFeeChange(uint256 fee);
 
   /// @dev Emitted via `setRedemptionFee()`.
   /// @param fee The new redemption fee
-  event RedemptionFeeChanged(uint256 fee);
+  event RedemptionFeeChange(uint256 fee);
 
   /// @dev Emitted via `setPublicMinting()`.
   /// @param allowed The new public minting status
-  event PublicMintingChanged(bool allowed);
+  event PublicMintingChange(bool allowed);
 
   /**
    * @notice Mints Long and Short tokens in exchange for `amount`

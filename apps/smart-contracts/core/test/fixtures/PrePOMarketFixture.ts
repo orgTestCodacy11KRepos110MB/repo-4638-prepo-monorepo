@@ -1,5 +1,6 @@
 import { BigNumber } from 'ethers'
 import { ethers } from 'hardhat'
+import { CreateMarketResult } from './PrePOMarketFactoryFixture'
 import { PrePOMarket } from '../../typechain/PrePOMarket'
 
 export async function prePOMarketFixture(
@@ -34,7 +35,11 @@ export async function prePOMarketFixture(
   )) as PrePOMarket
 }
 
-export async function prePOMarketAttachFixture(marketAddress: string): Promise<PrePOMarket> {
+export async function prePOMarketAttachFixture(
+  market: string | CreateMarketResult
+): Promise<PrePOMarket> {
+  const marketAddress: string = typeof market !== 'string' ? market.market : market
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const prePOMarket: any = await ethers.getContractFactory('PrePOMarket')
   return prePOMarket.attach(marketAddress) as PrePOMarket
