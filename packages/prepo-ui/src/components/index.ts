@@ -2,6 +2,7 @@ import Alert from './Alert'
 import Box from './Box'
 import Button from './Button'
 import CharityDonation from './CharityDonation'
+import CurrencyInput from './CurrencyInput/index'
 import CustomThemeProvider, { PresetTheme } from './CustomThemeProvider'
 import Checkbox from './Checkbox'
 import Dropdown from './Dropdown'
@@ -24,6 +25,7 @@ export {
   Box,
   Button,
   CharityDonation,
+  CurrencyInput,
   CustomThemeProvider,
   Checkbox,
   Dropdown,

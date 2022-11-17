@@ -1,7 +1,7 @@
 import styled from 'styled-components'
 import { observer } from 'mobx-react-lite'
 import { useRouter } from 'next/router'
-import { spacingIncrement, Alert, media, Icon, TokenInput } from 'prepo-ui'
+import { spacingIncrement, Alert, media, Icon, CurrencyInput } from 'prepo-ui'
 import DirectionRadio from './DirectionRadio'
 import TradeTransactionSummary from './TradeTransactionSummary'
 import useTradePage from './useTradePage'
@@ -9,7 +9,6 @@ import Link from '../../components/Link'
 import Card from '../../components/Card'
 import { useRootStore } from '../../context/RootStoreProvider'
 import MarketDropdown from '../../components/MarketDropdown'
-import CurrenciesBreakdown from '../../components/CurrenciesBreakdown'
 import { Routes } from '../../lib/routes'
 
 const AlertWrapper = styled.div`
@@ -69,7 +68,7 @@ const TradePage: React.FC = () => {
   const { tradeStore, web3Store, preCTTokenStore } = useRootStore()
   const { openTradeAmount, openTradeAmountBN, setOpenTradeAmount, selectedMarket } = tradeStore
   const { balanceOfSigner, tokenBalanceFormat } = preCTTokenStore
-  const { connected } = web3Store
+  const { connected, isNetworkSupported } = web3Store
 
   const onSelectMarket = (key: string): void => {
     const tradeUrl = tradeStore.setSelectedMarket(key)
@@ -83,15 +82,16 @@ const TradePage: React.FC = () => {
           <MarketDropdown selectedMarket={selectedMarket} onSelectMarket={onSelectMarket} />
         </MartketDropdownWrapper>
         <DirectionRadio />
-        <TokenInput
+        <CurrencyInput
           balance={tokenBalanceFormat}
-          connected={connected}
+          isBalanceZero={balanceOfSigner?.eq(0)}
+          disabled={!connected || !isNetworkSupported || !selectedMarket}
+          currency={{ icon: 'cash', text: 'USD' }}
           onChange={setOpenTradeAmount}
-          max={tokenBalanceFormat}
-          usd
           value={openTradeAmount}
+          placeholder="0"
+          showBalance
         />
-        <CurrenciesBreakdown />
         <TradeTransactionSummary />
         {openTradeAmountBN !== undefined &&
           (balanceOfSigner?.lt(openTradeAmountBN) || balanceOfSigner?.eq(0)) && (

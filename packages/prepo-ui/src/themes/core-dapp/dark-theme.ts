@@ -12,6 +12,7 @@ const primary = colors.purple3
 const primaryAccent = colors.gray5
 const primaryLight = colors.purple2
 const primaryWhite = colors.white
+const darkPrimaryLight = colors.purple2
 
 // accent colors
 const accent1 = colors.gray8
@@ -98,6 +99,7 @@ const darkTheme: DefaultTheme = {
     primaryAccent,
     primaryLight,
     primaryWhite,
+    darkPrimaryLight,
     accent1,
     accent2,
     accent3,

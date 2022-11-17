@@ -30,6 +30,8 @@ declare module 'styled-components' {
     primaryLight: string
     /** #6264D8 | #FFFFFF */
     primaryWhite: string
+    /** #454699 | #9B9DFF */
+    darkPrimaryLight: string
     /** #FCFAFF | #1B1E22 */
     accent1: string
     /** #FCFAFF | #191B1F */
