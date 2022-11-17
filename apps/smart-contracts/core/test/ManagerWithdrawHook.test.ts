@@ -370,5 +370,21 @@ describe('=> ManagerWithdrawHook', () => {
 
       await managerWithdrawHook.connect(user).hook(user.address, IGNORED_ARGUMENT, amountToWithdraw)
     })
+
+    it('allows withdrawal if reserve = global net deposit amount', async () => {
+      depositRecord.getGlobalNetDepositAmount.returns(TEST_GLOBAL_DEPOSIT_CAP)
+      collateral.getReserve.returns(TEST_GLOBAL_DEPOSIT_CAP)
+
+      const amountToWithdraw = 1
+      await managerWithdrawHook.connect(user).hook(user.address, IGNORED_ARGUMENT, amountToWithdraw)
+    })
+
+    it('allows withdrawal if reserve > global net deposit amount', async () => {
+      depositRecord.getGlobalNetDepositAmount.returns(TEST_GLOBAL_DEPOSIT_CAP)
+      collateral.getReserve.returns(TEST_GLOBAL_DEPOSIT_CAP.add(1))
+
+      const amountToWithdraw = 1
+      await managerWithdrawHook.connect(user).hook(user.address, IGNORED_ARGUMENT, amountToWithdraw)
+    })
   })
 })
