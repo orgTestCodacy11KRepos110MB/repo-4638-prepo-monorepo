@@ -72,7 +72,7 @@ contract FeeReimbursement is SafeAccessControlEnumerable {
     uint256 amountBaseToken = baseTokenFeesByAddress[msg.sender];
     baseTokenFeesByAddress[msg.sender] = 0;
 
-    uint256 amountPPO = miniSales.getAmountOut(amountBaseToken);
+    uint256 amountPPO = miniSales.getSaleForPayment(amountBaseToken);
     ppoToken.transfer(msg.sender, amountPPO);
   }
 
@@ -82,7 +82,7 @@ contract FeeReimbursement is SafeAccessControlEnumerable {
 
   function getClaimablePPO(address _claimer) public view returns (uint256) {
     uint256 amountBaseToken = baseTokenFeesByAddress[_claimer];
-    return miniSales.getAmountOut(amountBaseToken);
+    return miniSales.getSaleForPayment(amountBaseToken);
   }
 
   function validateTokenAndMiniSales() private view {
