@@ -48,7 +48,7 @@ contract PPO is
   ERC20BurnableUpgradeable,
   ERC20PermitUpgradeable
 {
-  ITransferHook private _transferHook;
+  ITransferHook private transferHook;
 
   function initialize(string memory _name, string memory _symbol)
     public
@@ -64,7 +64,7 @@ contract PPO is
     override
     onlyOwner
   {
-    _transferHook = _newTransferHook;
+    transferHook = _newTransferHook;
   }
 
   function mint(address _recipient, uint256 _amount)
@@ -103,7 +103,7 @@ contract PPO is
   }
 
   function getTransferHook() external view override returns (ITransferHook) {
-    return _transferHook;
+    return transferHook;
   }
 
   function _beforeTokenTransfer(
@@ -111,8 +111,8 @@ contract PPO is
     address _to,
     uint256 _amount
   ) internal override {
-    require(address(_transferHook) != address(0), "Transfer hook not set");
-    _transferHook.hook(_from, _to, _amount);
+    require(address(transferHook) != address(0), "Transfer hook not set");
+    transferHook.hook(_from, _to, _amount);
     super._beforeTokenTransfer(_from, _to, _amount);
   }
 }

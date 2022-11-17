@@ -21,16 +21,16 @@ contract TokenShop is
 {
   using SafeERC20 for IERC20;
 
-  IERC20 private _paymentToken;
-  IPurchaseHook private _purchaseHook;
-  mapping(address => mapping(uint256 => uint256)) private _contractToIdToPrice;
+  IERC20 private paymentToken;
+  IPurchaseHook private purchaseHook;
+  mapping(address => mapping(uint256 => uint256)) private contractToIdToPrice;
   mapping(address => mapping(address => uint256))
-    private _userToERC721ToPurchaseCount;
+    private userToERC721ToPurchaseCount;
   mapping(address => mapping(address => mapping(uint256 => uint256)))
-    private _userToERC1155ToIdToPurchaseCount;
+    private userToERC1155ToIdToPurchaseCount;
 
   constructor(address _newPaymentToken) {
-    _paymentToken = IERC20(_newPaymentToken);
+    paymentToken = IERC20(_newPaymentToken);
   }
 
   function setContractToIdToPrice(
@@ -45,7 +45,7 @@ contract TokenShop is
     );
     uint256 _arrayLength = _tokenContracts.length;
     for (uint256 i; i < _arrayLength; ) {
-      _contractToIdToPrice[_tokenContracts[i]][_ids[i]] = _prices[i];
+      contractToIdToPrice[_tokenContracts[i]][_ids[i]] = _prices[i];
       unchecked {
         ++i;
       }
@@ -57,7 +57,7 @@ contract TokenShop is
     override
     onlyOwner
   {
-    _purchaseHook = IPurchaseHook(_newPurchaseHook);
+    purchaseHook = IPurchaseHook(_newPurchaseHook);
   }
 
   function purchase(
@@ -72,15 +72,15 @@ contract TokenShop is
         _amounts.length == _purchasePrices.length,
       "Array length mismatch"
     );
-    IPurchaseHook _hook = _purchaseHook;
+    IPurchaseHook _hook = purchaseHook;
     require(address(_hook) != address(0), "Purchase hook not set");
     uint256 _arrayLength = _tokenContracts.length;
     for (uint256 i; i < _arrayLength; ) {
-      uint256 _price = _contractToIdToPrice[_tokenContracts[i]][_ids[i]];
+      uint256 _price = contractToIdToPrice[_tokenContracts[i]][_ids[i]];
       require(_price != 0, "Non-purchasable item");
       require(_purchasePrices[i] >= _price, "Purchase price < Price");
       uint256 _totalPaymentAmount = _price * _amounts[i];
-      _paymentToken.transferFrom(
+      paymentToken.transferFrom(
         _msgSender(),
         address(this),
         _totalPaymentAmount
@@ -95,7 +95,7 @@ contract TokenShop is
           _ids[i],
           _amounts[i]
         );
-        _userToERC1155ToIdToPurchaseCount[msg.sender][_tokenContracts[i]][
+        userToERC1155ToIdToPurchaseCount[msg.sender][_tokenContracts[i]][
           _ids[i]
         ] += _amounts[i];
         IERC1155(_tokenContracts[i]).safeTransferFrom(
@@ -107,7 +107,7 @@ contract TokenShop is
         );
       } else {
         _hook.hookERC721(msg.sender, _tokenContracts[i], _ids[i]);
-        ++_userToERC721ToPurchaseCount[msg.sender][_tokenContracts[i]];
+        ++userToERC721ToPurchaseCount[msg.sender][_tokenContracts[i]];
         IERC721(_tokenContracts[i]).safeTransferFrom(
           address(this),
           _msgSender(),
@@ -126,15 +126,15 @@ contract TokenShop is
     override
     returns (uint256)
   {
-    return _contractToIdToPrice[_tokenContract][_id];
+    return contractToIdToPrice[_tokenContract][_id];
   }
 
   function getPaymentToken() external view override returns (address) {
-    return address(_paymentToken);
+    return address(paymentToken);
   }
 
   function getPurchaseHook() external view override returns (IPurchaseHook) {
-    return _purchaseHook;
+    return purchaseHook;
   }
 
   function getERC721PurchaseCount(address _user, address _tokenContract)
@@ -143,7 +143,7 @@ contract TokenShop is
     override
     returns (uint256)
   {
-    return _userToERC721ToPurchaseCount[_user][_tokenContract];
+    return userToERC721ToPurchaseCount[_user][_tokenContract];
   }
 
   function getERC1155PurchaseCount(
@@ -151,7 +151,7 @@ contract TokenShop is
     address _tokenContract,
     uint256 _id
   ) external view override returns (uint256) {
-    return _userToERC1155ToIdToPurchaseCount[_user][_tokenContract][_id];
+    return userToERC1155ToIdToPurchaseCount[_user][_tokenContract][_id];
   }
 
   function onERC721Received(
