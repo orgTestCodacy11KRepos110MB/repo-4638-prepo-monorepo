@@ -9,7 +9,7 @@ import "./interfaces/IFeeReimbursement.sol";
 contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
   ICollateral private collateral;
   IDepositRecord private depositRecord;
-  IFeeReimbursement private _feeReimbursement;
+  IFeeReimbursement private feeReimbursement;
   bool public override depositsAllowed;
 
   bytes32 public constant SET_COLLATERAL_ROLE =
@@ -69,7 +69,7 @@ contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
     override
     onlyRole(SET_FEE_REIMBURSEMENT_ROLE)
   {
-    _feeReimbursement = _newFeeReimbursement;
+    feeReimbursement = _newFeeReimbursement;
     emit FeeReimbursementChange(_newFeeReimbursement);
   }
 
