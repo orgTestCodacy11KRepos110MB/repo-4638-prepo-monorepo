@@ -7,9 +7,9 @@ import "prepo-shared-contracts/contracts/SafeAccessControlEnumerable.sol";
 import "token/contracts/mini-sales/interfaces/IMiniSales.sol";
 
 /*
- * @dev Assumtions:
+ * @dev Assumptions:
  * - Assumption is that governance will transfer PPO to this contract
- * - Assumption is that USDC will not be recieved by this contract
+ * - Assumption is that the fee token will not be recieved by this contract
  * - Therefore we cannot use the MiniSales contract to actually purchase
  * - Rather we use it purely for a price conversion
  */
@@ -18,7 +18,7 @@ contract FeeReimbursement is SafeAccessControlEnumerable {
   IDepositHook depositHook;
   IERC20 private ppoToken;
   IMiniSales private miniSales;
-  mapping(address => uint256) private usdcFeesByAddress;
+  mapping(address => uint256) private baseTokenFeesByAddress;
 
   bytes32 public constant SET_DEPOSIT_HOOK_ROLE =
     keccak256("FeeReimbursement_setMiniSales(IMiniSales)");
@@ -33,8 +33,8 @@ contract FeeReimbursement is SafeAccessControlEnumerable {
   }
 
   event DepositHookChange(IDepositHook newDepositHook);
-  event PPOTokenChange(IERC20 indexed newPPOToken);
-  event MiniSalesChange(IMiniSales indexed newMiniSales);
+  event PPOTokenChange(IERC20 newPPOToken);
+  event MiniSalesChange(IMiniSales newMiniSales);
 
   function setDepositHook(IDepositHook _newDepositHook)
     external
@@ -62,28 +62,27 @@ contract FeeReimbursement is SafeAccessControlEnumerable {
     emit MiniSalesChange(miniSales);
   }
 
-  function registerFee(address addr, uint256 amount) public onlyDepositHook {
-    require(msg.sender == address(depositHook));
-    usdcFeesByAddress[addr] += amount;
+  function registerFee(address _sender, uint256 _amount) external onlyDepositHook {
+    baseTokenFeesByAddress[_sender] += _amount;
   }
 
   function claim() public {
-    require(usdcFeesByAddress[msg.sender] > 0, "No reimbursement available");
+    require(baseTokenFeesByAddress[msg.sender] > 0, "No reimbursement available");
 
-    uint256 amountUSDC = usdcFeesByAddress[msg.sender];
-    usdcFeesByAddress[msg.sender] = 0;
+    uint256 amountBaseToken = baseTokenFeesByAddress[msg.sender];
+    baseTokenFeesByAddress[msg.sender] = 0;
 
-    uint256 amountPPO = miniSales.getAmountOut(amountUSDC);
+    uint256 amountPPO = miniSales.getAmountOut(amountBaseToken);
     ppoToken.transfer(msg.sender, amountPPO);
   }
 
-  function getPendingUSDC(address addr) public view returns (uint256) {
-    return usdcFeesByAddress[addr];
+  function getFeesPaid(address _addr) public view returns (uint256) {
+    return baseTokenFeesByAddress[_addr];
   }
 
-  function getPendingPPO(address addr) public view returns (uint256) {
-    uint256 amountUSDC = usdcFeesByAddress[addr];
-    return miniSales.getAmountOut(amountUSDC);
+  function getClaimablePPO(address _claimer) public view returns (uint256) {
+    uint256 amountBaseToken = baseTokenFeesByAddress[_claimer];
+    return miniSales.getAmountOut(amountBaseToken);
   }
 
   function validateTokenAndMiniSales() private view {
