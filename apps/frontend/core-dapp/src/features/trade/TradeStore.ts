@@ -12,10 +12,12 @@ import { makeQueryString } from '../../utils/makeQueryString'
 import { calculateValuation } from '../../utils/market-utils'
 
 export type Direction = 'long' | 'short'
+export type TradeAction = 'open' | 'close'
 
 const DEFAULT_DIRECTION = 'long'
 
 export class TradeStore {
+  action: TradeAction = 'open'
   closeTradeHash?: string
   direction: Direction = DEFAULT_DIRECTION
   openTradeAmount = ''
@@ -62,6 +64,11 @@ export class TradeStore {
     )
   }
 
+  setAction(action: TradeAction): string {
+    this.action = action
+    return this.tradeUrl
+  }
+
   setCloseTradeHash(hash?: string): void {
     this.closeTradeHash = hash
   }
@@ -102,7 +109,11 @@ export class TradeStore {
   }
 
   get tradeUrl(): string {
-    return makeQueryString({ marketId: this.selectedMarket?.urlId, direction: this.direction })
+    return makeQueryString({
+      marketId: this.selectedMarket?.urlId,
+      direction: this.direction,
+      action: this.action,
+    })
   }
 
   get valuation(): { raw?: number | undefined; afterSlippage?: number | undefined } {

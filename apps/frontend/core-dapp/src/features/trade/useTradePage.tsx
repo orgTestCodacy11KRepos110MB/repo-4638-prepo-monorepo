@@ -9,7 +9,12 @@ const useTradePage = (): void => {
 
   useEffect(() => {
     if (router.query) {
-      const { marketId, direction } = router.query
+      const { action, marketId, direction } = router.query
+
+      // handle direction selection
+      if (typeof action === 'string') {
+        tradeStore.setAction(action === 'close' ? 'close' : 'open')
+      }
 
       // handle market selcetion by marketId
       if (typeof marketId === 'string') {

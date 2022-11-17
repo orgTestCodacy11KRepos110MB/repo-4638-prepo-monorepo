@@ -3,6 +3,7 @@ import { observer } from 'mobx-react-lite'
 import { useRouter } from 'next/router'
 import { spacingIncrement, Alert, media, Icon, CurrencyInput } from 'prepo-ui'
 import DirectionRadio from './DirectionRadio'
+import TradePageTab from './TradePageTab'
 import TradeTransactionSummary from './TradeTransactionSummary'
 import useTradePage from './useTradePage'
 import Link from '../../components/Link'
@@ -10,6 +11,7 @@ import Card from '../../components/Card'
 import { useRootStore } from '../../context/RootStoreProvider'
 import MarketDropdown from '../../components/MarketDropdown'
 import { Routes } from '../../lib/routes'
+import { isProduction } from '../../utils/isProduction'
 
 const AlertWrapper = styled.div`
   div[class*='ant-alert-message'] {
@@ -29,11 +31,12 @@ const Wrapper = styled(Card)`
   }
 `
 
-const FormWrapper = styled.div`
+const FormWrapper = styled.div<{ paddingTop: number }>`
   display: flex;
   flex-direction: column;
   gap: ${spacingIncrement(16)};
   padding: ${spacingIncrement(8)};
+  padding-top: ${({ paddingTop }): string => spacingIncrement(paddingTop)};
 `
 
 const MartketDropdownWrapper = styled.div`
@@ -70,6 +73,8 @@ const TradePage: React.FC = () => {
   const { balanceOfSigner, tokenBalanceFormat } = preCTTokenStore
   const { connected, isNetworkSupported } = web3Store
 
+  const hideTabs = isProduction()
+
   const onSelectMarket = (key: string): void => {
     const tradeUrl = tradeStore.setSelectedMarket(key)
     router.push(tradeUrl)
@@ -77,7 +82,8 @@ const TradePage: React.FC = () => {
 
   return (
     <Wrapper>
-      <FormWrapper>
+      {!hideTabs && <TradePageTab />}
+      <FormWrapper paddingTop={hideTabs ? 8 : 16}>
         <MartketDropdownWrapper>
           <MarketDropdown selectedMarket={selectedMarket} onSelectMarket={onSelectMarket} />
         </MartketDropdownWrapper>
