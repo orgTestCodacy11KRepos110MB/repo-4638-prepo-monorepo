@@ -2,5 +2,5 @@
 pragma solidity =0.8.7;
 
 interface IFeeReimbursement {
-    function registerFee(address addr, uint256 amount) external;
+  function registerFee(address addr, uint256 amount) external;
 }

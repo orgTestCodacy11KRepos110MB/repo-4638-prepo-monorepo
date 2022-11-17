@@ -19,7 +19,7 @@ contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
     keccak256("DepositHook_setDepositRecord(address)");
   bytes32 public constant SET_DEPOSITS_ALLOWED_ROLE =
     keccak256("DepositHook_setDepositsAllowed(bool)");
-  bytes32 public constant SET_FEE_REIMBURSEMENT_ROLE = 
+  bytes32 public constant SET_FEE_REIMBURSEMENT_ROLE =
     keccak256("DepositHook_setFeeReimbursement(address)");
 
   modifier onlyCollateral() {

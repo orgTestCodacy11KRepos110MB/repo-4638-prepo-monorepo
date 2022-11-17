@@ -9,6 +9,7 @@ interface IDepositHook is IDepositRecordHook {
   event FeeReimbursementChange(IFeeReimbursement feeReimbursement);
 
   function setDepositsAllowed(bool allowed) external;
+
   function setFeeReimbursement(IFeeReimbursement newFeeReimbursement) external;
 
   function depositsAllowed() external view returns (bool);
