@@ -6,9 +6,9 @@ import "./interfaces/IDepositRecord.sol";
 import "prepo-shared-contracts/contracts/SafeAccessControlEnumerable.sol";
 
 contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
-  ICollateral private _collateral;
-  IDepositRecord private _depositRecord;
-  bool private _depositsAllowed;
+  ICollateral private collateral;
+  IDepositRecord private depositRecord;
+  bool public override depositsAllowed;
 
   bytes32 public constant SET_COLLATERAL_ROLE =
     keccak256("DepositHook_setCollateral(address)");
@@ -18,7 +18,7 @@ contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
     keccak256("DepositHook_setDepositsAllowed(bool)");
 
   modifier onlyCollateral() {
-    require(msg.sender == address(_collateral), "msg.sender != collateral");
+    require(msg.sender == address(collateral), "msg.sender != collateral");
     _;
   }
 
@@ -27,9 +27,9 @@ contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
     uint256 _amountBeforeFee,
     uint256 _amountAfterFee
   ) external override onlyCollateral {
-    require(_depositsAllowed, "deposits not allowed");
-    if (address(_depositRecord) != address(0)) {
-      _depositRecord.recordDeposit(_sender, _amountAfterFee);
+    require(depositsAllowed, "deposits not allowed");
+    if (address(depositRecord) != address(0)) {
+      depositRecord.recordDeposit(_sender, _amountAfterFee);
     }
   }
 
@@ -38,7 +38,7 @@ contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
     override
     onlyRole(SET_COLLATERAL_ROLE)
   {
-    _collateral = _newCollateral;
+    collateral = _newCollateral;
     emit CollateralChange(address(_newCollateral));
   }
 
@@ -47,7 +47,7 @@ contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
     override
     onlyRole(SET_DEPOSIT_RECORD_ROLE)
   {
-    _depositRecord = _newDepositRecord;
+    depositRecord = _newDepositRecord;
     emit DepositRecordChange(address(_newDepositRecord));
   }
 
@@ -56,19 +56,15 @@ contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
     override
     onlyRole(SET_DEPOSITS_ALLOWED_ROLE)
   {
-    _depositsAllowed = _newDepositsAllowed;
+    depositsAllowed = _newDepositsAllowed;
     emit DepositsAllowedChange(_newDepositsAllowed);
   }
 
   function getCollateral() external view override returns (ICollateral) {
-    return _collateral;
+    return collateral;
   }
 
   function getDepositRecord() external view override returns (IDepositRecord) {
-    return _depositRecord;
-  }
-
-  function depositsAllowed() external view override returns (bool) {
-    return _depositsAllowed;
+    return depositRecord;
   }
 }
