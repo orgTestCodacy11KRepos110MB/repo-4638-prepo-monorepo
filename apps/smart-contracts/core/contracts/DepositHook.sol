@@ -4,10 +4,13 @@ pragma solidity =0.8.7;
 import "./interfaces/IDepositHook.sol";
 import "./interfaces/IDepositRecord.sol";
 import "prepo-shared-contracts/contracts/SafeAccessControlEnumerable.sol";
+import "./interfaces/IFeeReimbursement.sol";
 
 contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
   ICollateral private _collateral;
   IDepositRecord private _depositRecord;
+  IFeeReimbursement private _feeReimbursement;
+
   bool private _depositsAllowed;
 
   bytes32 public constant SET_COLLATERAL_ROLE =
@@ -16,6 +19,8 @@ contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
     keccak256("DepositHook_setDepositRecord(address)");
   bytes32 public constant SET_DEPOSITS_ALLOWED_ROLE =
     keccak256("DepositHook_setDepositsAllowed(bool)");
+  bytes32 public constant SET_FEE_REIMBURSEMENT_ROLE = 
+    keccak256("DepositHook_setFeeReimbursement(address)");
 
   modifier onlyCollateral() {
     require(msg.sender == address(_collateral), "msg.sender != collateral");
@@ -31,6 +36,8 @@ contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
     if (address(_depositRecord) != address(0)) {
       _depositRecord.recordDeposit(_sender, _amountAfterFee);
     }
+    uint256 fee = _amountBeforeFee - _amountAfterFee;
+    _feeReimbursement.registerFee(_sender, fee);
   }
 
   function setCollateral(ICollateral _newCollateral)
@@ -58,6 +65,15 @@ contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
   {
     _depositsAllowed = _newDepositsAllowed;
     emit DepositsAllowedChange(_newDepositsAllowed);
+  }
+
+  function setFeeReimbursement(IFeeReimbursement _newFeeReimbursement)
+    external
+    override
+    onlyRole(SET_FEE_REIMBURSEMENT_ROLE)
+  {
+    _feeReimbursement = _newFeeReimbursement;
+    emit FeeReimbursementChange(_newFeeReimbursement);
   }
 
   function getCollateral() external view override returns (ICollateral) {
