@@ -30,7 +30,7 @@ describe('=> ManagerWithdrawHook', () => {
     depositRecord = await smockDepositRecordFixture(TEST_GLOBAL_DEPOSIT_CAP, TEST_USER_DEPOSIT_CAP)
     baseToken = await testERC20Fixture('USD Coin', 'USDC', 6)
     collateral = await smockCollateralFixture(baseToken.address, await baseToken.decimals())
-    managerWithdrawHook = await managerWithdrawHookFixture(depositRecord.address)
+    managerWithdrawHook = await managerWithdrawHookFixture()
   }
 
   const setupManagerWithdrawHook = async (): Promise<void> => {
@@ -84,10 +84,6 @@ describe('=> ManagerWithdrawHook', () => {
       expect(await managerWithdrawHook.SET_MIN_RESERVE_PERCENTAGE_ROLE()).to.eq(
         id('ManagerWithdrawHook_setMinReservePercentage(uint256)')
       )
-    })
-
-    it('sets deposit record from constructor', async () => {
-      expect(await managerWithdrawHook.getDepositRecord()).to.eq(depositRecord.address)
     })
   })
 
@@ -190,8 +186,6 @@ describe('=> ManagerWithdrawHook', () => {
     })
 
     it('sets to zero address', async () => {
-      expect(await managerWithdrawHook.getDepositRecord()).to.not.eq(ZERO_ADDRESS)
-
       await managerWithdrawHook.connect(deployer).setDepositRecord(ZERO_ADDRESS)
 
       expect(await managerWithdrawHook.getDepositRecord()).to.eq(ZERO_ADDRESS)
@@ -310,6 +304,7 @@ describe('=> ManagerWithdrawHook', () => {
   describe('# getMinReserve', () => {
     beforeEach(async () => {
       await setupManagerWithdrawHook()
+      await managerWithdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
     })
 
     it('reverts if deposit record not set', async () => {
@@ -332,6 +327,7 @@ describe('=> ManagerWithdrawHook', () => {
     const IGNORED_ARGUMENT = parseEther('69.420')
     beforeEach(async () => {
       await setupManagerWithdrawHook()
+      await managerWithdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
     })
 
     it('reverts if withdrawal brings reserve below minimum', async () => {

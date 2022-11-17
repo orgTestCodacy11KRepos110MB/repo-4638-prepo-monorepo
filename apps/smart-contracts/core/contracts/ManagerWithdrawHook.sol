@@ -20,10 +20,6 @@ contract ManagerWithdrawHook is
   bytes32 public constant SET_MIN_RESERVE_PERCENTAGE_ROLE =
     keccak256("ManagerWithdrawHook_setMinReservePercentage(uint256)");
 
-  constructor(address _newDepositRecord) {
-    _depositRecord = IDepositRecord(_newDepositRecord);
-  }
-
   function hook(
     address _sender,
     uint256 _amountBeforeFee,

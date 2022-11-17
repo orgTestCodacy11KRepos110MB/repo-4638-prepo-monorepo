@@ -36,7 +36,7 @@ describe('=> WithdrawHook', () => {
       TEST_GLOBAL_DEPOSIT_CAP,
       TEST_ACCOUNT_DEPOSIT_CAP
     )
-    withdrawHook = await withdrawHookFixture(depositRecord.address)
+    withdrawHook = await withdrawHookFixture()
     await grantAndAcceptRole(
       withdrawHook,
       deployer,
@@ -94,10 +94,6 @@ describe('=> WithdrawHook', () => {
       expect(await withdrawHook.getCollateral()).to.eq(ZERO_ADDRESS)
     })
 
-    it('sets deposit record from constructor', async () => {
-      expect(await withdrawHook.getDepositRecord()).to.eq(depositRecord.address)
-    })
-
     it('sets last global period reset to 0', async () => {
       expect(await withdrawHook.getLastGlobalPeriodReset()).to.eq(0)
     })
@@ -145,6 +141,7 @@ describe('=> WithdrawHook', () => {
         .connect(deployer)
         .setGlobalWithdrawLimitPerPeriod(TEST_GLOBAL_WITHDRAW_LIMIT)
       await withdrawHook.connect(deployer).setUserWithdrawLimitPerPeriod(TEST_USER_WITHDRAW_LIMIT)
+      await withdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
     })
 
     it('should only usable by the vault', async () => {
@@ -597,8 +594,6 @@ describe('=> WithdrawHook', () => {
     })
 
     it('sets to zero address', async () => {
-      expect(await withdrawHook.getDepositRecord()).to.not.eq(ZERO_ADDRESS)
-
       await withdrawHook.connect(deployer).setDepositRecord(ZERO_ADDRESS)
 
       expect(await withdrawHook.getDepositRecord()).to.eq(ZERO_ADDRESS)

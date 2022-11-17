@@ -49,8 +49,8 @@ describe('=> Collateral', () => {
       baseTokenDecimals
     )
     depositRecord = await smockDepositRecordFixture(TEST_GLOBAL_DEPOSIT_CAP, TEST_USER_DEPOSIT_CAP)
-    depositHook = await smockDepositHookFixture(depositRecord.address)
-    withdrawHook = await smockWithdrawHookFixture(depositRecord.address)
+    depositHook = await smockDepositHookFixture()
+    withdrawHook = await smockWithdrawHookFixture()
     await grantAndAcceptRole(
       depositRecord,
       deployer,
@@ -69,9 +69,16 @@ describe('=> Collateral', () => {
       depositHook,
       deployer,
       deployer,
+      await depositHook.SET_DEPOSIT_RECORD_ROLE()
+    )
+    await grantAndAcceptRole(
+      depositHook,
+      deployer,
+      deployer,
       await depositHook.SET_DEPOSITS_ALLOWED_ROLE()
     )
     await depositHook.connect(deployer).setCollateral(collateral.address)
+    await depositHook.connect(deployer).setDepositRecord(depositRecord.address)
     await depositHook.connect(deployer).setDepositsAllowed(true)
     await grantAndAcceptRole(
       withdrawHook,
@@ -83,11 +90,18 @@ describe('=> Collateral', () => {
       withdrawHook,
       deployer,
       deployer,
+      await withdrawHook.SET_DEPOSIT_RECORD_ROLE()
+    )
+    await grantAndAcceptRole(
+      withdrawHook,
+      deployer,
+      deployer,
       await withdrawHook.SET_WITHDRAWALS_ALLOWED_ROLE()
     )
     await withdrawHook.connect(deployer).setCollateral(collateral.address)
+    await withdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
     await withdrawHook.connect(deployer).setWithdrawalsAllowed(true)
-    managerWithdrawHook = await smockManagerWithdrawHookFixture(depositRecord.address)
+    managerWithdrawHook = await smockManagerWithdrawHookFixture()
     await grantAndAcceptRole(
       managerWithdrawHook,
       deployer,
@@ -98,9 +112,16 @@ describe('=> Collateral', () => {
       managerWithdrawHook,
       deployer,
       deployer,
+      await managerWithdrawHook.SET_DEPOSIT_RECORD_ROLE()
+    )
+    await grantAndAcceptRole(
+      managerWithdrawHook,
+      deployer,
+      deployer,
       await managerWithdrawHook.SET_MIN_RESERVE_PERCENTAGE_ROLE()
     )
     await managerWithdrawHook.connect(deployer).setCollateral(collateral.address)
+    await managerWithdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
     await managerWithdrawHook.connect(deployer).setMinReservePercentage(TEST_MIN_RESERVE_PERCENTAGE)
   }
 

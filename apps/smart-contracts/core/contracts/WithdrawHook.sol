@@ -33,10 +33,6 @@ contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
   bytes32 public constant SET_USER_WITHDRAW_LIMIT_PER_PERIOD_ROLE =
     keccak256("WithdrawHook_setUserWithdrawLimitPerPeriod(uint256)");
 
-  constructor(address _newDepositRecord) {
-    _depositRecord = IDepositRecord(_newDepositRecord);
-  }
-
   modifier onlyCollateral() {
     require(msg.sender == address(_collateral), "msg.sender != collateral");
     _;
@@ -78,7 +74,9 @@ contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
       );
       _userToAmountWithdrawnThisPeriod[_sender] += _amountBeforeFee;
     }
-    _depositRecord.recordWithdrawal(_amountBeforeFee);
+    if (address(_depositRecord) != address(0)) {
+      _depositRecord.recordWithdrawal(_amountBeforeFee);
+    }
   }
 
   function setCollateral(ICollateral _newCollateral)

@@ -29,7 +29,7 @@ describe('=> DepositHook', () => {
       TEST_GLOBAL_DEPOSIT_CAP,
       TEST_ACCOUNT_DEPOSIT_CAP
     )
-    depositHook = await depositHookFixture(mockDepositRecord.address)
+    depositHook = await depositHookFixture()
     await grantAndAcceptRole(
       depositHook,
       deployer,
@@ -62,10 +62,6 @@ describe('=> DepositHook', () => {
       expect(await depositHook.getCollateral()).to.eq(ZERO_ADDRESS)
     })
 
-    it('sets deposit record from constructor', async () => {
-      expect(await depositHook.getDepositRecord()).to.eq(mockDepositRecord.address)
-    })
-
     it('sets role constants to the correct hash', async () => {
       expect(await depositHook.SET_COLLATERAL_ROLE()).to.eq(
         id('DepositHook_setCollateral(address)')
@@ -87,6 +83,7 @@ describe('=> DepositHook', () => {
     beforeEach(async () => {
       await depositHook.connect(deployer).setCollateral(vault.address)
       await depositHook.connect(deployer).setDepositsAllowed(true)
+      await depositHook.connect(deployer).setDepositRecord(mockDepositRecord.address)
     })
 
     it('should only usable by the vault', async () => {
@@ -187,8 +184,6 @@ describe('=> DepositHook', () => {
     })
 
     it('sets to zero address', async () => {
-      expect(await depositHook.getDepositRecord()).to.not.eq(ZERO_ADDRESS)
-
       await depositHook.connect(deployer).setDepositRecord(ZERO_ADDRESS)
 
       expect(await depositHook.getDepositRecord()).to.eq(ZERO_ADDRESS)

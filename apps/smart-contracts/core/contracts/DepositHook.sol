@@ -17,10 +17,6 @@ contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
   bytes32 public constant SET_DEPOSITS_ALLOWED_ROLE =
     keccak256("DepositHook_setDepositsAllowed(bool)");
 
-  constructor(address _newDepositRecord) {
-    _depositRecord = IDepositRecord(_newDepositRecord);
-  }
-
   modifier onlyCollateral() {
     require(msg.sender == address(_collateral), "msg.sender != collateral");
     _;
@@ -32,7 +28,9 @@ contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
     uint256 _amountAfterFee
   ) external override onlyCollateral {
     require(_depositsAllowed, "deposits not allowed");
-    _depositRecord.recordDeposit(_sender, _amountAfterFee);
+    if (address(_depositRecord) != address(0)) {
+      _depositRecord.recordDeposit(_sender, _amountAfterFee);
+    }
   }
 
   function setCollateral(ICollateral _newCollateral)
