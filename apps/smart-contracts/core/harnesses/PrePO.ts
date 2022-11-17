@@ -13,7 +13,7 @@
 //   PrePOMarket,
 //   PrePOMarketFactory,
 //   SingleStrategyController,
-//   MockBaseToken,
+//   TestBaseToken,
 //   DepositRecord,
 //   DepositHook,
 //   WithdrawHook,
@@ -44,7 +44,7 @@
 //   public ethers!: HardhatEthersHelpers
 //   public chainId!: string
 //   public accounts!: SignerWithAddress[]
-//   public baseToken!: MockBaseToken
+//   public baseToken!: TestBaseToken
 //   public mockStrategy!: MockStrategy
 //   public collateral!: Collateral
 //   public marketFactory!: PrePOMarketFactory
@@ -72,7 +72,7 @@
 //     this.chainId = chainId
 //     this.ethers = ethers
 //     this.accounts = await ethers.getSigners()
-//     this.baseToken = (await ethers.getContract('MockBaseToken')) as unknown as MockBaseToken
+//     this.baseToken = (await ethers.getContract('TestBaseToken')) as unknown as TestBaseToken
 //     this.mockStrategy = (await ethers.getContract('MockStrategy')) as unknown as MockStrategy
 //     this.collateral = await fetchExistingCollateral(chainId, ethers)
 //     this.marketFactory = await fetchExistingPrePOMarketFactory(chainId, ethers)
