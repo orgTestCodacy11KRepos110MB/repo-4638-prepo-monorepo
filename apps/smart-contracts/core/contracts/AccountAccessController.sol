@@ -6,11 +6,11 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IAccountAccessController.sol";
 
 contract AccountAccessController is Ownable, IAccountAccessController {
-  bytes32 private _root;
-  uint16 internal _allowedAccountsIndex;
-  uint16 internal _blockedAccountsIndex;
-  mapping(uint16 => mapping(address => bool)) private _allowedAccounts;
-  mapping(uint16 => mapping(address => bool)) private _blockedAccounts;
+  bytes32 private root;
+  uint16 internal allowedAccountsIndex;
+  uint16 internal blockedAccountsIndex;
+  mapping(uint16 => mapping(address => bool)) private allowedAccounts;
+  mapping(uint16 => mapping(address => bool)) private blockedAccounts;
 
   constructor() {}
 
@@ -32,8 +32,8 @@ contract AccountAccessController is Ownable, IAccountAccessController {
   }
 
   function clearBlockedAccounts() external override onlyOwner {
-    _blockedAccountsIndex++;
-    emit BlockedAccountsCleared(_blockedAccountsIndex);
+    blockedAccountsIndex++;
+    emit BlockedAccountsCleared(blockedAccountsIndex);
   }
 
   function allowAccounts(address[] calldata _accounts)
@@ -42,7 +42,7 @@ contract AccountAccessController is Ownable, IAccountAccessController {
     onlyOwner
   {
     for (uint256 _i = 0; _i < _accounts.length; _i++) {
-      _allowedAccounts[_allowedAccountsIndex][_accounts[_i]] = true;
+      allowedAccounts[allowedAccountsIndex][_accounts[_i]] = true;
       emit AccountAllowed(_accounts[_i]);
     }
   }
@@ -53,25 +53,25 @@ contract AccountAccessController is Ownable, IAccountAccessController {
     onlyOwner
   {
     for (uint256 _i = 0; _i < _accounts.length; _i++) {
-      _blockedAccounts[_blockedAccountsIndex][_accounts[_i]] = true;
+      blockedAccounts[blockedAccountsIndex][_accounts[_i]] = true;
       emit AccountBlocked(_accounts[_i]);
     }
   }
 
   function allowSelf(bytes32[] calldata _proof) external override {
     require(
-      _allowedAccounts[_allowedAccountsIndex][msg.sender] == false,
+      allowedAccounts[allowedAccountsIndex][msg.sender] == false,
       "Account already registered"
     );
     bytes32 _leaf = keccak256(abi.encodePacked(msg.sender));
 
-    require(MerkleProof.verify(_proof, _root, _leaf), "Invalid proof");
-    _allowedAccounts[_allowedAccountsIndex][msg.sender] = true;
+    require(MerkleProof.verify(_proof, root, _leaf), "Invalid proof");
+    allowedAccounts[allowedAccountsIndex][msg.sender] = true;
     emit AccountAllowed(msg.sender);
   }
 
   function getRoot() external view override returns (bytes32) {
-    return _root;
+    return root;
   }
 
   function isAccountAllowed(address _account)
@@ -80,7 +80,7 @@ contract AccountAccessController is Ownable, IAccountAccessController {
     override
     returns (bool)
   {
-    return _allowedAccounts[_allowedAccountsIndex][_account];
+    return allowedAccounts[allowedAccountsIndex][_account];
   }
 
   function isAccountBlocked(address _account)
@@ -89,16 +89,16 @@ contract AccountAccessController is Ownable, IAccountAccessController {
     override
     returns (bool)
   {
-    return _blockedAccounts[_blockedAccountsIndex][_account];
+    return blockedAccounts[blockedAccountsIndex][_account];
   }
 
   function _setRoot(bytes32 _newRoot) internal {
-    _root = _newRoot;
-    emit RootChanged(_root);
+    root = _newRoot;
+    emit RootChanged(root);
   }
 
   function _clearAllowedAccounts() internal {
-    _allowedAccountsIndex++;
-    emit AllowedAccountsCleared(_allowedAccountsIndex);
+    allowedAccountsIndex++;
+    emit AllowedAccountsCleared(allowedAccountsIndex);
   }
 }
