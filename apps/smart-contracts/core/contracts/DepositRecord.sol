@@ -5,11 +5,11 @@ import "./interfaces/IDepositRecord.sol";
 import "prepo-shared-contracts/contracts/SafeAccessControlEnumerable.sol";
 
 contract DepositRecord is IDepositRecord, SafeAccessControlEnumerable {
-  uint256 private _globalNetDepositCap;
-  uint256 private _globalNetDepositAmount;
-  uint256 private _userDepositCap;
-  mapping(address => uint256) private _userToDeposits;
-  mapping(address => bool) private _allowedHooks;
+  uint256 private globalNetDepositCap;
+  uint256 private globalNetDepositAmount;
+  uint256 private userDepositCap;
+  mapping(address => uint256) private userToDeposits;
+  mapping(address => bool) private allowedHooks;
 
   bytes32 public constant SET_GLOBAL_NET_DEPOSIT_CAP_ROLE =
     keccak256("DepositRecord_setGlobalNetDepositCap(uint256)");
@@ -19,13 +19,13 @@ contract DepositRecord is IDepositRecord, SafeAccessControlEnumerable {
     keccak256("DepositRecord_setAllowedHook(address)");
 
   modifier onlyAllowedHooks() {
-    require(_allowedHooks[msg.sender], "msg.sender != allowed hook");
+    require(allowedHooks[msg.sender], "msg.sender != allowed hook");
     _;
   }
 
   constructor(uint256 _newGlobalNetDepositCap, uint256 _newUserDepositCap) {
-    _globalNetDepositCap = _newGlobalNetDepositCap;
-    _userDepositCap = _newUserDepositCap;
+    globalNetDepositCap = _newGlobalNetDepositCap;
+    userDepositCap = _newUserDepositCap;
   }
 
   function recordDeposit(address _sender, uint256 _amount)
@@ -34,15 +34,15 @@ contract DepositRecord is IDepositRecord, SafeAccessControlEnumerable {
     onlyAllowedHooks
   {
     require(
-      _amount + _globalNetDepositAmount <= _globalNetDepositCap,
+      _amount + globalNetDepositAmount <= globalNetDepositCap,
       "Global deposit cap exceeded"
     );
     require(
-      _amount + _userToDeposits[_sender] <= _userDepositCap,
+      _amount + userToDeposits[_sender] <= userDepositCap,
       "User deposit cap exceeded"
     );
-    _globalNetDepositAmount += _amount;
-    _userToDeposits[_sender] += _amount;
+    globalNetDepositAmount += _amount;
+    userToDeposits[_sender] += _amount;
   }
 
   function recordWithdrawal(uint256 _amount)
@@ -50,10 +50,10 @@ contract DepositRecord is IDepositRecord, SafeAccessControlEnumerable {
     override
     onlyAllowedHooks
   {
-    if (_globalNetDepositAmount > _amount) {
-      _globalNetDepositAmount -= _amount;
+    if (globalNetDepositAmount > _amount) {
+      globalNetDepositAmount -= _amount;
     } else {
-      _globalNetDepositAmount = 0;
+      globalNetDepositAmount = 0;
     }
   }
 
@@ -62,8 +62,8 @@ contract DepositRecord is IDepositRecord, SafeAccessControlEnumerable {
     override
     onlyRole(SET_GLOBAL_NET_DEPOSIT_CAP_ROLE)
   {
-    _globalNetDepositCap = _newGlobalNetDepositCap;
-    emit GlobalNetDepositCapChange(_globalNetDepositCap);
+    globalNetDepositCap = _newGlobalNetDepositCap;
+    emit GlobalNetDepositCapChange(globalNetDepositCap);
   }
 
   function setUserDepositCap(uint256 _newUserDepositCap)
@@ -71,7 +71,7 @@ contract DepositRecord is IDepositRecord, SafeAccessControlEnumerable {
     override
     onlyRole(SET_USER_DEPOSIT_CAP_ROLE)
   {
-    _userDepositCap = _newUserDepositCap;
+    userDepositCap = _newUserDepositCap;
     emit UserDepositCapChange(_newUserDepositCap);
   }
 
@@ -80,12 +80,12 @@ contract DepositRecord is IDepositRecord, SafeAccessControlEnumerable {
     override
     onlyRole(SET_ALLOWED_HOOK_ROLE)
   {
-    _allowedHooks[_hook] = _allowed;
+    allowedHooks[_hook] = _allowed;
     emit AllowedHooksChange(_hook, _allowed);
   }
 
   function getGlobalNetDepositCap() external view override returns (uint256) {
-    return _globalNetDepositCap;
+    return globalNetDepositCap;
   }
 
   function getGlobalNetDepositAmount()
@@ -94,11 +94,11 @@ contract DepositRecord is IDepositRecord, SafeAccessControlEnumerable {
     override
     returns (uint256)
   {
-    return _globalNetDepositAmount;
+    return globalNetDepositAmount;
   }
 
   function getUserDepositCap() external view override returns (uint256) {
-    return _userDepositCap;
+    return userDepositCap;
   }
 
   function getUserDepositAmount(address _account)
@@ -107,10 +107,10 @@ contract DepositRecord is IDepositRecord, SafeAccessControlEnumerable {
     override
     returns (uint256)
   {
-    return _userToDeposits[_account];
+    return userToDeposits[_account];
   }
 
   function isHookAllowed(address _hook) external view override returns (bool) {
-    return _allowedHooks[_hook];
+    return allowedHooks[_hook];
   }
 }

@@ -79,7 +79,7 @@ contract MiniSales is IMiniSales, WithdrawERC20 {
     return purchaseHook;
   }
 
-  function getAmountOut(uint256 amountIn) external view override returns (uint256) {
-    return (amountIn * saleTokenDenominator) / price;
+  function getSaleForPayment(uint256 payment) external view override returns (uint256) {
+    return (payment * saleTokenDenominator) / price;
   }
 }
