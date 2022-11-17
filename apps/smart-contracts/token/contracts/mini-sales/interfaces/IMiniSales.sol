@@ -101,4 +101,7 @@ interface IMiniSales {
 
   /// @return The purchase hook contract
   function getPurchaseHook() external view returns (IPurchaseHook);
+
+  /// @return The amount of sale token that will be recieved for a given amount of the payment token
+  function getSaleForPayment(uint256 payment) external view returns (uint256);
 }
