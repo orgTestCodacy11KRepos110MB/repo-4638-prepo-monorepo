@@ -36,8 +36,6 @@ contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
     if (address(_depositRecord) != address(0)) {
       _depositRecord.recordDeposit(_sender, _amountAfterFee);
     }
-    uint256 fee = _amountBeforeFee - _amountAfterFee;
-    _feeReimbursement.registerFee(_sender, fee);
   }
 
   function setCollateral(ICollateral _newCollateral)
