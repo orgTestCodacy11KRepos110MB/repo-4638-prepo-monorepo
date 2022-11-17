@@ -54,6 +54,7 @@ describe('=> ManagerWithdrawHook', () => {
       await managerWithdrawHook.SET_MIN_RESERVE_PERCENTAGE_ROLE()
     )
     await managerWithdrawHook.connect(deployer).setCollateral(collateral.address)
+    await managerWithdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
     await managerWithdrawHook.connect(deployer).setMinReservePercentage(TEST_MIN_RESERVE_PERCENTAGE)
   }
 
@@ -304,7 +305,6 @@ describe('=> ManagerWithdrawHook', () => {
   describe('# getMinReserve', () => {
     beforeEach(async () => {
       await setupManagerWithdrawHook()
-      await managerWithdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
     })
 
     it('reverts if deposit record not set', async () => {
@@ -327,7 +327,6 @@ describe('=> ManagerWithdrawHook', () => {
     const IGNORED_ARGUMENT = parseEther('69.420')
     beforeEach(async () => {
       await setupManagerWithdrawHook()
-      await managerWithdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
     })
 
     it('reverts if withdrawal brings reserve below minimum', async () => {
