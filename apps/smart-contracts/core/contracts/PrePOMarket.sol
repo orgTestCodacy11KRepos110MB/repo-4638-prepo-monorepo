@@ -173,7 +173,7 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
 
   function setTreasury(address _newTreasury) external override onlyOwner {
     treasury = _newTreasury;
-    emit TreasuryChanged(_newTreasury);
+    emit TreasuryChange(_newTreasury);
   }
 
   function setFinalLongPayout(uint256 _newFinalLongPayout)
@@ -196,7 +196,7 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
   function setMintingFee(uint256 _newMintingFee) external override onlyOwner {
     require(_newMintingFee <= FEE_LIMIT, "Exceeds fee limit");
     mintingFee = _newMintingFee;
-    emit MintingFeeChanged(_newMintingFee);
+    emit MintingFeeChange(_newMintingFee);
   }
 
   function setRedemptionFee(uint256 _newRedemptionFee)
@@ -206,12 +206,12 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
   {
     require(_newRedemptionFee <= FEE_LIMIT, "Exceeds fee limit");
     redemptionFee = _newRedemptionFee;
-    emit RedemptionFeeChanged(_newRedemptionFee);
+    emit RedemptionFeeChange(_newRedemptionFee);
   }
 
   function setPublicMinting(bool _allowed) external override onlyOwner {
     publicMinting = _allowed;
-    emit PublicMintingChanged(_allowed);
+    emit PublicMintingChange(_allowed);
   }
 
   function getTreasury() external view override returns (address) {

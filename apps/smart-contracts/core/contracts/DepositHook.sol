@@ -32,9 +32,7 @@ contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
     uint256 _amountAfterFee
   ) external override onlyCollateral {
     require(depositsAllowed, "deposits not allowed");
-    if (address(depositRecord) != address(0)) {
-      depositRecord.recordDeposit(_sender, _amountAfterFee);
-    }
+    depositRecord.recordDeposit(_sender, _amountAfterFee);
     uint256 fee = _amountBeforeFee - _amountAfterFee;
     if (fee > 0 && address(feeReimbursement) != address(0)) {
       feeReimbursement.registerFee(_sender, fee);

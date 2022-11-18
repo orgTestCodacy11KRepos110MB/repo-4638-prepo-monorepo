@@ -94,7 +94,7 @@ contract AccountAccessController is Ownable, IAccountAccessController {
 
   function _setRoot(bytes32 _newRoot) internal {
     root = _newRoot;
-    emit RootChanged(root);
+    emit RootChange(root);
   }
 
   function _clearAllowedAccounts() internal {

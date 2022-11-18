@@ -3,7 +3,7 @@ import { DeployFunction } from 'hardhat-deploy/types'
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { ChainId } from 'prepo-constants'
 import { utils } from 'prepo-hardhat'
-import { AccountAccessController, DepositRecord, FeeReimbursement } from '../typechain'
+import { AccountAccessController, DepositRecord } from '../typechain'
 
 const { assertIsTestnetChain } = utils
 
@@ -49,10 +49,6 @@ const deployFunction: DeployFunction = async function ({
     const setAllowedHookTx = await depositRecord.setAllowedHook(depositHookAddress, true)
     await setAllowedHookTx.wait()
   }
-
-  const feeReimbursement = (await ethers.getContract('FeeReimbursement')) as FeeReimbursement
-  const setDepositHooktx = await feeReimbursement.setDepositHook(depositHookAddress)
-  await setDepositHooktx.wait()
 
   console.log('')
 }

@@ -15,13 +15,13 @@ import "token/contracts/mini-sales/interfaces/IMiniSales.sol";
  */
 
 contract FeeReimbursement is SafeAccessControlEnumerable {
-  IDepositHook depositHook;
+  IDepositHook public depositHook;
   IERC20 private ppoToken;
   IMiniSales private miniSales;
   mapping(address => uint256) private baseTokenFeesByAddress;
 
   bytes32 public constant SET_DEPOSIT_HOOK_ROLE =
-    keccak256("FeeReimbursement_setMiniSales(IMiniSales)");
+    keccak256("FeeReimbursement_setDepositHook(IDepositHook)");
   bytes32 public constant SET_PPO_TOKEN_ROLE =
     keccak256("FeeReimbursement_setPPOToken(IERC20)");
   bytes32 public constant SET_MINISALES_ROLE =
@@ -62,12 +62,18 @@ contract FeeReimbursement is SafeAccessControlEnumerable {
     emit MiniSalesChange(miniSales);
   }
 
-  function registerFee(address _sender, uint256 _amount) external onlyDepositHook {
+  function registerFee(address _sender, uint256 _amount)
+    external
+    onlyDepositHook
+  {
     baseTokenFeesByAddress[_sender] += _amount;
   }
 
   function claim() public {
-    require(baseTokenFeesByAddress[msg.sender] > 0, "No reimbursement available");
+    require(
+      baseTokenFeesByAddress[msg.sender] > 0,
+      "No reimbursement available"
+    );
 
     uint256 amountBaseToken = baseTokenFeesByAddress[msg.sender];
     baseTokenFeesByAddress[msg.sender] = 0;

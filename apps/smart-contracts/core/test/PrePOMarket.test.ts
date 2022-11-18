@@ -11,15 +11,9 @@ import {
   CreateMarketParams,
   prePOMarketFactoryFixture,
   createMarketFixture,
+  CreateMarketResult,
 } from './fixtures/PrePOMarketFactoryFixture'
-import {
-  getMarketCreatedEvent,
-  getPublicMintingChangedEvent,
-  getMarketMintingFeeChangedEvent,
-  getMarketRedemptionFeeChangedEvent,
-  getTreasuryChangedEvent,
-  getFinalLongPayoutSetEvent,
-} from './events'
+import { getMarketCreatedEvent } from './events'
 import { MAX_PAYOUT, calculateFee, FEE_LIMIT, FEE_DENOMINATOR, getLastTimestamp } from './utils'
 import { PrePOMarketFactory } from '../typechain/PrePOMarketFactory'
 import { PrePOMarket } from '../typechain/PrePOMarket'
@@ -37,7 +31,7 @@ describe('=> prePOMarket', () => {
   let user2: SignerWithAddress
   let treasury: SignerWithAddress
   let defaultParams: CreateMarketParams
-  let createMarket: (marketParams: CreateMarketParams) => Promise<string>
+  let createMarket: (marketParams: CreateMarketParams) => Promise<CreateMarketResult>
   const TEST_NAME_SUFFIX = 'preSTRIPE 100-200 30-September-2021'
   const TEST_SYMBOL_SUFFIX = 'preSTRIPE_100-200_30SEP21'
   const TEST_FLOOR_VAL = ethers.utils.parseEther('100')
@@ -73,9 +67,9 @@ describe('=> prePOMarket', () => {
       expiryTime: TEST_EXPIRY,
     }
 
-    createMarket = async (marketParams): Promise<string> => {
-      const newMarket = await createMarketFixture(marketParams)
-      return newMarket
+    createMarket = async (marketParams): Promise<CreateMarketResult> => {
+      const createMarketResult = await createMarketFixture(marketParams)
+      return createMarketResult
     }
   })
 
@@ -204,18 +198,22 @@ describe('=> prePOMarket', () => {
     })
 
     it('should emit MarketCreated event', async () => {
-      prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
-      const marketCreatedEvent = await getMarketCreatedEvent(prePOMarket)
+      const createMarketResult = await createMarket(defaultParams)
+      prePOMarket = await prePOMarketAttachFixture(createMarketResult)
 
-      expect(await prePOMarket.getLongToken()).to.eq(marketCreatedEvent.longToken)
-      expect(await prePOMarket.getShortToken()).to.eq(marketCreatedEvent.shortToken)
-      expect(await prePOMarket.getFloorLongPayout()).to.eq(marketCreatedEvent.floorLongPayout)
-      expect(await prePOMarket.getCeilingLongPayout()).to.eq(marketCreatedEvent.ceilingLongPayout)
-      expect(TEST_FLOOR_VAL).to.eq(marketCreatedEvent.floorValuation)
-      expect(TEST_CEILING_VAL).to.eq(marketCreatedEvent.ceilingValuation)
-      expect(await prePOMarket.getMintingFee()).to.eq(marketCreatedEvent.mintingFee)
-      expect(await prePOMarket.getRedemptionFee()).to.eq(marketCreatedEvent.redemptionFee)
-      expect(TEST_EXPIRY).to.eq(marketCreatedEvent.expiryTime)
+      await expect(createMarketResult.tx)
+        .to.emit(prePOMarket, 'MarketCreated')
+        .withArgs(
+          await prePOMarket.getLongToken(),
+          await prePOMarket.getShortToken(),
+          await prePOMarket.getFloorLongPayout(),
+          await prePOMarket.getCeilingLongPayout(),
+          TEST_FLOOR_VAL,
+          TEST_CEILING_VAL,
+          await prePOMarket.getMintingFee(),
+          await prePOMarket.getRedemptionFee(),
+          TEST_EXPIRY
+        )
     })
   })
 
@@ -259,10 +257,10 @@ describe('=> prePOMarket', () => {
     })
 
     it('should emit a FinalLongPayoutSet event', async () => {
-      await prePOMarket.connect(treasury).setFinalLongPayout(TEST_CEILING_PAYOUT.sub(1))
-      const finalLongPayoutSetEvent = await getFinalLongPayoutSetEvent(prePOMarket)
-
-      expect(finalLongPayoutSetEvent.payout).to.eq(TEST_CEILING_PAYOUT.sub(1))
+      const tx = await prePOMarket.connect(treasury).setFinalLongPayout(TEST_CEILING_PAYOUT.sub(1))
+      await expect(tx)
+        .to.emit(prePOMarket, 'FinalLongPayoutSet')
+        .withArgs(TEST_CEILING_PAYOUT.sub(1))
     })
   })
 
@@ -305,11 +303,9 @@ describe('=> prePOMarket', () => {
       expect(await prePOMarket.getTreasury()).to.eq(user.address)
     })
 
-    it('should emit a TreasuryChanged event', async () => {
-      await prePOMarket.connect(treasury).setTreasury(user.address)
-
-      const treasuryChangedEvent = await getTreasuryChangedEvent(prePOMarket)
-      expect(treasuryChangedEvent.treasury).to.eq(user.address)
+    it('should emit a TreasuryChange event', async () => {
+      const tx = await prePOMarket.connect(treasury).setTreasury(user.address)
+      await expect(tx).to.emit(prePOMarket, 'TreasuryChange').withArgs(user.address)
     })
   })
 
@@ -352,11 +348,9 @@ describe('=> prePOMarket', () => {
       expect(await prePOMarket.getMintingFee()).to.eq(FEE_LIMIT - 1)
     })
 
-    it('should emit a MintingFeeChanged event', async () => {
-      await prePOMarket.connect(treasury).setMintingFee(FEE_LIMIT)
-
-      const mintingFeeChangedEvent = await getMarketMintingFeeChangedEvent(prePOMarket)
-      expect(mintingFeeChangedEvent.fee).to.eq(FEE_LIMIT)
+    it('should emit a MintingFeeChange event', async () => {
+      const tx = await prePOMarket.connect(treasury).setMintingFee(FEE_LIMIT)
+      await expect(tx).to.emit(prePOMarket, 'MintingFeeChange').withArgs(FEE_LIMIT)
     })
   })
 
@@ -392,11 +386,9 @@ describe('=> prePOMarket', () => {
       expect(await prePOMarket.getRedemptionFee()).to.eq(0)
     })
 
-    it('should emit a RedemptionFeeChanged event', async () => {
-      await prePOMarket.connect(treasury).setRedemptionFee(FEE_LIMIT)
-
-      const redemptionFeeChangedEvent = await getMarketRedemptionFeeChangedEvent(prePOMarket)
-      expect(redemptionFeeChangedEvent.fee).to.eq(FEE_LIMIT)
+    it('should emit a RedemptionFeeChange event', async () => {
+      const tx = await prePOMarket.connect(treasury).setRedemptionFee(FEE_LIMIT)
+      await expect(tx).to.emit(prePOMarket, 'RedemptionFeeChange').withArgs(FEE_LIMIT)
     })
   })
 
@@ -424,10 +416,8 @@ describe('=> prePOMarket', () => {
     })
 
     it('should emit a PublicMintingSet event', async () => {
-      await prePOMarket.connect(treasury).setPublicMinting(true)
-
-      const publicMintingEvent = await getPublicMintingChangedEvent(prePOMarket)
-      expect(publicMintingEvent.allowed).to.eq(true)
+      const tx = await prePOMarket.connect(treasury).setPublicMinting(true)
+      await expect(tx).to.emit(prePOMarket, 'PublicMintingChange').withArgs(true)
     })
   })
 
