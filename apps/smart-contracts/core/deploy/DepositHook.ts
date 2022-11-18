@@ -49,6 +49,7 @@ const deployFunction: DeployFunction = async function ({
     const setAllowedHookTx = await depositRecord.setAllowedHook(depositHookAddress, true)
     await setAllowedHookTx.wait()
   }
+
   console.log('')
 }
 
