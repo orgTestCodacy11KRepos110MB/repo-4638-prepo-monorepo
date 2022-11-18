@@ -7,32 +7,32 @@ import { MockContract } from '@defi-wonderland/smock'
 import { BigNumber, Contract } from 'ethers'
 import { feeReimbursementFixture } from './fixtures/FeeReimbursementFixture'
 import { grantAndAcceptRole } from './utils'
-import { smockDepositHookFixture } from './fixtures/HookFixture'
 import { smockMiniSalesFixture } from './fixtures/MiniSales'
 import { testERC20Fixture } from './fixtures/TestERC20Fixture'
 import { FeeReimbursement, TestERC20 } from '../typechain'
 
 describe('=> FeeReimbursement', () => {
   let feeReimbursement: FeeReimbursement
-  let smockDepositHook: MockContract<Contract>
   let smockMiniSales: MockContract<Contract>
-  let usdcToken: TestERC20
+  let baseToken: TestERC20
   let ppoToken: TestERC20
   let deployer: SignerWithAddress
   let user: SignerWithAddress
+  let depositHook: SignerWithAddress
   const TEST_AMOUNT_ONE = parseEther('1')
+  const TEST_AMOUNT_HUNDRED = parseEther('100')
 
   const getSignersAndDeployFeeReimbursement = async (): Promise<void> => {
-    ;[deployer, user] = await ethers.getSigners()
+    ;[deployer, user, depositHook] = await ethers.getSigners()
     feeReimbursement = await feeReimbursementFixture()
-    smockDepositHook = await smockDepositHookFixture()
-    usdcToken = await testERC20Fixture('USDC', 'USDC', 6)
+    baseToken = await testERC20Fixture('USDC', 'USDC', 6)
     ppoToken = await testERC20Fixture('PPO Token', 'PPO', 18)
     smockMiniSales = await smockMiniSalesFixture(
-      usdcToken.address,
+      baseToken.address,
       ppoToken.address,
       BigNumber.from(6)
     )
+    smockMiniSales.getSaleForPayment.returns((payment) => payment)
   }
 
   const setupFeeReimbursement = async (): Promise<void> => {
@@ -55,9 +55,10 @@ describe('=> FeeReimbursement', () => {
       deployer,
       await feeReimbursement.SET_PPO_TOKEN_ROLE()
     )
-    await feeReimbursement.connect(deployer).setDepositHook(smockDepositHook.address)
+    await feeReimbursement.connect(deployer).setDepositHook(depositHook.address)
     await feeReimbursement.connect(deployer).setMiniSales(smockMiniSales.address)
     await feeReimbursement.connect(deployer).setPPOToken(ppoToken.address)
+    await ppoToken.connect(deployer).mint(feeReimbursement.address, TEST_AMOUNT_HUNDRED)
   }
 
   describe('initial state', () => {
@@ -87,11 +88,36 @@ describe('=> FeeReimbursement', () => {
       await setupFeeReimbursement()
     })
 
-    it('should only be callable by allowed contracts', async () => {})
+    it('should be callable by connected deposit hook', async () => {
+      await feeReimbursement.connect(depositHook).registerFee(user.address, TEST_AMOUNT_ONE)
+    })
 
-    it("should correctly add 'amount' to fee", async () => {})
+    it('should not be callable by non-authorised address', async () => {
+      const tx = feeReimbursement.connect(user).registerFee(user.address, TEST_AMOUNT_ONE)
+      await expect(tx).to.be.revertedWith('msg.sender != depositHook')
+    })
 
-    it("should correctly add 'amount' to fee starting from a non-zero value", async () => {})
+    it("should correctly add 'amount' to fee", async () => {
+      const feesPaidBefore = await feeReimbursement.getFeesPaid(user.address)
+      expect(feesPaidBefore).to.eq(0)
+      await feeReimbursement.connect(depositHook).registerFee(user.address, TEST_AMOUNT_ONE)
+      const feesPaidAfter = await feeReimbursement.getFeesPaid(user.address)
+      expect(feesPaidAfter).to.eq(TEST_AMOUNT_ONE)
+    })
+  })
+
+  describe('# getClaimablePPO', () => {
+    beforeEach(async () => {
+      await setupFeeReimbursement()
+    })
+
+    it('should return the correct amount of claimable PPO for fees paid', async () => {
+      await feeReimbursement.connect(depositHook).registerFee(user.address, TEST_AMOUNT_ONE)
+      const feesPaid = await feeReimbursement.getFeesPaid(user.address)
+      expect(feesPaid).to.eq(TEST_AMOUNT_ONE)
+      const claimablePPO = await feeReimbursement.getClaimablePPO(user.address)
+      expect(claimablePPO).to.eq(TEST_AMOUNT_ONE)
+    })
   })
 
   describe('# claim', () => {
@@ -99,13 +125,26 @@ describe('=> FeeReimbursement', () => {
       await setupFeeReimbursement()
     })
 
-    it('reverts if no fee pending', async () => {})
+    it('reverts if no fee pending', async () => {
+      const claimablePPO = await feeReimbursement.getClaimablePPO(user.address)
+      expect(claimablePPO).to.eq(0)
+      const tx = feeReimbursement.connect(user).claim()
+      await expect(tx).to.be.revertedWith('No reimbursement available')
+    })
 
-    it('claims if pending fee > 0', async () => {})
+    it('claims correct amount of PPO if pending fee > 0', async () => {
+      await feeReimbursement.connect(depositHook).registerFee(user.address, TEST_AMOUNT_ONE)
+      await feeReimbursement.connect(user).claim()
+      const ppoBalance = await ppoToken.balanceOf(user.address)
+      expect(ppoBalance).to.eq(TEST_AMOUNT_ONE)
+    })
 
-    it('reverts if claiming twice', async () => {})
-
-    it('recieves the correct amount of PPO', async () => {})
+    it('reverts if claiming twice', async () => {
+      await feeReimbursement.connect(depositHook).registerFee(user.address, TEST_AMOUNT_ONE)
+      await feeReimbursement.connect(user).claim() // Claim once
+      const tx = feeReimbursement.connect(user).claim() // Claim again
+      await expect(tx).to.be.revertedWith('No reimbursement available')
+    })
   })
 
   describe('# setDepositHook', () => {
@@ -124,7 +163,8 @@ describe('=> FeeReimbursement', () => {
         await feeReimbursement.hasRole(await feeReimbursement.SET_DEPOSIT_HOOK_ROLE(), user.address)
       ).to.eq(false)
 
-      await expect(feeReimbursement.connect(user).setDepositHook(deployer.address)).revertedWith(
+      const tx = feeReimbursement.connect(user).setDepositHook(deployer.address)
+      await expect(tx).revertedWith(
         `AccessControl: account ${user.address.toLowerCase()} is missing role ${await feeReimbursement.SET_DEPOSIT_HOOK_ROLE()}`
       )
     })
