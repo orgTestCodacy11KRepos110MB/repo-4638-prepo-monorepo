@@ -14,7 +14,6 @@ import { collateralFixture } from './fixtures/CollateralFixture'
 import { smockDepositRecordFixture } from './fixtures/DepositRecordFixture'
 import { testERC20Fixture } from './fixtures/TestERC20Fixture'
 import { FEE_DENOMINATOR, grantAndAcceptRole, PERCENT_DENOMINATOR } from './utils'
-import { smockFeeReimbursementFixture } from './fixtures/FeeReimbursementFixture'
 import { Collateral, TestERC20 } from '../typechain'
 
 chai.use(smock.matchers)
@@ -30,7 +29,6 @@ describe('=> Collateral', () => {
   let depositHook: MockContract<Contract>
   let withdrawHook: MockContract<Contract>
   let managerWithdrawHook: MockContract<Contract>
-  let feeReimbursement: MockContract<Contract>
   const TEST_DEPOSIT_FEE = 1000 // 0.1%
   const TEST_WITHDRAW_FEE = 2000 // 0.2%
   const TEST_GLOBAL_DEPOSIT_CAP = parseEther('50000')
@@ -53,7 +51,6 @@ describe('=> Collateral', () => {
     depositRecord = await smockDepositRecordFixture(TEST_GLOBAL_DEPOSIT_CAP, TEST_USER_DEPOSIT_CAP)
     depositHook = await smockDepositHookFixture()
     withdrawHook = await smockWithdrawHookFixture()
-    feeReimbursement = await smockFeeReimbursementFixture()
     await grantAndAcceptRole(
       depositRecord,
       deployer,
@@ -80,16 +77,9 @@ describe('=> Collateral', () => {
       deployer,
       await depositHook.SET_DEPOSITS_ALLOWED_ROLE()
     )
-    await grantAndAcceptRole(
-      depositHook,
-      deployer,
-      deployer,
-      await depositHook.SET_FEE_REIMBURSEMENT_ROLE()
-    )
     await depositHook.connect(deployer).setCollateral(collateral.address)
     await depositHook.connect(deployer).setDepositRecord(depositRecord.address)
     await depositHook.connect(deployer).setDepositsAllowed(true)
-    await depositHook.connect(deployer).setFeeReimbursement(feeReimbursement.address)
     await grantAndAcceptRole(
       withdrawHook,
       deployer,
@@ -133,13 +123,6 @@ describe('=> Collateral', () => {
     await managerWithdrawHook.connect(deployer).setCollateral(collateral.address)
     await managerWithdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
     await managerWithdrawHook.connect(deployer).setMinReservePercentage(TEST_MIN_RESERVE_PERCENTAGE)
-    await grantAndAcceptRole(
-      feeReimbursement,
-      deployer,
-      deployer,
-      await feeReimbursement.SET_DEPOSIT_HOOK_ROLE()
-    )
-    await feeReimbursement.connect(deployer).setDepositHook(depositHook.address)
   }
 
   const setupCollateral = async (baseTokenDecimals: number = USDC_DECIMALS): Promise<void> => {

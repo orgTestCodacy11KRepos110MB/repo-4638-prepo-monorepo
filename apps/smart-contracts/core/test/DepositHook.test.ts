@@ -8,7 +8,6 @@ import { ZERO_ADDRESS } from 'prepo-constants'
 import { depositHookFixture } from './fixtures/HookFixture'
 import { smockDepositRecordFixture } from './fixtures/DepositRecordFixture'
 import { grantAndAcceptRole } from './utils'
-import { smockFeeReimbursementFixture } from './fixtures/FeeReimbursementFixture'
 import { DepositHook } from '../typechain'
 
 chai.use(smock.matchers)
@@ -19,7 +18,6 @@ describe('=> DepositHook', () => {
   let user: SignerWithAddress
   let vault: SignerWithAddress
   let mockDepositRecord: MockContract<Contract>
-  let mockFeeReimbursement: MockContract<Contract>
   const TEST_GLOBAL_DEPOSIT_CAP = parseEther('50000')
   const TEST_ACCOUNT_DEPOSIT_CAP = parseEther('50')
   const TEST_AMOUNT_BEFORE_FEE = parseEther('1.01')
@@ -31,7 +29,6 @@ describe('=> DepositHook', () => {
       TEST_GLOBAL_DEPOSIT_CAP,
       TEST_ACCOUNT_DEPOSIT_CAP
     )
-    mockFeeReimbursement = await smockFeeReimbursementFixture()
     depositHook = await depositHookFixture()
     await grantAndAcceptRole(
       depositHook,
@@ -52,25 +49,12 @@ describe('=> DepositHook', () => {
       await depositHook.SET_DEPOSITS_ALLOWED_ROLE()
     )
     await grantAndAcceptRole(
-      depositHook,
-      deployer,
-      deployer,
-      await depositHook.SET_FEE_REIMBURSEMENT_ROLE()
-    )
-    await grantAndAcceptRole(
       mockDepositRecord,
       deployer,
       deployer,
       await mockDepositRecord.SET_ALLOWED_HOOK_ROLE()
     )
     await mockDepositRecord.connect(deployer).setAllowedHook(depositHook.address, true)
-    await grantAndAcceptRole(
-      mockFeeReimbursement,
-      deployer,
-      deployer,
-      await mockFeeReimbursement.SET_DEPOSIT_HOOK_ROLE()
-    )
-    await mockFeeReimbursement.connect(deployer).setDepositHook(depositHook.address)
   })
 
   describe('initial state', () => {
@@ -100,7 +84,6 @@ describe('=> DepositHook', () => {
       await depositHook.connect(deployer).setCollateral(vault.address)
       await depositHook.connect(deployer).setDepositsAllowed(true)
       await depositHook.connect(deployer).setDepositRecord(mockDepositRecord.address)
-      await depositHook.connect(deployer).setFeeReimbursement(mockFeeReimbursement.address)
     })
 
     it('should only usable by the vault', async () => {
