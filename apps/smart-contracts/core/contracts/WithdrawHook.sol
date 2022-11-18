@@ -74,9 +74,7 @@ contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
       );
       userToAmountWithdrawnThisPeriod[_sender] += _amountBeforeFee;
     }
-    if (address(depositRecord) != address(0)) {
-      depositRecord.recordWithdrawal(_amountBeforeFee);
-    }
+    depositRecord.recordWithdrawal(_amountBeforeFee);
   }
 
   function setCollateral(ICollateral _newCollateral)

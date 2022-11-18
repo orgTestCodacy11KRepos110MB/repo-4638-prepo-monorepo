@@ -4,12 +4,10 @@ pragma solidity =0.8.7;
 import "./interfaces/IDepositHook.sol";
 import "./interfaces/IDepositRecord.sol";
 import "prepo-shared-contracts/contracts/SafeAccessControlEnumerable.sol";
-import "./interfaces/IFeeReimbursement.sol";
 
 contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
   ICollateral private collateral;
   IDepositRecord private depositRecord;
-  IFeeReimbursement private feeReimbursement;
   bool public override depositsAllowed;
 
   bytes32 public constant SET_COLLATERAL_ROLE =
@@ -18,8 +16,6 @@ contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
     keccak256("DepositHook_setDepositRecord(address)");
   bytes32 public constant SET_DEPOSITS_ALLOWED_ROLE =
     keccak256("DepositHook_setDepositsAllowed(bool)");
-  bytes32 public constant SET_FEE_REIMBURSEMENT_ROLE =
-    keccak256("DepositHook_setFeeReimbursement(address)");
 
   modifier onlyCollateral() {
     require(msg.sender == address(collateral), "msg.sender != collateral");
@@ -32,13 +28,7 @@ contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
     uint256 _amountAfterFee
   ) external override onlyCollateral {
     require(depositsAllowed, "deposits not allowed");
-    if (address(depositRecord) != address(0)) {
-      depositRecord.recordDeposit(_sender, _amountAfterFee);
-    }
-    uint256 fee = _amountBeforeFee - _amountAfterFee;
-    if (fee > 0 && address(feeReimbursement) != address(0)) {
-      feeReimbursement.registerFee(_sender, fee);
-    }
+    depositRecord.recordDeposit(_sender, _amountAfterFee);
   }
 
   function setCollateral(ICollateral _newCollateral)
@@ -66,15 +56,6 @@ contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
   {
     depositsAllowed = _newDepositsAllowed;
     emit DepositsAllowedChange(_newDepositsAllowed);
-  }
-
-  function setFeeReimbursement(IFeeReimbursement _newFeeReimbursement)
-    external
-    override
-    onlyRole(SET_FEE_REIMBURSEMENT_ROLE)
-  {
-    feeReimbursement = _newFeeReimbursement;
-    emit FeeReimbursementChange(_newFeeReimbursement);
   }
 
   function getCollateral() external view override returns (ICollateral) {

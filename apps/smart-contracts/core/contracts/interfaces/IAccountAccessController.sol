@@ -11,7 +11,7 @@ interface IAccountAccessController {
    * @dev Emitted via `setRoot()`.
    * @param root The new merkle root
    */
-  event RootChanged(bytes32 root);
+  event RootChange(bytes32 root);
 
   /**
    * @dev Emitted via `allowAccounts()` and `allowSelf`.

@@ -9,8 +9,8 @@ import {
   CreateMarketParams,
   prePOMarketFactoryFixture,
   createMarketFixture,
+  CreateMarketResult,
 } from './fixtures/PrePOMarketFactoryFixture'
-import { getCollateralValidityChangedEvent } from './events'
 import { PrePOMarketFactory } from '../typechain/PrePOMarketFactory'
 import { TestERC20 } from '../typechain/TestERC20'
 
@@ -74,22 +74,20 @@ describe('=> PrePOMarketFactory', () => {
       expect(await prePOMarketFactory.isCollateralValid(collateralToken.address)).to.eq(false)
     })
 
-    it('should emit a CollateralValiditySet event', async () => {
-      await prePOMarketFactory
+    it('should emit a CollateralValidityChanged event', async () => {
+      const tx = await prePOMarketFactory
         .connect(deployer)
         .setCollateralValidity(collateralToken.address, true)
 
-      const collateralValidityChangedEvent = await getCollateralValidityChangedEvent(
-        prePOMarketFactory
-      )
-      expect(await collateralValidityChangedEvent.collateral).to.eq(collateralToken.address)
-      expect(await collateralValidityChangedEvent.allowed).to.eq(true)
+      await expect(tx)
+        .to.emit(prePOMarketFactory, 'CollateralValidityChanged')
+        .withArgs(collateralToken.address, true)
     })
   })
 
   describe('# createMarket', () => {
     let defaultParams: CreateMarketParams
-    let createMarket: (marketParams: CreateMarketParams) => Promise<string>
+    let createMarket: (marketParams: CreateMarketParams) => Promise<CreateMarketResult>
 
     beforeEach(async () => {
       await prePOMarketFactory.setCollateralValidity(collateralToken.address, true)
@@ -109,9 +107,9 @@ describe('=> PrePOMarketFactory', () => {
         expiryTime: TEST_EXPIRY,
       }
 
-      createMarket = async (marketParams): Promise<string> => {
-        const newMarket = await createMarketFixture(marketParams)
-        return newMarket
+      createMarket = async (marketParams): Promise<CreateMarketResult> => {
+        const result = await createMarketFixture(marketParams)
+        return result
       }
     })
 
@@ -133,6 +131,11 @@ describe('=> PrePOMarketFactory', () => {
           collateral: invalidCollateral.address,
         })
       ).revertedWith(revertReason('Invalid collateral'))
+    })
+
+    it('should emit MarketAdded event on market creation', async () => {
+      const createMarketResult = await createMarket(defaultParams)
+      await expect(createMarketResult.tx).to.emit(prePOMarketFactory, 'MarketAdded')
     })
 
     it('should deploy two LongShortToken contracts owned by the new prePOMarket', async () => {
