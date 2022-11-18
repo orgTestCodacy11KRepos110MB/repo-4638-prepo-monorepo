@@ -274,4 +274,57 @@ describe('=> DepositHook', () => {
       await expect(tx).to.emit(depositHook, 'DepositsAllowedChange').withArgs(true)
     })
   })
+
+  describe('# setFeeReimbursement', () => {
+    it('reverts if not role holder', async () => {
+      expect(
+        await depositHook.hasRole(await depositHook.SET_FEE_REIMBURSEMENT_ROLE(), user.address)
+      ).to.eq(false)
+
+      await expect(
+        depositHook.connect(user).setFeeReimbursement(mockFeeReimbursement.address)
+      ).revertedWith(
+        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await depositHook.SET_FEE_REIMBURSEMENT_ROLE()}`
+      )
+    })
+
+    it('sets to non-zero address', async () => {
+      await depositHook.connect(deployer).setFeeReimbursement(ZERO_ADDRESS)
+      expect(mockFeeReimbursement.address).to.not.eq(ZERO_ADDRESS)
+      expect(await depositHook.getFeeReimbursement()).to.not.eq(mockFeeReimbursement.address)
+
+      await depositHook.connect(deployer).setFeeReimbursement(mockFeeReimbursement.address)
+
+      expect(await depositHook.getFeeReimbursement()).to.eq(mockFeeReimbursement.address)
+    })
+
+    it('sets to zero address', async () => {
+      await depositHook.connect(deployer).setFeeReimbursement(ZERO_ADDRESS)
+
+      expect(await depositHook.getFeeReimbursement()).to.eq(ZERO_ADDRESS)
+    })
+
+    it('is idempotent', async () => {
+      await depositHook.connect(deployer).setFeeReimbursement(ZERO_ADDRESS)
+      expect(await depositHook.getFeeReimbursement()).to.not.eq(mockFeeReimbursement.address)
+
+      await depositHook.connect(deployer).setFeeReimbursement(mockFeeReimbursement.address)
+
+      expect(await depositHook.getFeeReimbursement()).to.eq(mockFeeReimbursement.address)
+
+      await depositHook.connect(deployer).setFeeReimbursement(mockFeeReimbursement.address)
+
+      expect(await depositHook.getFeeReimbursement()).to.eq(mockFeeReimbursement.address)
+    })
+
+    it('emits FeeReimbursementChange', async () => {
+      const tx = await depositHook
+        .connect(deployer)
+        .setFeeReimbursement(mockFeeReimbursement.address)
+
+      await expect(tx)
+        .to.emit(depositHook, 'FeeReimbursementChange')
+        .withArgs(mockFeeReimbursement.address)
+    })
+  })
 })

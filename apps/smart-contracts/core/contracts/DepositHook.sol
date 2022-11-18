@@ -34,9 +34,9 @@ contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
     require(depositsAllowed, "deposits not allowed");
     depositRecord.recordDeposit(_sender, _amountAfterFee);
     uint256 fee = _amountBeforeFee - _amountAfterFee;
-    if (fee > 0 && address(feeReimbursement) != address(0)) {
-      feeReimbursement.registerFee(_sender, fee);
-    }
+    // if (fee > 0 && address(feeReimbursement) != address(0)) {
+    feeReimbursement.registerFee(_sender, fee);
+    // }
   }
 
   function setCollateral(ICollateral _newCollateral)
@@ -81,5 +81,14 @@ contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
 
   function getDepositRecord() external view override returns (IDepositRecord) {
     return depositRecord;
+  }
+
+  function getFeeReimbursement()
+    external
+    view
+    override
+    returns (IFeeReimbursement)
+  {
+    return feeReimbursement;
   }
 }
