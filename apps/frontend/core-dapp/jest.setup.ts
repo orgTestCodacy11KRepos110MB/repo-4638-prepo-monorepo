@@ -2,6 +2,8 @@ import { BigNumber } from 'ethers'
 import { configure } from 'mobx'
 import { initializeStore } from './src/context/initializeStore'
 
+jest.mock('./src/stores/MarketStore')
+
 // This is needed to be able to mock mobx @computed properties on a class
 configure({ safeDescriptors: false })
 

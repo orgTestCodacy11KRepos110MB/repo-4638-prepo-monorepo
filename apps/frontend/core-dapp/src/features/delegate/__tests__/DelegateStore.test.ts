@@ -86,13 +86,12 @@ describe('DelegateStore tests', () => {
     expect(rootStore.delegateStore.alreadySelected).toBe(true)
   })
 
-  // it('should return empty address when not found from ens name', async () => {
-  //   const event = { target: { value: 'prepo.eth' } } as any
-  //   rootStore.delegateStore.onChangeEnsNameInput(event)
-  //   await when(() => !rootStore.delegateStore.customDelegate?.delegateAddress)
-
-  //   expect(rootStore.delegateStore.customDelegate?.delegateAddress).toBe(undefined)
-  // })
+  it('should return empty address when not found from ens name', async () => {
+    const event = { target: { value: 'prepo.eth' } } as any
+    rootStore.delegateStore.onChangeEnsNameInput(event)
+    await when(() => !rootStore.delegateStore.customDelegate?.delegateAddress)
+    expect(rootStore.delegateStore.customDelegate?.delegateAddress).toBe(undefined)
+  })
 
   it('should return empty address when invalid address is given', async () => {
     const event = { target: { value: '0x1231232123' } } as any
