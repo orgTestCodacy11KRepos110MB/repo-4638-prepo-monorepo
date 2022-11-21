@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity =0.8.7;
 
-import "./IHook.sol";
+import "./ICollateralHook.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
@@ -42,11 +42,11 @@ interface ICollateral is IERC20Upgradeable {
 
   function setWithdrawFee(uint256 newWithdrawFee) external;
 
-  function setDepositHook(IHook newHook) external;
+  function setDepositHook(ICollateralHook newHook) external;
 
-  function setWithdrawHook(IHook newHook) external;
+  function setWithdrawHook(ICollateralHook newHook) external;
 
-  function setManagerWithdrawHook(IHook newHook) external;
+  function setManagerWithdrawHook(ICollateralHook newHook) external;
 
   function getBaseToken() external view returns (IERC20);
 
@@ -56,11 +56,11 @@ interface ICollateral is IERC20Upgradeable {
 
   function getWithdrawFee() external view returns (uint256);
 
-  function getDepositHook() external view returns (IHook);
+  function getDepositHook() external view returns (ICollateralHook);
 
-  function getWithdrawHook() external view returns (IHook);
+  function getWithdrawHook() external view returns (ICollateralHook);
 
-  function getManagerWithdrawHook() external view returns (IHook);
+  function getManagerWithdrawHook() external view returns (ICollateralHook);
 
   function getReserve() external view returns (uint256);
 }

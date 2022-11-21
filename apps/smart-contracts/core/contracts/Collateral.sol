@@ -19,9 +19,9 @@ contract Collateral is
   address private manager;
   uint256 private depositFee;
   uint256 private withdrawFee;
-  IHook private depositHook;
-  IHook private withdrawHook;
-  IHook private managerWithdrawHook;
+  ICollateralHook private depositHook;
+  ICollateralHook private withdrawHook;
+  ICollateralHook private managerWithdrawHook;
 
   uint256 public constant FEE_DENOMINATOR = 1000000;
   bytes32 public constant MANAGER_WITHDRAW_ROLE =
@@ -33,11 +33,11 @@ contract Collateral is
   bytes32 public constant SET_WITHDRAW_FEE_ROLE =
     keccak256("Collateral_setWithdrawFee(uint256)");
   bytes32 public constant SET_DEPOSIT_HOOK_ROLE =
-    keccak256("Collateral_setDepositHook(IHook)");
+    keccak256("Collateral_setDepositHook(ICollateralHook)");
   bytes32 public constant SET_WITHDRAW_HOOK_ROLE =
-    keccak256("Collateral_setWithdrawHook(IHook)");
+    keccak256("Collateral_setWithdrawHook(ICollateralHook)");
   bytes32 public constant SET_MANAGER_WITHDRAW_HOOK_ROLE =
-    keccak256("Collateral_setManagerWithdrawHook(IHook)");
+    keccak256("Collateral_setManagerWithdrawHook(ICollateralHook)");
 
   constructor(IERC20 _newBaseToken, uint256 _newBaseTokenDecimals) {
     baseToken = _newBaseToken;
@@ -138,7 +138,7 @@ contract Collateral is
     emit WithdrawFeeChange(_newWithdrawFee);
   }
 
-  function setDepositHook(IHook _newDepositHook)
+  function setDepositHook(ICollateralHook _newDepositHook)
     external
     override
     onlyRole(SET_DEPOSIT_HOOK_ROLE)
@@ -147,7 +147,7 @@ contract Collateral is
     emit DepositHookChange(address(_newDepositHook));
   }
 
-  function setWithdrawHook(IHook _newWithdrawHook)
+  function setWithdrawHook(ICollateralHook _newWithdrawHook)
     external
     override
     onlyRole(SET_WITHDRAW_HOOK_ROLE)
@@ -156,7 +156,7 @@ contract Collateral is
     emit WithdrawHookChange(address(_newWithdrawHook));
   }
 
-  function setManagerWithdrawHook(IHook _newManagerWithdrawHook)
+  function setManagerWithdrawHook(ICollateralHook _newManagerWithdrawHook)
     external
     override
     onlyRole(SET_MANAGER_WITHDRAW_HOOK_ROLE)
@@ -181,15 +181,20 @@ contract Collateral is
     return withdrawFee;
   }
 
-  function getDepositHook() external view override returns (IHook) {
+  function getDepositHook() external view override returns (ICollateralHook) {
     return depositHook;
   }
 
-  function getWithdrawHook() external view override returns (IHook) {
+  function getWithdrawHook() external view override returns (ICollateralHook) {
     return withdrawHook;
   }
 
-  function getManagerWithdrawHook() external view override returns (IHook) {
+  function getManagerWithdrawHook()
+    external
+    view
+    override
+    returns (ICollateralHook)
+  {
     return managerWithdrawHook;
   }
 

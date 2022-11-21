@@ -5,7 +5,7 @@ import "./ICollateral.sol";
 
 /// @notice Used for adding additional checks and/or data recording when
 /// interacting with the Collateral vault.
-interface IHook {
+interface ICollateralHook {
   /**
    * @dev Emitted via `setCollateral()`.
    * @param collateral The new collateral address
