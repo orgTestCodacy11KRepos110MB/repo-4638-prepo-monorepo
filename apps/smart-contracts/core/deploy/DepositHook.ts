@@ -3,7 +3,7 @@ import { DeployFunction } from 'hardhat-deploy/types'
 import { HardhatRuntimeEnvironment } from 'hardhat/types'
 import { ChainId } from 'prepo-constants'
 import { utils } from 'prepo-hardhat'
-import { AccountAccessController, DepositRecord } from '../typechain'
+import { DepositRecord } from '../typechain'
 
 const { assertIsTestnetChain } = utils
 
