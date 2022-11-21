@@ -31,3 +31,8 @@ export async function smockManagerWithdrawHookFixture(): Promise<MockContract> {
   const smockManagerWithdrawHookFactory = await smock.mock('ManagerWithdrawHook')
   return smockManagerWithdrawHookFactory.deploy()
 }
+
+export async function smockAccountListFixture(): Promise<MockContract> {
+  const smockAccountListFactory = await smock.mock('AccountList')
+  return smockAccountListFactory.deploy()
+}

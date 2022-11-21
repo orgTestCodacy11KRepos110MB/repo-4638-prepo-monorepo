@@ -25,4 +25,3 @@ export async function getMarketCreatedEvent(market: PrePOMarket): Promise<any> {
   const events = await market.queryFilter(filter, 'latest')
   return events[0].args as any
 }
-
