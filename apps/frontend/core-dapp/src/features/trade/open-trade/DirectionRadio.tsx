@@ -3,8 +3,8 @@ import { observer } from 'mobx-react-lite'
 import { useRouter } from 'next/router'
 import styled, { Color, css, FlattenSimpleInterpolation } from 'styled-components'
 import { removeUserSelect } from 'prepo-ui/src/themes/core-dapp'
-import { Direction } from './TradeStore'
-import { useRootStore } from '../../context/RootStoreProvider'
+import { Direction } from '../TradeStore'
+import { useRootStore } from '../../../context/RootStoreProvider'
 
 const directions: Direction[] = ['long', 'short']
 
