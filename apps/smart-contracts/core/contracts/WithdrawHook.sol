@@ -49,7 +49,7 @@ contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
   function hook(
     address _sender,
     uint256 _amountBeforeFee,
-    uint256 _amountAfterFee
+    uint256
   ) external override onlyCollateral {
     require(withdrawalsAllowed, "withdrawals not allowed");
     if (lastGlobalPeriodReset + globalPeriodLength < block.timestamp) {

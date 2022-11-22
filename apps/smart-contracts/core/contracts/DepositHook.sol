@@ -24,7 +24,7 @@ contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
 
   function hook(
     address _sender,
-    uint256 _amountBeforeFee,
+    uint256,
     uint256 _amountAfterFee
   ) external override onlyCollateral {
     require(depositsAllowed, "deposits not allowed");

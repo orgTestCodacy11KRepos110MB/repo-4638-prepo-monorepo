@@ -21,10 +21,10 @@ contract ManagerWithdrawHook is
     keccak256("ManagerWithdrawHook_setMinReservePercentage(uint256)");
 
   function hook(
-    address _sender,
-    uint256 _amountBeforeFee,
+    address,
+    uint256,
     uint256 _amountAfterFee
-  ) external override {
+  ) external override view {
     require(
       collateral.getReserve() - _amountAfterFee >= getMinReserve(),
       "reserve would fall below minimum"
