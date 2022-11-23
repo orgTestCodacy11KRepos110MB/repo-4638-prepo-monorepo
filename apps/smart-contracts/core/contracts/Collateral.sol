@@ -58,7 +58,11 @@ contract Collateral is
    * (withdrawable by manager). Converts amount after fee from base token
    * units to collateral token units.
    */
-  function deposit(uint256 _amount) external override nonReentrant {
+  function deposit(address _recipient, uint256 _amount)
+    external
+    override
+    nonReentrant
+  {
     uint256 _fee = (_amount * depositFee) / FEE_DENOMINATOR;
     if (depositFee > 0) {
       require(_fee > 0, "fee = 0");
@@ -69,11 +73,11 @@ contract Collateral is
     uint256 _amountAfterFee = _amount - _fee;
     if (address(depositHook) != address(0)) {
       baseToken.approve(address(depositHook), _fee);
-      depositHook.hook(msg.sender, _amount, _amountAfterFee);
+      depositHook.hook(_recipient, _amount, _amountAfterFee);
     }
     /// Converts amount after fee from base token units to collateral token units.
-    _mint(msg.sender, (_amountAfterFee * 1e18) / baseTokenDenominator);
-    emit Deposit(msg.sender, _amountAfterFee, _fee);
+    _mint(_recipient, (_amountAfterFee * 1e18) / baseTokenDenominator);
+    emit Deposit(_recipient, _amountAfterFee, _fee);
   }
 
   /// @dev Converts amount from collateral token units to base token units.

@@ -24,7 +24,7 @@ contract ManagerWithdrawHook is
     address,
     uint256,
     uint256 _amountAfterFee
-  ) external override view {
+  ) external view override {
     require(
       collateral.getReserve() - _amountAfterFee >= getMinReserve(),
       "reserve would fall below minimum"

@@ -637,10 +637,15 @@ describe('=> Collateral', () => {
   })
 
   describe('# deposit', () => {
+    let sender: SignerWithAddress
+    let recipient: SignerWithAddress
     beforeEach(async () => {
       await setupCollateral()
-      await baseToken.mint(user1.address, parseUnits('1', USDC_DECIMALS))
-      await baseToken.connect(user1).approve(collateral.address, parseUnits('1', USDC_DECIMALS))
+      sender = user1
+      recipient = user2
+      expect(sender.address).to.not.eq(recipient.address)
+      await baseToken.mint(sender.address, parseUnits('1', USDC_DECIMALS))
+      await baseToken.connect(sender).approve(collateral.address, parseUnits('1', USDC_DECIMALS))
       await collateral.connect(deployer).setDepositFee(TEST_DEPOSIT_FEE)
       await collateral.connect(deployer).setDepositHook(depositHook.address)
     })
@@ -648,13 +653,17 @@ describe('=> Collateral', () => {
     it('reverts if deposit = 0 and deposit fee = 0%', async () => {
       await collateral.connect(deployer).setDepositFee(0)
 
-      await expect(collateral.connect(user1).deposit(0)).to.be.revertedWith('amount = 0')
+      await expect(collateral.connect(sender).deposit(recipient.address, 0)).to.be.revertedWith(
+        'amount = 0'
+      )
     })
 
     it('reverts if deposit = 0 and deposit fee > 0%', async () => {
       expect(await collateral.getDepositFee()).to.be.gt(0)
 
-      await expect(collateral.connect(user1).deposit(0)).to.be.revertedWith('fee = 0')
+      await expect(collateral.connect(sender).deposit(recipient.address, 0)).to.be.revertedWith(
+        'fee = 0'
+      )
     })
 
     it('reverts if deposit > 0, fee = 0, and deposit fee > 0%', async () => {
@@ -663,128 +672,149 @@ describe('=> Collateral', () => {
       // expect fee to be zero
       expect(amountToDeposit.mul(await collateral.getDepositFee()).div(FEE_DENOMINATOR)).to.eq(0)
 
-      await expect(collateral.connect(user1).deposit(amountToDeposit)).to.be.revertedWith('fee = 0')
+      await expect(
+        collateral.connect(sender).deposit(recipient.address, amountToDeposit)
+      ).to.be.revertedWith('fee = 0')
     })
 
     it('reverts if insufficient approval', async () => {
-      const amountToDeposit = await baseToken.balanceOf(user1.address)
+      const amountToDeposit = await baseToken.balanceOf(sender.address)
       expect(amountToDeposit).to.be.gt(0)
-      await baseToken.connect(user1).approve(collateral.address, amountToDeposit.sub(1))
-      expect(await baseToken.allowance(user1.address, collateral.address)).to.be.lt(amountToDeposit)
-
-      await expect(collateral.connect(user1).deposit(amountToDeposit)).to.be.revertedWith(
-        'ERC20: insufficient allowance'
+      await baseToken.connect(sender).approve(collateral.address, amountToDeposit.sub(1))
+      expect(await baseToken.allowance(sender.address, collateral.address)).to.be.lt(
+        amountToDeposit
       )
+
+      await expect(
+        collateral.connect(sender).deposit(recipient.address, amountToDeposit)
+      ).to.be.revertedWith('ERC20: insufficient allowance')
     })
 
     it('reverts if insufficient balance', async () => {
-      const amountToDeposit = (await baseToken.balanceOf(user1.address)).add(1)
+      const amountToDeposit = (await baseToken.balanceOf(sender.address)).add(1)
       expect(amountToDeposit).to.be.gt(0)
-      await baseToken.connect(user1).approve(collateral.address, amountToDeposit)
-      expect(await baseToken.allowance(user1.address, collateral.address)).to.be.eq(amountToDeposit)
-
-      await expect(collateral.connect(user1).deposit(amountToDeposit)).to.be.revertedWith(
-        'ERC20: transfer amount exceeds balance'
+      await baseToken.connect(sender).approve(collateral.address, amountToDeposit)
+      expect(await baseToken.allowance(sender.address, collateral.address)).to.be.eq(
+        amountToDeposit
       )
+
+      await expect(
+        collateral.connect(sender).deposit(recipient.address, amountToDeposit)
+      ).to.be.revertedWith('ERC20: transfer amount exceeds balance')
     })
 
     it('reverts if hook reverts', async () => {
-      const amountToDeposit = await baseToken.balanceOf(user1.address)
+      const amountToDeposit = await baseToken.balanceOf(sender.address)
       expect(amountToDeposit).to.be.gt(0)
-      expect(await baseToken.allowance(user1.address, collateral.address)).to.be.eq(amountToDeposit)
+      expect(await baseToken.allowance(sender.address, collateral.address)).to.be.eq(
+        amountToDeposit
+      )
       depositHook.hook.reverts()
 
-      await expect(collateral.connect(user1).deposit(amountToDeposit)).to.be.reverted
+      await expect(collateral.connect(sender).deposit(recipient.address, amountToDeposit)).to.be
+        .reverted
     })
 
-    it('transfers amount from depositor to contract', async () => {
-      const userBTBefore = await baseToken.balanceOf(user1.address)
-      const amountToDeposit = userBTBefore
+    it('transfers amount from sender to contract', async () => {
+      const senderBTBefore = await baseToken.balanceOf(sender.address)
+      const amountToDeposit = senderBTBefore
       expect(amountToDeposit).to.be.gt(0)
-      expect(await baseToken.allowance(user1.address, collateral.address)).to.be.eq(amountToDeposit)
+      expect(await baseToken.allowance(sender.address, collateral.address)).to.be.eq(
+        amountToDeposit
+      )
 
-      const tx = await collateral.connect(user1).deposit(amountToDeposit)
+      const tx = await collateral.connect(sender).deposit(recipient.address, amountToDeposit)
 
-      expect(await baseToken.balanceOf(user1.address)).to.eq(userBTBefore.sub(amountToDeposit))
+      expect(await baseToken.balanceOf(sender.address)).to.eq(senderBTBefore.sub(amountToDeposit))
       await expect(tx)
         .to.emit(baseToken, 'Transfer')
-        .withArgs(user1.address, collateral.address, amountToDeposit)
+        .withArgs(sender.address, collateral.address, amountToDeposit)
     })
 
     it('approves fee for hook to use', async () => {
-      const amountToDeposit = await baseToken.balanceOf(user1.address)
+      const amountToDeposit = await baseToken.balanceOf(sender.address)
       expect(amountToDeposit).to.be.gt(0)
-      expect(await baseToken.allowance(user1.address, collateral.address)).to.be.eq(amountToDeposit)
+      expect(await baseToken.allowance(sender.address, collateral.address)).to.be.eq(
+        amountToDeposit
+      )
       expect(await baseToken.allowance(collateral.address, depositHook.address)).to.eq(0)
       const fee = amountToDeposit.mul(await collateral.getDepositFee()).div(FEE_DENOMINATOR)
 
-      await collateral.connect(user1).deposit(amountToDeposit)
+      await collateral.connect(sender).deposit(recipient.address, amountToDeposit)
 
       expect(await baseToken.allowance(collateral.address, depositHook.address)).to.eq(fee)
       expect(await baseToken.balanceOf(collateral.address)).to.eq(amountToDeposit)
     })
 
     it('replaces previous fee approval', async () => {
-      const firstAmountToDeposit = await baseToken.balanceOf(user1.address)
+      const firstAmountToDeposit = await baseToken.balanceOf(sender.address)
       const firstFee = firstAmountToDeposit
         .mul(await collateral.getDepositFee())
         .div(FEE_DENOMINATOR)
-      await collateral.connect(user1).deposit(firstAmountToDeposit)
+      await collateral.connect(sender).deposit(sender.address, firstAmountToDeposit)
       const secondAmountToDeposit = parseUnits('0.5', USDC_DECIMALS)
       const secondFee = secondAmountToDeposit
         .mul(await collateral.getDepositFee())
         .div(FEE_DENOMINATOR)
       expect(secondFee).to.not.eq(firstFee)
-      await baseToken.mint(user1.address, secondAmountToDeposit)
-      await baseToken.connect(user1).approve(collateral.address, secondAmountToDeposit)
+      await baseToken.mint(sender.address, secondAmountToDeposit)
+      await baseToken.connect(sender).approve(collateral.address, secondAmountToDeposit)
 
-      await collateral.connect(user1).deposit(secondAmountToDeposit)
+      await collateral.connect(sender).deposit(recipient.address, secondAmountToDeposit)
 
       expect(await baseToken.allowance(collateral.address, depositHook.address)).to.eq(secondFee)
     })
 
-    it('mints decimal-adjusted amount to depositor if decimals > base token decimals', async () => {
+    it('mints decimal-adjusted amount to recipient if decimals > base token decimals', async () => {
       expect(await collateral.decimals()).to.be.gt(await baseToken.decimals())
-      const userCTBefore = await collateral.balanceOf(user1.address)
-      const amountToDeposit = await baseToken.balanceOf(user1.address)
+      const recipientCTBefore = await collateral.balanceOf(recipient.address)
+      const amountToDeposit = await baseToken.balanceOf(sender.address)
       expect(amountToDeposit).to.be.gt(0)
-      expect(await baseToken.allowance(user1.address, collateral.address)).to.be.eq(amountToDeposit)
+      expect(await baseToken.allowance(sender.address, collateral.address)).to.be.eq(
+        amountToDeposit
+      )
       const fee = amountToDeposit.mul(await collateral.getDepositFee()).div(FEE_DENOMINATOR)
       const expectedCT = amountToDeposit.sub(fee).mul(parseEther('1')).div(USDC_DENOMINATOR)
 
-      await collateral.connect(user1).deposit(amountToDeposit)
+      await collateral.connect(sender).deposit(recipient.address, amountToDeposit)
 
-      expect(await collateral.balanceOf(user1.address)).to.eq(userCTBefore.add(expectedCT))
+      expect(await collateral.balanceOf(recipient.address)).to.eq(recipientCTBefore.add(expectedCT))
+      expect(await collateral.balanceOf(sender.address)).to.eq(0)
     })
 
-    it('mints decimal-adjusted amount to depositor if decimals = base token decimals', async () => {
+    it('mints decimal-adjusted amount to recipient if decimals = base token decimals', async () => {
       // Setup 18 decimal base token
       await setupCollateral(await collateral.decimals())
       expect(await collateral.decimals()).to.eq(await baseToken.decimals())
-      await baseToken.mint(user1.address, parseEther('1'))
-      const userCTBefore = await collateral.balanceOf(user1.address)
-      const amountToDeposit = await baseToken.balanceOf(user1.address)
+      await baseToken.mint(sender.address, parseEther('1'))
+      const recipientCTBefore = await collateral.balanceOf(recipient.address)
+      const amountToDeposit = await baseToken.balanceOf(sender.address)
       expect(amountToDeposit).to.be.gt(0)
-      await baseToken.connect(user1).approve(collateral.address, amountToDeposit)
-      expect(await baseToken.allowance(user1.address, collateral.address)).to.be.eq(amountToDeposit)
+      await baseToken.connect(sender).approve(collateral.address, amountToDeposit)
+      expect(await baseToken.allowance(sender.address, collateral.address)).to.be.eq(
+        amountToDeposit
+      )
       const fee = amountToDeposit.mul(await collateral.getDepositFee()).div(FEE_DENOMINATOR)
       const expectedCT = amountToDeposit.sub(fee)
 
-      await collateral.connect(user1).deposit(amountToDeposit)
+      await collateral.connect(sender).deposit(recipient.address, amountToDeposit)
 
-      expect(await collateral.balanceOf(user1.address)).to.eq(userCTBefore.add(expectedCT))
+      expect(await collateral.balanceOf(recipient.address)).to.eq(recipientCTBefore.add(expectedCT))
+      expect(await collateral.balanceOf(sender.address)).to.eq(0)
     })
 
-    it('mints decimal-adjusted amount to depositor if decimals < base token decimals', async () => {
+    it('mints decimal-adjusted amount to recipient if decimals < base token decimals', async () => {
       // Setup 19 decimal base token
       await setupCollateral((await collateral.decimals()) + 1)
       expect(await collateral.decimals()).to.be.lt(await baseToken.decimals())
-      await baseToken.mint(user1.address, parseUnits('1', (await collateral.decimals()) + 1))
-      const userCTBefore = await collateral.balanceOf(user1.address)
-      const amountToDeposit = await baseToken.balanceOf(user1.address)
+      await baseToken.mint(sender.address, parseUnits('1', (await collateral.decimals()) + 1))
+      const recipientCTBefore = await collateral.balanceOf(recipient.address)
+      const amountToDeposit = await baseToken.balanceOf(sender.address)
       expect(amountToDeposit).to.be.gt(0)
-      await baseToken.connect(user1).approve(collateral.address, amountToDeposit)
-      expect(await baseToken.allowance(user1.address, collateral.address)).to.be.eq(amountToDeposit)
+      await baseToken.connect(sender).approve(collateral.address, amountToDeposit)
+      expect(await baseToken.allowance(sender.address, collateral.address)).to.be.eq(
+        amountToDeposit
+      )
       const fee = amountToDeposit.mul(await collateral.getDepositFee()).div(FEE_DENOMINATOR)
       const GREATER_DECIMAL_DENOMINATOR = parseUnits('1', (await collateral.decimals()) + 1)
       const expectedCT = amountToDeposit
@@ -792,81 +822,104 @@ describe('=> Collateral', () => {
         .mul(parseEther('1'))
         .div(GREATER_DECIMAL_DENOMINATOR)
 
-      await collateral.connect(user1).deposit(amountToDeposit)
+      await collateral.connect(sender).deposit(recipient.address, amountToDeposit)
 
-      expect(await collateral.balanceOf(user1.address)).to.eq(userCTBefore.add(expectedCT))
+      expect(await collateral.balanceOf(recipient.address)).to.eq(recipientCTBefore.add(expectedCT))
+      expect(await collateral.balanceOf(sender.address)).to.eq(0)
+    })
+
+    it('mints to sender if sender = recipient', async () => {
+      recipient = sender
+      const recipientCTBefore = await collateral.balanceOf(recipient.address)
+      const amountToDeposit = await baseToken.balanceOf(sender.address)
+      expect(amountToDeposit).to.be.gt(0)
+      expect(await baseToken.allowance(sender.address, collateral.address)).to.be.eq(
+        amountToDeposit
+      )
+      const fee = amountToDeposit.mul(await collateral.getDepositFee()).div(FEE_DENOMINATOR)
+      const expectedCT = amountToDeposit.sub(fee).mul(parseEther('1')).div(USDC_DENOMINATOR)
+
+      await collateral.connect(sender).deposit(recipient.address, amountToDeposit)
+
+      expect(await collateral.balanceOf(recipient.address)).to.eq(recipientCTBefore.add(expectedCT))
     })
 
     it('allows a deposit > 0 if deposit fee = 0%', async () => {
       await collateral.connect(deployer).setDepositFee(0)
-      const userBTBefore = await baseToken.balanceOf(user1.address)
+      const senderBTBefore = await baseToken.balanceOf(sender.address)
       const contractBTBefore = await baseToken.balanceOf(collateral.address)
-      const userCTBefore = await collateral.balanceOf(user1.address)
-      const amountToDeposit = userBTBefore
+      const recipientCTBefore = await collateral.balanceOf(recipient.address)
+      const amountToDeposit = senderBTBefore
       const feeAmount = amountToDeposit.mul(await collateral.getDepositFee()).div(FEE_DENOMINATOR)
       expect(feeAmount).to.eq(0)
       const expectedCT = amountToDeposit.mul(parseEther('1')).div(USDC_DENOMINATOR)
 
-      await collateral.connect(user1).deposit(amountToDeposit)
+      await collateral.connect(sender).deposit(recipient.address, amountToDeposit)
 
-      expect(await baseToken.balanceOf(user1.address)).to.eq(userBTBefore.sub(amountToDeposit))
+      expect(await baseToken.balanceOf(sender.address)).to.eq(senderBTBefore.sub(amountToDeposit))
       expect(await baseToken.balanceOf(collateral.address)).to.eq(
         contractBTBefore.add(amountToDeposit)
       )
       expect(await baseToken.allowance(collateral.address, depositHook.address)).to.eq(0)
-      expect(await collateral.balanceOf(user1.address)).to.eq(userCTBefore.add(expectedCT))
+      expect(await collateral.balanceOf(recipient.address)).to.eq(recipientCTBefore.add(expectedCT))
     })
 
     it('ignores hook if hook not set', async () => {
-      const amountToDeposit = await baseToken.balanceOf(user1.address)
+      const amountToDeposit = await baseToken.balanceOf(sender.address)
       expect(amountToDeposit).to.be.gt(0)
-      expect(await baseToken.allowance(user1.address, collateral.address)).to.be.eq(amountToDeposit)
+      expect(await baseToken.allowance(sender.address, collateral.address)).to.be.eq(
+        amountToDeposit
+      )
       await collateral.connect(deployer).setDepositHook(ZERO_ADDRESS)
 
-      await collateral.connect(user1).deposit(amountToDeposit)
+      await collateral.connect(sender).deposit(recipient.address, amountToDeposit)
 
       expect(depositHook.hook).callCount(0)
     })
 
     it("doesn't give fee approval if hook not set", async () => {
-      const amountToDeposit = await baseToken.balanceOf(user1.address)
+      const amountToDeposit = await baseToken.balanceOf(sender.address)
       expect(amountToDeposit).to.be.gt(0)
       const fee = amountToDeposit.mul(await collateral.getDepositFee()).div(FEE_DENOMINATOR)
       expect(fee).to.be.gt(0)
       expect(await baseToken.allowance(collateral.address, depositHook.address)).to.eq(0)
       await collateral.connect(deployer).setDepositHook(ZERO_ADDRESS)
 
-      await collateral.connect(user1).deposit(amountToDeposit)
+      await collateral.connect(sender).deposit(recipient.address, amountToDeposit)
 
       expect(await baseToken.allowance(collateral.address, depositHook.address)).to.eq(0)
     })
 
     it('calls deposit hook with correct parameters', async () => {
-      const amountToDeposit = await baseToken.balanceOf(user1.address)
+      const amountToDeposit = await baseToken.balanceOf(sender.address)
       expect(amountToDeposit).to.be.gt(0)
-      expect(await baseToken.allowance(user1.address, collateral.address)).to.be.eq(amountToDeposit)
+      expect(await baseToken.allowance(sender.address, collateral.address)).to.be.eq(
+        amountToDeposit
+      )
       const fee = amountToDeposit.mul(await collateral.getDepositFee()).div(FEE_DENOMINATOR)
 
-      await collateral.connect(user1).deposit(amountToDeposit)
+      await collateral.connect(sender).deposit(recipient.address, amountToDeposit)
 
       expect(depositHook.hook).to.be.calledWith(
-        user1.address,
+        recipient.address,
         amountToDeposit,
         amountToDeposit.sub(fee)
       )
     })
 
     it('emits Deposit', async () => {
-      const amountToDeposit = await baseToken.balanceOf(user1.address)
+      const amountToDeposit = await baseToken.balanceOf(sender.address)
       expect(amountToDeposit).to.be.gt(0)
-      expect(await baseToken.allowance(user1.address, collateral.address)).to.be.eq(amountToDeposit)
+      expect(await baseToken.allowance(sender.address, collateral.address)).to.be.eq(
+        amountToDeposit
+      )
       const fee = amountToDeposit.mul(await collateral.getDepositFee()).div(FEE_DENOMINATOR)
 
-      const tx = await collateral.connect(user1).deposit(amountToDeposit)
+      const tx = await collateral.connect(sender).deposit(recipient.address, amountToDeposit)
 
       await expect(tx)
         .to.emit(collateral, 'Deposit')
-        .withArgs(user1.address, amountToDeposit.sub(fee), fee)
+        .withArgs(recipient.address, amountToDeposit.sub(fee), fee)
     })
   })
 
@@ -875,7 +928,7 @@ describe('=> Collateral', () => {
       await setupCollateral()
       await baseToken.mint(user1.address, parseUnits('1', USDC_DECIMALS))
       await baseToken.connect(user1).approve(collateral.address, parseUnits('1', USDC_DECIMALS))
-      await collateral.connect(user1).deposit(parseUnits('1', USDC_DECIMALS))
+      await collateral.connect(user1).deposit(user1.address, parseUnits('1', USDC_DECIMALS))
       await collateral.connect(deployer).setWithdrawFee(TEST_WITHDRAW_FEE)
       await collateral.connect(deployer).setWithdrawHook(withdrawHook.address)
     })
@@ -987,7 +1040,7 @@ describe('=> Collateral', () => {
       expect(await collateral.decimals()).to.eq(await baseToken.decimals())
       await baseToken.mint(user1.address, parseEther('1'))
       await baseToken.connect(user1).approve(collateral.address, parseEther('1'))
-      await collateral.connect(user1).deposit(parseEther('1'))
+      await collateral.connect(user1).deposit(user1.address, parseEther('1'))
       const amountToWithdraw = await collateral.balanceOf(user1.address)
       expect(amountToWithdraw).to.be.gt(0)
       const expectedBT = amountToWithdraw
@@ -1006,7 +1059,7 @@ describe('=> Collateral', () => {
       expect(await collateral.decimals()).to.eq(await baseToken.decimals())
       await baseToken.mint(user1.address, parseEther('1'))
       await baseToken.connect(user1).approve(collateral.address, parseEther('1'))
-      await collateral.connect(user1).deposit(parseEther('1'))
+      await collateral.connect(user1).deposit(user1.address, parseEther('1'))
       const userBTBefore = await baseToken.balanceOf(user1.address)
       const amountToWithdraw = await collateral.balanceOf(user1.address)
       expect(amountToWithdraw).to.be.gt(0)
@@ -1026,7 +1079,9 @@ describe('=> Collateral', () => {
       await baseToken
         .connect(user1)
         .approve(collateral.address, parseUnits('1', await baseToken.decimals()))
-      await collateral.connect(user1).deposit(parseUnits('1', await baseToken.decimals()))
+      await collateral
+        .connect(user1)
+        .deposit(user1.address, parseUnits('1', await baseToken.decimals()))
       const amountToWithdraw = await collateral.balanceOf(user1.address)
       expect(amountToWithdraw).to.be.gt(0)
       const GREATER_DECIMAL_DENOMINATOR = parseUnits('1', (await collateral.decimals()) + 1)
@@ -1048,7 +1103,9 @@ describe('=> Collateral', () => {
       await baseToken
         .connect(user1)
         .approve(collateral.address, parseUnits('1', await baseToken.decimals()))
-      await collateral.connect(user1).deposit(parseUnits('1', await baseToken.decimals()))
+      await collateral
+        .connect(user1)
+        .deposit(user1.address, parseUnits('1', await baseToken.decimals()))
       const userBTBefore = await baseToken.balanceOf(user1.address)
       const amountToWithdraw = await collateral.balanceOf(user1.address)
       expect(amountToWithdraw).to.be.gt(0)
@@ -1069,7 +1126,7 @@ describe('=> Collateral', () => {
       // Mint different amount of base token to ensure fees approvals are different
       await baseToken.mint(user1.address, parseUnits('0.5', USDC_DECIMALS))
       await baseToken.connect(user1).approve(collateral.address, parseUnits('0.5', USDC_DECIMALS))
-      await collateral.connect(user1).deposit(parseUnits('0.5', USDC_DECIMALS))
+      await collateral.connect(user1).deposit(user1.address, parseUnits('0.5', USDC_DECIMALS))
       const secondAmountToWithdraw = await collateral.balanceOf(user1.address)
       const secondExpectedBT = secondAmountToWithdraw.mul(USDC_DENOMINATOR).div(parseEther('1'))
       const secondFee = secondExpectedBT.mul(await collateral.getWithdrawFee()).div(FEE_DENOMINATOR)
