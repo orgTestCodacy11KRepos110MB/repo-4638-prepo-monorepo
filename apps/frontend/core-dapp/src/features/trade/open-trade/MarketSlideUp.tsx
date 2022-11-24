@@ -121,15 +121,20 @@ const MarketSlideUp: React.FC = () => {
         onClose={(): void => setSlideUpContent(undefined)}
         title="Select a Market"
       >
-        {Object.entries(markets).map(([id, market]) => (
-          <MarketItem
-            key={id}
-            id={id as SupportedMarketID}
-            market={market}
-            onClick={onSelectMarket}
-            selected={selectedMarket?.urlId === id}
-          />
-        ))}
+        {selectedMarket && (
+          <MarketItem id={selectedMarket.urlId} market={selectedMarket} selected />
+        )}
+        {Object.entries(markets)
+          .filter(([id]) => id !== selectedMarket?.urlId)
+          .map(([id, market]) => (
+            <MarketItem
+              key={id}
+              id={id as SupportedMarketID}
+              market={market}
+              onClick={onSelectMarket}
+              selected={selectedMarket?.urlId === id}
+            />
+          ))}
       </SlideUpCard>
     </>
   )
