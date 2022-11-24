@@ -55,3 +55,7 @@
   font-style: normal;
   font-display: fallback;
 }
+
+p {
+  margin-bottom: 0;
+}

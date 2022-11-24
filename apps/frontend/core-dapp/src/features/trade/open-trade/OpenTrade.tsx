@@ -1,11 +1,10 @@
-import { useRouter } from 'next/router'
 import { Alert, CurrencyInput, Icon, media, spacingIncrement } from 'prepo-ui'
 import styled from 'styled-components'
 import { observer } from 'mobx-react-lite'
 import DirectionRadio from './DirectionRadio'
+import MarketSlideUp from './MarketSlideUp'
 import TradeTransactionSummary from '../TradeTransactionSummary'
 import Link from '../../../components/Link'
-import MarketDropdown from '../../../components/MarketDropdown'
 import { useRootStore } from '../../../context/RootStoreProvider'
 import { Routes } from '../../../lib/routes'
 
@@ -35,20 +34,14 @@ const Message = styled.div`
 `
 
 const OpenTrade: React.FC = () => {
-  const router = useRouter()
   const { tradeStore, web3Store, preCTTokenStore } = useRootStore()
   const { openTradeAmount, openTradeAmountBN, setOpenTradeAmount, selectedMarket } = tradeStore
   const { balanceOfSigner, tokenBalanceFormat } = preCTTokenStore
   const { connected, isNetworkSupported } = web3Store
 
-  const onSelectMarket = (key: string): void => {
-    const tradeUrl = tradeStore.setSelectedMarket(key)
-    router.push(tradeUrl)
-  }
-
   return (
     <Wrapper>
-      <MarketDropdown selectedMarket={selectedMarket} onSelectMarket={onSelectMarket} />
+      <MarketSlideUp />
       <DirectionRadio />
       <CurrencyInput
         balance={tokenBalanceFormat}

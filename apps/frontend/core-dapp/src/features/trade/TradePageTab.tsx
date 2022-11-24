@@ -18,13 +18,17 @@ const Wrapper = styled.div`
   flex-direction: row;
 `
 
-const TabButton = styled.div<{ selected: boolean; shadowDirection?: ShadowDirection }>`
+const TabButton = styled.div<{
+  selected: boolean
+  shadowDirection?: ShadowDirection
+  showShadow: boolean
+}>`
   ${centered}
   background-color: ${({ theme, selected }): string =>
     theme.color[selected ? 'neutral10' : 'transparent']};
   border-radius: ${spacingIncrement(24)} ${spacingIncrement(24)} 0 0;
-  box-shadow: ${({ selected, shadowDirection }): string =>
-    selected
+  box-shadow: ${({ selected, shadowDirection, showShadow }): string =>
+    selected && showShadow
       ? `${shadowDirection === 'right' ? '2px' : '-2px'} -2px 2px rgba(98, 100, 217, 0.15)`
       : 'unset'};
   color: ${({ theme, selected }): string => theme.color[selected ? 'secondary' : 'neutral3']};
@@ -46,7 +50,7 @@ const tabs: { key: TradeAction; name: string; shadowDirection: ShadowDirection }
 const TradePageTab: React.FC = () => {
   const router = useRouter()
   const { tradeStore } = useRootStore()
-  const { action, setAction } = tradeStore
+  const { action, setAction, slideUpContent } = tradeStore
 
   const handleClick = (newAction: TradeAction): void => {
     if (newAction === action) return
@@ -62,6 +66,7 @@ const TradePageTab: React.FC = () => {
           key={key}
           selected={action === key}
           shadowDirection={shadowDirection}
+          showShadow={slideUpContent === undefined}
         >
           {name}
         </TabButton>

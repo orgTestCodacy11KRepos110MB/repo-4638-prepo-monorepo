@@ -10,6 +10,7 @@ import { useRootStore } from '../../context/RootStoreProvider'
 
 const Wrapper = styled(Card)`
   max-width: ${spacingIncrement(380)};
+  position: relative;
   width: 100%;
   &&& {
     .ant-card-body {

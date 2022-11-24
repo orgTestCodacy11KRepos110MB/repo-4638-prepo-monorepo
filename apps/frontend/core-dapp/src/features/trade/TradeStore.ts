@@ -13,6 +13,7 @@ import { calculateValuation } from '../../utils/market-utils'
 
 export type Direction = 'long' | 'short'
 export type TradeAction = 'open' | 'close'
+type SlideUpContent = 'OpenMarket' | 'OpenCurrency' | 'ClosePosition' | 'CloseCurrency'
 
 const DEFAULT_DIRECTION = 'long'
 
@@ -24,6 +25,7 @@ export class TradeStore {
   openTradeAmountOutBN?: BigNumber
   openTradeHash?: string
   selectedMarket?: MarketEntity
+  slideUpContent?: SlideUpContent = undefined
 
   constructor(public root: RootStore) {
     makeAutoObservable(this, {}, { autoBind: true })
@@ -71,6 +73,10 @@ export class TradeStore {
 
   setCloseTradeHash(hash?: string): void {
     this.closeTradeHash = hash
+  }
+
+  setSlideUpContent(slideUpContent?: SlideUpContent): void {
+    this.slideUpContent = slideUpContent
   }
 
   setDirection(direction: Direction, selectedMarket?: MarketEntity): string {
