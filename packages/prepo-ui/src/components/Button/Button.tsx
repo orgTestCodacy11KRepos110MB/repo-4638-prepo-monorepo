@@ -55,7 +55,7 @@ const makeButtonStyle = ({
   ${disabled &&
   css`
     cursor: not-allowed;
-    opacity: 0.5;
+    opacity: 0.6;
   `}
 `
 
@@ -95,6 +95,7 @@ const Button: React.FC<ButtonProps> = ({
         return css`
           border-radius: ${({ theme }): string => theme.borderRadius.md};
           font-size: ${({ theme }): string => theme.fontSize.base};
+          font-weight: ${({ theme }): number => theme.fontWeight.semiBold};
           gap: ${spacingIncrement(8)};
           line-height: ${spacingIncrement(22)};
           padding: ${spacingIncrement(8)} ${spacingIncrement(12)};
@@ -110,6 +111,7 @@ const Button: React.FC<ButtonProps> = ({
         return css`
           border-radius: ${({ theme }): string => theme.borderRadius.base};
           font-size: ${({ theme }): string => theme.fontSize.base};
+          font-weight: ${({ theme }): number => theme.fontWeight.semiBold};
           gap: ${spacingIncrement(8)};
           padding: ${spacingIncrement(18)};
         `
@@ -122,9 +124,11 @@ const Button: React.FC<ButtonProps> = ({
     switch (type) {
       case 'primary':
         return css`
-          background-color: ${({ theme }): string => theme.color[background ?? 'primary']};
-          border-color: ${({ theme }): string => theme.color[border ?? 'primary']};
-          color: ${({ theme }): string => theme.color[label ?? 'white']};
+          background-color: ${({ theme }): string =>
+            theme.color[disabled ? 'neutral12' : background ?? 'primary']};
+          border-color: ${({ theme }): string =>
+            theme.color[disabled ? 'neutral12' : border ?? 'primary']};
+          color: ${({ theme }): string => theme.color[disabled ? 'neutral2' : label ?? 'white']};
           ${!disabled &&
           css`
             :hover {
