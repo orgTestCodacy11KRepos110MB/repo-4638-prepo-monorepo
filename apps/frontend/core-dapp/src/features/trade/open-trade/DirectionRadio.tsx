@@ -69,7 +69,10 @@ const RadioButton: React.FC<{
 
   return (
     <RadioButtonWrapper disabled={disabled} selected={selected} onClick={handleClick}>
-      <RadioTitle color={direction === 'long' ? 'success' : 'error'} selected={selected}>
+      <RadioTitle
+        color={direction === 'long' ? 'success' : 'error'}
+        selected={!disabled && selected}
+      >
         {name}
       </RadioTitle>
       <Icon name={iconName} />
