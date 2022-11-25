@@ -30,7 +30,9 @@ interface ICollateral is IERC20Upgradeable {
 
   event ManagerWithdrawHookChange(address hook);
 
-  function deposit(address recipient, uint256 amount) external;
+  function deposit(address recipient, uint256 amount)
+    external
+    returns (uint256);
 
   function withdraw(uint256 amount) external;
 

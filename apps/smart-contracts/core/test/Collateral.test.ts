@@ -921,6 +921,20 @@ describe('=> Collateral', () => {
         .to.emit(collateral, 'Deposit')
         .withArgs(recipient.address, amountToDeposit.sub(fee), fee)
     })
+
+    it('returns collateral minted', async () => {
+      const amountToDeposit = await baseToken.balanceOf(sender.address)
+      expect(amountToDeposit).to.be.gt(0)
+      expect(await baseToken.allowance(sender.address, collateral.address)).to.be.eq(
+        amountToDeposit
+      )
+      const fee = amountToDeposit.mul(await collateral.getDepositFee()).div(FEE_DENOMINATOR)
+      const expectedCT = amountToDeposit.sub(fee).mul(parseEther('1')).div(USDC_DENOMINATOR)
+
+      expect(
+        await collateral.connect(sender).callStatic.deposit(recipient.address, amountToDeposit)
+      ).to.eq(expectedCT)
+    })
   })
 
   describe('# withdraw', () => {
