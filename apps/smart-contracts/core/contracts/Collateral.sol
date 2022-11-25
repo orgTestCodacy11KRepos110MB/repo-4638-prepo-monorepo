@@ -101,6 +101,7 @@ contract Collateral is
         _baseTokenAmount,
         _baseTokenAmountAfterFee
       );
+      baseToken.approve(address(withdrawHook), 0);
     }
     baseToken.transfer(msg.sender, _baseTokenAmountAfterFee);
     emit Withdraw(msg.sender, _baseTokenAmountAfterFee, _fee);
