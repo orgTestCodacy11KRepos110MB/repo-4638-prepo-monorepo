@@ -36,7 +36,6 @@ describe('=> prePOMarket', () => {
   const TEST_SYMBOL_SUFFIX = 'preSTRIPE_100-200_30SEP21'
   const TEST_FLOOR_VAL = ethers.utils.parseEther('100')
   const TEST_CEILING_VAL = ethers.utils.parseEther('200')
-  const TEST_MINTING_FEE = 10
   const TEST_REDEMPTION_FEE = 20
   const TEST_EXPIRY = nowPlusMonths(2)
   const TEST_FLOOR_PAYOUT = ethers.utils.parseEther('0.2')
@@ -62,7 +61,6 @@ describe('=> prePOMarket', () => {
       ceilingLongPayout: TEST_CEILING_PAYOUT,
       floorValuation: TEST_FLOOR_VAL,
       ceilingValuation: TEST_CEILING_VAL,
-      mintingFee: TEST_MINTING_FEE,
       redemptionFee: TEST_REDEMPTION_FEE,
       expiryTime: TEST_EXPIRY,
     }
@@ -88,10 +86,8 @@ describe('=> prePOMarket', () => {
       expect(await prePOMarket.getFinalLongPayout()).to.eq(MAX_PAYOUT.add(1))
       expect(await prePOMarket.getFloorValuation()).to.eq(TEST_FLOOR_VAL)
       expect(await prePOMarket.getCeilingValuation()).to.eq(TEST_CEILING_VAL)
-      expect(await prePOMarket.getMintingFee()).to.eq(TEST_MINTING_FEE)
       expect(await prePOMarket.getRedemptionFee()).to.eq(TEST_REDEMPTION_FEE)
       expect(await prePOMarket.getExpiryTime()).to.eq(TEST_EXPIRY)
-      expect(await prePOMarket.isPublicMintingAllowed()).to.eq(false)
       expect(await prePOMarket.getMaxPayout()).to.eq(MAX_PAYOUT)
       expect(await prePOMarket.getFeeDenominator()).to.eq(FEE_DENOMINATOR)
       expect(await prePOMarket.getFeeLimit()).to.eq(FEE_LIMIT)
@@ -153,28 +149,6 @@ describe('=> prePOMarket', () => {
       ).revertedWith(revertReason('Invalid expiry'))
     })
 
-    it('should not allow setting minting fee above FEE_LIMIT ', async () => {
-      const aboveFeeLimit = FEE_LIMIT + 1
-
-      await expect(
-        createMarket({
-          ...defaultParams,
-          mintingFee: aboveFeeLimit,
-        })
-      ).revertedWith(revertReason('Exceeds fee limit'))
-    })
-
-    it('should allow setting minting fee to FEE_LIMIT ', async () => {
-      prePOMarket = await prePOMarketAttachFixture(
-        await createMarket({
-          ...defaultParams,
-          mintingFee: FEE_LIMIT,
-        })
-      )
-
-      expect(await prePOMarket.getMintingFee()).to.eq(FEE_LIMIT)
-    })
-
     it('should not allow setting redemption fee above FEE_LIMIT ', async () => {
       const aboveFeeLimit = FEE_LIMIT + 1
 
@@ -210,7 +184,6 @@ describe('=> prePOMarket', () => {
           await prePOMarket.getCeilingLongPayout(),
           TEST_FLOOR_VAL,
           TEST_CEILING_VAL,
-          await prePOMarket.getMintingFee(),
           await prePOMarket.getRedemptionFee(),
           TEST_EXPIRY
         )
@@ -309,51 +282,6 @@ describe('=> prePOMarket', () => {
     })
   })
 
-  describe('# setMintingFee', () => {
-    beforeEach(async () => {
-      prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
-    })
-
-    it('should only be usable by the owner', async () => {
-      await expect(prePOMarket.connect(user).setMintingFee(FEE_LIMIT - 1)).to.revertedWith(
-        revertReason('Ownable: caller is not the owner')
-      )
-    })
-
-    it('should not be settable beyond FEE_LIMIT', async () => {
-      await expect(prePOMarket.connect(treasury).setMintingFee(FEE_LIMIT + 1)).to.revertedWith(
-        revertReason('Exceeds fee limit')
-      )
-    })
-
-    it('should be settable to FEE_LIMIT', async () => {
-      await prePOMarket.connect(treasury).setMintingFee(FEE_LIMIT)
-      expect(await prePOMarket.getMintingFee()).to.eq(FEE_LIMIT)
-    })
-
-    it('should be settable below FEE_LIMIT', async () => {
-      await prePOMarket.connect(treasury).setMintingFee(FEE_LIMIT - 1)
-      expect(await prePOMarket.getMintingFee()).to.eq(FEE_LIMIT - 1)
-    })
-
-    it('should be settable to zero', async () => {
-      await prePOMarket.connect(treasury).setMintingFee(0)
-      expect(await prePOMarket.getMintingFee()).to.eq(0)
-    })
-
-    it('should correctly set the same value twice', async () => {
-      await prePOMarket.connect(treasury).setMintingFee(FEE_LIMIT - 1)
-      expect(await prePOMarket.getMintingFee()).to.eq(FEE_LIMIT - 1)
-      await prePOMarket.connect(treasury).setMintingFee(FEE_LIMIT - 1)
-      expect(await prePOMarket.getMintingFee()).to.eq(FEE_LIMIT - 1)
-    })
-
-    it('should emit a MintingFeeChange event', async () => {
-      const tx = await prePOMarket.connect(treasury).setMintingFee(FEE_LIMIT)
-      await expect(tx).to.emit(prePOMarket, 'MintingFeeChange').withArgs(FEE_LIMIT)
-    })
-  })
-
   describe('# setRedemptionFee', () => {
     beforeEach(async () => {
       prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
@@ -392,64 +320,15 @@ describe('=> prePOMarket', () => {
     })
   })
 
-  describe('# setPublicMinting', () => {
-    beforeEach(async () => {
-      prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
-    })
-
-    it('should only be usable by the owner', async () => {
-      await expect(prePOMarket.connect(deployer).setPublicMinting(true)).revertedWith(
-        revertReason('Ownable: caller is not the owner')
-      )
-    })
-
-    it('should set the publicMinting field to true correctly', async () => {
-      await prePOMarket.connect(treasury).setPublicMinting(true)
-
-      expect(await prePOMarket.isPublicMintingAllowed()).to.eq(true)
-    })
-
-    it('should set the publicMinting field to false correctly', async () => {
-      await prePOMarket.connect(treasury).setPublicMinting(false)
-
-      expect(await prePOMarket.isPublicMintingAllowed()).to.eq(false)
-    })
-
-    it('should emit a PublicMintingSet event', async () => {
-      const tx = await prePOMarket.connect(treasury).setPublicMinting(true)
-      await expect(tx).to.emit(prePOMarket, 'PublicMintingChange').withArgs(true)
-    })
-  })
-
-  describe('# mintLongShortTokens', () => {
-    it('should not allow minting after market end', async () => {
+  describe('# mint', () => {
+    it('prevents minting if market ended', async () => {
       prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
       await collateralToken.connect(deployer).transfer(user.address, TEST_MINT_AMOUNT)
       await collateralToken.connect(user).approve(prePOMarket.address, TEST_MINT_AMOUNT)
-      await prePOMarket.connect(treasury).setPublicMinting(true)
       await prePOMarket.connect(treasury).setFinalLongPayout(TEST_FINAL_LONG_PAYOUT)
 
-      await expect(prePOMarket.connect(user).mintLongShortTokens(TEST_MINT_AMOUNT)).revertedWith(
+      await expect(prePOMarket.connect(user).mint(TEST_MINT_AMOUNT)).revertedWith(
         revertReason('Market ended')
-      )
-    })
-
-    it('should not allow minting when public minting is disabled', async () => {
-      prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
-
-      await expect(prePOMarket.connect(user).mintLongShortTokens(TEST_MINT_AMOUNT)).revertedWith(
-        revertReason('Public minting disabled')
-      )
-    })
-
-    it('should not allow minting amount too small for fee', async () => {
-      prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
-      await collateralToken.connect(deployer).transfer(user.address, 1)
-      await collateralToken.connect(user).approve(prePOMarket.address, 1)
-      await prePOMarket.connect(treasury).setPublicMinting(true)
-
-      await expect(prePOMarket.connect(user).mintLongShortTokens(1)).to.revertedWith(
-        revertReason('Minting amount too small')
       )
     })
 
@@ -457,48 +336,40 @@ describe('=> prePOMarket', () => {
       prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
       await collateralToken.connect(deployer).transfer(user.address, TEST_MINT_AMOUNT.sub(1))
       await collateralToken.connect(user).approve(prePOMarket.address, TEST_MINT_AMOUNT.sub(1))
-      await prePOMarket.connect(treasury).setPublicMinting(true)
 
-      await expect(prePOMarket.connect(user).mintLongShortTokens(TEST_MINT_AMOUNT)).revertedWith(
+      await expect(prePOMarket.connect(user).mint(TEST_MINT_AMOUNT)).revertedWith(
         revertReason('Insufficient collateral')
       )
     })
 
-    it('should distribute paid collateral correctly to treasury and market', async () => {
+    it('transfers collateral from sender', async () => {
       prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
       await collateralToken.connect(deployer).transfer(user.address, TEST_MINT_AMOUNT)
       await collateralToken.connect(user).approve(prePOMarket.address, TEST_MINT_AMOUNT)
-      const fee = calculateFee(TEST_MINT_AMOUNT, await prePOMarket.getMintingFee())
-      await prePOMarket.connect(treasury).setPublicMinting(true)
 
-      await prePOMarket.connect(user).mintLongShortTokens(TEST_MINT_AMOUNT)
+      await prePOMarket.connect(user).mint(TEST_MINT_AMOUNT)
 
-      expect(await collateralToken.balanceOf(treasury.address)).to.eq(fee)
-      expect(await collateralToken.balanceOf(prePOMarket.address)).to.eq(TEST_MINT_AMOUNT.sub(fee))
+      expect(await collateralToken.balanceOf(prePOMarket.address)).to.eq(TEST_MINT_AMOUNT)
     })
 
-    it('should mint the right amount of long and short tokens', async () => {
+    it('mints long and short tokens in equal amounts', async () => {
       prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
       const longToken = await LongShortTokenAttachFixture(await prePOMarket.getLongToken())
       const shortToken = await LongShortTokenAttachFixture(await prePOMarket.getShortToken())
       await collateralToken.connect(deployer).transfer(user.address, TEST_MINT_AMOUNT)
       await collateralToken.connect(user).approve(prePOMarket.address, TEST_MINT_AMOUNT)
-      const fee = calculateFee(TEST_MINT_AMOUNT, await prePOMarket.getMintingFee())
-      await prePOMarket.connect(treasury).setPublicMinting(true)
 
-      await prePOMarket.connect(user).mintLongShortTokens(TEST_MINT_AMOUNT)
+      await prePOMarket.connect(user).mint(TEST_MINT_AMOUNT)
 
-      expect(await longToken.balanceOf(user.address)).to.eq(TEST_MINT_AMOUNT.sub(fee))
-      expect(await shortToken.balanceOf(user.address)).to.eq(TEST_MINT_AMOUNT.sub(fee))
+      expect(await longToken.balanceOf(user.address)).to.eq(TEST_MINT_AMOUNT)
+      expect(await shortToken.balanceOf(user.address)).to.eq(TEST_MINT_AMOUNT)
     })
 
-    it('should emit a Mint event indexed by minter', async () => {
+    it('emits Mint', async () => {
       prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
       await collateralToken.connect(deployer).transfer(user.address, TEST_MINT_AMOUNT)
       await collateralToken.connect(user).approve(prePOMarket.address, TEST_MINT_AMOUNT)
-      const fee = calculateFee(TEST_MINT_AMOUNT, await prePOMarket.getMintingFee())
-      await prePOMarket.connect(treasury).setPublicMinting(true)
-      await prePOMarket.connect(user).mintLongShortTokens(TEST_MINT_AMOUNT)
+      await prePOMarket.connect(user).mint(TEST_MINT_AMOUNT)
 
       const mintFilter = {
         address: prePOMarket.address,
@@ -512,34 +383,17 @@ describe('=> prePOMarket', () => {
       const mintEvent = mintEvents[0].args as any
 
       expect(await mintEvent.minter).to.eq(user.address)
-      expect(await mintEvent.amount).to.eq(TEST_MINT_AMOUNT.sub(fee))
+      expect(await mintEvent.amount).to.eq(TEST_MINT_AMOUNT)
     })
 
-    it('should allow owner to mint when public minting is disabled', async () => {
-      prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
-      const longToken = await LongShortTokenAttachFixture(await prePOMarket.getLongToken())
-      const shortToken = await LongShortTokenAttachFixture(await prePOMarket.getShortToken())
-      await collateralToken.connect(deployer).transfer(treasury.address, TEST_MINT_AMOUNT)
-      await collateralToken.connect(treasury).approve(prePOMarket.address, TEST_MINT_AMOUNT)
-      const fee = calculateFee(TEST_MINT_AMOUNT, await prePOMarket.getMintingFee())
-      await prePOMarket.connect(treasury).setPublicMinting(false)
-
-      await prePOMarket.connect(treasury).mintLongShortTokens(TEST_MINT_AMOUNT)
-
-      expect(await longToken.balanceOf(treasury.address)).to.eq(TEST_MINT_AMOUNT.sub(fee))
-      expect(await shortToken.balanceOf(treasury.address)).to.eq(TEST_MINT_AMOUNT.sub(fee))
-    })
-
-    it('should return the number of tokens minted', async () => {
+    it('returns long short tokens minted', async () => {
       prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
       await collateralToken.connect(deployer).transfer(user.address, TEST_MINT_AMOUNT)
       await collateralToken.connect(user).approve(prePOMarket.address, TEST_MINT_AMOUNT)
-      const fee = calculateFee(TEST_MINT_AMOUNT, await prePOMarket.getMintingFee())
-      await prePOMarket.connect(treasury).setPublicMinting(true)
 
-      expect(
-        await prePOMarket.connect(user).callStatic.mintLongShortTokens(TEST_MINT_AMOUNT)
-      ).to.eq(TEST_MINT_AMOUNT.sub(fee))
+      expect(await prePOMarket.connect(user).callStatic.mint(TEST_MINT_AMOUNT)).to.eq(
+        TEST_MINT_AMOUNT
+      )
     })
   })
 
@@ -560,10 +414,8 @@ describe('=> prePOMarket', () => {
       mintTestPosition = async (): Promise<BigNumber> => {
         await collateralToken.connect(deployer).transfer(user.address, TEST_MINT_AMOUNT)
         await collateralToken.connect(user).approve(prePOMarket.address, TEST_MINT_AMOUNT)
-        await prePOMarket.connect(treasury).setPublicMinting(true)
-        await prePOMarket.connect(user).mintLongShortTokens(TEST_MINT_AMOUNT)
-        const mintFee = calculateFee(TEST_MINT_AMOUNT, await prePOMarket.getMintingFee())
-        return TEST_MINT_AMOUNT.sub(mintFee)
+        await prePOMarket.connect(user).mint(TEST_MINT_AMOUNT)
+        return TEST_MINT_AMOUNT
       }
 
       // TODO: need to implement a way to remove the need for approval calls, perhaps using permit signatures?

@@ -27,7 +27,6 @@ describe('=> PrePOMarketFactory', () => {
   const TEST_SYMBOL_SUFFIX = 'preSTRIPE_100-200_30SEP21'
   const TEST_FLOOR_VAL = ethers.utils.parseEther('100')
   const TEST_CEILING_VAL = ethers.utils.parseEther('200')
-  const TEST_MINTING_FEE = 10
   const TEST_REDEMPTION_FEE = 20
   const TEST_EXPIRY = nowPlusMonths(2)
   const TEST_FLOOR_PRICE = ethers.utils.parseEther('0.2')
@@ -102,7 +101,6 @@ describe('=> PrePOMarketFactory', () => {
         ceilingLongPayout: TEST_CEILING_PRICE,
         floorValuation: TEST_FLOOR_VAL,
         ceilingValuation: TEST_CEILING_VAL,
-        mintingFee: TEST_MINTING_FEE,
         redemptionFee: TEST_REDEMPTION_FEE,
         expiryTime: TEST_EXPIRY,
       }
@@ -162,9 +160,7 @@ describe('=> PrePOMarketFactory', () => {
       expect(await shortToken.owner()).to.eq(prePOMarket.address)
       expect(await prePOMarket.getFloorLongPayout()).to.eq(TEST_FLOOR_PRICE)
       expect(await prePOMarket.getCeilingLongPayout()).to.eq(TEST_CEILING_PRICE)
-      expect(await prePOMarket.getMintingFee()).to.eq(TEST_MINTING_FEE)
       expect(await prePOMarket.getRedemptionFee()).to.eq(TEST_REDEMPTION_FEE)
-      expect(await prePOMarket.isPublicMintingAllowed()).to.eq(false)
     })
 
     it('should generate the long/short hash correctly', async () => {

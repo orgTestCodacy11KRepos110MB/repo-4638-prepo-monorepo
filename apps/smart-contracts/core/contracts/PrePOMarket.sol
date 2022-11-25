@@ -21,19 +21,16 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
   uint256 private immutable floorValuation;
   uint256 private immutable ceilingValuation;
 
-  uint256 private mintingFee;
   uint256 private redemptionFee;
 
   uint256 private immutable expiryTime;
-
-  bool private publicMinting;
 
   uint256 private constant MAX_PAYOUT = 1e18;
   uint256 private constant FEE_DENOMINATOR = 1000000;
   uint256 private constant FEE_LIMIT = 50000;
 
   /**
-   * Assumes `_newCollateral`, `_newLongToken`, and `_newShortToken` are
+   * Assumes `_collateral`, `_longToken`, and `_shortToken` are
    * valid, since they will be handled by the PrePOMarketFactory. The
    * treasury is initialized to governance due to stack limitations.
    *
@@ -43,85 +40,65 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
    */
   constructor(
     address _governance,
-    address _newCollateral,
-    ILongShortToken _newLongToken,
-    ILongShortToken _newShortToken,
-    uint256 _newFloorLongPayout,
-    uint256 _newCeilingLongPayout,
-    uint256 _newFloorValuation,
-    uint256 _newCeilingValuation,
-    uint256 _newMintingFee,
-    uint256 _newRedemptionFee,
-    uint256 _newExpiryTime,
-    bool _allowed
+    address _collateral,
+    ILongShortToken _longToken,
+    ILongShortToken _shortToken,
+    uint256 _floorLongPayout,
+    uint256 _ceilingLongPayout,
+    uint256 _floorValuation,
+    uint256 _ceilingValuation,
+    uint256 _redemptionFee,
+    uint256 _expiryTime
   ) {
     require(
-      _newCeilingLongPayout > _newFloorLongPayout,
+      _ceilingLongPayout > _floorLongPayout,
       "Ceiling must exceed floor"
     );
-    require(_newExpiryTime > block.timestamp, "Invalid expiry");
-    require(_newMintingFee <= FEE_LIMIT, "Exceeds fee limit");
-    require(_newRedemptionFee <= FEE_LIMIT, "Exceeds fee limit");
-    require(_newCeilingLongPayout <= MAX_PAYOUT, "Ceiling cannot exceed 1");
+    require(_expiryTime > block.timestamp, "Invalid expiry");
+    require(_redemptionFee <= FEE_LIMIT, "Exceeds fee limit");
+    require(_ceilingLongPayout <= MAX_PAYOUT, "Ceiling cannot exceed 1");
 
     transferOwnership(_governance);
     treasury = _governance;
 
-    collateral = IERC20(_newCollateral);
-    longToken = _newLongToken;
-    shortToken = _newShortToken;
+    collateral = IERC20(_collateral);
+    longToken = _longToken;
+    shortToken = _shortToken;
 
-    floorLongPayout = _newFloorLongPayout;
-    ceilingLongPayout = _newCeilingLongPayout;
+    floorLongPayout = _floorLongPayout;
+    ceilingLongPayout = _ceilingLongPayout;
     finalLongPayout = MAX_PAYOUT + 1;
 
-    floorValuation = _newFloorValuation;
-    ceilingValuation = _newCeilingValuation;
+    floorValuation = _floorValuation;
+    ceilingValuation = _ceilingValuation;
 
-    mintingFee = _newMintingFee;
-    redemptionFee = _newRedemptionFee;
+    redemptionFee = _redemptionFee;
 
-    expiryTime = _newExpiryTime;
-
-    publicMinting = _allowed;
+    expiryTime = _expiryTime;
 
     emit MarketCreated(
-      address(_newLongToken),
-      address(_newShortToken),
-      _newFloorLongPayout,
-      _newCeilingLongPayout,
-      _newFloorValuation,
-      _newCeilingValuation,
-      _newMintingFee,
-      _newRedemptionFee,
-      _newExpiryTime
+      address(_longToken),
+      address(_shortToken),
+      _floorLongPayout,
+      _ceilingLongPayout,
+      _floorValuation,
+      _ceilingValuation,
+      _redemptionFee,
+      _expiryTime
     );
   }
 
-  function mintLongShortTokens(uint256 _amount)
+  function mint(uint256 _amount)
     external
     override
     nonReentrant
     returns (uint256)
   {
-    if (msg.sender != owner()) {
-      require(publicMinting, "Public minting disabled");
-    }
     require(finalLongPayout > MAX_PAYOUT, "Market ended");
     require(
       collateral.balanceOf(msg.sender) >= _amount,
       "Insufficient collateral"
     );
-    /**
-     * Add 1 to avoid rounding to zero, only process if user is minting
-     * an amount large enough to pay a fee
-     */
-    uint256 _fee = (_amount * mintingFee) / FEE_DENOMINATOR + 1;
-    require(_amount > _fee, "Minting amount too small");
-    collateral.transferFrom(msg.sender, treasury, _fee);
-    unchecked {
-      _amount -= _fee;
-    }
     collateral.transferFrom(msg.sender, address(this), _amount);
     longToken.mint(msg.sender, _amount);
     shortToken.mint(msg.sender, _amount);
@@ -171,47 +148,36 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
     emit Redemption(msg.sender, _collateralOwed);
   }
 
-  function setTreasury(address _newTreasury) external override onlyOwner {
-    treasury = _newTreasury;
-    emit TreasuryChange(_newTreasury);
+  function setTreasury(address _treasury) external override onlyOwner {
+    treasury = _treasury;
+    emit TreasuryChange(_treasury);
   }
 
-  function setFinalLongPayout(uint256 _newFinalLongPayout)
+  function setFinalLongPayout(uint256 _finalLongPayout)
     external
     override
     onlyOwner
   {
     require(
-      _newFinalLongPayout >= floorLongPayout,
+      _finalLongPayout >= floorLongPayout,
       "Payout cannot be below floor"
     );
     require(
-      _newFinalLongPayout <= ceilingLongPayout,
+      _finalLongPayout <= ceilingLongPayout,
       "Payout cannot exceed ceiling"
     );
-    finalLongPayout = _newFinalLongPayout;
-    emit FinalLongPayoutSet(_newFinalLongPayout);
+    finalLongPayout = _finalLongPayout;
+    emit FinalLongPayoutSet(_finalLongPayout);
   }
 
-  function setMintingFee(uint256 _newMintingFee) external override onlyOwner {
-    require(_newMintingFee <= FEE_LIMIT, "Exceeds fee limit");
-    mintingFee = _newMintingFee;
-    emit MintingFeeChange(_newMintingFee);
-  }
-
-  function setRedemptionFee(uint256 _newRedemptionFee)
+  function setRedemptionFee(uint256 _redemptionFee)
     external
     override
     onlyOwner
   {
-    require(_newRedemptionFee <= FEE_LIMIT, "Exceeds fee limit");
-    redemptionFee = _newRedemptionFee;
-    emit RedemptionFeeChange(_newRedemptionFee);
-  }
-
-  function setPublicMinting(bool _allowed) external override onlyOwner {
-    publicMinting = _allowed;
-    emit PublicMintingChange(_allowed);
+    require(_redemptionFee <= FEE_LIMIT, "Exceeds fee limit");
+    redemptionFee = _redemptionFee;
+    emit RedemptionFeeChange(_redemptionFee);
   }
 
   function getTreasury() external view override returns (address) {
@@ -250,20 +216,12 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
     return ceilingValuation;
   }
 
-  function getMintingFee() external view override returns (uint256) {
-    return mintingFee;
-  }
-
   function getRedemptionFee() external view override returns (uint256) {
     return redemptionFee;
   }
 
   function getExpiryTime() external view override returns (uint256) {
     return expiryTime;
-  }
-
-  function isPublicMintingAllowed() external view override returns (bool) {
-    return publicMinting;
   }
 
   function getMaxPayout() external pure override returns (uint256) {

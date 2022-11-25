@@ -42,7 +42,6 @@ interface IPrePOMarketFactory {
    * @param ceilingLongPrice The ceiling price for the Long token
    * @param floorValuation The floor valuation for the Market
    * @param ceilingValuation The ceiling valuation for the Market
-   * @param mintingFee The minting fee for Long/Short tokens
    * @param redemptionFee The redemption fee for Long/Short tokens
    * @param expiryTime The expiry time for the Market
    */
@@ -55,7 +54,6 @@ interface IPrePOMarketFactory {
     uint256 ceilingLongPrice,
     uint256 floorValuation,
     uint256 ceilingValuation,
-    uint256 mintingFee,
     uint256 redemptionFee,
     uint256 expiryTime
   ) external;

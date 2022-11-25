@@ -48,7 +48,6 @@ contract PrePOMarketFactory is
     uint256 _ceilingLongPrice,
     uint256 _floorValuation,
     uint256 _ceilingValuation,
-    uint256 _mintingFee,
     uint256 _redemptionFee,
     uint256 _expiryTime
   ) external override onlyOwner nonReentrant {
@@ -69,10 +68,8 @@ contract PrePOMarketFactory is
       _ceilingLongPrice,
       _floorValuation,
       _ceilingValuation,
-      _mintingFee,
       _redemptionFee,
-      _expiryTime,
-      false
+      _expiryTime
     );
     deployedMarkets[_salt] = address(_newMarket);
 

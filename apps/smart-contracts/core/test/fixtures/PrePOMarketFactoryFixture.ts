@@ -15,7 +15,6 @@ export type CreateMarketParams = {
   ceilingLongPayout: BigNumber
   floorValuation: BigNumber
   ceilingValuation: BigNumber
-  mintingFee: number
   redemptionFee: number
   expiryTime: number
 }
@@ -46,7 +45,6 @@ export async function createMarketFixture(
       marketParams.ceilingLongPayout,
       marketParams.floorValuation,
       marketParams.ceilingValuation,
-      marketParams.mintingFee,
       marketParams.redemptionFee,
       marketParams.expiryTime
     )
