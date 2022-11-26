@@ -62,7 +62,6 @@ contract Collateral is
     external
     override
     nonReentrant
-    returns (uint256)
   {
     uint256 _fee = (_amount * depositFee) / FEE_DENOMINATOR;
     if (depositFee > 0) {
@@ -75,12 +74,11 @@ contract Collateral is
     if (address(depositHook) != address(0)) {
       baseToken.approve(address(depositHook), _fee);
       depositHook.hook(_recipient, _amount, _amountAfterFee);
+      baseToken.approve(address(depositHook), 0);
     }
     /// Converts amount after fee from base token units to collateral token units.
-    uint256 _amountToMint = (_amountAfterFee * 1e18) / baseTokenDenominator;
-    _mint(_recipient, _amountToMint);
+    _mint(_recipient, (_amountAfterFee * 1e18) / baseTokenDenominator);
     emit Deposit(_recipient, _amountAfterFee, _fee);
-    return _amountToMint;
   }
 
   /// @dev Converts amount from collateral token units to base token units.

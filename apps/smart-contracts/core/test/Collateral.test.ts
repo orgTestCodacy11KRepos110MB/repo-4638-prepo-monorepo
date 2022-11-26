@@ -740,29 +740,33 @@ describe('=> Collateral', () => {
       expect(await baseToken.allowance(collateral.address, depositHook.address)).to.eq(0)
       const fee = amountToDeposit.mul(await collateral.getDepositFee()).div(FEE_DENOMINATOR)
 
-      await collateral.connect(sender).deposit(recipient.address, amountToDeposit)
+      const tx = await collateral.connect(sender).deposit(recipient.address, amountToDeposit)
 
-      expect(await baseToken.allowance(collateral.address, depositHook.address)).to.eq(fee)
+      await expect(tx)
+        .to.emit(baseToken, 'Approval')
+        .withArgs(collateral.address, depositHook.address, fee)
       expect(await baseToken.balanceOf(collateral.address)).to.eq(amountToDeposit)
     })
 
-    it('replaces previous fee approval', async () => {
-      const firstAmountToDeposit = await baseToken.balanceOf(sender.address)
-      const firstFee = firstAmountToDeposit
-        .mul(await collateral.getDepositFee())
-        .div(FEE_DENOMINATOR)
-      await collateral.connect(sender).deposit(sender.address, firstAmountToDeposit)
-      const secondAmountToDeposit = parseUnits('0.5', USDC_DECIMALS)
-      const secondFee = secondAmountToDeposit
-        .mul(await collateral.getDepositFee())
-        .div(FEE_DENOMINATOR)
-      expect(secondFee).to.not.eq(firstFee)
-      await baseToken.mint(sender.address, secondAmountToDeposit)
-      await baseToken.connect(sender).approve(collateral.address, secondAmountToDeposit)
+    it('sets hook approval back to 0', async () => {
+      const amountToDeposit = await baseToken.balanceOf(sender.address)
+      expect(amountToDeposit).to.be.gt(0)
+      expect(await baseToken.allowance(sender.address, collateral.address)).to.be.eq(
+        amountToDeposit
+      )
+      expect(await baseToken.allowance(collateral.address, depositHook.address)).to.eq(0)
+      const fee = amountToDeposit.mul(await collateral.getDepositFee()).div(FEE_DENOMINATOR)
 
-      await collateral.connect(sender).deposit(recipient.address, secondAmountToDeposit)
+      const tx = await collateral.connect(sender).deposit(recipient.address, amountToDeposit)
 
-      expect(await baseToken.allowance(collateral.address, depositHook.address)).to.eq(secondFee)
+      await expect(tx)
+        .to.emit(baseToken, 'Approval')
+        .withArgs(collateral.address, depositHook.address, fee)
+      await expect(tx)
+        .to.emit(baseToken, 'Approval')
+        .withArgs(collateral.address, depositHook.address, 0)
+      expect(await baseToken.allowance(collateral.address, depositHook.address)).to.eq(0)
+      expect(await baseToken.balanceOf(collateral.address)).to.eq(amountToDeposit)
     })
 
     it('mints decimal-adjusted amount to recipient if decimals > base token decimals', async () => {
@@ -920,20 +924,6 @@ describe('=> Collateral', () => {
       await expect(tx)
         .to.emit(collateral, 'Deposit')
         .withArgs(recipient.address, amountToDeposit.sub(fee), fee)
-    })
-
-    it('returns collateral minted', async () => {
-      const amountToDeposit = await baseToken.balanceOf(sender.address)
-      expect(amountToDeposit).to.be.gt(0)
-      expect(await baseToken.allowance(sender.address, collateral.address)).to.be.eq(
-        amountToDeposit
-      )
-      const fee = amountToDeposit.mul(await collateral.getDepositFee()).div(FEE_DENOMINATOR)
-      const expectedCT = amountToDeposit.sub(fee).mul(parseEther('1')).div(USDC_DENOMINATOR)
-
-      expect(
-        await collateral.connect(sender).callStatic.deposit(recipient.address, amountToDeposit)
-      ).to.eq(expectedCT)
     })
   })
 
