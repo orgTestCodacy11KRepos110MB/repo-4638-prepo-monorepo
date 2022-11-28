@@ -11,7 +11,8 @@ type Props = Omit<
 
 const Wrapper = styled.button<{ showShadow?: boolean }>`
   align-items: center;
-  background-color: ${({ theme }): string => theme.color.transparent};
+  background-color: ${({ theme, disabled }): string =>
+    disabled ? theme.color.neutral12 : theme.color.transparent};
   border: solid 1px ${({ theme }): string => theme.color.neutral7};
   border-radius: ${({ theme }): string => theme.borderRadius.base};
   box-shadow: ${({ showShadow, theme }): string => (showShadow ? theme.shadow.prepo : 'unset')};
@@ -20,10 +21,12 @@ const Wrapper = styled.button<{ showShadow?: boolean }>`
   display: flex;
   justify-content: space-between;
   min-height: ${spacingIncrement(58)};
+  opacity: ${({ disabled }): number => (disabled ? 0.6 : 1)};
   padding: ${spacingIncrement(10)} ${spacingIncrement(16)};
   :hover {
     border-color: ${({ theme }): string => theme.color.neutral5};
   }
+  pointer-events: ${({ disabled }): string => (disabled ? 'none' : 'auto')};
 `
 
 const ChildrenText = styled.p`

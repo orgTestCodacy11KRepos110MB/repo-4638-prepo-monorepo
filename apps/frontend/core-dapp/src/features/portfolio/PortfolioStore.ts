@@ -47,6 +47,14 @@ export class PortfolioStore {
   setSelectedPosition(position?: Required<Position>): void {
     this.selectedPosition = position
   }
+  setSelectedPositionByMarketIdDirection(marketId: string, direction: 'long' | 'short'): void {
+    const position = this.positions.find(
+      (item) => item.market.urlId === marketId && direction === item.position
+    )
+    if (position) {
+      this.setSelectedPosition(position)
+    }
+  }
 
   hasPosition(market: MarketEntity, direction: Direction): Position | undefined {
     const token = market[`${direction}Token`]

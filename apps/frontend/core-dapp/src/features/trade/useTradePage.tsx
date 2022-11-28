@@ -4,7 +4,7 @@ import { useRootStore } from '../../context/RootStoreProvider'
 
 const useTradePage = (): void => {
   const router = useRouter()
-  const { marketStore, tradeStore } = useRootStore()
+  const { marketStore, tradeStore, portfolioStore } = useRootStore()
   const { markets } = marketStore
 
   useEffect(() => {
@@ -25,10 +25,17 @@ const useTradePage = (): void => {
       if (typeof direction === 'string') {
         tradeStore.setDirection(direction === 'short' ? 'short' : 'long')
       }
+      // trying to find position on close tab
+      if (action === 'close' && typeof marketId === 'string' && typeof direction === 'string') {
+        portfolioStore.setSelectedPositionByMarketIdDirection(
+          marketId,
+          direction as 'long' | 'short'
+        )
+      }
 
       // TODO: add support for market selection by market address
     }
-  }, [markets, router.query, tradeStore])
+  }, [markets, portfolioStore, router.query, tradeStore])
 }
 
 export default useTradePage

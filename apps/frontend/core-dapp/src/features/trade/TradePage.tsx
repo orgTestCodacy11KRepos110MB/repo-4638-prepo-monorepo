@@ -4,6 +4,7 @@ import { spacingIncrement } from 'prepo-ui'
 import OpenTrade from './open-trade'
 import useTradePage from './useTradePage'
 import TradePageTab from './TradePageTab'
+import CloseTrade from './close-trade'
 import Card from '../../components/Card'
 import { isProduction } from '../../utils/isProduction'
 import { useRootStore } from '../../context/RootStoreProvider'
@@ -29,7 +30,7 @@ const TradePage: React.FC = () => {
     <Wrapper>
       {!hideTabs && <TradePageTab />}
       {/** only show close trade flow if open/close tabs are shown */}
-      {!hideTabs && action === 'close' ? 'CloseTrade' : <OpenTrade />}
+      {!hideTabs && action === 'close' ? <CloseTrade /> : <OpenTrade />}
     </Wrapper>
   )
 }

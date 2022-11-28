@@ -1,20 +1,17 @@
 import { observer } from 'mobx-react-lite'
 import { useRouter } from 'next/router'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Flex, Icon, spacingIncrement } from 'prepo-ui'
 import styled from 'styled-components'
-import SlideUpCard from '../SlideUpCard'
 import { useRootStore } from '../../../context/RootStoreProvider'
-import MarketButton from '../SlideUpButton'
-import { SupportedMarketID } from '../../../types/market.types'
 import { MarketEntity } from '../../../stores/entities/MarketEntity'
 import { numberFormatter } from '../../../utils/numberFormatter'
+import SlideUp from '../SlideUp'
 
 type MarketProps = {
-  id: SupportedMarketID
-  market: MarketEntity
+  data: MarketEntity
   selected?: boolean
-  onClick?: (id: SupportedMarketID) => void
+  onClick: (id: string) => void
 }
 
 const { significantDigits } = numberFormatter
@@ -46,43 +43,38 @@ const MarketValuation = styled.span<{ size?: 'md' }>`
   font-weight: ${({ theme }): number => theme.fontWeight.medium};
 `
 
-const MarketItem: React.FC<MarketProps> = ({ id, market, onClick, selected }) => {
-  const handleClick = (): void => {
-    if (!selected && onClick) onClick(id)
-  }
-  return (
-    <MarketWrapper onClick={handleClick} selected={selected}>
-      <Flex gap={16}>
-        <Icon name={market.iconName} height="48" width="48" />
-        <div>
-          <MarketName>{market.name}</MarketName>
-          {market.estimatedValuation !== undefined && (
-            <p>
-              <MarketValuation>
-                ${significantDigits(market.estimatedValuation?.value)}
-              </MarketValuation>
-            </p>
-          )}
-        </div>
+const MarketItem: React.FC<MarketProps> = ({ data, onClick, selected }) => (
+  <MarketWrapper onClick={(): void => onClick(data.urlId)} selected={selected}>
+    <Flex gap={16}>
+      <Icon name={data.iconName} height="48" width="48" />
+      <div>
+        <MarketName>{data.name}</MarketName>
+        {data.estimatedValuation !== undefined && (
+          <p>
+            <MarketValuation>${significantDigits(data.estimatedValuation?.value)}</MarketValuation>
+          </p>
+        )}
+      </div>
+    </Flex>
+    {selected && (
+      <Flex color="success">
+        <Icon name="check" height="24" width="24" />
       </Flex>
-      {selected && (
-        <Flex color="success">
-          <Icon name="check" height="24" width="24" />
-        </Flex>
-      )}
-    </MarketWrapper>
-  )
-}
+    )}
+  </MarketWrapper>
+)
 
 const MarketSlideUp: React.FC = () => {
   const router = useRouter()
   const { marketStore, tradeStore } = useRootStore()
   const { slideUpContent, selectedMarket, setSlideUpContent } = tradeStore
   const { markets } = marketStore
+  const marketArray = useMemo(() => Object.values(markets), [markets])
 
   const onSelectMarket = (key: string): void => {
-    const tradeUrl = tradeStore.setSelectedMarket(key)
     setSlideUpContent(undefined)
+    if (selectedMarket?.urlId === key) return
+    const tradeUrl = tradeStore.setSelectedMarket(key)
     router.push(tradeUrl)
   }
 
@@ -95,12 +87,16 @@ const MarketSlideUp: React.FC = () => {
   )
 
   return (
-    <>
-      <MarketButton
-        showShadow={!selectedMarket}
-        onClick={(): void => setSlideUpContent('OpenMarket')}
-      >
-        {selectedMarket ? (
+    <SlideUp
+      getId={(item): string | undefined => item?.urlId}
+      showCard={slideUpContent === 'OpenMarket'}
+      cardTitle="Select a Market"
+      onCardClose={(): void => setSlideUpContent(undefined)}
+      onButtonClick={(): void => setSlideUpContent('OpenMarket')}
+      items={marketArray}
+      selected={selectedMarket}
+      title={
+        selectedMarket ? (
           <Flex gap={16}>
             <Icon name={selectedMarket.iconName} height="36" width="36" />
             <MarketName size="lg">
@@ -114,29 +110,11 @@ const MarketSlideUp: React.FC = () => {
           </Flex>
         ) : (
           'Select a Market'
-        )}
-      </MarketButton>
-      <SlideUpCard
-        show={slideUpContent === 'OpenMarket'}
-        onClose={(): void => setSlideUpContent(undefined)}
-        title="Select a Market"
-      >
-        {selectedMarket && (
-          <MarketItem id={selectedMarket.urlId} market={selectedMarket} selected />
-        )}
-        {Object.entries(markets)
-          .filter(([id]) => id !== selectedMarket?.urlId)
-          .map(([id, market]) => (
-            <MarketItem
-              key={id}
-              id={id as SupportedMarketID}
-              market={market}
-              onClick={onSelectMarket}
-              selected={selectedMarket?.urlId === id}
-            />
-          ))}
-      </SlideUpCard>
-    </>
+        )
+      }
+      onItemSelect={onSelectMarket}
+      SlideUpItem={MarketItem}
+    />
   )
 }
 
