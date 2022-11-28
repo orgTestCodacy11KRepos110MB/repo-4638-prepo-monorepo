@@ -13,7 +13,7 @@ contract BlocklistTransferHook is IBlocklistTransferHook, SafeOwnable {
   function hook(
     address _from,
     address _to,
-    uint256 _amount
+    uint256 // _amount
   ) public virtual override {
     IAccountList _list = blocklist;
     require(!_list.isIncluded(_from), "Sender blocked");

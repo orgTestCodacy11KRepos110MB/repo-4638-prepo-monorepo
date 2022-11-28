@@ -15,7 +15,7 @@ contract PurchaseHook is IPurchaseHook, SafeOwnable {
   function hookERC721(
     address _user,
     address _tokenContract,
-    uint256 _tokenId
+    uint256 // _tokenId
   ) external view override {
     ITokenShop _shop = tokenShop;
     require(address(_shop) != address(0), "Token shop not set in hook");
@@ -34,7 +34,7 @@ contract PurchaseHook is IPurchaseHook, SafeOwnable {
     address _tokenContract,
     uint256 _tokenId,
     uint256 _amount
-  ) external override {
+  ) external view override {
     ITokenShop _shop = tokenShop;
     require(address(_shop) != address(0), "Token shop not set in hook");
     uint256 _maxPurchaseAmount = erc1155ToIdToMaxPurchasesPerUser[

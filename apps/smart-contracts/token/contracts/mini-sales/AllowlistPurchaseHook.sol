@@ -11,11 +11,11 @@ contract AllowlistPurchaseHook is IAllowlistPurchaseHook, SafeOwnable {
   constructor() {}
 
   function hook(
-    address _purchaser,
+    address, // _purchaser
     address _recipient,
-    uint256 _amount,
-    uint256 _price,
-    bytes calldata _data
+    uint256, // _amount
+    uint256, // _price
+    bytes calldata // _data
   ) public virtual override {
     require(allowlist.isIncluded(_recipient), "Recipient not allowed");
   }

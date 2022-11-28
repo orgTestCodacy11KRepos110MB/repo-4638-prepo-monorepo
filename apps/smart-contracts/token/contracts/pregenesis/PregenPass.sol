@@ -40,8 +40,7 @@ contract PregenPass is SafeOwnable, ERC721Enumerable {
     }
   }
 
-  // solhint-disable-next-line no-unused-vars
-  function tokenURI(uint256 _tokenId)
+  function tokenURI(uint256)
     public
     view
     override
