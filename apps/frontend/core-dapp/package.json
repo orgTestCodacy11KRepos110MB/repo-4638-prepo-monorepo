@@ -2,7 +2,7 @@
   "name": "core-dapp",
   "version": "1.0.0",
   "scripts": {
-    "postinstall": "yarn generate-types && yarn mst-gql:generate && yarn i18n:compile",
+    "postinstall": "yarn generate-types && yarn mst-gql:generate",
     "extract": "NODE_ENV=development lingui extract",
     "compile": "lingui compile",
     "generate": "yarn generate-types && yarn mst-gql:generate",
