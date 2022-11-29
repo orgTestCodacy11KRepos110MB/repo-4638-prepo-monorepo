@@ -120,32 +120,34 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
       "Insufficient short tokens"
     );
 
-    uint256 _collateralOwed;
+    uint256 _collateralAmount;
     if (finalLongPayout <= MAX_PAYOUT) {
       uint256 _shortPayout = MAX_PAYOUT - finalLongPayout;
-      _collateralOwed =
+      _collateralAmount =
         (finalLongPayout * _longAmount + _shortPayout * _shortAmount) /
         MAX_PAYOUT;
     } else {
       require(_longAmount == _shortAmount, "Long and Short must be equal");
-      _collateralOwed = _longAmount;
+      _collateralAmount = _longAmount;
+    }
+
+    uint256 _fee = (_collateralAmount * redemptionFee) / FEE_DENOMINATOR;
+    if (redemptionFee > 0) {
+      require(_fee > 0, "fee = 0");
+    } else {
+      require(_collateralAmount > 0, "amount = 0");
     }
 
     longToken.burnFrom(msg.sender, _longAmount);
     shortToken.burnFrom(msg.sender, _shortAmount);
-    /**
-     * Add 1 to avoid rounding to zero, only process if user is redeeming
-     * an amount large enough to pay a fee
-     */
-    uint256 _fee = (_collateralOwed * redemptionFee) / FEE_DENOMINATOR + 1;
-    require(_collateralOwed > _fee, "Redemption amount too small");
     collateral.transfer(treasury, _fee);
+    uint256 _collateralAmountAfterFee;
     unchecked {
-      _collateralOwed -= _fee;
+      _collateralAmountAfterFee = _collateralAmount - _fee;
     }
-    collateral.transfer(msg.sender, _collateralOwed);
+    collateral.transfer(msg.sender, _collateralAmountAfterFee);
 
-    emit Redemption(msg.sender, _collateralOwed);
+    emit Redemption(msg.sender, _collateralAmountAfterFee);
   }
 
   function setTreasury(address _treasury) external override onlyOwner {
