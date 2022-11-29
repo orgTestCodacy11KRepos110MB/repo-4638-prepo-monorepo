@@ -317,6 +317,7 @@ describe('=> WithdrawHook', () => {
         await withdrawHook
           .connect(vault)
           .hook(deployer.address, TEST_USER_WITHDRAW_LIMIT, TEST_USER_WITHDRAW_LIMIT)
+        const previousResetTimestamp = await getLastTimestamp(ethers.provider)
         const amountToReachGlobalLimit = TEST_GLOBAL_WITHDRAW_LIMIT.sub(TEST_USER_WITHDRAW_LIMIT)
         await withdrawHook
           .connect(vault)
@@ -324,7 +325,6 @@ describe('=> WithdrawHook', () => {
         expect(await withdrawHook.getGlobalAmountWithdrawnThisPeriod()).to.eq(
           TEST_GLOBAL_WITHDRAW_LIMIT
         )
-        const previousResetTimestamp = await getLastTimestamp(ethers.provider)
         await setNextTimestamp(
           ethers.provider,
           previousResetTimestamp + TEST_GLOBAL_PERIOD_LENGTH - 1

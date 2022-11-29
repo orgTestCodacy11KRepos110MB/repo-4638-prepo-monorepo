@@ -282,6 +282,104 @@ describe('=> prePOMarket', () => {
     })
   })
 
+  describe('# setMintHook', () => {
+    beforeEach(async () => {
+      prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
+    })
+
+    it('reverts if not owner', async () => {
+      expect(await prePOMarket.owner()).to.not.eq(user.address)
+
+      await expect(prePOMarket.connect(user).setMintHook(user.address)).to.revertedWith(
+        'Ownable: caller is not the owner'
+      )
+    })
+
+    it('sets to non-zero address', async () => {
+      expect(await prePOMarket.getMintHook()).to.not.eq(user.address)
+
+      await prePOMarket.connect(treasury).setMintHook(user.address)
+
+      expect(await prePOMarket.getMintHook()).to.eq(user.address)
+    })
+
+    it('sets to zero address', async () => {
+      await prePOMarket.connect(treasury).setMintHook(user.address)
+      expect(await prePOMarket.getMintHook()).to.not.eq(ZERO_ADDRESS)
+
+      await prePOMarket.connect(treasury).setMintHook(ZERO_ADDRESS)
+
+      expect(await prePOMarket.getMintHook()).to.eq(ZERO_ADDRESS)
+    })
+
+    it('is idempotent', async () => {
+      expect(await prePOMarket.getMintHook()).to.not.eq(user.address)
+
+      await prePOMarket.connect(treasury).setMintHook(user.address)
+
+      expect(await prePOMarket.getMintHook()).to.eq(user.address)
+
+      await prePOMarket.connect(treasury).setMintHook(user.address)
+
+      expect(await prePOMarket.getMintHook()).to.eq(user.address)
+    })
+
+    it('emits MintHookChange', async () => {
+      const tx = await prePOMarket.connect(treasury).setMintHook(user.address)
+
+      await expect(tx).to.emit(prePOMarket, 'MintHookChange').withArgs(user.address)
+    })
+  })
+
+  describe('# setRedeemHook', () => {
+    beforeEach(async () => {
+      prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
+    })
+
+    it('reverts if not owner', async () => {
+      expect(await prePOMarket.owner()).to.not.eq(user.address)
+
+      await expect(prePOMarket.connect(user).setRedeemHook(user.address)).to.revertedWith(
+        'Ownable: caller is not the owner'
+      )
+    })
+
+    it('sets to non-zero address', async () => {
+      expect(await prePOMarket.getRedeemHook()).to.not.eq(user.address)
+
+      await prePOMarket.connect(treasury).setRedeemHook(user.address)
+
+      expect(await prePOMarket.getRedeemHook()).to.eq(user.address)
+    })
+
+    it('sets to zero address', async () => {
+      await prePOMarket.connect(treasury).setRedeemHook(user.address)
+      expect(await prePOMarket.getRedeemHook()).to.not.eq(ZERO_ADDRESS)
+
+      await prePOMarket.connect(treasury).setRedeemHook(ZERO_ADDRESS)
+
+      expect(await prePOMarket.getRedeemHook()).to.eq(ZERO_ADDRESS)
+    })
+
+    it('is idempotent', async () => {
+      expect(await prePOMarket.getRedeemHook()).to.not.eq(user.address)
+
+      await prePOMarket.connect(treasury).setRedeemHook(user.address)
+
+      expect(await prePOMarket.getRedeemHook()).to.eq(user.address)
+
+      await prePOMarket.connect(treasury).setRedeemHook(user.address)
+
+      expect(await prePOMarket.getRedeemHook()).to.eq(user.address)
+    })
+
+    it('emits RedeemHookChange', async () => {
+      const tx = await prePOMarket.connect(treasury).setRedeemHook(user.address)
+
+      await expect(tx).to.emit(prePOMarket, 'RedeemHookChange').withArgs(user.address)
+    })
+  })
+
   describe('# setRedemptionFee', () => {
     beforeEach(async () => {
       prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))

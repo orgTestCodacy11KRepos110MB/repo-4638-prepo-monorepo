@@ -2,6 +2,7 @@
 pragma solidity =0.8.7;
 
 import "./ILongShortToken.sol";
+import "./IMarketHook.sol";
 
 /**
  * @notice Users can mint/redeem long/short positions on a specific asset in
@@ -47,6 +48,10 @@ interface IPrePOMarket {
   /// @param treasury The new treasury address
   event TreasuryChange(address treasury);
 
+  event MintHookChange(address hook);
+
+  event RedeemHookChange(address hook);
+
   /// @dev Emitted via `setFinalLongPayout()`.
   /// @param payout The final Long payout
   event FinalLongPayoutSet(uint256 payout);
@@ -87,6 +92,10 @@ interface IPrePOMarket {
    */
   function setTreasury(address _treasury) external;
 
+  function setMintHook(IMarketHook mintHook) external;
+
+  function setRedeemHook(IMarketHook redeemHook) external;
+
   /**
    * @notice Sets the payout a Long token can be redeemed for after the
    * market has ended (in wei units of Collateral).
@@ -108,6 +117,10 @@ interface IPrePOMarket {
 
   /// @return Treasury address where minting/redemption fees are sent
   function getTreasury() external view returns (address);
+
+  function getMintHook() external view returns (IMarketHook);
+
+  function getRedeemHook() external view returns (IMarketHook);
 
   /// @return Collateral token used to fund Long/Short positions
   function getCollateral() external view returns (IERC20);

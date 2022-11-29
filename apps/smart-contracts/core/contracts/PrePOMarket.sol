@@ -10,6 +10,9 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
   address private treasury;
 
+  IMarketHook private _mintHook;
+  IMarketHook private _redeemHook;
+
   IERC20 private immutable collateral;
   ILongShortToken private immutable longToken;
   ILongShortToken private immutable shortToken;
@@ -155,6 +158,16 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
     emit TreasuryChange(_treasury);
   }
 
+  function setMintHook(IMarketHook mintHook) external override onlyOwner {
+    _mintHook = mintHook;
+    emit MintHookChange(address(mintHook));
+  }
+
+  function setRedeemHook(IMarketHook redeemHook) external override onlyOwner {
+    _redeemHook = redeemHook;
+    emit RedeemHookChange(address(redeemHook));
+  }
+
   function setFinalLongPayout(uint256 _finalLongPayout)
     external
     override
@@ -184,6 +197,14 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
 
   function getTreasury() external view override returns (address) {
     return treasury;
+  }
+
+  function getMintHook() external view override returns (IMarketHook) {
+    return _mintHook;
+  }
+
+  function getRedeemHook() external view override returns (IMarketHook) {
+    return _redeemHook;
   }
 
   function getCollateral() external view override returns (IERC20) {
