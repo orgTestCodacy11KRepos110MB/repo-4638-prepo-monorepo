@@ -8,6 +8,7 @@ import { MockContract } from '@defi-wonderland/smock'
 
 export const FEE_DENOMINATOR = 1000000
 export const FEE_LIMIT = 50000
+export const COLLATERAL_FEE_LIMIT = 100000
 export const MAX_PAYOUT = parseEther('1')
 export const DEFAULT_TIME_DELAY = 5
 export const PERCENT_DENOMINATOR = 1000000

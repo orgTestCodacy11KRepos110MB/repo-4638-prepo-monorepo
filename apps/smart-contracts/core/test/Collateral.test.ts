@@ -13,7 +13,12 @@ import {
 import { collateralFixture } from './fixtures/CollateralFixture'
 import { smockDepositRecordFixture } from './fixtures/DepositRecordFixture'
 import { testERC20Fixture } from './fixtures/TestERC20Fixture'
-import { FEE_DENOMINATOR, grantAndAcceptRole, PERCENT_DENOMINATOR } from './utils'
+import {
+  FEE_DENOMINATOR,
+  COLLATERAL_FEE_LIMIT,
+  grantAndAcceptRole,
+  PERCENT_DENOMINATOR,
+} from './utils'
 import { Collateral, TestERC20 } from '../typechain'
 
 chai.use(smock.matchers)
@@ -192,6 +197,10 @@ describe('=> Collateral', () => {
       expect(await collateral.hasRole(DEFAULT_ADMIN_ROLE, deployer.address)).to.eq(true)
     })
 
+    it('sets FEE_LIMIT constant', async () => {
+      expect(await collateral.FEE_LIMIT()).to.eq(COLLATERAL_FEE_LIMIT)
+    })
+
     it('sets role constants to the correct hash', async () => {
       expect(await collateral.MANAGER_WITHDRAW_ROLE()).to.eq(
         id('Collateral_managerWithdraw(uint256)')
@@ -286,13 +295,26 @@ describe('=> Collateral', () => {
       )
     })
 
-    it('sets to non-zero value', async () => {
-      expect(TEST_DEPOSIT_FEE).to.not.eq(0)
-      expect(await collateral.getDepositFee()).to.not.eq(TEST_DEPOSIT_FEE)
+    it('reverts if > FEE_LIMIT', async () => {
+      await expect(
+        collateral.connect(deployer).setDepositFee(COLLATERAL_FEE_LIMIT + 1)
+      ).revertedWith('exceeds fee limit')
+    })
 
-      await collateral.connect(deployer).setDepositFee(TEST_DEPOSIT_FEE)
+    it('sets to FEE_LIMIT', async () => {
+      expect(await collateral.getDepositFee()).to.not.eq(COLLATERAL_FEE_LIMIT)
 
-      expect(await collateral.getDepositFee()).to.eq(TEST_DEPOSIT_FEE)
+      await collateral.connect(deployer).setDepositFee(COLLATERAL_FEE_LIMIT)
+
+      expect(await collateral.getDepositFee()).to.eq(COLLATERAL_FEE_LIMIT)
+    })
+
+    it('sets to < FEE_LIMIT', async () => {
+      expect(await collateral.getDepositFee()).to.not.eq(COLLATERAL_FEE_LIMIT - 1)
+
+      await collateral.connect(deployer).setDepositFee(COLLATERAL_FEE_LIMIT - 1)
+
+      expect(await collateral.getDepositFee()).to.eq(COLLATERAL_FEE_LIMIT - 1)
     })
 
     it('sets to zero', async () => {
@@ -344,13 +366,26 @@ describe('=> Collateral', () => {
       )
     })
 
-    it('sets to non-zero value', async () => {
-      expect(TEST_WITHDRAW_FEE).to.not.eq(0)
-      expect(await collateral.getWithdrawFee()).to.not.eq(TEST_WITHDRAW_FEE)
+    it('reverts if > FEE_LIMIT', async () => {
+      await expect(
+        collateral.connect(deployer).setWithdrawFee(COLLATERAL_FEE_LIMIT + 1)
+      ).revertedWith('exceeds fee limit')
+    })
 
-      await collateral.connect(deployer).setWithdrawFee(TEST_WITHDRAW_FEE)
+    it('sets to FEE_LIMIT', async () => {
+      expect(await collateral.getWithdrawFee()).to.not.eq(COLLATERAL_FEE_LIMIT)
 
-      expect(await collateral.getWithdrawFee()).to.eq(TEST_WITHDRAW_FEE)
+      await collateral.connect(deployer).setWithdrawFee(COLLATERAL_FEE_LIMIT)
+
+      expect(await collateral.getWithdrawFee()).to.eq(COLLATERAL_FEE_LIMIT)
+    })
+
+    it('sets to < FEE_LIMIT', async () => {
+      expect(await collateral.getWithdrawFee()).to.not.eq(COLLATERAL_FEE_LIMIT - 1)
+
+      await collateral.connect(deployer).setWithdrawFee(COLLATERAL_FEE_LIMIT - 1)
+
+      expect(await collateral.getWithdrawFee()).to.eq(COLLATERAL_FEE_LIMIT - 1)
     })
 
     it('sets to zero', async () => {
