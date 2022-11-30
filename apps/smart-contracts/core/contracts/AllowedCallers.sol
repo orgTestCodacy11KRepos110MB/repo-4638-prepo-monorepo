@@ -4,19 +4,39 @@ pragma solidity =0.8.7;
 import "./interfaces/IAllowedCallers.sol";
 
 contract AllowedCallers is IAllowedCallers {
-  mapping(address => bool) private callerToAllowed;
+  mapping(address => bool) private _callerToAllowed;
 
-  function setAllowedCallers(address[] memory _callers, bool[] memory _allowed)
+  modifier onlyAllowedCallers() {
+    require(_callerToAllowed[msg.sender], "msg.sender not allowed");
+    _;
+  }
+
+  function setAllowedCallers(address[] memory callers, bool[] memory allowed)
     external
     virtual
     override
-  {}
+  {
+    _setAllowedCallers(callers, allowed);
+  }
 
-  function isCallerAllowed(address _caller)
+  function isCallerAllowed(address caller)
     external
     view
     virtual
     override
     returns (bool)
-  {}
+  {
+    return _callerToAllowed[caller];
+  }
+
+  function _setAllowedCallers(address[] memory callers, bool[] memory allowed)
+    internal
+  {
+    require(callers.length > 0 && allowed.length > 0, "Empty array");
+    require(callers.length == allowed.length, "Array length mismatch");
+    for (uint256 i = 0; i < callers.length; i++) {
+      _callerToAllowed[callers[i]] = allowed[i];
+    }
+    emit AllowedCallersChange(callers, allowed);
+  }
 }
