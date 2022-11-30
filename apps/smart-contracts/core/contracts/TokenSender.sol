@@ -54,6 +54,8 @@ contract TokenSender is
     override
     onlyRole(SET_PRICE_ROLE)
   {
+    _price = price;
+    emit PriceChange(price);
   }
 
   function setPriceMultiplier(uint256 multiplier)
