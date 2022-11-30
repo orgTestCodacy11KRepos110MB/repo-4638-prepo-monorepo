@@ -63,6 +63,9 @@ describe('=> DepositHook', () => {
     })
 
     it('sets role constants to the correct hash', async () => {
+      expect(await depositHook.SET_ALLOWLIST_ROLE()).to.eq(
+        id('DepositHook_setAllowlist(IAccountList)')
+      )
       expect(await depositHook.SET_COLLATERAL_ROLE()).to.eq(
         id('DepositHook_setCollateral(address)')
       )
@@ -110,6 +113,35 @@ describe('=> DepositHook', () => {
         .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
 
       expect(mockDepositRecord.recordDeposit).to.be.calledWith(user.address, TEST_AMOUNT_AFTER_FEE)
+    })
+  })
+
+  describe('# setAllowlist', () => {
+    beforeEach(async () => {
+      await grantAndAcceptRole(
+        depositHook,
+        deployer,
+        deployer,
+        await depositHook.SET_ALLOWLIST_ROLE()
+      )
+    })
+
+    it('reverts if not role holder', async () => {
+      expect(await depositHook.hasRole(await depositHook.SET_ALLOWLIST_ROLE(), user.address)).to.eq(
+        false
+      )
+
+      await expect(depositHook.connect(user).setAllowlist(user.address)).revertedWith(
+        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await depositHook.SET_ALLOWLIST_ROLE()}`
+      )
+    })
+
+    it("doesn't revert if role holder", async () => {
+      expect(
+        await depositHook.hasRole(await depositHook.SET_ALLOWLIST_ROLE(), deployer.address)
+      ).to.eq(true)
+
+      await expect(depositHook.connect(deployer).setAllowlist(user.address))
     })
   })
 
