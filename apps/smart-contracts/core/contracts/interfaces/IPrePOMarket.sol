@@ -21,7 +21,6 @@ interface IPrePOMarket {
   /// @param ceilingLongPayout Long token payout ceiling
   /// @param floorValuation Market valuation floor
   /// @param ceilingValuation Market valuation ceiling
-  /// @param redemptionFee Market redemption fee
   /// @param expiryTime Market expiry time
   event MarketCreated(
     address longToken,
@@ -30,7 +29,6 @@ interface IPrePOMarket {
     uint256 ceilingLongPayout,
     uint256 floorValuation,
     uint256 ceilingValuation,
-    uint256 redemptionFee,
     uint256 expiryTime
   );
 

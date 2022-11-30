@@ -15,7 +15,6 @@ export type CreateMarketParams = {
   ceilingLongPayout: BigNumber
   floorValuation: BigNumber
   ceilingValuation: BigNumber
-  redemptionFee: number
   expiryTime: number
 }
 
@@ -45,7 +44,6 @@ export async function createMarketFixture(
       marketParams.ceilingLongPayout,
       marketParams.floorValuation,
       marketParams.ceilingValuation,
-      marketParams.redemptionFee,
       marketParams.expiryTime
     )
   const events = await getMarketAddedEvent(marketParams.factory)

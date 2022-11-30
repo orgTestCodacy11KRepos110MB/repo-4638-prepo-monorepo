@@ -61,7 +61,6 @@ describe('=> prePOMarket', () => {
       ceilingLongPayout: TEST_CEILING_PAYOUT,
       floorValuation: TEST_FLOOR_VAL,
       ceilingValuation: TEST_CEILING_VAL,
-      redemptionFee: TEST_REDEMPTION_FEE,
       expiryTime: TEST_EXPIRY,
     }
 
@@ -86,7 +85,7 @@ describe('=> prePOMarket', () => {
       expect(await prePOMarket.getFinalLongPayout()).to.eq(MAX_PAYOUT.add(1))
       expect(await prePOMarket.getFloorValuation()).to.eq(TEST_FLOOR_VAL)
       expect(await prePOMarket.getCeilingValuation()).to.eq(TEST_CEILING_VAL)
-      expect(await prePOMarket.getRedemptionFee()).to.eq(TEST_REDEMPTION_FEE)
+      expect(await prePOMarket.getRedemptionFee()).to.eq(0)
       expect(await prePOMarket.getExpiryTime()).to.eq(TEST_EXPIRY)
       expect(await prePOMarket.getMaxPayout()).to.eq(MAX_PAYOUT)
       expect(await prePOMarket.getFeeDenominator()).to.eq(FEE_DENOMINATOR)
@@ -149,28 +148,6 @@ describe('=> prePOMarket', () => {
       ).revertedWith(revertReason('Invalid expiry'))
     })
 
-    it('should not allow setting redemption fee above FEE_LIMIT ', async () => {
-      const aboveFeeLimit = FEE_LIMIT + 1
-
-      await expect(
-        createMarket({
-          ...defaultParams,
-          redemptionFee: aboveFeeLimit,
-        })
-      ).revertedWith(revertReason('Exceeds fee limit'))
-    })
-
-    it('should allow setting redemption fee to FEE_LIMIT ', async () => {
-      prePOMarket = await prePOMarketAttachFixture(
-        await createMarket({
-          ...defaultParams,
-          redemptionFee: FEE_LIMIT,
-        })
-      )
-
-      expect(await prePOMarket.getRedemptionFee()).to.eq(FEE_LIMIT)
-    })
-
     it('should emit MarketCreated event', async () => {
       const createMarketResult = await createMarket(defaultParams)
       prePOMarket = await prePOMarketAttachFixture(createMarketResult)
@@ -184,7 +161,6 @@ describe('=> prePOMarket', () => {
           await prePOMarket.getCeilingLongPayout(),
           TEST_FLOOR_VAL,
           TEST_CEILING_VAL,
-          await prePOMarket.getRedemptionFee(),
           TEST_EXPIRY
         )
     })
@@ -385,35 +361,47 @@ describe('=> prePOMarket', () => {
       prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
     })
 
-    it('should only be usable by the owner', async () => {
+    it('reverts if not owner', async () => {
       await expect(prePOMarket.connect(user).setRedemptionFee(FEE_LIMIT - 1)).to.revertedWith(
         revertReason('Ownable: caller is not the owner')
       )
     })
 
-    it('should not be settable beyond FEE_LIMIT', async () => {
+    it('reverts if > FEE_LIMIT', async () => {
       await expect(prePOMarket.connect(treasury).setRedemptionFee(FEE_LIMIT + 1)).to.revertedWith(
         revertReason('Exceeds fee limit')
       )
     })
 
-    it('should be settable to FEE_LIMIT', async () => {
+    it('sets to FEE_LIMIT', async () => {
+      expect(await prePOMarket.getRedemptionFee()).to.not.eq(FEE_LIMIT)
+
       await prePOMarket.connect(treasury).setRedemptionFee(FEE_LIMIT)
+
       expect(await prePOMarket.getRedemptionFee()).to.eq(FEE_LIMIT)
     })
 
-    it('should be settable below FEE_LIMIT', async () => {
+    it('sets to < FEE_LIMIT', async () => {
+      expect(await prePOMarket.getRedemptionFee()).to.not.eq(FEE_LIMIT - 1)
+
       await prePOMarket.connect(treasury).setRedemptionFee(FEE_LIMIT - 1)
+
       expect(await prePOMarket.getRedemptionFee()).to.eq(FEE_LIMIT - 1)
     })
 
-    it('should be settable to zero', async () => {
+    it('sets to zero', async () => {
+      await prePOMarket.connect(treasury).setRedemptionFee(FEE_LIMIT)
+
+      expect(await prePOMarket.getRedemptionFee()).to.not.eq(0)
+
       await prePOMarket.connect(treasury).setRedemptionFee(0)
+
       expect(await prePOMarket.getRedemptionFee()).to.eq(0)
     })
 
-    it('should emit a RedemptionFeeChange event', async () => {
+    it('emits RedemptionFeeChange', async () => {
       const tx = await prePOMarket.connect(treasury).setRedemptionFee(FEE_LIMIT)
+
       await expect(tx).to.emit(prePOMarket, 'RedemptionFeeChange').withArgs(FEE_LIMIT)
     })
   })
@@ -531,6 +519,7 @@ describe('=> prePOMarket', () => {
         prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
         const amountMinted = await mintTestPosition()
         await approveTokensForRedemption(user, amountMinted)
+        await prePOMarket.connect(treasury).setRedemptionFee(TEST_REDEMPTION_FEE)
         return amountMinted
       }
 
@@ -538,6 +527,7 @@ describe('=> prePOMarket', () => {
         prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
         const amountMinted = await mintTestPosition()
         await approveTokensForRedemption(user, amountMinted)
+        await prePOMarket.connect(treasury).setRedemptionFee(TEST_REDEMPTION_FEE)
         await prePOMarket.connect(treasury).setFinalLongPayout(finalLongPayout)
         return amountMinted
       }

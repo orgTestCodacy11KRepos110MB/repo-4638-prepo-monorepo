@@ -50,7 +50,6 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
     uint256 _ceilingLongPayout,
     uint256 _floorValuation,
     uint256 _ceilingValuation,
-    uint256 _redemptionFee,
     uint256 _expiryTime
   ) {
     require(
@@ -58,7 +57,6 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
       "Ceiling must exceed floor"
     );
     require(_expiryTime > block.timestamp, "Invalid expiry");
-    require(_redemptionFee <= FEE_LIMIT, "Exceeds fee limit");
     require(_ceilingLongPayout <= MAX_PAYOUT, "Ceiling cannot exceed 1");
 
     transferOwnership(_governance);
@@ -75,8 +73,6 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
     floorValuation = _floorValuation;
     ceilingValuation = _ceilingValuation;
 
-    redemptionFee = _redemptionFee;
-
     expiryTime = _expiryTime;
 
     emit MarketCreated(
@@ -86,7 +82,6 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
       _ceilingLongPayout,
       _floorValuation,
       _ceilingValuation,
-      _redemptionFee,
       _expiryTime
     );
   }
