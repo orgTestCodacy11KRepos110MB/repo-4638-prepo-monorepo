@@ -810,7 +810,7 @@ describe('=> prePOMarket', () => {
       expect(await collateralToken.balanceOf(user.address)).to.eq(totalOwed)
     })
 
-    it('should emit a Redemption event indexed by redeemer', async () => {
+    it('emits Redemption indexed by redeemer', async () => {
       prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
       const amountMinted = await mintTestPosition()
       await approveTokensForRedemption(user, amountMinted)
@@ -821,7 +821,7 @@ describe('=> prePOMarket', () => {
       const filter = {
         address: prePOMarket.address,
         topics: [
-          ethers.utils.id('Redemption(address,uint256)'),
+          ethers.utils.id('Redemption(address,uint256,uint256)'),
           ethers.utils.hexZeroPad(user.address, 32),
         ],
       }
@@ -829,7 +829,8 @@ describe('=> prePOMarket', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const event = events[0].args as any
       expect(await event.redeemer).to.eq(user.address)
-      expect(await event.amount).to.eq(amountMinted.sub(redeemFee))
+      expect(await event.amountAfterFee).to.eq(amountMinted.sub(redeemFee))
+      expect(await event.fee).to.eq(redeemFee)
     })
   })
 })

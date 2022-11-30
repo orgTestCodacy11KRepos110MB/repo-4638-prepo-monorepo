@@ -145,7 +145,7 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
     }
     collateral.transfer(msg.sender, _collateralAmountAfterFee);
 
-    emit Redemption(msg.sender, _collateralAmountAfterFee);
+    emit Redemption(msg.sender, _collateralAmountAfterFee, _fee);
   }
 
   function setTreasury(address _treasury) external override onlyOwner {

@@ -37,10 +37,11 @@ interface IPrePOMarket {
   /// @param amount The amount of Long/Short tokens minted
   event Mint(address indexed minter, uint256 amount);
 
-  /// @dev Emitted via `redeem()`.
-  /// @param redeemer The address of the redeemer
-  /// @param amount The amount of Long/Short tokens redeemed
-  event Redemption(address indexed redeemer, uint256 amount);
+  event Redemption(
+    address indexed redeemer,
+    uint256 amountAfterFee,
+    uint256 fee
+  );
 
   /// @dev Emitted via `setTreasury()`.
   /// @param treasury The new treasury address
