@@ -3,7 +3,7 @@ pragma solidity =0.8.7;
 
 import "./IAccountList.sol";
 
-interface IAllowListHook {
+interface IAllowlistHook {
   event AllowlistChange(IAccountList allowlist);
 
   function setAllowlist(IAccountList allowlist) external;
