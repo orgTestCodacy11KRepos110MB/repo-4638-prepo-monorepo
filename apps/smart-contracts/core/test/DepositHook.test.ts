@@ -5,7 +5,7 @@ import { id, parseEther } from 'ethers/lib/utils'
 import { Contract } from 'ethers'
 import { MockContract, smock } from '@defi-wonderland/smock'
 import { ZERO_ADDRESS } from 'prepo-constants'
-import { depositHookFixture } from './fixtures/HookFixture'
+import { depositHookFixture, smockAccountListFixture } from './fixtures/HookFixture'
 import { smockDepositRecordFixture } from './fixtures/DepositRecordFixture'
 import { grantAndAcceptRole } from './utils'
 import { DepositHook } from '../typechain'
@@ -18,6 +18,7 @@ describe('=> DepositHook', () => {
   let user: SignerWithAddress
   let vault: SignerWithAddress
   let mockDepositRecord: MockContract<Contract>
+  let mockAllowlist: MockContract<Contract>
   const TEST_GLOBAL_DEPOSIT_CAP = parseEther('50000')
   const TEST_ACCOUNT_DEPOSIT_CAP = parseEther('50')
   const TEST_AMOUNT_BEFORE_FEE = parseEther('1.01')
@@ -29,6 +30,7 @@ describe('=> DepositHook', () => {
       TEST_GLOBAL_DEPOSIT_CAP,
       TEST_ACCOUNT_DEPOSIT_CAP
     )
+    mockAllowlist = await smockAccountListFixture()
     depositHook = await depositHookFixture()
     await grantAndAcceptRole(
       depositHook,
@@ -47,6 +49,12 @@ describe('=> DepositHook', () => {
       deployer,
       deployer,
       await depositHook.SET_DEPOSITS_ALLOWED_ROLE()
+    )
+    await grantAndAcceptRole(
+      depositHook,
+      deployer,
+      deployer,
+      await depositHook.SET_ALLOWLIST_ROLE()
     )
     await grantAndAcceptRole(
       mockDepositRecord,
@@ -72,6 +80,9 @@ describe('=> DepositHook', () => {
       expect(await depositHook.SET_DEPOSITS_ALLOWED_ROLE()).to.eq(
         id('DepositHook_setDepositsAllowed(bool)')
       )
+      expect(await depositHook.SET_ALLOWLIST_ROLE()).to.eq(
+        id('DepositHook_setAllowlist(IAccountList)')
+      )
     })
   })
 
@@ -84,6 +95,7 @@ describe('=> DepositHook', () => {
       await depositHook.connect(deployer).setCollateral(vault.address)
       await depositHook.connect(deployer).setDepositsAllowed(true)
       await depositHook.connect(deployer).setDepositRecord(mockDepositRecord.address)
+      await depositHook.connect(deployer).setAllowlist(mockAllowlist.address)
     })
 
     it('should only usable by the vault', async () => {
@@ -94,7 +106,9 @@ describe('=> DepositHook', () => {
       ).to.revertedWith('msg.sender != collateral')
     })
 
-    it('reverts if deposits not allowed', async () => {
+    it('reverts if user not allow list and deposits not allowed', async () => {
+      mockAllowlist.isIncluded.returns(false)
+      expect(await mockAllowlist.isIncluded(user.address)).to.be.false
       await depositHook.connect(deployer).setDepositsAllowed(false)
       expect(await depositHook.depositsAllowed()).to.eq(false)
 
@@ -103,7 +117,31 @@ describe('=> DepositHook', () => {
       ).to.revertedWith('deposits not allowed')
     })
 
+    it('reverts if user on allow list but deposits not allowed', async () => {
+      mockAllowlist.isIncluded.returns(true)
+      expect(await mockAllowlist.isIncluded(user.address)).to.be.true
+      await depositHook.connect(deployer).setDepositsAllowed(false)
+      expect(await depositHook.depositsAllowed()).to.eq(false)
+
+      await expect(
+        depositHook.connect(vault).hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+      ).to.revertedWith('deposits not allowed')
+    })
+
+    it('reverts if user not on allow list but deposits allowed', async () => {
+      mockAllowlist.isIncluded.returns(false)
+      expect(await mockAllowlist.isIncluded(user.address)).to.be.false
+      await depositHook.connect(deployer).setDepositsAllowed(true)
+      expect(await depositHook.depositsAllowed()).to.eq(true)
+
+      await expect(
+        depositHook.connect(vault).hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+      ).to.revertedWith('sender not allowed')
+    })
+
     it('should call recordDeposit with the correct parameters', async () => {
+      mockAllowlist.isIncluded.returns(true)
+      expect(await mockAllowlist.isIncluded(user.address)).to.be.true
       expect(TEST_AMOUNT_BEFORE_FEE).to.not.eq(TEST_AMOUNT_AFTER_FEE)
       await depositHook
         .connect(vault)
@@ -255,6 +293,53 @@ describe('=> DepositHook', () => {
       const tx = await depositHook.connect(deployer).setDepositsAllowed(true)
 
       await expect(tx).to.emit(depositHook, 'DepositsAllowedChange').withArgs(true)
+    })
+  })
+
+  describe('# setAllowlist', () => {
+    it('reverts if not role holder', async () => {
+      expect(await depositHook.hasRole(await depositHook.SET_ALLOWLIST_ROLE(), user.address)).to.eq(
+        false
+      )
+
+      await expect(depositHook.connect(user).setAllowlist(mockAllowlist.address)).revertedWith(
+        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await depositHook.SET_ALLOWLIST_ROLE()}`
+      )
+    })
+
+    it('sets to non-zero address', async () => {
+      await depositHook.connect(deployer).setAllowlist(ZERO_ADDRESS)
+      expect(mockAllowlist.address).to.not.eq(ZERO_ADDRESS)
+      expect(await depositHook.getAllowlist()).to.not.eq(mockAllowlist.address)
+
+      await depositHook.connect(deployer).setAllowlist(mockAllowlist.address)
+
+      expect(await depositHook.getAllowlist()).to.eq(mockAllowlist.address)
+    })
+
+    it('sets to zero address', async () => {
+      await depositHook.connect(deployer).setAllowlist(ZERO_ADDRESS)
+
+      expect(await depositHook.getAllowlist()).to.eq(ZERO_ADDRESS)
+    })
+
+    it('is idempotent', async () => {
+      await depositHook.connect(deployer).setAllowlist(ZERO_ADDRESS)
+      expect(await depositHook.getAllowlist()).to.not.eq(mockAllowlist.address)
+
+      await depositHook.connect(deployer).setAllowlist(mockAllowlist.address)
+
+      expect(await depositHook.getAllowlist()).to.eq(mockAllowlist.address)
+
+      await depositHook.connect(deployer).setAllowlist(mockAllowlist.address)
+
+      expect(await depositHook.getAllowlist()).to.eq(mockAllowlist.address)
+    })
+
+    it('emits AllowlistChange', async () => {
+      const tx = await depositHook.connect(deployer).setAllowlist(mockAllowlist.address)
+
+      await expect(tx).to.emit(depositHook, 'AllowlistChange').withArgs(mockAllowlist.address)
     })
   })
 })

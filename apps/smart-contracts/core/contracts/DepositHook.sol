@@ -3,11 +3,18 @@ pragma solidity =0.8.7;
 
 import "./interfaces/IDepositHook.sol";
 import "./interfaces/IDepositRecord.sol";
+import "./interfaces/IAllowlistHook.sol";
+import "./interfaces/IAccountList.sol";
 import "prepo-shared-contracts/contracts/SafeAccessControlEnumerable.sol";
 
-contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
+contract DepositHook is
+  IDepositHook,
+  IAllowlistHook,
+  SafeAccessControlEnumerable
+{
   ICollateral private collateral;
   IDepositRecord private depositRecord;
+  IAccountList private allowlist;
   bool public override depositsAllowed;
 
   bytes32 public constant SET_COLLATERAL_ROLE =
@@ -16,6 +23,8 @@ contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
     keccak256("DepositHook_setDepositRecord(address)");
   bytes32 public constant SET_DEPOSITS_ALLOWED_ROLE =
     keccak256("DepositHook_setDepositsAllowed(bool)");
+  bytes32 public constant SET_ALLOWLIST_ROLE =
+    keccak256("DepositHook_setAllowlist(IAccountList)");
 
   modifier onlyCollateral() {
     require(msg.sender == address(collateral), "msg.sender != collateral");
@@ -28,6 +37,7 @@ contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
     uint256 _amountAfterFee
   ) external override onlyCollateral {
     require(depositsAllowed, "deposits not allowed");
+    require(allowlist.isIncluded(_sender), "sender not allowed");
     depositRecord.recordDeposit(_sender, _amountAfterFee);
   }
 
@@ -64,5 +74,18 @@ contract DepositHook is IDepositHook, SafeAccessControlEnumerable {
 
   function getDepositRecord() external view override returns (IDepositRecord) {
     return depositRecord;
+  }
+
+  function setAllowlist(IAccountList _newAllowlist)
+    external
+    override
+    onlyRole(SET_ALLOWLIST_ROLE)
+  {
+    allowlist = _newAllowlist;
+    emit AllowlistChange(_newAllowlist);
+  }
+
+  function getAllowlist() external view override returns (IAccountList) {
+    return allowlist;
   }
 }
