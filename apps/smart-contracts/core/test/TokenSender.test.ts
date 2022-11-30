@@ -2,8 +2,11 @@ import { ethers } from 'hardhat'
 import { expect } from 'chai'
 import { id } from 'ethers/lib/utils'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
+import { MockContract } from '@defi-wonderland/smock'
+import { Contract } from 'ethers'
 import { tokenSenderFixture } from './fixtures/TokenSenderFixture'
 import { testERC20Fixture } from './fixtures/TestERC20Fixture'
+import { grantAndAcceptRole } from './utils'
 import { TokenSender } from '../typechain/TokenSender'
 import { TestERC20 } from '../typechain'
 
@@ -12,11 +15,31 @@ describe('=> TokenSender', () => {
   let deployer: SignerWithAddress
   let user: SignerWithAddress
   let outputToken: TestERC20
+  let price: SignerWithAddress
 
   beforeEach(async () => {
-    ;[deployer, user] = await ethers.getSigners()
+    ;[deployer, user, price] = await ethers.getSigners()
     outputToken = await testERC20Fixture('Output Token', 'OUT', 18)
     tokenSender = await tokenSenderFixture(outputToken.address)
+    await grantAndAcceptRole(
+      tokenSender,
+      deployer,
+      deployer,
+      await tokenSender.SET_ALLOWED_CALLERS_ROLE()
+    )
+    await grantAndAcceptRole(tokenSender, deployer, deployer, await tokenSender.SET_PRICE_ROLE())
+    await grantAndAcceptRole(
+      tokenSender,
+      deployer,
+      deployer,
+      await tokenSender.SET_PRICE_MULTIPLIER_ROLE()
+    )
+    await grantAndAcceptRole(
+      tokenSender,
+      deployer,
+      deployer,
+      await tokenSender.SET_SCALED_PRICE_LOWER_BOUND_ROLE()
+    )
   })
 
   describe('# initialize', () => {
@@ -47,6 +70,58 @@ describe('=> TokenSender', () => {
       expect(await tokenSender.SET_SCALED_PRICE_LOWER_BOUND_ROLE()).to.eq(
         id('TokenSender_setScaledPriceLowerBound(uint256)')
       )
+    })
+  })
+
+  describe('# setPrice', () => {
+    it('reverts if not role holder', async () => {
+      expect(await tokenSender.hasRole(await tokenSender.SET_PRICE_ROLE(), user.address)).to.eq(
+        false
+      )
+
+      await expect(tokenSender.connect(user).setPrice(price.address)).revertedWith(
+        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await tokenSender.SET_PRICE_ROLE()}`
+      )
+    })
+
+    it('sets to zero address', async () => {
+      await tokenSender.connect(deployer).setPrice(price.address)
+      expect(await tokenSender.getPrice()).to.not.eq(ethers.constants.AddressZero)
+
+      await tokenSender.connect(deployer).setPrice(ethers.constants.AddressZero)
+
+      expect(await tokenSender.getPrice()).to.eq(ethers.constants.AddressZero)
+    })
+
+    it('sets to non-zero address', async () => {
+      expect(await tokenSender.getPrice()).to.eq(ethers.constants.AddressZero)
+
+      await tokenSender.connect(deployer).setPrice(price.address)
+
+      expect(await tokenSender.getPrice()).to.eq(price.address)
+    })
+
+    it('is idempotent for zero address', async () => {
+      expect(await tokenSender.getPrice()).to.eq(ethers.constants.AddressZero)
+
+      await tokenSender.connect(deployer).setPrice(ethers.constants.AddressZero)
+
+      expect(await tokenSender.getPrice()).to.eq(ethers.constants.AddressZero)
+    })
+
+    it('is idempotet for non-zero address', async () => {
+      await tokenSender.connect(deployer).setPrice(price.address)
+      expect(await tokenSender.getPrice()).to.eq(price.address)
+
+      await tokenSender.connect(deployer).setPrice(price.address)
+
+      expect(await tokenSender.getPrice()).to.eq(price.address)
+    })
+
+    it('emits event', async () => {
+      await expect(tokenSender.connect(deployer).setPrice(price.address))
+        .to.emit(tokenSender, 'PriceChange')
+        .withArgs(price.address)
     })
   })
 })

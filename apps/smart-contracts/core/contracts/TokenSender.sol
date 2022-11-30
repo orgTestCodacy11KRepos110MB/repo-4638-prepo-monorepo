@@ -21,7 +21,7 @@ contract TokenSender is
 
   IERC20 private immutable _outputToken;
   uint256 private immutable _outputTokenDecimalsFactor;
-  
+
   bytes32 public constant SET_ALLOWED_CALLERS_ROLE =
     keccak256("TokenSender_setAllowedCallers(address[],bool[])");
   bytes32 public constant SET_PRICE_ROLE =
@@ -53,7 +53,10 @@ contract TokenSender is
     external
     override
     onlyRole(SET_PRICE_ROLE)
-  {}
+  {
+    _price = price;
+    emit PriceChange(price);
+  }
 
   function setPriceMultiplier(uint256 multiplier)
     external
