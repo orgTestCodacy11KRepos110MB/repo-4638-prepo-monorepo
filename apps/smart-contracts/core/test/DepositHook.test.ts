@@ -80,9 +80,6 @@ describe('=> DepositHook', () => {
       expect(await depositHook.SET_DEPOSITS_ALLOWED_ROLE()).to.eq(
         id('DepositHook_setDepositsAllowed(bool)')
       )
-      expect(await depositHook.SET_ALLOWLIST_ROLE()).to.eq(
-        id('DepositHook_setAllowlist(IAccountList)')
-      )
     })
   })
 
@@ -303,53 +300,6 @@ describe('=> DepositHook', () => {
       const tx = await depositHook.connect(deployer).setDepositsAllowed(true)
 
       await expect(tx).to.emit(depositHook, 'DepositsAllowedChange').withArgs(true)
-    })
-  })
-
-  describe('# setAllowlist', () => {
-    it('reverts if not role holder', async () => {
-      expect(await depositHook.hasRole(await depositHook.SET_ALLOWLIST_ROLE(), user.address)).to.eq(
-        false
-      )
-
-      await expect(depositHook.connect(user).setAllowlist(mockAllowlist.address)).revertedWith(
-        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await depositHook.SET_ALLOWLIST_ROLE()}`
-      )
-    })
-
-    it('sets to non-zero address', async () => {
-      await depositHook.connect(deployer).setAllowlist(ZERO_ADDRESS)
-      expect(mockAllowlist.address).to.not.eq(ZERO_ADDRESS)
-      expect(await depositHook.getAllowlist()).to.not.eq(mockAllowlist.address)
-
-      await depositHook.connect(deployer).setAllowlist(mockAllowlist.address)
-
-      expect(await depositHook.getAllowlist()).to.eq(mockAllowlist.address)
-    })
-
-    it('sets to zero address', async () => {
-      await depositHook.connect(deployer).setAllowlist(ZERO_ADDRESS)
-
-      expect(await depositHook.getAllowlist()).to.eq(ZERO_ADDRESS)
-    })
-
-    it('is idempotent', async () => {
-      await depositHook.connect(deployer).setAllowlist(ZERO_ADDRESS)
-      expect(await depositHook.getAllowlist()).to.not.eq(mockAllowlist.address)
-
-      await depositHook.connect(deployer).setAllowlist(mockAllowlist.address)
-
-      expect(await depositHook.getAllowlist()).to.eq(mockAllowlist.address)
-
-      await depositHook.connect(deployer).setAllowlist(mockAllowlist.address)
-
-      expect(await depositHook.getAllowlist()).to.eq(mockAllowlist.address)
-    })
-
-    it('emits AllowlistChange', async () => {
-      const tx = await depositHook.connect(deployer).setAllowlist(mockAllowlist.address)
-
-      await expect(tx).to.emit(depositHook, 'AllowlistChange').withArgs(mockAllowlist.address)
     })
   })
 })
