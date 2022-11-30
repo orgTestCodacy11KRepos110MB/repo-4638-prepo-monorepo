@@ -13,18 +13,19 @@ contract TokenSender is
   WithdrawERC20,
   SafeAccessControlEnumerable
 {
-  IERC20 private immutable _outputToken;
-  uint256 private immutable _outputTokenDecimalsFactor;
   IUintValue private _price;
   uint256 private _priceMultiplier;
   uint256 private _scaledPriceLowerBound;
+
+  IERC20 private immutable _outputToken;
+  uint256 private immutable _outputTokenDecimalsFactor;
 
   constructor(IERC20Metadata outputToken) {
     _outputToken = outputToken;
     _outputTokenDecimalsFactor = 10**outputToken.decimals();
   }
 
-  function send(address _recipient, uint256 _unconvertedAmount)
+  function send(address recipient, uint256 unconvertedAmount)
     external
     override
   {}

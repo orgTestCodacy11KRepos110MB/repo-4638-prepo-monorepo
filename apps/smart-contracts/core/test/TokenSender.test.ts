@@ -19,7 +19,7 @@ describe('=> TokenSender', () => {
   })
 
   describe('# initialize', () => {
-    it('has output token set', async () => {
+    it('sets output token from constructor', async () => {
       expect(await tokenSender.getOutputToken()).to.eq(outputToken.address)
     })
   })
