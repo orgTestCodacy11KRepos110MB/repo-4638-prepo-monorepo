@@ -40,12 +40,7 @@ contract PregenPass is SafeOwnable, ERC721Enumerable {
     }
   }
 
-  function tokenURI(uint256)
-    public
-    view
-    override
-    returns (string memory)
-  {
+  function tokenURI(uint256) public view override returns (string memory) {
     return uri;
   }
 

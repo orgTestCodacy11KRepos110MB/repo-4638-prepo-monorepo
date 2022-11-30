@@ -1,6 +1,6 @@
 import { ethers } from 'hardhat'
 import { MockContract, smock } from '@defi-wonderland/smock'
-import { AllowedCallers } from '../../typechain'
+import { AllowedCallers } from '../../types/generated'
 
 export async function allowedCallersFixture(): Promise<AllowedCallers> {
   const allowedCallersFactory = await ethers.getContractFactory('AllowedCallers')

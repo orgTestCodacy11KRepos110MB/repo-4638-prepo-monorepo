@@ -2,7 +2,6 @@
 pragma solidity =0.8.7;
 
 import "./interfaces/IBlocklistTransferHook.sol";
-import "./interfaces/IAccountList.sol";
 import "prepo-shared-contracts/contracts/SafeOwnable.sol";
 
 contract BlocklistTransferHook is IBlocklistTransferHook, SafeOwnable {

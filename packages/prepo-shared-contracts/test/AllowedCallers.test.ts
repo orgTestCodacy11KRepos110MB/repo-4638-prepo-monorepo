@@ -3,7 +3,7 @@ import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { smock } from '@defi-wonderland/smock'
 import { allowedCallersFixture } from './fixtures/AllowedCallersFixture'
-import { AllowedCallers } from '../typechain'
+import { AllowedCallers } from '../types/generated'
 
 chai.use(smock.matchers)
 

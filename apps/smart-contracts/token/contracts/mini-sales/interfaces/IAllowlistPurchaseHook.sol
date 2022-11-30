@@ -2,7 +2,7 @@
 pragma solidity =0.8.7;
 
 import "./IPurchaseHook.sol";
-import "../../ppo/interfaces/IAccountList.sol";
+import "prepo-shared-contracts/contracts/interfaces/IAccountList.sol";
 
 /**
  * @notice Hook that provides allowlist functionality for a `MiniSales`

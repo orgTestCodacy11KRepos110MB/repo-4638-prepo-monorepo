@@ -1,6 +1,6 @@
 import { ethers } from 'hardhat'
 import { MockContract, smock } from '@defi-wonderland/smock'
-import { DepositHook, WithdrawHook, ManagerWithdrawHook, AllowlistHook } from '../../typechain'
+import { DepositHook, WithdrawHook, ManagerWithdrawHook } from '../../typechain'
 
 export async function depositHookFixture(): Promise<DepositHook> {
   const depositHook = await ethers.getContractFactory('DepositHook')
@@ -15,11 +15,6 @@ export async function withdrawHookFixture(): Promise<WithdrawHook> {
 export async function managerWithdrawHookFixture(): Promise<ManagerWithdrawHook> {
   const managerWithdrawHook = await ethers.getContractFactory('ManagerWithdrawHook')
   return (await managerWithdrawHook.deploy()) as ManagerWithdrawHook
-}
-
-export async function allowlistHookFixture(): Promise<AllowlistHook> {
-  const factory = await ethers.getContractFactory('AllowlistHook')
-  return (await factory.deploy()) as AllowlistHook
 }
 
 export async function smockDepositHookFixture(): Promise<MockContract> {

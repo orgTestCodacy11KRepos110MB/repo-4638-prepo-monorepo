@@ -2,8 +2,8 @@ import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { ZERO_ADDRESS } from 'prepo-constants'
-import { allowlistHookFixture } from './fixtures/HookFixture'
-import { AllowlistHook } from '../typechain/AllowlistHook'
+import { allowlistHookFixture } from './fixtures/AllowlistHookFixture'
+import { AllowlistHook } from '../types/generated'
 
 describe('=> AllowlistHook', () => {
   let allowlistHook: AllowlistHook

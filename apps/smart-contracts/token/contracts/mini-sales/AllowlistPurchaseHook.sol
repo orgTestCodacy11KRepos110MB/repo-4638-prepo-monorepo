@@ -2,7 +2,6 @@
 pragma solidity =0.8.7;
 
 import "./interfaces/IAllowlistPurchaseHook.sol";
-import "../ppo/interfaces/IAccountList.sol";
 import "prepo-shared-contracts/contracts/SafeOwnable.sol";
 
 contract AllowlistPurchaseHook is IAllowlistPurchaseHook, SafeOwnable {

@@ -2,7 +2,7 @@
 pragma solidity =0.8.7;
 
 import "./IBlocklistTransferHook.sol";
-import "./IAccountList.sol";
+import "prepo-shared-contracts/contracts/interfaces/IAccountList.sol";
 
 /**
  * @notice Hook for restricting transfers of an ERC20 token.

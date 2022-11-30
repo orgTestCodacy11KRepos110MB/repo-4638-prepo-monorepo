@@ -3,7 +3,7 @@ pragma solidity =0.8.7;
 
 import "./interfaces/IDepositHook.sol";
 import "./interfaces/IDepositRecord.sol";
-import "./AllowlistHook.sol";
+import "prepo-shared-contracts/contracts/AllowlistHook.sol";
 import "prepo-shared-contracts/contracts/SafeAccessControlEnumerable.sol";
 
 contract DepositHook is

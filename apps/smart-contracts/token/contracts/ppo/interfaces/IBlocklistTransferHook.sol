@@ -2,7 +2,7 @@
 pragma solidity =0.8.7;
 
 import "./ITransferHook.sol";
-import "./IAccountList.sol";
+import "prepo-shared-contracts/contracts/interfaces/IAccountList.sol";
 
 /**
  * @notice Hook that provides blocklist functionality for token transfers.

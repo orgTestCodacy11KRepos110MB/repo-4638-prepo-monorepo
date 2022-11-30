@@ -2,7 +2,6 @@
 pragma solidity =0.8.7;
 
 import "./interfaces/IRestrictedTransferHook.sol";
-import "./interfaces/IAccountList.sol";
 import "./BlocklistTransferHook.sol";
 
 contract RestrictedTransferHook is
