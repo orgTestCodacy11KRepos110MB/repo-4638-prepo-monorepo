@@ -3,7 +3,6 @@ pragma solidity =0.8.7;
 
 import "./interfaces/IDepositHook.sol";
 import "./interfaces/IDepositRecord.sol";
-import "./interfaces/IAccountList.sol";
 import "./AllowlistHook.sol";
 import "prepo-shared-contracts/contracts/SafeAccessControlEnumerable.sol";
 
@@ -14,7 +13,6 @@ contract DepositHook is
 {
   ICollateral private collateral;
   IDepositRecord private depositRecord;
-  IAccountList private allowlist;
   bool public override depositsAllowed;
 
   bytes32 public constant SET_COLLATERAL_ROLE =
@@ -23,8 +21,6 @@ contract DepositHook is
     keccak256("DepositHook_setDepositRecord(address)");
   bytes32 public constant SET_DEPOSITS_ALLOWED_ROLE =
     keccak256("DepositHook_setDepositsAllowed(bool)");
-  bytes32 public constant SET_ALLOWLIST_ROLE =
-    keccak256("DepositHook_setAllowlist(IAccountList)");
 
   modifier onlyCollateral() {
     require(msg.sender == address(collateral), "msg.sender != collateral");
