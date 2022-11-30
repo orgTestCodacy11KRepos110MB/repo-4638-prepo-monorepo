@@ -2,6 +2,7 @@
 pragma solidity =0.8.7;
 
 import "./ILongShortToken.sol";
+import "./IMarketHook.sol";
 
 /**
  * @notice Users can mint/redeem long/short positions on a specific asset in
@@ -20,7 +21,6 @@ interface IPrePOMarket {
   /// @param ceilingLongPayout Long token payout ceiling
   /// @param floorValuation Market valuation floor
   /// @param ceilingValuation Market valuation ceiling
-  /// @param redemptionFee Market redemption fee
   /// @param expiryTime Market expiry time
   event MarketCreated(
     address longToken,
@@ -29,7 +29,6 @@ interface IPrePOMarket {
     uint256 ceilingLongPayout,
     uint256 floorValuation,
     uint256 ceilingValuation,
-    uint256 redemptionFee,
     uint256 expiryTime
   );
 
@@ -38,14 +37,19 @@ interface IPrePOMarket {
   /// @param amount The amount of Long/Short tokens minted
   event Mint(address indexed minter, uint256 amount);
 
-  /// @dev Emitted via `redeem()`.
-  /// @param redeemer The address of the redeemer
-  /// @param amount The amount of Long/Short tokens redeemed
-  event Redemption(address indexed redeemer, uint256 amount);
+  event Redemption(
+    address indexed redeemer,
+    uint256 amountAfterFee,
+    uint256 fee
+  );
 
   /// @dev Emitted via `setTreasury()`.
   /// @param treasury The new treasury address
   event TreasuryChange(address treasury);
+
+  event MintHookChange(address hook);
+
+  event RedeemHookChange(address hook);
 
   /// @dev Emitted via `setFinalLongPayout()`.
   /// @param payout The final Long payout
@@ -87,6 +91,10 @@ interface IPrePOMarket {
    */
   function setTreasury(address _treasury) external;
 
+  function setMintHook(IMarketHook mintHook) external;
+
+  function setRedeemHook(IMarketHook redeemHook) external;
+
   /**
    * @notice Sets the payout a Long token can be redeemed for after the
    * market has ended (in wei units of Collateral).
@@ -108,6 +116,10 @@ interface IPrePOMarket {
 
   /// @return Treasury address where minting/redemption fees are sent
   function getTreasury() external view returns (address);
+
+  function getMintHook() external view returns (IMarketHook);
+
+  function getRedeemHook() external view returns (IMarketHook);
 
   /// @return Collateral token used to fund Long/Short positions
   function getCollateral() external view returns (IERC20);

@@ -10,6 +10,9 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
   address private treasury;
 
+  IMarketHook private _mintHook;
+  IMarketHook private _redeemHook;
+
   IERC20 private immutable collateral;
   ILongShortToken private immutable longToken;
   ILongShortToken private immutable shortToken;
@@ -27,7 +30,7 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
 
   uint256 private constant MAX_PAYOUT = 1e18;
   uint256 private constant FEE_DENOMINATOR = 1000000;
-  uint256 private constant FEE_LIMIT = 50000;
+  uint256 private constant FEE_LIMIT = 100000;
 
   /**
    * Assumes `_collateral`, `_longToken`, and `_shortToken` are
@@ -47,7 +50,6 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
     uint256 _ceilingLongPayout,
     uint256 _floorValuation,
     uint256 _ceilingValuation,
-    uint256 _redemptionFee,
     uint256 _expiryTime
   ) {
     require(
@@ -55,7 +57,6 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
       "Ceiling must exceed floor"
     );
     require(_expiryTime > block.timestamp, "Invalid expiry");
-    require(_redemptionFee <= FEE_LIMIT, "Exceeds fee limit");
     require(_ceilingLongPayout <= MAX_PAYOUT, "Ceiling cannot exceed 1");
 
     transferOwnership(_governance);
@@ -72,8 +73,6 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
     floorValuation = _floorValuation;
     ceilingValuation = _ceilingValuation;
 
-    redemptionFee = _redemptionFee;
-
     expiryTime = _expiryTime;
 
     emit MarketCreated(
@@ -83,7 +82,6 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
       _ceilingLongPayout,
       _floorValuation,
       _ceilingValuation,
-      _redemptionFee,
       _expiryTime
     );
   }
@@ -120,37 +118,49 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
       "Insufficient short tokens"
     );
 
-    uint256 _collateralOwed;
+    uint256 _collateralAmount;
     if (finalLongPayout <= MAX_PAYOUT) {
       uint256 _shortPayout = MAX_PAYOUT - finalLongPayout;
-      _collateralOwed =
+      _collateralAmount =
         (finalLongPayout * _longAmount + _shortPayout * _shortAmount) /
         MAX_PAYOUT;
     } else {
       require(_longAmount == _shortAmount, "Long and Short must be equal");
-      _collateralOwed = _longAmount;
+      _collateralAmount = _longAmount;
+    }
+
+    uint256 _fee = (_collateralAmount * redemptionFee) / FEE_DENOMINATOR;
+    if (redemptionFee > 0) {
+      require(_fee > 0, "fee = 0");
+    } else {
+      require(_collateralAmount > 0, "amount = 0");
     }
 
     longToken.burnFrom(msg.sender, _longAmount);
     shortToken.burnFrom(msg.sender, _shortAmount);
-    /**
-     * Add 1 to avoid rounding to zero, only process if user is redeeming
-     * an amount large enough to pay a fee
-     */
-    uint256 _fee = (_collateralOwed * redemptionFee) / FEE_DENOMINATOR + 1;
-    require(_collateralOwed > _fee, "Redemption amount too small");
     collateral.transfer(treasury, _fee);
+    uint256 _collateralAmountAfterFee;
     unchecked {
-      _collateralOwed -= _fee;
+      _collateralAmountAfterFee = _collateralAmount - _fee;
     }
-    collateral.transfer(msg.sender, _collateralOwed);
+    collateral.transfer(msg.sender, _collateralAmountAfterFee);
 
-    emit Redemption(msg.sender, _collateralOwed);
+    emit Redemption(msg.sender, _collateralAmountAfterFee, _fee);
   }
 
   function setTreasury(address _treasury) external override onlyOwner {
     treasury = _treasury;
     emit TreasuryChange(_treasury);
+  }
+
+  function setMintHook(IMarketHook mintHook) external override onlyOwner {
+    _mintHook = mintHook;
+    emit MintHookChange(address(mintHook));
+  }
+
+  function setRedeemHook(IMarketHook redeemHook) external override onlyOwner {
+    _redeemHook = redeemHook;
+    emit RedeemHookChange(address(redeemHook));
   }
 
   function setFinalLongPayout(uint256 _finalLongPayout)
@@ -182,6 +192,14 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
 
   function getTreasury() external view override returns (address) {
     return treasury;
+  }
+
+  function getMintHook() external view override returns (IMarketHook) {
+    return _mintHook;
+  }
+
+  function getRedeemHook() external view override returns (IMarketHook) {
+    return _redeemHook;
   }
 
   function getCollateral() external view override returns (IERC20) {

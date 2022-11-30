@@ -7,13 +7,14 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { MockContract } from '@defi-wonderland/smock'
 
 export const FEE_DENOMINATOR = 1000000
-export const FEE_LIMIT = 50000
+export const COLLATERAL_FEE_LIMIT = 100000
+export const MARKET_FEE_LIMIT = 100000
 export const MAX_PAYOUT = parseEther('1')
 export const DEFAULT_TIME_DELAY = 5
 export const PERCENT_DENOMINATOR = 1000000
 
 export function calculateFee(amount: BigNumber, factor: BigNumber): BigNumber {
-  return amount.mul(factor).div(FEE_DENOMINATOR).add(1)
+  return amount.mul(factor).div(FEE_DENOMINATOR)
 }
 
 export function returnFromMockAPY(

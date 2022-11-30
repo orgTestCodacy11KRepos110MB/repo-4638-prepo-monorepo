@@ -101,7 +101,6 @@ describe('=> PrePOMarketFactory', () => {
         ceilingLongPayout: TEST_CEILING_PRICE,
         floorValuation: TEST_FLOOR_VAL,
         ceilingValuation: TEST_CEILING_VAL,
-        redemptionFee: TEST_REDEMPTION_FEE,
         expiryTime: TEST_EXPIRY,
       }
 
@@ -160,7 +159,7 @@ describe('=> PrePOMarketFactory', () => {
       expect(await shortToken.owner()).to.eq(prePOMarket.address)
       expect(await prePOMarket.getFloorLongPayout()).to.eq(TEST_FLOOR_PRICE)
       expect(await prePOMarket.getCeilingLongPayout()).to.eq(TEST_CEILING_PRICE)
-      expect(await prePOMarket.getRedemptionFee()).to.eq(TEST_REDEMPTION_FEE)
+      expect(await prePOMarket.getRedemptionFee()).to.eq(0)
     })
 
     it('should generate the long/short hash correctly', async () => {

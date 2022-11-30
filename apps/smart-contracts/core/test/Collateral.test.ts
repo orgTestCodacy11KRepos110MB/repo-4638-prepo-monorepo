@@ -13,7 +13,12 @@ import {
 import { collateralFixture } from './fixtures/CollateralFixture'
 import { smockDepositRecordFixture } from './fixtures/DepositRecordFixture'
 import { testERC20Fixture } from './fixtures/TestERC20Fixture'
-import { FEE_DENOMINATOR, grantAndAcceptRole, PERCENT_DENOMINATOR } from './utils'
+import {
+  FEE_DENOMINATOR,
+  COLLATERAL_FEE_LIMIT,
+  grantAndAcceptRole,
+  PERCENT_DENOMINATOR,
+} from './utils'
 import { Collateral, TestERC20 } from '../typechain'
 
 chai.use(smock.matchers)
@@ -37,7 +42,7 @@ describe('=> Collateral', () => {
   const USDC_DECIMALS = 6
   const USDC_DENOMINATOR = 10 ** USDC_DECIMALS
 
-  const getSignersAndDeployCollateral = async (
+  const getSignersAndDeployContracts = async (
     baseTokenDecimals: number = USDC_DECIMALS
   ): Promise<void> => {
     ;[deployer, manager, user1, user2] = await ethers.getSigners()
@@ -51,14 +56,17 @@ describe('=> Collateral', () => {
     depositRecord = await smockDepositRecordFixture(TEST_GLOBAL_DEPOSIT_CAP, TEST_USER_DEPOSIT_CAP)
     depositHook = await smockDepositHookFixture()
     withdrawHook = await smockWithdrawHookFixture()
+    managerWithdrawHook = await smockManagerWithdrawHookFixture()
     await grantAndAcceptRole(
       depositRecord,
       deployer,
       deployer,
       await depositRecord.SET_ALLOWED_HOOK_ROLE()
     )
+  }
+
+  const setupDepositHook = async (): Promise<void> => {
     await depositRecord.connect(deployer).setAllowedHook(depositHook.address, true)
-    await depositRecord.connect(deployer).setAllowedHook(withdrawHook.address, true)
     await grantAndAcceptRole(
       depositHook,
       deployer,
@@ -80,6 +88,10 @@ describe('=> Collateral', () => {
     await depositHook.connect(deployer).setCollateral(collateral.address)
     await depositHook.connect(deployer).setDepositRecord(depositRecord.address)
     await depositHook.connect(deployer).setDepositsAllowed(true)
+  }
+
+  const setupWithdrawHook = async (): Promise<void> => {
+    await depositRecord.connect(deployer).setAllowedHook(withdrawHook.address, true)
     await grantAndAcceptRole(
       withdrawHook,
       deployer,
@@ -101,7 +113,9 @@ describe('=> Collateral', () => {
     await withdrawHook.connect(deployer).setCollateral(collateral.address)
     await withdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
     await withdrawHook.connect(deployer).setWithdrawalsAllowed(true)
-    managerWithdrawHook = await smockManagerWithdrawHookFixture()
+  }
+
+  const setupManagerWithdrawHook = async (): Promise<void> => {
     await grantAndAcceptRole(
       managerWithdrawHook,
       deployer,
@@ -125,8 +139,7 @@ describe('=> Collateral', () => {
     await managerWithdrawHook.connect(deployer).setMinReservePercentage(TEST_MIN_RESERVE_PERCENTAGE)
   }
 
-  const setupCollateral = async (baseTokenDecimals: number = USDC_DECIMALS): Promise<void> => {
-    await getSignersAndDeployCollateral(baseTokenDecimals)
+  const setupCollateralRoles = async (): Promise<void> => {
     await grantAndAcceptRole(
       collateral,
       deployer,
@@ -167,13 +180,28 @@ describe('=> Collateral', () => {
     await collateral.connect(deployer).setManager(manager.address)
   }
 
+  const setupCollateralStackForDeposits = async (
+    baseTokenDecimals: number = USDC_DECIMALS
+  ): Promise<void> => {
+    await getSignersAndDeployContracts(baseTokenDecimals)
+    await setupCollateralRoles()
+    await setupDepositHook()
+  }
+
+  const setupCollateralStackForWithdrawals = async (
+    baseTokenDecimals: number = USDC_DECIMALS
+  ): Promise<void> => {
+    await setupCollateralStackForDeposits(baseTokenDecimals)
+    await setupWithdrawHook()
+  }
+
   before(() => {
     upgrades.silenceWarnings()
   })
 
   describe('initial state', () => {
     beforeEach(async () => {
-      await getSignersAndDeployCollateral()
+      await getSignersAndDeployContracts()
     })
 
     it('sets base token from constructor', async () => {
@@ -190,6 +218,10 @@ describe('=> Collateral', () => {
 
     it('sets DEFAULT_ADMIN_ROLE holder to deployer', async () => {
       expect(await collateral.hasRole(DEFAULT_ADMIN_ROLE, deployer.address)).to.eq(true)
+    })
+
+    it('sets FEE_LIMIT constant', async () => {
+      expect(await collateral.FEE_LIMIT()).to.eq(COLLATERAL_FEE_LIMIT)
     })
 
     it('sets role constants to the correct hash', async () => {
@@ -215,7 +247,7 @@ describe('=> Collateral', () => {
 
   describe('# setManager ', () => {
     beforeEach(async () => {
-      await getSignersAndDeployCollateral()
+      await getSignersAndDeployContracts()
       await grantAndAcceptRole(collateral, deployer, deployer, await collateral.SET_MANAGER_ROLE())
     })
 
@@ -267,7 +299,7 @@ describe('=> Collateral', () => {
 
   describe('# setDepositFee', () => {
     beforeEach(async () => {
-      await getSignersAndDeployCollateral()
+      await getSignersAndDeployContracts()
       await grantAndAcceptRole(
         collateral,
         deployer,
@@ -286,13 +318,26 @@ describe('=> Collateral', () => {
       )
     })
 
-    it('sets to non-zero value', async () => {
-      expect(TEST_DEPOSIT_FEE).to.not.eq(0)
-      expect(await collateral.getDepositFee()).to.not.eq(TEST_DEPOSIT_FEE)
+    it('reverts if > FEE_LIMIT', async () => {
+      await expect(
+        collateral.connect(deployer).setDepositFee(COLLATERAL_FEE_LIMIT + 1)
+      ).revertedWith('exceeds fee limit')
+    })
 
-      await collateral.connect(deployer).setDepositFee(TEST_DEPOSIT_FEE)
+    it('sets to FEE_LIMIT', async () => {
+      expect(await collateral.getDepositFee()).to.not.eq(COLLATERAL_FEE_LIMIT)
 
-      expect(await collateral.getDepositFee()).to.eq(TEST_DEPOSIT_FEE)
+      await collateral.connect(deployer).setDepositFee(COLLATERAL_FEE_LIMIT)
+
+      expect(await collateral.getDepositFee()).to.eq(COLLATERAL_FEE_LIMIT)
+    })
+
+    it('sets to < FEE_LIMIT', async () => {
+      expect(await collateral.getDepositFee()).to.not.eq(COLLATERAL_FEE_LIMIT - 1)
+
+      await collateral.connect(deployer).setDepositFee(COLLATERAL_FEE_LIMIT - 1)
+
+      expect(await collateral.getDepositFee()).to.eq(COLLATERAL_FEE_LIMIT - 1)
     })
 
     it('sets to zero', async () => {
@@ -325,7 +370,7 @@ describe('=> Collateral', () => {
 
   describe('# setWithdrawFee', () => {
     beforeEach(async () => {
-      await getSignersAndDeployCollateral()
+      await getSignersAndDeployContracts()
       await grantAndAcceptRole(
         collateral,
         deployer,
@@ -344,13 +389,26 @@ describe('=> Collateral', () => {
       )
     })
 
-    it('sets to non-zero value', async () => {
-      expect(TEST_WITHDRAW_FEE).to.not.eq(0)
-      expect(await collateral.getWithdrawFee()).to.not.eq(TEST_WITHDRAW_FEE)
+    it('reverts if > FEE_LIMIT', async () => {
+      await expect(
+        collateral.connect(deployer).setWithdrawFee(COLLATERAL_FEE_LIMIT + 1)
+      ).revertedWith('exceeds fee limit')
+    })
 
-      await collateral.connect(deployer).setWithdrawFee(TEST_WITHDRAW_FEE)
+    it('sets to FEE_LIMIT', async () => {
+      expect(await collateral.getWithdrawFee()).to.not.eq(COLLATERAL_FEE_LIMIT)
 
-      expect(await collateral.getWithdrawFee()).to.eq(TEST_WITHDRAW_FEE)
+      await collateral.connect(deployer).setWithdrawFee(COLLATERAL_FEE_LIMIT)
+
+      expect(await collateral.getWithdrawFee()).to.eq(COLLATERAL_FEE_LIMIT)
+    })
+
+    it('sets to < FEE_LIMIT', async () => {
+      expect(await collateral.getWithdrawFee()).to.not.eq(COLLATERAL_FEE_LIMIT - 1)
+
+      await collateral.connect(deployer).setWithdrawFee(COLLATERAL_FEE_LIMIT - 1)
+
+      expect(await collateral.getWithdrawFee()).to.eq(COLLATERAL_FEE_LIMIT - 1)
     })
 
     it('sets to zero', async () => {
@@ -383,7 +441,7 @@ describe('=> Collateral', () => {
 
   describe('# setDepositHook', () => {
     beforeEach(async () => {
-      await getSignersAndDeployCollateral()
+      await getSignersAndDeployContracts()
       await grantAndAcceptRole(
         collateral,
         deployer,
@@ -440,7 +498,7 @@ describe('=> Collateral', () => {
 
   describe('# setWithdrawHook', () => {
     beforeEach(async () => {
-      await getSignersAndDeployCollateral()
+      await getSignersAndDeployContracts()
       await grantAndAcceptRole(
         collateral,
         deployer,
@@ -497,7 +555,7 @@ describe('=> Collateral', () => {
 
   describe('# setManagerWithdrawHook', () => {
     beforeEach(async () => {
-      await getSignersAndDeployCollateral()
+      await getSignersAndDeployContracts()
       await grantAndAcceptRole(
         collateral,
         deployer,
@@ -554,7 +612,7 @@ describe('=> Collateral', () => {
 
   describe('# getReserve', () => {
     beforeEach(async () => {
-      await setupCollateral()
+      await getSignersAndDeployContracts()
     })
 
     it("returns contract's base token balance", async () => {
@@ -568,7 +626,9 @@ describe('=> Collateral', () => {
 
   describe('# managerWithdraw', () => {
     beforeEach(async () => {
-      await setupCollateral()
+      await getSignersAndDeployContracts()
+      await setupCollateralRoles()
+      await setupManagerWithdrawHook()
       await baseToken.mint(collateral.address, parseUnits('1', 6))
       await collateral.connect(deployer).setManagerWithdrawHook(managerWithdrawHook.address)
     })
@@ -639,13 +699,21 @@ describe('=> Collateral', () => {
   describe('# deposit', () => {
     let sender: SignerWithAddress
     let recipient: SignerWithAddress
-    beforeEach(async () => {
-      await setupCollateral()
+    beforeEach(async function () {
+      if (this.currentTest?.title.includes('= base token decimals')) {
+        await setupCollateralStackForDeposits(18)
+      } else if (this.currentTest?.title.includes('< base token decimals')) {
+        await setupCollateralStackForDeposits(19)
+      } else {
+        await setupCollateralStackForDeposits()
+      }
       sender = user1
       recipient = user2
       expect(sender.address).to.not.eq(recipient.address)
-      await baseToken.mint(sender.address, parseUnits('1', USDC_DECIMALS))
-      await baseToken.connect(sender).approve(collateral.address, parseUnits('1', USDC_DECIMALS))
+      await baseToken.mint(sender.address, parseUnits('1', await baseToken.decimals()))
+      await baseToken
+        .connect(sender)
+        .approve(collateral.address, parseUnits('1', await baseToken.decimals()))
       await collateral.connect(deployer).setDepositFee(TEST_DEPOSIT_FEE)
       await collateral.connect(deployer).setDepositHook(depositHook.address)
     })
@@ -788,13 +856,10 @@ describe('=> Collateral', () => {
 
     it('mints decimal-adjusted amount to recipient if decimals = base token decimals', async () => {
       // Setup 18 decimal base token
-      await setupCollateral(await collateral.decimals())
       expect(await collateral.decimals()).to.eq(await baseToken.decimals())
-      await baseToken.mint(sender.address, parseEther('1'))
       const recipientCTBefore = await collateral.balanceOf(recipient.address)
       const amountToDeposit = await baseToken.balanceOf(sender.address)
       expect(amountToDeposit).to.be.gt(0)
-      await baseToken.connect(sender).approve(collateral.address, amountToDeposit)
       expect(await baseToken.allowance(sender.address, collateral.address)).to.be.eq(
         amountToDeposit
       )
@@ -809,13 +874,10 @@ describe('=> Collateral', () => {
 
     it('mints decimal-adjusted amount to recipient if decimals < base token decimals', async () => {
       // Setup 19 decimal base token
-      await setupCollateral((await collateral.decimals()) + 1)
       expect(await collateral.decimals()).to.be.lt(await baseToken.decimals())
-      await baseToken.mint(sender.address, parseUnits('1', (await collateral.decimals()) + 1))
       const recipientCTBefore = await collateral.balanceOf(recipient.address)
       const amountToDeposit = await baseToken.balanceOf(sender.address)
       expect(amountToDeposit).to.be.gt(0)
-      await baseToken.connect(sender).approve(collateral.address, amountToDeposit)
       expect(await baseToken.allowance(sender.address, collateral.address)).to.be.eq(
         amountToDeposit
       )
@@ -928,11 +990,21 @@ describe('=> Collateral', () => {
   })
 
   describe('# withdraw', () => {
-    beforeEach(async () => {
-      await setupCollateral()
-      await baseToken.mint(user1.address, parseUnits('1', USDC_DECIMALS))
-      await baseToken.connect(user1).approve(collateral.address, parseUnits('1', USDC_DECIMALS))
-      await collateral.connect(user1).deposit(user1.address, parseUnits('1', USDC_DECIMALS))
+    beforeEach(async function () {
+      if (this.currentTest?.title.includes('= base token decimals')) {
+        await setupCollateralStackForWithdrawals(18)
+      } else if (this.currentTest?.title.includes('< base token decimals')) {
+        await setupCollateralStackForWithdrawals(19)
+      } else {
+        await setupCollateralStackForWithdrawals()
+      }
+      await baseToken.mint(user1.address, parseUnits('1', await baseToken.decimals()))
+      await baseToken
+        .connect(user1)
+        .approve(collateral.address, parseUnits('1', await baseToken.decimals()))
+      await collateral
+        .connect(user1)
+        .deposit(user1.address, parseUnits('1', await baseToken.decimals()))
       await collateral.connect(deployer).setWithdrawFee(TEST_WITHDRAW_FEE)
       await collateral.connect(deployer).setWithdrawHook(withdrawHook.address)
     })
@@ -1027,7 +1099,7 @@ describe('=> Collateral', () => {
       expect(await baseToken.balanceOf(collateral.address)).to.eq(fee)
     })
 
-    it('transfers base tokens to user adjusting for when decimals > base token decimal', async () => {
+    it('transfers base tokens to user adjusting for when decimals > base token decimals', async () => {
       expect(await collateral.decimals()).to.be.gt(await baseToken.decimals())
       const userBTBefore = await baseToken.balanceOf(user1.address)
       const amountToWithdraw = await collateral.balanceOf(user1.address)
@@ -1042,13 +1114,7 @@ describe('=> Collateral', () => {
 
     it('approves fee to hook adjusting for when decimals = base token decimals', async () => {
       // Setup 18 decimal base token
-      await setupCollateral(await collateral.decimals())
-      await collateral.connect(deployer).setWithdrawFee(TEST_WITHDRAW_FEE)
-      await collateral.connect(deployer).setWithdrawHook(withdrawHook.address)
       expect(await collateral.decimals()).to.eq(await baseToken.decimals())
-      await baseToken.mint(user1.address, parseEther('1'))
-      await baseToken.connect(user1).approve(collateral.address, parseEther('1'))
-      await collateral.connect(user1).deposit(user1.address, parseEther('1'))
       const amountToWithdraw = await collateral.balanceOf(user1.address)
       expect(amountToWithdraw).to.be.gt(0)
       const expectedBT = amountToWithdraw
@@ -1063,15 +1129,9 @@ describe('=> Collateral', () => {
       expect(await baseToken.balanceOf(collateral.address)).to.eq(fee)
     })
 
-    it('transfers base tokens to user adjusting for when decimals = base token decimal', async () => {
+    it('transfers base tokens to user adjusting for when decimals = base token decimals', async () => {
       // Setup 18 decimal base token
-      await setupCollateral(await collateral.decimals())
-      await collateral.connect(deployer).setWithdrawFee(TEST_WITHDRAW_FEE)
-      await collateral.connect(deployer).setWithdrawHook(withdrawHook.address)
       expect(await collateral.decimals()).to.eq(await baseToken.decimals())
-      await baseToken.mint(user1.address, parseEther('1'))
-      await baseToken.connect(user1).approve(collateral.address, parseEther('1'))
-      await collateral.connect(user1).deposit(user1.address, parseEther('1'))
       const userBTBefore = await baseToken.balanceOf(user1.address)
       const amountToWithdraw = await collateral.balanceOf(user1.address)
       expect(amountToWithdraw).to.be.gt(0)
@@ -1085,17 +1145,7 @@ describe('=> Collateral', () => {
 
     it('approves fee to hook adjusting for when decimals < base token decimals', async () => {
       // Setup 19 decimal base token
-      await setupCollateral((await collateral.decimals()) + 1)
-      await collateral.connect(deployer).setWithdrawFee(TEST_WITHDRAW_FEE)
-      await collateral.connect(deployer).setWithdrawHook(withdrawHook.address)
       expect(await collateral.decimals()).to.be.lt(await baseToken.decimals())
-      await baseToken.mint(user1.address, parseUnits('1', await baseToken.decimals()))
-      await baseToken
-        .connect(user1)
-        .approve(collateral.address, parseUnits('1', await baseToken.decimals()))
-      await collateral
-        .connect(user1)
-        .deposit(user1.address, parseUnits('1', await baseToken.decimals()))
       const amountToWithdraw = await collateral.balanceOf(user1.address)
       expect(amountToWithdraw).to.be.gt(0)
       const GREATER_DECIMAL_DENOMINATOR = parseUnits('1', (await collateral.decimals()) + 1)
@@ -1111,19 +1161,9 @@ describe('=> Collateral', () => {
       expect(await baseToken.balanceOf(collateral.address)).to.eq(fee)
     })
 
-    it('transfers base tokens to user adjusting for when decimals < base token decimal', async () => {
+    it('transfers base tokens to user adjusting for when decimals < base token decimals', async () => {
       // Setup 19 decimal base token
-      await setupCollateral((await collateral.decimals()) + 1)
-      await collateral.connect(deployer).setWithdrawFee(TEST_WITHDRAW_FEE)
-      await collateral.connect(deployer).setWithdrawHook(withdrawHook.address)
       expect(await collateral.decimals()).to.be.lt(await baseToken.decimals())
-      await baseToken.mint(user1.address, parseUnits('1', await baseToken.decimals()))
-      await baseToken
-        .connect(user1)
-        .approve(collateral.address, parseUnits('1', await baseToken.decimals()))
-      await collateral
-        .connect(user1)
-        .deposit(user1.address, parseUnits('1', await baseToken.decimals()))
       const userBTBefore = await baseToken.balanceOf(user1.address)
       const amountToWithdraw = await collateral.balanceOf(user1.address)
       expect(amountToWithdraw).to.be.gt(0)

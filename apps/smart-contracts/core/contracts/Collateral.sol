@@ -24,6 +24,7 @@ contract Collateral is
   ICollateralHook private managerWithdrawHook;
 
   uint256 public constant FEE_DENOMINATOR = 1000000;
+  uint256 public constant FEE_LIMIT = 100000;
   bytes32 public constant MANAGER_WITHDRAW_ROLE =
     keccak256("Collateral_managerWithdraw(uint256)");
   bytes32 public constant SET_MANAGER_ROLE =
@@ -131,6 +132,7 @@ contract Collateral is
     override
     onlyRole(SET_DEPOSIT_FEE_ROLE)
   {
+    require(_newDepositFee <= FEE_LIMIT, "exceeds fee limit");
     depositFee = _newDepositFee;
     emit DepositFeeChange(_newDepositFee);
   }
@@ -140,6 +142,7 @@ contract Collateral is
     override
     onlyRole(SET_WITHDRAW_FEE_ROLE)
   {
+    require(_newWithdrawFee <= FEE_LIMIT, "exceeds fee limit");
     withdrawFee = _newWithdrawFee;
     emit WithdrawFeeChange(_newWithdrawFee);
   }
