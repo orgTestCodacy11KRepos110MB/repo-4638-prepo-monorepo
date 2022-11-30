@@ -62,13 +62,19 @@ contract TokenSender is
     external
     override
     onlyRole(SET_PRICE_MULTIPLIER_ROLE)
-  {}
+  {
+    _priceMultiplier = multiplier;
+    emit PriceMultiplierChange(multiplier);
+  }
 
   function setScaledPriceLowerBound(uint256 lowerBound)
     external
     override
     onlyRole(SET_SCALED_PRICE_LOWER_BOUND_ROLE)
-  {}
+  {
+    _scaledPriceLowerBound = lowerBound;
+    emit ScaledPriceLowerBoundChange(lowerBound);
+  }
 
   function getOutputToken() external view override returns (IERC20) {
     return _outputToken;

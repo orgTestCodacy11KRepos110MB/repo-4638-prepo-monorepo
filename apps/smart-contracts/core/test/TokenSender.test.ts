@@ -124,4 +124,111 @@ describe('=> TokenSender', () => {
         .withArgs(price.address)
     })
   })
+
+  describe('# setPriceMultiplier', () => {
+    it('reverts if not role holder', async () => {
+      expect(
+        await tokenSender.hasRole(await tokenSender.SET_PRICE_MULTIPLIER_ROLE(), user.address)
+      ).to.eq(false)
+
+      await expect(tokenSender.connect(user).setPriceMultiplier(1)).revertedWith(
+        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await tokenSender.SET_PRICE_MULTIPLIER_ROLE()}`
+      )
+    })
+
+    it('sets to 0', async () => {
+      await tokenSender.connect(deployer).setPriceMultiplier(1)
+      expect(await tokenSender.getPriceMultiplier()).to.not.eq(0)
+
+      await tokenSender.connect(deployer).setPriceMultiplier(0)
+
+      expect(await tokenSender.getPriceMultiplier()).to.eq(0)
+    })
+
+    it('sets to non-zero', async () => {
+      expect(await tokenSender.getPriceMultiplier()).to.eq(0)
+
+      await tokenSender.connect(deployer).setPriceMultiplier(1)
+
+      expect(await tokenSender.getPriceMultiplier()).to.eq(1)
+    })
+
+    it('is idempotent for 0', async () => {
+      expect(await tokenSender.getPriceMultiplier()).to.eq(0)
+
+      await tokenSender.connect(deployer).setPriceMultiplier(0)
+
+      expect(await tokenSender.getPriceMultiplier()).to.eq(0)
+    })
+
+    it('is idempotet for non-zero', async () => {
+      await tokenSender.connect(deployer).setPriceMultiplier(1)
+      expect(await tokenSender.getPriceMultiplier()).to.eq(1)
+
+      await tokenSender.connect(deployer).setPriceMultiplier(1)
+
+      expect(await tokenSender.getPriceMultiplier()).to.eq(1)
+    })
+
+    it('emits event', async () => {
+      await expect(tokenSender.connect(deployer).setPriceMultiplier(1))
+        .to.emit(tokenSender, 'PriceMultiplierChange')
+        .withArgs(1)
+    })
+  })
+
+  describe('# setScaledPriceLowerBound', () => {
+    it('reverts if not role holder', async () => {
+      expect(
+        await tokenSender.hasRole(
+          await tokenSender.SET_SCALED_PRICE_LOWER_BOUND_ROLE(),
+          user.address
+        )
+      ).to.eq(false)
+
+      await expect(tokenSender.connect(user).setScaledPriceLowerBound(1)).revertedWith(
+        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await tokenSender.SET_SCALED_PRICE_LOWER_BOUND_ROLE()}`
+      )
+    })
+
+    it('sets to 0', async () => {
+      await tokenSender.connect(deployer).setScaledPriceLowerBound(1)
+      expect(await tokenSender.getScaledPriceLowerBound()).to.not.eq(0)
+
+      await tokenSender.connect(deployer).setScaledPriceLowerBound(0)
+
+      expect(await tokenSender.getScaledPriceLowerBound()).to.eq(0)
+    })
+
+    it('sets to non-zero', async () => {
+      expect(await tokenSender.getScaledPriceLowerBound()).to.eq(0)
+
+      await tokenSender.connect(deployer).setScaledPriceLowerBound(1)
+
+      expect(await tokenSender.getScaledPriceLowerBound()).to.eq(1)
+    })
+
+    it('is idempotent for 0', async () => {
+      expect(await tokenSender.getScaledPriceLowerBound()).to.eq(0)
+
+      await tokenSender.connect(deployer).setScaledPriceLowerBound(0)
+
+      expect(await tokenSender.getScaledPriceLowerBound()).to.eq(0)
+    })
+
+    it('is idempotet for non-zero', async () => {
+      await tokenSender.connect(deployer).setScaledPriceLowerBound(1)
+      expect(await tokenSender.getScaledPriceLowerBound()).to.eq(1)
+
+      await tokenSender.connect(deployer).setScaledPriceLowerBound(1)
+
+      expect(await tokenSender.getScaledPriceLowerBound()).to.eq(1)
+    })
+
+    it('emits event', async () => {
+      await expect(tokenSender.connect(deployer).setScaledPriceLowerBound(1))
+        .to.emit(tokenSender, 'ScaledPriceLowerBoundChange')
+        .withArgs(1)
+    })
+  })
 })
