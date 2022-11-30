@@ -30,7 +30,7 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
 
   uint256 private constant MAX_PAYOUT = 1e18;
   uint256 private constant FEE_DENOMINATOR = 1000000;
-  uint256 private constant FEE_LIMIT = 50000;
+  uint256 private constant FEE_LIMIT = 100000;
 
   /**
    * Assumes `_collateral`, `_longToken`, and `_shortToken` are

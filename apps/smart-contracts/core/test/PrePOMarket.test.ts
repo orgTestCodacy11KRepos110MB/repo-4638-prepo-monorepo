@@ -14,7 +14,13 @@ import {
   CreateMarketResult,
 } from './fixtures/PrePOMarketFactoryFixture'
 import { getMarketCreatedEvent } from './events'
-import { MAX_PAYOUT, calculateFee, FEE_LIMIT, FEE_DENOMINATOR, getLastTimestamp } from './utils'
+import {
+  MAX_PAYOUT,
+  calculateFee,
+  MARKET_FEE_LIMIT,
+  FEE_DENOMINATOR,
+  getLastTimestamp,
+} from './utils'
 import { PrePOMarketFactory } from '../typechain/PrePOMarketFactory'
 import { PrePOMarket } from '../typechain/PrePOMarket'
 import { LongShortToken } from '../typechain/LongShortToken'
@@ -89,7 +95,7 @@ describe('=> prePOMarket', () => {
       expect(await prePOMarket.getExpiryTime()).to.eq(TEST_EXPIRY)
       expect(await prePOMarket.getMaxPayout()).to.eq(MAX_PAYOUT)
       expect(await prePOMarket.getFeeDenominator()).to.eq(FEE_DENOMINATOR)
-      expect(await prePOMarket.getFeeLimit()).to.eq(FEE_LIMIT)
+      expect(await prePOMarket.getFeeLimit()).to.eq(MARKET_FEE_LIMIT)
     })
 
     it('should set owner to governance', async () => {
@@ -362,35 +368,35 @@ describe('=> prePOMarket', () => {
     })
 
     it('reverts if not owner', async () => {
-      await expect(prePOMarket.connect(user).setRedemptionFee(FEE_LIMIT - 1)).to.revertedWith(
-        revertReason('Ownable: caller is not the owner')
-      )
+      await expect(
+        prePOMarket.connect(user).setRedemptionFee(MARKET_FEE_LIMIT - 1)
+      ).to.revertedWith(revertReason('Ownable: caller is not the owner'))
     })
 
     it('reverts if > FEE_LIMIT', async () => {
-      await expect(prePOMarket.connect(treasury).setRedemptionFee(FEE_LIMIT + 1)).to.revertedWith(
-        revertReason('Exceeds fee limit')
-      )
+      await expect(
+        prePOMarket.connect(treasury).setRedemptionFee(MARKET_FEE_LIMIT + 1)
+      ).to.revertedWith(revertReason('Exceeds fee limit'))
     })
 
     it('sets to FEE_LIMIT', async () => {
-      expect(await prePOMarket.getRedemptionFee()).to.not.eq(FEE_LIMIT)
+      expect(await prePOMarket.getRedemptionFee()).to.not.eq(MARKET_FEE_LIMIT)
 
-      await prePOMarket.connect(treasury).setRedemptionFee(FEE_LIMIT)
+      await prePOMarket.connect(treasury).setRedemptionFee(MARKET_FEE_LIMIT)
 
-      expect(await prePOMarket.getRedemptionFee()).to.eq(FEE_LIMIT)
+      expect(await prePOMarket.getRedemptionFee()).to.eq(MARKET_FEE_LIMIT)
     })
 
     it('sets to < FEE_LIMIT', async () => {
-      expect(await prePOMarket.getRedemptionFee()).to.not.eq(FEE_LIMIT - 1)
+      expect(await prePOMarket.getRedemptionFee()).to.not.eq(MARKET_FEE_LIMIT - 1)
 
-      await prePOMarket.connect(treasury).setRedemptionFee(FEE_LIMIT - 1)
+      await prePOMarket.connect(treasury).setRedemptionFee(MARKET_FEE_LIMIT - 1)
 
-      expect(await prePOMarket.getRedemptionFee()).to.eq(FEE_LIMIT - 1)
+      expect(await prePOMarket.getRedemptionFee()).to.eq(MARKET_FEE_LIMIT - 1)
     })
 
     it('sets to zero', async () => {
-      await prePOMarket.connect(treasury).setRedemptionFee(FEE_LIMIT)
+      await prePOMarket.connect(treasury).setRedemptionFee(MARKET_FEE_LIMIT)
 
       expect(await prePOMarket.getRedemptionFee()).to.not.eq(0)
 
@@ -400,9 +406,9 @@ describe('=> prePOMarket', () => {
     })
 
     it('emits RedemptionFeeChange', async () => {
-      const tx = await prePOMarket.connect(treasury).setRedemptionFee(FEE_LIMIT)
+      const tx = await prePOMarket.connect(treasury).setRedemptionFee(MARKET_FEE_LIMIT)
 
-      await expect(tx).to.emit(prePOMarket, 'RedemptionFeeChange').withArgs(FEE_LIMIT)
+      await expect(tx).to.emit(prePOMarket, 'RedemptionFeeChange').withArgs(MARKET_FEE_LIMIT)
     })
   })
 
