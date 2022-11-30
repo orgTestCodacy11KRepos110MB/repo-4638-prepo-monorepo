@@ -106,7 +106,7 @@ describe('=> DepositHook', () => {
       ).to.revertedWith('msg.sender != collateral')
     })
 
-    it('reverts if user not allow list and deposits not allowed', async () => {
+    it('reverts if deposits not allowed and account not on allow list', async () => {
       mockAllowlist.isIncluded.returns(false)
       expect(await mockAllowlist.isIncluded(user.address)).to.be.false
       await depositHook.connect(deployer).setDepositsAllowed(false)
@@ -117,7 +117,7 @@ describe('=> DepositHook', () => {
       ).to.revertedWith('deposits not allowed')
     })
 
-    it('reverts if user on allow list but deposits not allowed', async () => {
+    it('reverts if deposits not allowed and account on allow list', async () => {
       mockAllowlist.isIncluded.returns(true)
       expect(await mockAllowlist.isIncluded(user.address)).to.be.true
       await depositHook.connect(deployer).setDepositsAllowed(false)
@@ -128,7 +128,7 @@ describe('=> DepositHook', () => {
       ).to.revertedWith('deposits not allowed')
     })
 
-    it('reverts if user not on allow list but deposits allowed', async () => {
+    it('reverts if account not on allow list', async () => {
       mockAllowlist.isIncluded.returns(false)
       expect(await mockAllowlist.isIncluded(user.address)).to.be.false
       await depositHook.connect(deployer).setDepositsAllowed(true)
@@ -139,7 +139,17 @@ describe('=> DepositHook', () => {
       ).to.revertedWith('sender not allowed')
     })
 
-    it('should call recordDeposit with the correct parameters', async () => {
+    it('succeeds if account on allow list', async () => {
+      mockAllowlist.isIncluded.returns(true)
+      expect(await mockAllowlist.isIncluded(user.address)).to.be.true
+      expect(await depositHook.depositsAllowed()).to.eq(true)
+
+      await depositHook
+        .connect(vault)
+        .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+    })
+
+    it('calls recordDeposit with the correct parameters', async () => {
       mockAllowlist.isIncluded.returns(true)
       expect(await mockAllowlist.isIncluded(user.address)).to.be.true
       expect(TEST_AMOUNT_BEFORE_FEE).to.not.eq(TEST_AMOUNT_AFTER_FEE)
