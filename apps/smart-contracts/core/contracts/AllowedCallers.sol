@@ -7,13 +7,13 @@ contract AllowedCallers is IAllowedCallers {
   mapping(address => bool) private callerToAllowed;
 
   function setAllowedCallers(address[] memory _callers, bool[] memory _allowed)
-    external
+    public
     virtual
     override
   {}
 
   function isCallerAllowed(address _caller)
-    external
+    public
     view
     virtual
     override
