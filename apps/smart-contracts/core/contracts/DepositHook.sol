@@ -19,6 +19,7 @@ contract DepositHook is
 
   ICollateral private collateral;
   IDepositRecord private depositRecord;
+  IAccountList private allowlist;
   bool public override depositsAllowed;
   uint256 private requiredScore;
   EnumerableMap.AddressToUintMap private collectionToScore;
@@ -107,7 +108,18 @@ contract DepositHook is
   function setCollectionScores(
     IERC721[] memory _collections,
     uint256[] memory _scores
-  ) external override onlyRole(SET_COLLECTION_SCORES_ROLE) {}
+  ) external override onlyRole(SET_COLLECTION_SCORES_ROLE) {
+    require(
+      _collections.length == _scores.length,
+      "collections.length != scores.length"
+    );
+    uint _numCollections = _collections.length;
+    for (uint256 i = 0; i < _numCollections; ++i) {
+      require(_scores[i] > 0, "score == 0");
+      collectionToScore.set(address(_collections[i]), _scores[i]);
+    }
+    emit CollectionScoresChange(_collections, _scores);
+  }
 
   function removeCollections(IERC721[] memory _collections)
     external
@@ -124,7 +136,12 @@ contract DepositHook is
     view
     override
     returns (uint256)
-  {}
+  {
+    if (collectionToScore.contains(address(_collection))) {
+      return collectionToScore.get(address(_collection));
+    }
+    return 0;
+  }
 
   function getAccountScore(address _account)
     external

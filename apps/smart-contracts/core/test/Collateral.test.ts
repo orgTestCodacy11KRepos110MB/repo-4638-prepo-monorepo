@@ -9,6 +9,7 @@ import {
   smockDepositHookFixture,
   smockWithdrawHookFixture,
   smockManagerWithdrawHookFixture,
+  smockAccountListFixture,
 } from './fixtures/HookFixture'
 import { collateralFixture } from './fixtures/CollateralFixture'
 import { smockDepositRecordFixture } from './fixtures/DepositRecordFixture'
@@ -34,6 +35,7 @@ describe('=> Collateral', () => {
   let depositHook: MockContract<Contract>
   let withdrawHook: MockContract<Contract>
   let managerWithdrawHook: MockContract<Contract>
+  let allowlist: MockContract<Contract>
   const TEST_DEPOSIT_FEE = 1000 // 0.1%
   const TEST_WITHDRAW_FEE = 2000 // 0.2%
   const TEST_GLOBAL_DEPOSIT_CAP = parseEther('50000')
@@ -57,6 +59,7 @@ describe('=> Collateral', () => {
     depositHook = await smockDepositHookFixture()
     withdrawHook = await smockWithdrawHookFixture()
     managerWithdrawHook = await smockManagerWithdrawHookFixture()
+    allowlist = await smockAccountListFixture()
     await grantAndAcceptRole(
       depositRecord,
       deployer,
@@ -85,9 +88,16 @@ describe('=> Collateral', () => {
       deployer,
       await depositHook.SET_DEPOSITS_ALLOWED_ROLE()
     )
+    await grantAndAcceptRole(
+      depositHook,
+      deployer,
+      deployer,
+      await depositHook.SET_ALLOWLIST_ROLE()
+    )
     await depositHook.connect(deployer).setCollateral(collateral.address)
     await depositHook.connect(deployer).setDepositRecord(depositRecord.address)
     await depositHook.connect(deployer).setDepositsAllowed(true)
+    await depositHook.connect(deployer).setAllowlist(allowlist.address)
   }
 
   const setupWithdrawHook = async (): Promise<void> => {
@@ -716,6 +726,7 @@ describe('=> Collateral', () => {
         .approve(collateral.address, parseUnits('1', await baseToken.decimals()))
       await collateral.connect(deployer).setDepositFee(TEST_DEPOSIT_FEE)
       await collateral.connect(deployer).setDepositHook(depositHook.address)
+      allowlist.isIncluded.returns(true)
     })
 
     it('reverts if deposit = 0 and deposit fee = 0%', async () => {
@@ -777,6 +788,7 @@ describe('=> Collateral', () => {
       expect(await baseToken.allowance(sender.address, collateral.address)).to.be.eq(
         amountToDeposit
       )
+      allowlist.isIncluded.returns(false)
       depositHook.hook.reverts()
 
       await expect(collateral.connect(sender).deposit(recipient.address, amountToDeposit)).to.be
