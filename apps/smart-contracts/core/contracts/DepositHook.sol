@@ -125,7 +125,16 @@ contract DepositHook is
     external
     override
     onlyRole(REMOVE_COLLECTIONS_ROLE)
-  {}
+  {
+    uint _numCollections = _collections.length;
+    for (uint256 i = 0; i < _numCollections; ++i) {
+      collectionToScore.remove(address(_collections[i]));
+    }
+    emit CollectionScoresChange(
+      _collections,
+      new uint256[](_collections.length)
+    );
+  }
 
   function getRequiredScore() external view override returns (uint256) {
     return requiredScore;
