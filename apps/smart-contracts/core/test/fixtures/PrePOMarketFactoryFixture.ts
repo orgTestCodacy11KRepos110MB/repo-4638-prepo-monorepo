@@ -1,21 +1,15 @@
 import { ethers, upgrades } from 'hardhat'
 import { BigNumber, ContractTransaction } from 'ethers'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
+import { PrePOMarketParams } from './PrePOMarketFixture'
 import { PrePOMarketFactory } from '../../typechain/PrePOMarketFactory'
 import { getMarketAddedEvent } from '../events'
 
-export type CreateMarketParams = {
+export type CreateMarketParams = PrePOMarketParams & {
   caller: SignerWithAddress
   factory: PrePOMarketFactory
   tokenNameSuffix: string
   tokenSymbolSuffix: string
-  governance: string
-  collateral: string
-  floorLongPayout: BigNumber
-  ceilingLongPayout: BigNumber
-  floorValuation: BigNumber
-  ceilingValuation: BigNumber
-  expiryTime: number
 }
 
 export type CreateMarketResult = {

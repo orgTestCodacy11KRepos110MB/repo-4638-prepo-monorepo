@@ -49,7 +49,7 @@ describe('=> Collateral', () => {
     baseToken = await testERC20Fixture('Test Coin', 'TST', baseTokenDecimals)
     collateral = await collateralFixture(
       'prePO USDC Collateral',
-      'preUSD',
+      'preUSDC',
       baseToken.address,
       baseTokenDecimals
     )
@@ -213,7 +213,7 @@ describe('=> Collateral', () => {
     })
 
     it('sets symbol from initialize', async () => {
-      expect(await collateral.symbol()).to.eq('preUSD')
+      expect(await collateral.symbol()).to.eq('preUSDC')
     })
 
     it('sets DEFAULT_ADMIN_ROLE holder to deployer', async () => {
