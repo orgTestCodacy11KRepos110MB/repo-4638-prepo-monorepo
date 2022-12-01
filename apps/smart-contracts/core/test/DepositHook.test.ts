@@ -603,4 +603,82 @@ describe('=> DepositHook', () => {
         .withArgs([firstERC721.address, secondERC721.address], [0, 0])
     })
   })
+
+  describe('# getAccountScore', () => {
+    async function prepareNFTs(
+      collection: TestERC721,
+      numHeld: number,
+      collectionScore: number
+    ): Promise<void> {
+      if (numHeld > 0) {
+        const mintTxs = []
+        for (let i = 0; i < numHeld; i++) {
+          mintTxs.push(collection.mint(user.address))
+        }
+        await Promise.all(mintTxs)
+      }
+      expect(await collection.balanceOf(user.address)).to.eq(numHeld)
+
+      if (collectionScore > 0) {
+        await depositHook
+          .connect(deployer)
+          .setCollectionScores([collection.address], [collectionScore])
+      }
+    }
+
+    it('returns 0 if holding 0 NFTs from collection with score = 0', async () => {
+      expect(await depositHook.getAccountScore(user.address)).to.eq(0)
+    })
+
+    it('returns 0 if holding 1 NFT from collection with score = 0', async () => {
+      await prepareNFTs(firstERC721, 1, 0)
+
+      expect(await depositHook.getAccountScore(user.address)).to.eq(0)
+    })
+
+    it('returns 0 if holding multiple NFTs from collection with score = 0', async () => {
+      await prepareNFTs(firstERC721, 10, 0)
+
+      expect(await depositHook.getAccountScore(user.address)).to.eq(0)
+    })
+
+    it('returns 1 if holding 1 NFT from collection with score = 1', async () => {
+      await prepareNFTs(firstERC721, 1, 1)
+
+      expect(await depositHook.getAccountScore(user.address)).to.eq(1)
+    })
+
+    it('returns 1 if holding multiple NFTs from collection with score = 1', async () => {
+      await prepareNFTs(firstERC721, 10, 1)
+
+      expect(await depositHook.getAccountScore(user.address)).to.eq(1)
+    })
+
+    it('returns 0 if holding 0 NFTs from collection with score > 0', async () => {
+      await prepareNFTs(firstERC721, 0, 10)
+
+      expect(await depositHook.getAccountScore(user.address)).to.eq(0)
+    })
+
+    it('returns correct value if holding 1 NFT from 2 collections each with score > 0', async () => {
+      await prepareNFTs(firstERC721, 1, 1)
+      await prepareNFTs(secondERC721, 1, 2)
+
+      expect(await depositHook.getAccountScore(user.address)).to.eq(3)
+    })
+
+    it('returns correct value if holding multiple NFTs from 2 collections each with score > 0', async () => {
+      await prepareNFTs(firstERC721, 10, 1)
+      await prepareNFTs(secondERC721, 10, 2)
+
+      expect(await depositHook.getAccountScore(user.address)).to.eq(3)
+    })
+
+    it('returns 1 if holding 1 NFT from collection with score = 0, 1 NFT from collection with score = 1', async () => {
+      await prepareNFTs(firstERC721, 1, 0)
+      await prepareNFTs(secondERC721, 1, 1)
+
+      expect(await depositHook.getAccountScore(user.address)).to.eq(1)
+    })
+  })
 })

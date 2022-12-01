@@ -113,7 +113,7 @@ contract DepositHook is
       _collections.length == _scores.length,
       "collections.length != scores.length"
     );
-    uint _numCollections = _collections.length;
+    uint256 _numCollections = _collections.length;
     for (uint256 i = 0; i < _numCollections; ++i) {
       require(_scores[i] > 0, "score == 0");
       collectionToScore.set(address(_collections[i]), _scores[i]);
@@ -126,7 +126,7 @@ contract DepositHook is
     override
     onlyRole(REMOVE_COLLECTIONS_ROLE)
   {
-    uint _numCollections = _collections.length;
+    uint256 _numCollections = _collections.length;
     for (uint256 i = 0; i < _numCollections; ++i) {
       collectionToScore.remove(address(_collections[i]));
     }
@@ -153,9 +153,19 @@ contract DepositHook is
   }
 
   function getAccountScore(address _account)
-    external
+    public
     view
     override
     returns (uint256)
-  {}
+  {
+    uint256 score = 0;
+    uint256 _numCollections = collectionToScore.length();
+    for (uint256 i = 0; i < _numCollections; ++i) {
+      (address collection, uint256 collectionScore) = collectionToScore.at(i);
+      score += IERC721(collection).balanceOf(_account) > 0
+        ? collectionScore
+        : 0;
+    }
+    return score;
+  }
 }
