@@ -10,5 +10,7 @@ interface IFeeRebateHook {
 
   function setTreasury(address treasury) external;
 
+  function getTreasury() external view returns (address);
+
   function setTokenSender(ITokenSender tokenSender) external;
 }

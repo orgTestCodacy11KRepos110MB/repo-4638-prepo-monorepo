@@ -6,19 +6,25 @@ import "./interfaces/ITokenSender.sol";
 import "prepo-shared-contracts/contracts/SafeAccessControlEnumerable.sol";
 
 contract FeeRebateHook is IFeeRebateHook, SafeAccessControlEnumerable {
-  address private _treasury;
-  ITokenSender private _feeRebate;
-  
-  bytes32 public constant SET_TREASURY_ROLE =
-    keccak256("FeeRebateHook_setTreasury(address)");
-  bytes32 public constant SET_TOKEN_SENDER_ROLE =
-    keccak256("FeeRebateHook_setTokenSender(ITokenSender)");
+  address internal _treasury;
+  ITokenSender internal _feeRebate;
 
-  function setTreasury(
-    address treasury
-  ) external override onlyRole(SET_TREASURY_ROLE) {}
+  function setTreasury(address treasury) external virtual override {
+    _setTreasury(treasury);
+  }
 
-  function setTokenSender(
-    ITokenSender tokenSender
-  ) external override onlyRole(SET_TOKEN_SENDER_ROLE) {}
+  function _setTreasury(address treasury) internal {
+    _treasury = treasury;
+    emit TreasuryChange(treasury);
+  }
+
+  function getTreasury() external view override returns (address) {
+    return _treasury;
+  }
+
+  function setTokenSender(ITokenSender tokenSender)
+    external
+    virtual
+    override
+  {}
 }
