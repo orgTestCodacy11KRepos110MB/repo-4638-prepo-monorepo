@@ -34,6 +34,12 @@ describe('=> DepositHook', () => {
       depositHook,
       deployer,
       deployer,
+      await depositHook.SET_ALLOWLIST_ROLE()
+    )
+    await grantAndAcceptRole(
+      depositHook,
+      deployer,
+      deployer,
       await depositHook.SET_COLLATERAL_ROLE()
     )
     await grantAndAcceptRole(
@@ -47,6 +53,24 @@ describe('=> DepositHook', () => {
       deployer,
       deployer,
       await depositHook.SET_DEPOSITS_ALLOWED_ROLE()
+    )
+    await grantAndAcceptRole(
+      depositHook,
+      deployer,
+      deployer,
+      await depositHook.SET_REQUIRED_SCORE_ROLE()
+    )
+    await grantAndAcceptRole(
+      depositHook,
+      deployer,
+      deployer,
+      await depositHook.SET_COLLECTION_SCORES_ROLE()
+    )
+    await grantAndAcceptRole(
+      depositHook,
+      deployer,
+      deployer,
+      await depositHook.REMOVE_COLLECTIONS_ROLE()
     )
     await grantAndAcceptRole(
       mockDepositRecord,
@@ -74,6 +98,15 @@ describe('=> DepositHook', () => {
       )
       expect(await depositHook.SET_DEPOSITS_ALLOWED_ROLE()).to.eq(
         id('DepositHook_setDepositsAllowed(bool)')
+      )
+      expect(await depositHook.SET_REQUIRED_SCORE_ROLE()).to.eq(
+        id('DepositHook_setRequiredScore(uint256)')
+      )
+      expect(await depositHook.SET_COLLECTION_SCORES_ROLE()).to.eq(
+        id('DepositHook_setCollectionScores(IERC721[],uint256[])')
+      )
+      expect(await depositHook.REMOVE_COLLECTIONS_ROLE()).to.eq(
+        id('DepositHook_removeCollections(IERC721[])')
       )
     })
   })
@@ -287,6 +320,50 @@ describe('=> DepositHook', () => {
       const tx = await depositHook.connect(deployer).setDepositsAllowed(true)
 
       await expect(tx).to.emit(depositHook, 'DepositsAllowedChange').withArgs(true)
+    })
+  })
+
+  describe('# setRequiredScore', () => {
+    it('reverts if not role holder', async () => {
+      expect(
+        await depositHook.hasRole(await depositHook.SET_REQUIRED_SCORE_ROLE(), user.address)
+      ).to.eq(false)
+
+      await expect(depositHook.connect(user).setRequiredScore(0)).revertedWith(
+        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await depositHook.SET_REQUIRED_SCORE_ROLE()}`
+      )
+    })
+
+    it('sets to > 0', async () => {
+      expect(await depositHook.getRequiredScore()).to.not.be.gt(0)
+
+      await depositHook.connect(deployer).setRequiredScore(1)
+
+      expect(await depositHook.getRequiredScore()).to.be.gt(0)
+    })
+
+    it('sets to 0', async () => {
+      await depositHook.connect(deployer).setRequiredScore(1)
+      expect(await depositHook.getRequiredScore()).to.not.eq(0)
+
+      await depositHook.connect(deployer).setRequiredScore(0)
+
+      expect(await depositHook.getRequiredScore()).to.eq(0)
+    })
+
+    it('is idempotent', async () => {
+      await depositHook.connect(deployer).setRequiredScore(1)
+      expect(await depositHook.getRequiredScore()).to.eq(1)
+
+      await depositHook.connect(deployer).setRequiredScore(1)
+
+      expect(await depositHook.getRequiredScore()).to.eq(1)
+    })
+
+    it('emits RequiredScoreChange', async () => {
+      const tx = await depositHook.connect(deployer).setRequiredScore(1)
+
+      await expect(tx).to.emit(depositHook, 'RequiredScoreChange').withArgs(1)
     })
   })
 })
