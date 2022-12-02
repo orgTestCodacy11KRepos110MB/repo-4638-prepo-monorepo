@@ -21,13 +21,16 @@ contract DepositHook is
 
   ICollateral private collateral;
   IDepositRecord private depositRecord;
-  IAccountList private allowlist;
   bool public override depositsAllowed;
   uint256 private requiredScore;
   EnumerableMap.AddressToUintMap private collectionToScore;
 
   bytes32 public constant SET_ALLOWLIST_ROLE =
     keccak256("DepositHook_setAllowlist(IAccountList)");
+  bytes32 public constant SET_TREASURY_ROLE =
+    keccak256("DepositHook_setTreasury(address)");
+  bytes32 public constant SET_TOKEN_SENDER_ROLE =
+    keccak256("DepositHook_setTokenSender(ITokenSender)");
   bytes32 public constant SET_COLLATERAL_ROLE =
     keccak256("DepositHook_setCollateral(address)");
   bytes32 public constant SET_DEPOSIT_RECORD_ROLE =
@@ -40,10 +43,6 @@ contract DepositHook is
     keccak256("DepositHook_setCollectionScores(IERC721[],uint256[])");
   bytes32 public constant REMOVE_COLLECTIONS_ROLE =
     keccak256("DepositHook_removeCollections(IERC721[])");
-  bytes32 public constant SET_TREASURY_ROLE =
-    keccak256("DepositHook_setTreasury(address)");
-  bytes32 public constant SET_TOKEN_SENDER =
-    keccak256("DepositHook_setTokenSender(ITokenSender)");
 
   modifier onlyCollateral() {
     require(msg.sender == address(collateral), "msg.sender != collateral");
@@ -56,6 +55,9 @@ contract DepositHook is
     uint256 _amountAfterFee
   ) external override onlyCollateral {
     require(depositsAllowed, "deposits not allowed");
+    if (!_allowlist.isIncluded(_sender) && requiredScore > 0) {
+      require(getAccountScore(_sender) >= requiredScore, "sender not allowed");
+    }
     depositRecord.recordDeposit(_sender, _amountAfterFee);
   }
 
@@ -65,6 +67,22 @@ contract DepositHook is
     onlyRole(SET_ALLOWLIST_ROLE)
   {
     _setAllowlist(allowlist);
+  }
+
+  function setTreasury(address _treasury)
+    public
+    override
+    onlyRole(SET_TREASURY_ROLE)
+  {
+    super.setTreasury(_treasury);
+  }
+
+  function setTokenSender(ITokenSender _tokenSender)
+    public
+    override
+    onlyRole(SET_TOKEN_SENDER_ROLE)
+  {
+    super.setTokenSender(_tokenSender);
   }
 
   function setCollateral(ICollateral _newCollateral)
@@ -173,21 +191,5 @@ contract DepositHook is
         : 0;
     }
     return score;
-  }
-
-  function setTreasury(address _treasury)
-    public
-    override
-    onlyRole(SET_TREASURY_ROLE)
-  {
-    super.setTreasury(_treasury);
-  }
-
-  function setTokenSender(ITokenSender _tokenSender)
-    public
-    override
-    onlyRole(SET_TOKEN_SENDER)
-  {
-    super.setTokenSender(_tokenSender);
   }
 }

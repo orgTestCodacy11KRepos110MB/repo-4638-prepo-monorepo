@@ -5,7 +5,7 @@ import { id, parseEther } from 'ethers/lib/utils'
 import { Contract } from 'ethers'
 import { MockContract, smock } from '@defi-wonderland/smock'
 import { ZERO_ADDRESS } from 'prepo-constants'
-import { depositHookFixture } from './fixtures/HookFixture'
+import { depositHookFixture, smockAccountListFixture } from './fixtures/HookFixture'
 import { smockDepositRecordFixture } from './fixtures/DepositRecordFixture'
 import { testERC721Fixture } from './fixtures/TestERC721Fixture'
 import { grantAndAcceptRole } from './utils'
@@ -38,6 +38,7 @@ describe('=> DepositHook', () => {
       TEST_GLOBAL_DEPOSIT_CAP,
       TEST_ACCOUNT_DEPOSIT_CAP
     )
+    mockAllowlist = await smockAccountListFixture()
     depositHook = await depositHookFixture()
     firstERC721 = await testERC721Fixture('NFT Collection 1', 'NFT1')
     secondERC721 = await testERC721Fixture('NFT Collection 2', 'NFT2')
@@ -48,6 +49,13 @@ describe('=> DepositHook', () => {
       deployer,
       deployer,
       await depositHook.SET_ALLOWLIST_ROLE()
+    )
+    await grantAndAcceptRole(depositHook, deployer, deployer, await depositHook.SET_TREASURY_ROLE())
+    await grantAndAcceptRole(
+      depositHook,
+      deployer,
+      deployer,
+      await depositHook.SET_TOKEN_SENDER_ROLE()
     )
     await grantAndAcceptRole(
       depositHook,
@@ -85,8 +93,6 @@ describe('=> DepositHook', () => {
       deployer,
       await depositHook.REMOVE_COLLECTIONS_ROLE()
     )
-    await grantAndAcceptRole(depositHook, deployer, deployer, await depositHook.SET_TREASURY_ROLE())
-    await grantAndAcceptRole(depositHook, deployer, deployer, await depositHook.SET_TOKEN_SENDER())
     await grantAndAcceptRole(
       mockDepositRecord,
       deployer,
@@ -124,7 +130,7 @@ describe('=> DepositHook', () => {
         id('DepositHook_removeCollections(IERC721[])')
       )
       expect(await depositHook.SET_TREASURY_ROLE()).to.eq(id('DepositHook_setTreasury(address)'))
-      expect(await depositHook.SET_TOKEN_SENDER()).to.eq(
+      expect(await depositHook.SET_TOKEN_SENDER_ROLE()).to.eq(
         id('DepositHook_setTokenSender(ITokenSender)')
       )
     })
@@ -139,7 +145,25 @@ describe('=> DepositHook', () => {
       await depositHook.connect(deployer).setCollateral(vault.address)
       await depositHook.connect(deployer).setDepositsAllowed(true)
       await depositHook.connect(deployer).setDepositRecord(mockDepositRecord.address)
+      await depositHook.connect(deployer).setAllowlist(mockAllowlist.address)
     })
+
+    async function setupScoresForNFTAccess(
+      accountScore: number,
+      requiredScore: number
+    ): Promise<void> {
+      // Set up required score
+      await depositHook.connect(deployer).setRequiredScore(requiredScore)
+
+      // Set up account score
+      if (accountScore > 0) {
+        await firstERC721.mint(user.address)
+        expect(await firstERC721.balanceOf(user.address)).to.eq(1)
+        await depositHook
+          .connect(deployer)
+          .setCollectionScores([firstERC721.address], [accountScore])
+      }
+    }
 
     it('should only usable by the vault', async () => {
       expect(await depositHook.getCollateral()).to.not.eq(user.address)
@@ -156,6 +180,62 @@ describe('=> DepositHook', () => {
       await expect(
         depositHook.connect(vault).hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
       ).to.revertedWith('deposits not allowed')
+    })
+
+    it('succeeds if account on allowlist', async () => {
+      mockAllowlist.isIncluded.whenCalledWith(user.address).returns(true)
+      expect(await mockAllowlist.isIncluded(user.address)).to.eq(true)
+
+      await depositHook
+        .connect(vault)
+        .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+    })
+
+    it('succeeds if account not on allowlist, and required score = 0', async () => {
+      await setupScoresForNFTAccess(0, 0)
+      expect(await mockAllowlist.isIncluded(user.address)).to.eq(false)
+      expect(await depositHook.getRequiredScore()).to.eq(0)
+
+      await depositHook
+        .connect(vault)
+        .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+    })
+
+    it('reverts if account not on allowlist, required score > 0, and account score < required score', async () => {
+      await setupScoresForNFTAccess(0, 1)
+      expect(await mockAllowlist.isIncluded(user.address)).to.eq(false)
+      expect(await depositHook.getRequiredScore()).to.be.gt(0)
+      expect(await depositHook.getAccountScore(user.address)).to.be.lt(
+        await depositHook.getRequiredScore()
+      )
+
+      await expect(
+        depositHook.connect(vault).hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+      ).to.revertedWith('sender not allowed')
+    })
+
+    it('succeeds if account not on allowlist, required score > 0, and account score = required score', async () => {
+      await setupScoresForNFTAccess(1, 1)
+      expect(await depositHook.getRequiredScore()).to.be.gt(0)
+      expect(await depositHook.getAccountScore(user.address)).to.be.eq(
+        await depositHook.getRequiredScore()
+      )
+
+      await depositHook
+        .connect(vault)
+        .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
+    })
+
+    it('succeeds if account not on allowlist, required score > 0, and account score > required score', async () => {
+      await setupScoresForNFTAccess(2, 1)
+      expect(await depositHook.getRequiredScore()).to.be.gt(0)
+      expect(await depositHook.getAccountScore(user.address)).to.be.gt(
+        await depositHook.getRequiredScore()
+      )
+
+      await depositHook
+        .connect(vault)
+        .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
     })
 
     it('should call recordDeposit with the correct parameters', async () => {
@@ -584,7 +664,6 @@ describe('=> DepositHook', () => {
       await depositHook
         .connect(deployer)
         .removeCollections([firstERC721.address, secondERC721.address])
-
       expect(await depositHook.getCollectionScore(firstERC721.address)).to.eq(0)
       expect(await depositHook.getCollectionScore(secondERC721.address)).to.eq(0)
     })
@@ -717,18 +796,18 @@ describe('=> DepositHook', () => {
 
   describe('# setTokenSender', () => {
     it('reverts if not role holder', async () => {
-      expect(await depositHook.hasRole(await depositHook.SET_TOKEN_SENDER(), user.address)).to.eq(
-        false
-      )
+      expect(
+        await depositHook.hasRole(await depositHook.SET_TOKEN_SENDER_ROLE(), user.address)
+      ).to.eq(false)
 
       await expect(depositHook.connect(user).setTokenSender(tokenSender.address)).revertedWith(
-        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await depositHook.SET_TOKEN_SENDER()}`
+        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await depositHook.SET_TOKEN_SENDER_ROLE()}`
       )
     })
 
     it('succeeds if role holder', async () => {
       expect(
-        await depositHook.hasRole(await depositHook.SET_TOKEN_SENDER(), deployer.address)
+        await depositHook.hasRole(await depositHook.SET_TOKEN_SENDER_ROLE(), deployer.address)
       ).to.eq(true)
 
       await depositHook.connect(deployer).setTokenSender(tokenSender.address)

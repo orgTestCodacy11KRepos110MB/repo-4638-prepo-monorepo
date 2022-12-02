@@ -788,8 +788,7 @@ describe('=> Collateral', () => {
       expect(await baseToken.allowance(sender.address, collateral.address)).to.be.eq(
         amountToDeposit
       )
-      allowlist.isIncluded.returns(false)
-      depositHook.hook.reverts()
+      await depositHook.connect(deployer).setDepositsAllowed(false)
 
       await expect(collateral.connect(sender).deposit(recipient.address, amountToDeposit)).to.be
         .reverted
