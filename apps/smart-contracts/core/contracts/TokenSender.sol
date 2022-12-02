@@ -45,19 +45,28 @@ contract TokenSender is
     external
     override
     onlyRole(SET_PRICE_ROLE)
-  {}
+  {
+    _price = price;
+    emit PriceChange(price);
+  }
 
   function setPriceMultiplier(uint256 multiplier)
     external
     override
     onlyRole(SET_PRICE_MULTIPLIER_ROLE)
-  {}
+  {
+    _priceMultiplier = multiplier;
+    emit PriceMultiplierChange(multiplier);
+  }
 
   function setScaledPriceLowerBound(uint256 lowerBound)
     external
     override
     onlyRole(SET_SCALED_PRICE_LOWER_BOUND_ROLE)
-  {}
+  {
+    _scaledPriceLowerBound = lowerBound;
+    emit ScaledPriceLowerBoundChange(lowerBound);
+  }
 
   function setAllowedCallers(address[] memory callers, bool[] memory allowed)
     external
@@ -69,14 +78,20 @@ contract TokenSender is
     return _outputToken;
   }
 
-  function getPrice() external view override returns (IUintValue) {}
+  function getPrice() external view override returns (IUintValue) {
+    return _price;
+  }
 
-  function getPriceMultiplier() external view override returns (uint256) {}
+  function getPriceMultiplier() external view override returns (uint256) {
+    return _priceMultiplier;
+  }
 
   function getScaledPriceLowerBound()
     external
     view
     override
     returns (uint256)
-  {}
+  {
+    return _scaledPriceLowerBound;
+  }
 }
