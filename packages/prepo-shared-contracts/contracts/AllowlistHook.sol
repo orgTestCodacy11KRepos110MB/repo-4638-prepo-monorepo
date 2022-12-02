@@ -5,7 +5,7 @@ import "./interfaces/IAccountList.sol";
 import "./interfaces/IAllowlistHook.sol";
 
 contract AllowlistHook is IAllowlistHook {
-  IAccountList private _allowlist;
+  IAccountList internal _allowlist;
 
   function setAllowlist(IAccountList allowlist) external virtual override {
     _setAllowlist(allowlist);
