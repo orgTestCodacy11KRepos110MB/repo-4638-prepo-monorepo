@@ -4,6 +4,7 @@ pragma solidity =0.8.7;
 import "./interfaces/IDepositHook.sol";
 import "./interfaces/IDepositRecord.sol";
 import "./interfaces/INFTAccessHook.sol";
+import "./FeeRebateHook.sol";
 import "prepo-shared-contracts/contracts/AllowlistHook.sol";
 import "prepo-shared-contracts/contracts/SafeAccessControlEnumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
@@ -12,6 +13,7 @@ import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 contract DepositHook is
   IDepositHook,
   INFTAccessHook,
+  FeeRebateHook,
   AllowlistHook,
   SafeAccessControlEnumerable
 {
@@ -38,6 +40,10 @@ contract DepositHook is
     keccak256("DepositHook_setCollectionScores(IERC721[],uint256[])");
   bytes32 public constant REMOVE_COLLECTIONS_ROLE =
     keccak256("DepositHook_removeCollections(IERC721[])");
+  bytes32 public constant SET_TREASURY_ROLE =
+    keccak256("DepositHook_setTreasury(address)");
+  bytes32 public constant SET_TOKEN_SENDER =
+    keccak256("DepositHook_setTokenSender(ITokenSender)");
 
   modifier onlyCollateral() {
     require(msg.sender == address(collateral), "msg.sender != collateral");
@@ -167,5 +173,21 @@ contract DepositHook is
         : 0;
     }
     return score;
+  }
+
+  function setTreasury(address _treasury)
+    public
+    override
+    onlyRole(SET_TREASURY_ROLE)
+  {
+    super.setTreasury(_treasury);
+  }
+
+  function setTokenSender(ITokenSender _tokenSender)
+    public
+    override
+    onlyRole(SET_TOKEN_SENDER)
+  {
+    super.setTokenSender(_tokenSender);
   }
 }

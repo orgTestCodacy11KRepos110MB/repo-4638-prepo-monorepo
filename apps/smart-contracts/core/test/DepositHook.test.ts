@@ -9,7 +9,9 @@ import { depositHookFixture } from './fixtures/HookFixture'
 import { smockDepositRecordFixture } from './fixtures/DepositRecordFixture'
 import { testERC721Fixture } from './fixtures/TestERC721Fixture'
 import { grantAndAcceptRole } from './utils'
-import { DepositHook, TestERC721 } from '../typechain'
+import { smockTokenSenderFixture } from './fixtures/TokenSenderFixture'
+import { smockTestERC20Fixture } from './fixtures/TestERC20Fixture'
+import { DepositHook, TestERC721, TokenSender } from '../typechain'
 
 chai.use(smock.matchers)
 
@@ -22,13 +24,16 @@ describe('=> DepositHook', () => {
   let mockAllowlist: MockContract<Contract>
   let firstERC721: TestERC721
   let secondERC721: TestERC721
+  let treasury: SignerWithAddress
+  let outputToken: MockContract<Contract>
+  let tokenSender: MockContract<Contract>
   const TEST_GLOBAL_DEPOSIT_CAP = parseEther('50000')
   const TEST_ACCOUNT_DEPOSIT_CAP = parseEther('50')
   const TEST_AMOUNT_BEFORE_FEE = parseEther('1.01')
   const TEST_AMOUNT_AFTER_FEE = parseEther('1')
 
   beforeEach(async () => {
-    ;[deployer, user, vault] = await ethers.getSigners()
+    ;[deployer, user, vault, treasury] = await ethers.getSigners()
     mockDepositRecord = await smockDepositRecordFixture(
       TEST_GLOBAL_DEPOSIT_CAP,
       TEST_ACCOUNT_DEPOSIT_CAP
@@ -36,6 +41,8 @@ describe('=> DepositHook', () => {
     depositHook = await depositHookFixture()
     firstERC721 = await testERC721Fixture('NFT Collection 1', 'NFT1')
     secondERC721 = await testERC721Fixture('NFT Collection 2', 'NFT2')
+    outputToken = await smockTestERC20Fixture('Output Token', 'OT', 18)
+    tokenSender = await smockTokenSenderFixture(outputToken.address)
     await grantAndAcceptRole(
       depositHook,
       deployer,
@@ -78,6 +85,8 @@ describe('=> DepositHook', () => {
       deployer,
       await depositHook.REMOVE_COLLECTIONS_ROLE()
     )
+    await grantAndAcceptRole(depositHook, deployer, deployer, await depositHook.SET_TREASURY_ROLE())
+    await grantAndAcceptRole(depositHook, deployer, deployer, await depositHook.SET_TOKEN_SENDER())
     await grantAndAcceptRole(
       mockDepositRecord,
       deployer,
@@ -113,6 +122,10 @@ describe('=> DepositHook', () => {
       )
       expect(await depositHook.REMOVE_COLLECTIONS_ROLE()).to.eq(
         id('DepositHook_removeCollections(IERC721[])')
+      )
+      expect(await depositHook.SET_TREASURY_ROLE()).to.eq(id('DepositHook_setTreasury(address)'))
+      expect(await depositHook.SET_TOKEN_SENDER()).to.eq(
+        id('DepositHook_setTokenSender(ITokenSender)')
       )
     })
   })
@@ -679,6 +692,46 @@ describe('=> DepositHook', () => {
       await prepareNFTs(secondERC721, 1, 1)
 
       expect(await depositHook.getAccountScore(user.address)).to.eq(1)
+    })
+  })
+
+  describe('# setTreasury', () => {
+    it('reverts if not role holder', async () => {
+      expect(await depositHook.hasRole(await depositHook.SET_TREASURY_ROLE(), user.address)).to.eq(
+        false
+      )
+
+      await expect(depositHook.connect(user).setTreasury(treasury.address)).revertedWith(
+        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await depositHook.SET_TREASURY_ROLE()}`
+      )
+    })
+
+    it('succeeds if role holder', async () => {
+      expect(
+        await depositHook.hasRole(await depositHook.SET_TREASURY_ROLE(), deployer.address)
+      ).to.eq(true)
+
+      await depositHook.connect(deployer).setTreasury(treasury.address)
+    })
+  })
+
+  describe('# setTokenSender', () => {
+    it('reverts if not role holder', async () => {
+      expect(await depositHook.hasRole(await depositHook.SET_TOKEN_SENDER(), user.address)).to.eq(
+        false
+      )
+
+      await expect(depositHook.connect(user).setTokenSender(tokenSender.address)).revertedWith(
+        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await depositHook.SET_TOKEN_SENDER()}`
+      )
+    })
+
+    it('succeeds if role holder', async () => {
+      expect(
+        await depositHook.hasRole(await depositHook.SET_TOKEN_SENDER(), deployer.address)
+      ).to.eq(true)
+
+      await depositHook.connect(deployer).setTokenSender(tokenSender.address)
     })
   })
 })
