@@ -22,6 +22,7 @@ contract TokenSender is
   IERC20 private immutable _outputToken;
   uint256 private immutable _outputTokenDecimalsFactor;
 
+  uint256 public constant MULTIPLIER_DENOMINATOR = 10000;
   bytes32 public constant SET_PRICE_ROLE =
     keccak256("TokenSender_setPrice(IUintValue)");
   bytes32 public constant SET_PRICE_MULTIPLIER_ROLE =
@@ -39,7 +40,17 @@ contract TokenSender is
   function send(address recipient, uint256 unconvertedAmount)
     external
     override
-  {}
+    onlyAllowedCallers
+  {
+    uint256 scaledPrice = (_price.get() * _priceMultiplier) /
+      MULTIPLIER_DENOMINATOR;
+    if (scaledPrice <= _scaledPriceLowerBound) return;
+    uint256 outputAmount = (unconvertedAmount * _outputTokenDecimalsFactor) /
+      scaledPrice;
+    if (outputAmount == 0) return;
+    if (outputAmount > _outputToken.balanceOf(address(this))) return;
+    _outputToken.transfer(recipient, outputAmount);
+  }
 
   function setPrice(IUintValue price)
     external
@@ -72,7 +83,9 @@ contract TokenSender is
     external
     override
     onlyRole(SET_ALLOWED_CALLERS_ROLE)
-  {}
+  {
+    _setAllowedCallers(callers, allowed);
+  }
 
   function getOutputToken() external view override returns (IERC20) {
     return _outputToken;

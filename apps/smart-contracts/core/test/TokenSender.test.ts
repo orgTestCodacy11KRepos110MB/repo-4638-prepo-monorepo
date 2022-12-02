@@ -1,24 +1,31 @@
 import { ethers } from 'hardhat'
-import { expect } from 'chai'
+import chai, { expect } from 'chai'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { id } from 'ethers/lib/utils'
 import { ZERO_ADDRESS } from 'prepo-constants'
+import { BigNumber, Contract } from 'ethers'
+import { FakeContract, MockContract, smock } from '@defi-wonderland/smock'
 import { tokenSenderFixture } from './fixtures/TokenSenderFixture'
-import { testERC20Fixture } from './fixtures/TestERC20Fixture'
+import { smockTestERC20Fixture } from './fixtures/TestERC20Fixture'
 import { grantAndAcceptRole } from './utils'
+import { smockTestUintValueFixture } from './fixtures/TestUintValueFixture'
 import { TokenSender } from '../typechain/TokenSender'
-import { TestERC20 } from '../typechain'
+
+chai.use(smock.matchers)
 
 describe('=> TokenSender', () => {
+  const MULTIPLIER_DENOMINATOR = 10000
+  const OUTPUT_TOKEN_DECIMALS_FACTOR = ethers.BigNumber.from(10).pow(18)
   let tokenSender: TokenSender
   let deployer: SignerWithAddress
   let user: SignerWithAddress
-  let outputToken: TestERC20
-
+  let outputToken: FakeContract<Contract>
+  let priceOracle: MockContract<Contract>
   beforeEach(async () => {
     ;[deployer, user] = await ethers.getSigners()
-    outputToken = await testERC20Fixture('Output Token', 'OUT', 18)
+    outputToken = await smockTestERC20Fixture('Output Token', 'OUT', 18)
     tokenSender = await tokenSenderFixture(outputToken.address)
+    priceOracle = await smockTestUintValueFixture()
     await grantAndAcceptRole(tokenSender, deployer, deployer, await tokenSender.SET_PRICE_ROLE())
     await grantAndAcceptRole(
       tokenSender,
@@ -223,6 +230,126 @@ describe('=> TokenSender', () => {
       await expect(tokenSender.connect(user).setAllowedCallers([], [])).revertedWith(
         `AccessControl: account ${user.address.toLowerCase()} is missing role ${await tokenSender.SET_ALLOWED_CALLERS_ROLE()}`
       )
+    })
+  })
+
+  describe('# send', () => {
+    beforeEach(async () => {
+      await tokenSender.connect(deployer).setPrice(priceOracle.address)
+      await tokenSender.connect(deployer).setAllowedCallers([deployer.address], [true])
+    })
+
+    async function calculateExpectedOutput(unconvertedAmount: number): Promise<BigNumber> {
+      const scaledPrice = (await priceOracle.get())
+        .mul(await tokenSender.getPriceMultiplier())
+        .div(MULTIPLIER_DENOMINATOR)
+      expect(scaledPrice).to.be.gt(await tokenSender.getScaledPriceLowerBound())
+      const outputAmount = ethers.BigNumber.from(unconvertedAmount)
+        .mul(OUTPUT_TOKEN_DECIMALS_FACTOR)
+        .div(scaledPrice)
+      return outputAmount
+    }
+
+    it('reverts if not allowed caller', async () => {
+      expect(await tokenSender.isCallerAllowed(user.address)).to.eq(false)
+
+      await expect(tokenSender.connect(user).send(user.address, 1)).revertedWith(
+        `msg.sender not allowed`
+      )
+    })
+
+    it("doesn't transfer if unconverted amount = 0", async () => {
+      priceOracle.get.returns(2)
+      await tokenSender.connect(deployer).setPriceMultiplier(MULTIPLIER_DENOMINATOR)
+      await tokenSender.connect(deployer).setScaledPriceLowerBound(1)
+
+      await tokenSender.connect(deployer).send(user.address, 0)
+
+      expect(outputToken.transfer).to.not.be.called
+    })
+
+    it("doesn't transfer if price = 0", async () => {
+      priceOracle.get.returns(0)
+      await tokenSender.connect(deployer).setPriceMultiplier(MULTIPLIER_DENOMINATOR)
+      await tokenSender.connect(deployer).setScaledPriceLowerBound(1)
+
+      await tokenSender.connect(deployer).send(user.address, 1)
+
+      expect(outputToken.transfer).to.not.be.called
+    })
+
+    it("doesn't transfer if price > 0 and priceMultiplier = 0", async () => {
+      priceOracle.get.returns(2)
+      await tokenSender.connect(deployer).setScaledPriceLowerBound(1)
+      await tokenSender.connect(deployer).setPriceMultiplier(0)
+
+      await tokenSender.connect(deployer).send(user.address, 1)
+
+      expect(outputToken.transfer).to.not.be.called
+    })
+
+    it("doesn't transfer if scaled price < lowerBound", async () => {
+      priceOracle.get.returns(1)
+      await tokenSender.connect(deployer).setPriceMultiplier(MULTIPLIER_DENOMINATOR)
+      await tokenSender.connect(deployer).setScaledPriceLowerBound(2)
+
+      await tokenSender.connect(deployer).send(user.address, 1)
+
+      expect(outputToken.transfer).to.not.be.called
+    })
+
+    it("doesn't transfer if scaled price = lowerBound", async () => {
+      priceOracle.get.returns(1)
+      await tokenSender.connect(deployer).setPriceMultiplier(MULTIPLIER_DENOMINATOR)
+      await tokenSender.connect(deployer).setScaledPriceLowerBound(1)
+
+      await tokenSender.connect(deployer).send(user.address, 1)
+
+      expect(outputToken.transfer).to.not.be.called
+    })
+
+    it("doesn't transfer if outputAmount > token balance", async () => {
+      priceOracle.get.returns(2)
+      await tokenSender.connect(deployer).setPriceMultiplier(MULTIPLIER_DENOMINATOR)
+      await tokenSender.connect(deployer).setScaledPriceLowerBound(1)
+      const outputAmount = await calculateExpectedOutput(10)
+      expect(outputAmount).to.be.gt(0)
+      expect(outputAmount).to.be.gt(await outputToken.balanceOf(tokenSender.address))
+
+      await tokenSender.connect(deployer).send(user.address, 1)
+
+      expect(outputToken.transfer).to.not.be.called
+    })
+
+    it("doesn't transfer if outputAmount = 0", async () => {
+      priceOracle.get.returns(1)
+      await tokenSender.connect(deployer).setPriceMultiplier(ethers.constants.MaxUint256)
+      await tokenSender.connect(deployer).setScaledPriceLowerBound(1)
+
+      const unconvertedAmount = 1
+      const outputAmount = await calculateExpectedOutput(unconvertedAmount)
+      expect(outputAmount).to.be.eq(0)
+
+      await tokenSender.connect(deployer).send(user.address, unconvertedAmount)
+
+      expect(outputToken.transfer).to.not.be.called
+    })
+
+    it('transfers', async () => {
+      priceOracle.get.returns(2)
+      await tokenSender.connect(deployer).setPriceMultiplier(MULTIPLIER_DENOMINATOR)
+      await tokenSender.connect(deployer).setScaledPriceLowerBound(1)
+      await outputToken.connect(deployer).mint(tokenSender.address, ethers.constants.MaxUint256)
+
+      const unconvertedAmount = 10
+      const outputAmount = await calculateExpectedOutput(unconvertedAmount)
+      expect(outputAmount).to.be.gt(0)
+      expect(await outputToken.balanceOf(tokenSender.address)).to.be.gt(outputAmount)
+
+      await tokenSender.connect(deployer).send(user.address, unconvertedAmount)
+
+      expect(outputToken.transfer).to.be.calledWith(user.address, outputAmount)
+      expect(await outputToken.balanceOf(user.address)).to.be.eq(outputAmount)
     })
   })
 })
