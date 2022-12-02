@@ -15,9 +15,10 @@ describe('=> FeeRebateHook', () => {
   let deployer: SignerWithAddress
   let user: SignerWithAddress
   let treasury: SignerWithAddress
+  let tokenSender: SignerWithAddress
 
   beforeEach(async () => {
-    ;[deployer, user, treasury] = await ethers.getSigners()
+    ;[deployer, user, treasury, tokenSender] = await ethers.getSigners()
     feeRebateHook = await feeRebateHookFixture()
   })
 
@@ -49,10 +50,39 @@ describe('=> FeeRebateHook', () => {
       expect(await feeRebateHook.getTreasury()).to.eq(treasury.address)
     })
 
-    it('emits event', async () => {
+    it('emits TreasuryChange event', async () => {
       await expect(feeRebateHook.connect(deployer).setTreasury(treasury.address))
         .to.emit(feeRebateHook, 'TreasuryChange')
         .withArgs(treasury.address)
+    })
+  })
+
+  describe('# setTokenSender', () => {
+    it('sets non-zero address', async () => {
+      await feeRebateHook.connect(deployer).setTokenSender(tokenSender.address)
+
+      expect(await feeRebateHook.getTokenSender()).to.eq(tokenSender.address)
+    })
+
+    it('sets zero address', async () => {
+      await feeRebateHook.connect(deployer).setTokenSender(ZERO_ADDRESS)
+
+      expect(await feeRebateHook.getTokenSender()).to.eq(ZERO_ADDRESS)
+    })
+
+    it('is idempotent', async () => {
+      await feeRebateHook.connect(deployer).setTokenSender(tokenSender.address)
+      expect(await feeRebateHook.getTokenSender()).to.eq(tokenSender.address)
+
+      await feeRebateHook.connect(deployer).setTokenSender(tokenSender.address)
+
+      expect(await feeRebateHook.getTokenSender()).to.eq(tokenSender.address)
+    })
+
+    it('emits TokenSenderChange event', async () => {
+      await expect(feeRebateHook.connect(deployer).setTokenSender(tokenSender.address))
+        .to.emit(feeRebateHook, 'TokenSenderChange')
+        .withArgs(tokenSender.address)
     })
   })
 })

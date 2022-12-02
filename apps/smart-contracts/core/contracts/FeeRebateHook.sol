@@ -3,17 +3,12 @@ pragma solidity =0.8.7;
 
 import "./interfaces/IFeeRebateHook.sol";
 import "./interfaces/ITokenSender.sol";
-import "prepo-shared-contracts/contracts/SafeAccessControlEnumerable.sol";
 
-contract FeeRebateHook is IFeeRebateHook, SafeAccessControlEnumerable {
+contract FeeRebateHook is IFeeRebateHook {
   address internal _treasury;
-  ITokenSender internal _feeRebate;
+  ITokenSender internal _tokenSender;
 
-  function setTreasury(address treasury) external virtual override {
-    _setTreasury(treasury);
-  }
-
-  function _setTreasury(address treasury) internal {
+  function setTreasury(address treasury) public virtual override {
     _treasury = treasury;
     emit TreasuryChange(treasury);
   }
@@ -22,9 +17,12 @@ contract FeeRebateHook is IFeeRebateHook, SafeAccessControlEnumerable {
     return _treasury;
   }
 
-  function setTokenSender(ITokenSender tokenSender)
-    external
-    virtual
-    override
-  {}
+  function setTokenSender(ITokenSender tokenSender) public virtual override {
+    _tokenSender = tokenSender;
+    emit TokenSenderChange(address(tokenSender));
+  }
+
+  function getTokenSender() external view override returns (ITokenSender) {
+    return _tokenSender;
+  }
 }
