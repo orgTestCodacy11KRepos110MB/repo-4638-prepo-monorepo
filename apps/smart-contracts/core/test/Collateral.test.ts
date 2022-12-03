@@ -3,7 +3,7 @@ import { ethers, upgrades } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { id, parseEther, parseUnits } from 'ethers/lib/utils'
 import { BigNumber, Contract } from 'ethers'
-import { MockContract, smock } from '@defi-wonderland/smock'
+import { MockContract, FakeContract, smock } from '@defi-wonderland/smock'
 import { DEFAULT_ADMIN_ROLE, ZERO_ADDRESS } from 'prepo-constants'
 import {
   smockDepositHookFixture,
@@ -14,6 +14,7 @@ import {
 import { collateralFixture } from './fixtures/CollateralFixture'
 import { smockDepositRecordFixture } from './fixtures/DepositRecordFixture'
 import { testERC20Fixture } from './fixtures/TestERC20Fixture'
+import { fakeTokenSenderFixture } from './fixtures/TokenSenderFixture'
 import {
   FEE_DENOMINATOR,
   COLLATERAL_FEE_LIMIT,
@@ -35,6 +36,7 @@ describe('=> Collateral', () => {
   let depositHook: MockContract<Contract>
   let withdrawHook: MockContract<Contract>
   let managerWithdrawHook: MockContract<Contract>
+  let tokenSender: FakeContract<Contract>
   let allowlist: MockContract<Contract>
   const TEST_DEPOSIT_FEE = 1000 // 0.1%
   const TEST_WITHDRAW_FEE = 2000 // 0.2%
@@ -60,6 +62,7 @@ describe('=> Collateral', () => {
     withdrawHook = await smockWithdrawHookFixture()
     managerWithdrawHook = await smockManagerWithdrawHookFixture()
     allowlist = await smockAccountListFixture()
+    tokenSender = await fakeTokenSenderFixture(baseToken.address)
     await grantAndAcceptRole(
       depositRecord,
       deployer,
@@ -70,6 +73,13 @@ describe('=> Collateral', () => {
 
   const setupDepositHook = async (): Promise<void> => {
     await depositRecord.connect(deployer).setAllowedHook(depositHook.address, true)
+    await grantAndAcceptRole(depositHook, deployer, deployer, await depositHook.SET_TREASURY_ROLE())
+    await grantAndAcceptRole(
+      depositHook,
+      deployer,
+      deployer,
+      await depositHook.SET_TOKEN_SENDER_ROLE()
+    )
     await grantAndAcceptRole(
       depositHook,
       deployer,
@@ -98,10 +108,24 @@ describe('=> Collateral', () => {
     await depositHook.connect(deployer).setDepositRecord(depositRecord.address)
     await depositHook.connect(deployer).setDepositsAllowed(true)
     await depositHook.connect(deployer).setAllowlist(allowlist.address)
+    await depositHook.connect(deployer).setTreasury(manager.address)
+    await depositHook.connect(deployer).setTokenSender(tokenSender.address)
   }
 
   const setupWithdrawHook = async (): Promise<void> => {
     await depositRecord.connect(deployer).setAllowedHook(withdrawHook.address, true)
+    await grantAndAcceptRole(
+      withdrawHook,
+      deployer,
+      deployer,
+      await withdrawHook.SET_TREASURY_ROLE()
+    )
+    await grantAndAcceptRole(
+      withdrawHook,
+      deployer,
+      deployer,
+      await withdrawHook.SET_TOKEN_SENDER_ROLE()
+    )
     await grantAndAcceptRole(
       withdrawHook,
       deployer,
@@ -123,6 +147,8 @@ describe('=> Collateral', () => {
     await withdrawHook.connect(deployer).setCollateral(collateral.address)
     await withdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
     await withdrawHook.connect(deployer).setWithdrawalsAllowed(true)
+    await withdrawHook.connect(deployer).setTreasury(manager.address)
+    await withdrawHook.connect(deployer).setTokenSender(tokenSender.address)
   }
 
   const setupManagerWithdrawHook = async (): Promise<void> => {
@@ -824,7 +850,6 @@ describe('=> Collateral', () => {
       await expect(tx)
         .to.emit(baseToken, 'Approval')
         .withArgs(collateral.address, depositHook.address, fee)
-      expect(await baseToken.balanceOf(collateral.address)).to.eq(amountToDeposit)
     })
 
     it('sets hook approval back to 0', async () => {
@@ -845,7 +870,6 @@ describe('=> Collateral', () => {
         .to.emit(baseToken, 'Approval')
         .withArgs(collateral.address, depositHook.address, 0)
       expect(await baseToken.allowance(collateral.address, depositHook.address)).to.eq(0)
-      expect(await baseToken.balanceOf(collateral.address)).to.eq(amountToDeposit)
     })
 
     it('mints decimal-adjusted amount to recipient if decimals > base token decimals', async () => {
@@ -1107,7 +1131,6 @@ describe('=> Collateral', () => {
       await expect(tx)
         .to.emit(baseToken, 'Approval')
         .withArgs(collateral.address, withdrawHook.address, fee)
-      expect(await baseToken.balanceOf(collateral.address)).to.eq(fee)
     })
 
     it('transfers base tokens to user adjusting for when decimals > base token decimals', async () => {
@@ -1137,7 +1160,6 @@ describe('=> Collateral', () => {
       await expect(tx)
         .to.emit(baseToken, 'Approval')
         .withArgs(collateral.address, withdrawHook.address, fee)
-      expect(await baseToken.balanceOf(collateral.address)).to.eq(fee)
     })
 
     it('transfers base tokens to user adjusting for when decimals = base token decimals', async () => {
@@ -1169,7 +1191,6 @@ describe('=> Collateral', () => {
       await expect(tx)
         .to.emit(baseToken, 'Approval')
         .withArgs(collateral.address, withdrawHook.address, fee)
-      expect(await baseToken.balanceOf(collateral.address)).to.eq(fee)
     })
 
     it('transfers base tokens to user adjusting for when decimals < base token decimals', async () => {

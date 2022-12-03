@@ -3,9 +3,14 @@ pragma solidity =0.8.7;
 
 import "./interfaces/IWithdrawHook.sol";
 import "./interfaces/IDepositRecord.sol";
+import "./FeeRebateHook.sol";
 import "prepo-shared-contracts/contracts/SafeAccessControlEnumerable.sol";
 
-contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
+contract WithdrawHook is
+  IWithdrawHook,
+  FeeRebateHook,
+  SafeAccessControlEnumerable
+{
   ICollateral private collateral;
   IDepositRecord private depositRecord;
   bool public override withdrawalsAllowed;
@@ -18,6 +23,10 @@ contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
   uint256 private globalAmountWithdrawnThisPeriod;
   mapping(address => uint256) private userToAmountWithdrawnThisPeriod;
 
+  bytes32 public constant SET_TREASURY_ROLE =
+    keccak256("WithdrawHook_setTreasury(address)");
+  bytes32 public constant SET_TOKEN_SENDER_ROLE =
+    keccak256("WithdrawHook_setTokenSender(ITokenSender)");
   bytes32 public constant SET_COLLATERAL_ROLE =
     keccak256("WithdrawHook_setCollateral(address)");
   bytes32 public constant SET_DEPOSIT_RECORD_ROLE =
@@ -49,7 +58,7 @@ contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
   function hook(
     address _sender,
     uint256 _amountBeforeFee,
-    uint256
+    uint256 _amountAfterFee
   ) external override onlyCollateral {
     require(withdrawalsAllowed, "withdrawals not allowed");
     if (lastGlobalPeriodReset + globalPeriodLength < block.timestamp) {
@@ -75,6 +84,31 @@ contract WithdrawHook is IWithdrawHook, SafeAccessControlEnumerable {
       userToAmountWithdrawnThisPeriod[_sender] += _amountBeforeFee;
     }
     depositRecord.recordWithdrawal(_amountBeforeFee);
+    uint256 _fee = _amountBeforeFee - _amountAfterFee;
+    if (_fee > 0) {
+      collateral.getBaseToken().transferFrom(
+        address(collateral),
+        _treasury,
+        _fee
+      );
+      _tokenSender.send(_sender, _fee);
+    }
+  }
+
+  function setTreasury(address _treasury)
+    public
+    override
+    onlyRole(SET_TREASURY_ROLE)
+  {
+    super.setTreasury(_treasury);
+  }
+
+  function setTokenSender(ITokenSender _tokenSender)
+    public
+    override
+    onlyRole(SET_TOKEN_SENDER_ROLE)
+  {
+    super.setTokenSender(_tokenSender);
   }
 
   function setCollateral(ICollateral _newCollateral)

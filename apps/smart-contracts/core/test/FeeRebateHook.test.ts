@@ -79,7 +79,7 @@ describe('=> FeeRebateHook', () => {
       expect(await feeRebateHook.getTokenSender()).to.eq(tokenSender.address)
     })
 
-    it('emits TokenSenderChange event', async () => {
+    it('emits TokenSenderChange', async () => {
       await expect(feeRebateHook.connect(deployer).setTokenSender(tokenSender.address))
         .to.emit(feeRebateHook, 'TokenSenderChange')
         .withArgs(tokenSender.address)

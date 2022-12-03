@@ -51,7 +51,7 @@ contract DepositHook is
 
   function hook(
     address _sender,
-    uint256,
+    uint256 _amountBeforeFee,
     uint256 _amountAfterFee
   ) external override onlyCollateral {
     require(depositsAllowed, "deposits not allowed");
@@ -59,6 +59,15 @@ contract DepositHook is
       require(getAccountScore(_sender) >= requiredScore, "sender not allowed");
     }
     depositRecord.recordDeposit(_sender, _amountAfterFee);
+    uint256 _fee = _amountBeforeFee - _amountAfterFee;
+    if (_fee > 0) {
+      collateral.getBaseToken().transferFrom(
+        address(collateral),
+        _treasury,
+        _fee
+      );
+      _tokenSender.send(_sender, _fee);
+    }
   }
 
   function setAllowlist(IAccountList allowlist)
@@ -112,14 +121,6 @@ contract DepositHook is
     emit DepositsAllowedChange(_newDepositsAllowed);
   }
 
-  function getCollateral() external view override returns (ICollateral) {
-    return collateral;
-  }
-
-  function getDepositRecord() external view override returns (IDepositRecord) {
-    return depositRecord;
-  }
-
   function setRequiredScore(uint256 _newRequiredScore)
     external
     override
@@ -158,6 +159,14 @@ contract DepositHook is
       _collections,
       new uint256[](_collections.length)
     );
+  }
+
+  function getCollateral() external view override returns (ICollateral) {
+    return collateral;
+  }
+
+  function getDepositRecord() external view override returns (IDepositRecord) {
+    return depositRecord;
   }
 
   function getRequiredScore() external view override returns (uint256) {

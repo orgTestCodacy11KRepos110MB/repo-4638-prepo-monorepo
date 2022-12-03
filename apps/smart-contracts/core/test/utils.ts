@@ -1,6 +1,6 @@
 import { parseEther } from '@ethersproject/units'
 import { BigNumber, Contract } from 'ethers'
-import { ethers } from 'hardhat'
+import { ethers, network } from 'hardhat'
 import { MerkleTree } from 'merkletreejs'
 import keccak256 from 'keccak256'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
@@ -64,4 +64,24 @@ export async function grantAndAcceptRole(
 ): Promise<void> {
   await contract.connect(admin).grantRole(role, nominee.address)
   await contract.connect(nominee).acceptRole(role)
+}
+
+export async function getSignerForContract(
+  contract: Contract | MockContract
+): Promise<SignerWithAddress> {
+  /**
+   * This gets the signer for a contract. The signer is needed to call
+   * contract.connect(signer).functionName() to call a function on behalf of the contract.
+   * This additionally funds the contract address with 1 eth for gas.
+   */
+  await network.provider.request({
+    method: 'hardhat_impersonateAccount',
+    params: [contract.address],
+  })
+  const signer = await ethers.getSigner(contract.address)
+  await network.provider.send('hardhat_setBalance', [
+    contract.address,
+    '0xde0b6b3a7640000', // 1 eth in hex
+  ])
+  return signer
 }
