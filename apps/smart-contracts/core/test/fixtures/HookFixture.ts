@@ -63,6 +63,11 @@ export async function smockAccountListFixture(): Promise<MockContract> {
   return smockAccountListFactory.deploy()
 }
 
+export async function fakeAccountListFixture(): Promise<FakeContract> {
+  const fakeContract = await smock.fake('AccountList')
+  return fakeContract
+}
+
 export async function fakeMintHookFixture(): Promise<FakeContract> {
   const fakeContract = await smock.fake('MintHook')
   return fakeContract

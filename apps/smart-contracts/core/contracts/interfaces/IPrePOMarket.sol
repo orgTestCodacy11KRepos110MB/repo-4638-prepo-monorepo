@@ -43,10 +43,6 @@ interface IPrePOMarket {
     uint256 fee
   );
 
-  /// @dev Emitted via `setTreasury()`.
-  /// @param treasury The new treasury address
-  event TreasuryChange(address treasury);
-
   event MintHookChange(address hook);
 
   event RedeemHookChange(address hook);
@@ -84,13 +80,6 @@ interface IPrePOMarket {
    */
   function redeem(uint256 _longAmount, uint256 _shortAmount) external;
 
-  /**
-   * @notice Sets the treasury address minting/redemption fees are sent to.
-   * @dev Only callable by `owner()`.
-   * @param _treasury New treasury address
-   */
-  function setTreasury(address _treasury) external;
-
   function setMintHook(IMarketHook mintHook) external;
 
   function setRedeemHook(IMarketHook redeemHook) external;
@@ -113,9 +102,6 @@ interface IPrePOMarket {
    * @param _redemptionFee New redemption fee
    */
   function setRedemptionFee(uint256 _redemptionFee) external;
-
-  /// @return Treasury address where minting/redemption fees are sent
-  function getTreasury() external view returns (address);
 
   function getMintHook() external view returns (IMarketHook);
 

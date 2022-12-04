@@ -8,8 +8,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
-  address private treasury;
-
   IMarketHook private _mintHook;
   IMarketHook private _redeemHook;
 
@@ -60,7 +58,6 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
     require(_ceilingLongPayout <= MAX_PAYOUT, "Ceiling cannot exceed 1");
 
     transferOwnership(_governance);
-    treasury = _governance;
 
     collateral = IERC20(_collateral);
     longToken = _longToken;
@@ -132,28 +129,39 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
       _collateralAmount = _longAmount;
     }
 
-    uint256 _fee = (_collateralAmount * redemptionFee) / FEE_DENOMINATOR;
+    uint256 _actualFee;
+    uint256 _expectedFee = (_collateralAmount * redemptionFee) /
+      FEE_DENOMINATOR;
     if (redemptionFee > 0) {
-      require(_fee > 0, "fee = 0");
+      require(_expectedFee > 0, "fee = 0");
     } else {
       require(_collateralAmount > 0, "amount = 0");
+    }
+    if (address(_redeemHook) != address(0)) {
+      collateral.approve(address(_redeemHook), _expectedFee);
+      uint256 _collateralAllowanceBefore = collateral.allowance(
+        address(this),
+        address(_redeemHook)
+      );
+      _redeemHook.hook(
+        msg.sender,
+        _collateralAmount,
+        _collateralAmount - _expectedFee
+      );
+      _actualFee =
+        _collateralAllowanceBefore -
+        collateral.allowance(address(this), address(_redeemHook));
+      collateral.approve(address(_redeemHook), 0);
+    } else {
+      _actualFee = 0;
     }
 
     longToken.burnFrom(msg.sender, _longAmount);
     shortToken.burnFrom(msg.sender, _shortAmount);
-    collateral.transfer(treasury, _fee);
-    uint256 _collateralAmountAfterFee;
-    unchecked {
-      _collateralAmountAfterFee = _collateralAmount - _fee;
-    }
-    collateral.transfer(msg.sender, _collateralAmountAfterFee);
+    uint256 _collateralAfterFee = _collateralAmount - _actualFee;
+    collateral.transfer(msg.sender, _collateralAfterFee);
 
-    emit Redemption(msg.sender, _collateralAmountAfterFee, _fee);
-  }
-
-  function setTreasury(address _treasury) external override onlyOwner {
-    treasury = _treasury;
-    emit TreasuryChange(_treasury);
+    emit Redemption(msg.sender, _collateralAfterFee, _actualFee);
   }
 
   function setMintHook(IMarketHook mintHook) external override onlyOwner {
@@ -191,10 +199,6 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
     require(_redemptionFee <= FEE_LIMIT, "Exceeds fee limit");
     redemptionFee = _redemptionFee;
     emit RedemptionFeeChange(_redemptionFee);
-  }
-
-  function getTreasury() external view override returns (address) {
-    return treasury;
   }
 
   function getMintHook() external view override returns (IMarketHook) {

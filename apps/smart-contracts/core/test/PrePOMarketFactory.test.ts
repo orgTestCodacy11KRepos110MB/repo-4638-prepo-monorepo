@@ -154,7 +154,6 @@ describe('=> PrePOMarketFactory', () => {
       const shortToken = await LongShortTokenAttachFixture(await prePOMarket.getShortToken())
 
       expect(await prePOMarket.getCollateral()).to.eq(collateralToken.address)
-      expect(await prePOMarket.getTreasury()).to.eq(treasury.address)
       expect(await longToken.owner()).to.eq(prePOMarket.address)
       expect(await shortToken.owner()).to.eq(prePOMarket.address)
       expect(await prePOMarket.getFloorLongPayout()).to.eq(TEST_FLOOR_PRICE)
