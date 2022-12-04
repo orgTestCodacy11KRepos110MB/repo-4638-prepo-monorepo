@@ -97,6 +97,9 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
       collateral.balanceOf(msg.sender) >= _amount,
       "Insufficient collateral"
     );
+    if (address(_mintHook) != address(0)) {
+      _mintHook.hook(msg.sender, _amount, _amount);
+    }
     collateral.transferFrom(msg.sender, address(this), _amount);
     longToken.mint(msg.sender, _amount);
     shortToken.mint(msg.sender, _amount);

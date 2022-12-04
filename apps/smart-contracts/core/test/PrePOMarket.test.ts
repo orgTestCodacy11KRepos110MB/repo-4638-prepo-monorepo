@@ -413,8 +413,13 @@ describe('=> prePOMarket', () => {
   })
 
   describe('# mint', () => {
-    it('prevents minting if market ended', async () => {
+    let mintHook: MockContract<Contract>
+    let allowlist: MockContract<Contract>
+    beforeEach(async () => {
       prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
+    })
+
+    it('prevents minting if market ended', async () => {
       await collateralToken.connect(deployer).transfer(user.address, TEST_MINT_AMOUNT)
       await collateralToken.connect(user).approve(prePOMarket.address, TEST_MINT_AMOUNT)
       await prePOMarket.connect(treasury).setFinalLongPayout(TEST_FINAL_LONG_PAYOUT)
@@ -425,7 +430,6 @@ describe('=> prePOMarket', () => {
     })
 
     it('should not allow minting an amount exceeding owned collateral', async () => {
-      prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
       await collateralToken.connect(deployer).transfer(user.address, TEST_MINT_AMOUNT.sub(1))
       await collateralToken.connect(user).approve(prePOMarket.address, TEST_MINT_AMOUNT.sub(1))
 
@@ -435,7 +439,6 @@ describe('=> prePOMarket', () => {
     })
 
     it('transfers collateral from sender', async () => {
-      prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
       await collateralToken.connect(deployer).transfer(user.address, TEST_MINT_AMOUNT)
       await collateralToken.connect(user).approve(prePOMarket.address, TEST_MINT_AMOUNT)
 
@@ -445,7 +448,6 @@ describe('=> prePOMarket', () => {
     })
 
     it('mints long and short tokens in equal amounts', async () => {
-      prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
       const longToken = await LongShortTokenAttachFixture(await prePOMarket.getLongToken())
       const shortToken = await LongShortTokenAttachFixture(await prePOMarket.getShortToken())
       await collateralToken.connect(deployer).transfer(user.address, TEST_MINT_AMOUNT)
@@ -457,8 +459,48 @@ describe('=> prePOMarket', () => {
       expect(await shortToken.balanceOf(user.address)).to.eq(TEST_MINT_AMOUNT)
     })
 
+    it('calls hook with correct parameters', async () => {
+      mintHook = await smockMintHookFixture()
+      allowlist = await smockAccountListFixture()
+      await mintHook.setAllowedCallers([prePOMarket.address], [true])
+      await mintHook.setAllowlist(allowlist.address)
+      await allowlist.set([user.address], [true])
+      await prePOMarket.connect(treasury).setMintHook(mintHook.address)
+      await collateralToken.connect(deployer).transfer(user.address, TEST_MINT_AMOUNT)
+      await collateralToken.connect(user).approve(prePOMarket.address, TEST_MINT_AMOUNT)
+
+      await prePOMarket.connect(user).mint(TEST_MINT_AMOUNT)
+
+      expect(mintHook.hook).to.be.calledWith(user.address, TEST_MINT_AMOUNT, TEST_MINT_AMOUNT)
+    })
+
+    it('ignores hook if not set', async () => {
+      // reset smock hook or else smock history will be preserved from previous test
+      mintHook = await smockMintHookFixture()
+      await collateralToken.connect(deployer).transfer(user.address, TEST_MINT_AMOUNT)
+      await collateralToken.connect(user).approve(prePOMarket.address, TEST_MINT_AMOUNT)
+      await prePOMarket.connect(treasury).setMintHook(ZERO_ADDRESS)
+
+      await prePOMarket.connect(user).mint(TEST_MINT_AMOUNT)
+
+      expect(mintHook.hook).to.not.be.called
+    })
+
+    it('reverts if hook reverts', async () => {
+      mintHook = await smockMintHookFixture()
+      allowlist = await smockAccountListFixture()
+      await mintHook.setAllowedCallers([prePOMarket.address], [true])
+      await mintHook.setAllowlist(allowlist.address)
+      await allowlist.set([user.address], [true])
+      await prePOMarket.connect(treasury).setMintHook(mintHook.address)
+      await collateralToken.connect(deployer).transfer(user.address, TEST_MINT_AMOUNT)
+      await collateralToken.connect(user).approve(prePOMarket.address, TEST_MINT_AMOUNT)
+      mintHook.hook.reverts()
+
+      await expect(prePOMarket.connect(user).mint(TEST_MINT_AMOUNT)).to.be.reverted
+    })
+
     it('emits Mint', async () => {
-      prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
       await collateralToken.connect(deployer).transfer(user.address, TEST_MINT_AMOUNT)
       await collateralToken.connect(user).approve(prePOMarket.address, TEST_MINT_AMOUNT)
       await prePOMarket.connect(user).mint(TEST_MINT_AMOUNT)
@@ -479,7 +521,6 @@ describe('=> prePOMarket', () => {
     })
 
     it('returns long short tokens minted', async () => {
-      prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
       await collateralToken.connect(deployer).transfer(user.address, TEST_MINT_AMOUNT)
       await collateralToken.connect(user).approve(prePOMarket.address, TEST_MINT_AMOUNT)
 
