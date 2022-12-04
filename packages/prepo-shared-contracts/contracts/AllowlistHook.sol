@@ -7,16 +7,12 @@ import "./interfaces/IAllowlistHook.sol";
 contract AllowlistHook is IAllowlistHook {
   IAccountList internal _allowlist;
 
-  function setAllowlist(IAccountList allowlist) external virtual override {
-    _setAllowlist(allowlist);
+  function setAllowlist(IAccountList allowlist) public virtual override {
+    _allowlist = allowlist;
+    emit AllowlistChange(allowlist);
   }
 
   function getAllowlist() external view override returns (IAccountList) {
     return _allowlist;
-  }
-
-  function _setAllowlist(IAccountList allowlist) internal {
-    _allowlist = allowlist;
-    emit AllowlistChange(allowlist);
   }
 }

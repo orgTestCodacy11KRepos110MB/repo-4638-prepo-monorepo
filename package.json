@@ -25,7 +25,9 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "prepare": "npx is-ci || npx husky install",
     "test": "turbo run test",
-    "test:ci": "turbo run test:ci --since=origin/main"
+    "test:ci": "turbo run test:ci --since=origin/main",
+    "core:test:ci": "turbo run core:test:ci --since=origin/main",
+    "token:test:ci": "turbo run token:test:ci --since=origin/main"
   },
   "devDependencies": {
     "@commitlint/cli": "16.2.3",

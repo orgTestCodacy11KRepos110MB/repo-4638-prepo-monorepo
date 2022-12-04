@@ -70,30 +70,6 @@ contract DepositHook is
     }
   }
 
-  function setAllowlist(IAccountList allowlist)
-    external
-    override
-    onlyRole(SET_ALLOWLIST_ROLE)
-  {
-    _setAllowlist(allowlist);
-  }
-
-  function setTreasury(address _treasury)
-    public
-    override
-    onlyRole(SET_TREASURY_ROLE)
-  {
-    super.setTreasury(_treasury);
-  }
-
-  function setTokenSender(ITokenSender _tokenSender)
-    public
-    override
-    onlyRole(SET_TOKEN_SENDER_ROLE)
-  {
-    super.setTokenSender(_tokenSender);
-  }
-
   function setCollateral(ICollateral _newCollateral)
     external
     override
@@ -159,6 +135,30 @@ contract DepositHook is
       _collections,
       new uint256[](_collections.length)
     );
+  }
+
+  function setAllowlist(IAccountList allowlist)
+    public
+    override
+    onlyRole(SET_ALLOWLIST_ROLE)
+  {
+    super.setAllowlist(allowlist);
+  }
+
+  function setTreasury(address _treasury)
+    public
+    override
+    onlyRole(SET_TREASURY_ROLE)
+  {
+    super.setTreasury(_treasury);
+  }
+
+  function setTokenSender(ITokenSender _tokenSender)
+    public
+    override
+    onlyRole(SET_TOKEN_SENDER_ROLE)
+  {
+    super.setTokenSender(_tokenSender);
   }
 
   function getCollateral() external view override returns (ICollateral) {

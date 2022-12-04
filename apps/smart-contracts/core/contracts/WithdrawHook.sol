@@ -95,22 +95,6 @@ contract WithdrawHook is
     }
   }
 
-  function setTreasury(address _treasury)
-    public
-    override
-    onlyRole(SET_TREASURY_ROLE)
-  {
-    super.setTreasury(_treasury);
-  }
-
-  function setTokenSender(ITokenSender _tokenSender)
-    public
-    override
-    onlyRole(SET_TOKEN_SENDER_ROLE)
-  {
-    super.setTokenSender(_tokenSender);
-  }
-
   function setCollateral(ICollateral _newCollateral)
     external
     override
@@ -168,6 +152,22 @@ contract WithdrawHook is
   ) external override onlyRole(SET_USER_WITHDRAW_LIMIT_PER_PERIOD_ROLE) {
     userWithdrawLimitPerPeriod = _newUserWithdrawLimitPerPeriod;
     emit UserWithdrawLimitPerPeriodChange(_newUserWithdrawLimitPerPeriod);
+  }
+
+  function setTreasury(address _treasury)
+    public
+    override
+    onlyRole(SET_TREASURY_ROLE)
+  {
+    super.setTreasury(_treasury);
+  }
+
+  function setTokenSender(ITokenSender _tokenSender)
+    public
+    override
+    onlyRole(SET_TOKEN_SENDER_ROLE)
+  {
+    super.setTokenSender(_tokenSender);
   }
 
   function getCollateral() external view override returns (ICollateral) {

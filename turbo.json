@@ -44,6 +44,14 @@
       "outputs": [],
       "inputs": ["src/**/*.tsx", "src/**/*.ts", "test/**/*.ts"]
     },
+    "core:test:ci": {
+      "outputs": [],
+      "inputs": ["src/**/*.tsx", "src/**/*.ts", "core/test/**/*.ts"]
+    },
+    "token:test:ci": {
+      "outputs": [],
+      "inputs": ["src/**/*.tsx", "src/**/*.ts", "token/test/**/*.ts"]
+    },
     "lint": {
       "outputs": []
     },

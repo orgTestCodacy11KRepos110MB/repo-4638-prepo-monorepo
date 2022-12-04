@@ -48,3 +48,11 @@ jobs:
           yarn run test:ci
         env:
           LOCAL_SOLC: TRUE
+      - name: Run core SC tests
+        if: contains(github.event.pull_request.title, 'core:')
+        run: |
+          yarn run core:test:ci
+      - name: Run token SC tests
+        if: contains(github.event.pull_request.title, 'token:')
+        run: |
+          yarn run token:test:ci

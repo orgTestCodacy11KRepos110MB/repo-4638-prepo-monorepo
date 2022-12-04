@@ -80,11 +80,11 @@ contract TokenSender is
   }
 
   function setAllowedCallers(address[] memory callers, bool[] memory allowed)
-    external
+    public
     override
     onlyRole(SET_ALLOWED_CALLERS_ROLE)
   {
-    _setAllowedCallers(callers, allowed);
+    super.setAllowedCallers(callers, allowed);
   }
 
   function getOutputToken() external view override returns (IERC20) {

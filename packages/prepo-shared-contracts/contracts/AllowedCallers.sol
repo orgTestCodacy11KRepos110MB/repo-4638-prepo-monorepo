@@ -12,11 +12,16 @@ contract AllowedCallers is IAllowedCallers {
   }
 
   function setAllowedCallers(address[] memory callers, bool[] memory allowed)
-    external
+    public
     virtual
     override
   {
-    _setAllowedCallers(callers, allowed);
+    require(callers.length > 0 && allowed.length > 0, "Empty array");
+    require(callers.length == allowed.length, "Array length mismatch");
+    for (uint256 i = 0; i < callers.length; i++) {
+      _callerToAllowed[callers[i]] = allowed[i];
+    }
+    emit AllowedCallersChange(callers, allowed);
   }
 
   function isCallerAllowed(address caller)
@@ -27,16 +32,5 @@ contract AllowedCallers is IAllowedCallers {
     returns (bool)
   {
     return _callerToAllowed[caller];
-  }
-
-  function _setAllowedCallers(address[] memory callers, bool[] memory allowed)
-    internal
-  {
-    require(callers.length > 0 && allowed.length > 0, "Empty array");
-    require(callers.length == allowed.length, "Array length mismatch");
-    for (uint256 i = 0; i < callers.length; i++) {
-      _callerToAllowed[callers[i]] = allowed[i];
-    }
-    emit AllowedCallersChange(callers, allowed);
   }
 }

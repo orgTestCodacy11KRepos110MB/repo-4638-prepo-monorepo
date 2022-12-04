@@ -1,6 +1,12 @@
 import { ethers } from 'hardhat'
-import { MockContract, smock } from '@defi-wonderland/smock'
-import { DepositHook, WithdrawHook, ManagerWithdrawHook, FeeRebateHook } from '../../typechain'
+import { MockContract, FakeContract, smock } from '@defi-wonderland/smock'
+import {
+  DepositHook,
+  WithdrawHook,
+  ManagerWithdrawHook,
+  FeeRebateHook,
+  MintHook,
+} from '../../typechain'
 
 export async function depositHookFixture(): Promise<DepositHook> {
   const depositHook = await ethers.getContractFactory('DepositHook')
@@ -20,6 +26,11 @@ export async function managerWithdrawHookFixture(): Promise<ManagerWithdrawHook>
 export async function feeRebateHookFixture(): Promise<FeeRebateHook> {
   const feeRebateHook = await ethers.getContractFactory('FeeRebateHook')
   return (await feeRebateHook.deploy()) as FeeRebateHook
+}
+
+export async function mintHookFixture(): Promise<MintHook> {
+  const factory = await ethers.getContractFactory('MintHook')
+  return (await factory.deploy()) as MintHook
 }
 
 export async function smockDepositHookFixture(): Promise<MockContract> {
@@ -42,7 +53,17 @@ export async function smockFeeRebateHookFixture(): Promise<MockContract> {
   return smockFeeRebateHookFactory.deploy()
 }
 
+export async function smockMintHookFixture(): Promise<MockContract> {
+  const smockFactory = await smock.mock('MintHook')
+  return smockFactory.deploy()
+}
+
 export async function smockAccountListFixture(): Promise<MockContract> {
   const smockAccountListFactory = await smock.mock('AccountList')
   return smockAccountListFactory.deploy()
+}
+
+export async function fakeMintHookFixture(): Promise<FakeContract> {
+  const fakeContract = await smock.fake('MintHook')
+  return fakeContract
 }
