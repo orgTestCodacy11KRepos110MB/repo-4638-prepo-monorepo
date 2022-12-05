@@ -1,5 +1,5 @@
 import chai, { expect } from 'chai'
-import { ethers, upgrades } from 'hardhat'
+import { ethers, network, upgrades } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { id, parseEther, parseUnits } from 'ethers/lib/utils'
 import { BigNumber, Contract } from 'ethers'
@@ -9,7 +9,7 @@ import {
   smockDepositHookFixture,
   smockWithdrawHookFixture,
   smockManagerWithdrawHookFixture,
-  smockAccountListFixture,
+  fakeAccountListFixture,
 } from './fixtures/HookFixture'
 import { collateralFixture } from './fixtures/CollateralFixture'
 import { smockDepositRecordFixture } from './fixtures/DepositRecordFixture'
@@ -36,8 +36,10 @@ describe('=> Collateral', () => {
   let depositHook: MockContract<Contract>
   let withdrawHook: MockContract<Contract>
   let managerWithdrawHook: MockContract<Contract>
+  let allowlist: FakeContract<Contract>
   let tokenSender: FakeContract<Contract>
-  let allowlist: MockContract<Contract>
+  let snapshotBeforeAllTests: string
+  let snapshotBeforeEachTest: string
   const TEST_DEPOSIT_FEE = 1000 // 0.1%
   const TEST_WITHDRAW_FEE = 2000 // 0.2%
   const TEST_GLOBAL_DEPOSIT_CAP = parseEther('50000')
@@ -61,7 +63,7 @@ describe('=> Collateral', () => {
     depositHook = await smockDepositHookFixture()
     withdrawHook = await smockWithdrawHookFixture()
     managerWithdrawHook = await smockManagerWithdrawHookFixture()
-    allowlist = await smockAccountListFixture()
+    allowlist = await fakeAccountListFixture()
     tokenSender = await fakeTokenSenderFixture(baseToken.address)
     await grantAndAcceptRole(
       depositRecord,
@@ -231,13 +233,15 @@ describe('=> Collateral', () => {
     await setupWithdrawHook()
   }
 
-  before(() => {
+  before(async () => {
     upgrades.silenceWarnings()
+    snapshotBeforeAllTests = await ethers.provider.send('evm_snapshot', [])
   })
 
   describe('initial state', () => {
-    beforeEach(async () => {
+    before(async () => {
       await getSignersAndDeployContracts()
+      snapshotBeforeEachTest = await ethers.provider.send('evm_snapshot', [])
     })
 
     it('sets base token from constructor', async () => {
@@ -282,9 +286,10 @@ describe('=> Collateral', () => {
   })
 
   describe('# setManager ', () => {
-    beforeEach(async () => {
+    before(async () => {
       await getSignersAndDeployContracts()
       await grantAndAcceptRole(collateral, deployer, deployer, await collateral.SET_MANAGER_ROLE())
+      snapshotBeforeEachTest = await ethers.provider.send('evm_snapshot', [])
     })
 
     it('reverts if not role holder', async () => {
@@ -334,7 +339,7 @@ describe('=> Collateral', () => {
   })
 
   describe('# setDepositFee', () => {
-    beforeEach(async () => {
+    before(async () => {
       await getSignersAndDeployContracts()
       await grantAndAcceptRole(
         collateral,
@@ -342,6 +347,7 @@ describe('=> Collateral', () => {
         deployer,
         await collateral.SET_DEPOSIT_FEE_ROLE()
       )
+      snapshotBeforeEachTest = await ethers.provider.send('evm_snapshot', [])
     })
 
     it('reverts if not role holder', async () => {
@@ -405,7 +411,7 @@ describe('=> Collateral', () => {
   })
 
   describe('# setWithdrawFee', () => {
-    beforeEach(async () => {
+    before(async () => {
       await getSignersAndDeployContracts()
       await grantAndAcceptRole(
         collateral,
@@ -413,6 +419,7 @@ describe('=> Collateral', () => {
         deployer,
         await collateral.SET_WITHDRAW_FEE_ROLE()
       )
+      snapshotBeforeEachTest = await ethers.provider.send('evm_snapshot', [])
     })
 
     it('reverts if not role holder', async () => {
@@ -476,7 +483,7 @@ describe('=> Collateral', () => {
   })
 
   describe('# setDepositHook', () => {
-    beforeEach(async () => {
+    before(async () => {
       await getSignersAndDeployContracts()
       await grantAndAcceptRole(
         collateral,
@@ -484,6 +491,7 @@ describe('=> Collateral', () => {
         deployer,
         await collateral.SET_DEPOSIT_HOOK_ROLE()
       )
+      snapshotBeforeEachTest = await ethers.provider.send('evm_snapshot', [])
     })
 
     it('reverts if not role holder', async () => {
@@ -533,7 +541,7 @@ describe('=> Collateral', () => {
   })
 
   describe('# setWithdrawHook', () => {
-    beforeEach(async () => {
+    before(async () => {
       await getSignersAndDeployContracts()
       await grantAndAcceptRole(
         collateral,
@@ -541,6 +549,7 @@ describe('=> Collateral', () => {
         deployer,
         await collateral.SET_WITHDRAW_HOOK_ROLE()
       )
+      snapshotBeforeEachTest = await ethers.provider.send('evm_snapshot', [])
     })
 
     it('reverts if not role holder', async () => {
@@ -590,7 +599,7 @@ describe('=> Collateral', () => {
   })
 
   describe('# setManagerWithdrawHook', () => {
-    beforeEach(async () => {
+    before(async () => {
       await getSignersAndDeployContracts()
       await grantAndAcceptRole(
         collateral,
@@ -598,6 +607,7 @@ describe('=> Collateral', () => {
         deployer,
         await collateral.SET_MANAGER_WITHDRAW_HOOK_ROLE()
       )
+      snapshotBeforeEachTest = await ethers.provider.send('evm_snapshot', [])
     })
 
     it('reverts if not role holder', async () => {
@@ -647,8 +657,9 @@ describe('=> Collateral', () => {
   })
 
   describe('# getReserve', () => {
-    beforeEach(async () => {
+    before(async () => {
       await getSignersAndDeployContracts()
+      snapshotBeforeEachTest = await ethers.provider.send('evm_snapshot', [])
     })
 
     it("returns contract's base token balance", async () => {
@@ -661,12 +672,13 @@ describe('=> Collateral', () => {
   })
 
   describe('# managerWithdraw', () => {
-    beforeEach(async () => {
+    before(async () => {
       await getSignersAndDeployContracts()
       await setupCollateralRoles()
       await setupManagerWithdrawHook()
       await baseToken.mint(collateral.address, parseUnits('1', 6))
       await collateral.connect(deployer).setManagerWithdrawHook(managerWithdrawHook.address)
+      snapshotBeforeEachTest = await ethers.provider.send('evm_snapshot', [])
     })
 
     it('reverts if not role holder', async () => {
@@ -730,29 +742,43 @@ describe('=> Collateral', () => {
         managerBTBefore.add(amountToWithdraw)
       )
     })
+
+    afterEach(() => {
+      managerWithdrawHook.hook.reset()
+    })
   })
 
   describe('# deposit', () => {
     let sender: SignerWithAddress
     let recipient: SignerWithAddress
+    before(async function () {
+      await setupCollateralStackForDeposits()
+      sender = user1
+      recipient = user2
+      snapshotBeforeEachTest = await ethers.provider.send('evm_snapshot', [])
+    })
+
     beforeEach(async function () {
       if (this.currentTest?.title.includes('= base token decimals')) {
         await setupCollateralStackForDeposits(18)
       } else if (this.currentTest?.title.includes('< base token decimals')) {
         await setupCollateralStackForDeposits(19)
-      } else {
+      } else if (this.currentTest?.title.includes('mints to sender if sender = recipient')) {
+        /**
+         * We have to reset the stack here and take a new snapshot, because now the global
+         * contract variables have been overwritten by the special base token setups above.
+         * If we do not update the snapshot, the contracts we setup to return back to 6 decimals
+         * will be interacting with a network where they never existed.
+         */
         await setupCollateralStackForDeposits()
+        snapshotBeforeEachTest = await ethers.provider.send('evm_snapshot', [])
       }
-      sender = user1
-      recipient = user2
-      expect(sender.address).to.not.eq(recipient.address)
       await baseToken.mint(sender.address, parseUnits('1', await baseToken.decimals()))
       await baseToken
         .connect(sender)
         .approve(collateral.address, parseUnits('1', await baseToken.decimals()))
       await collateral.connect(deployer).setDepositFee(TEST_DEPOSIT_FEE)
       await collateral.connect(deployer).setDepositHook(depositHook.address)
-      allowlist.isIncluded.returns(true)
     })
 
     it('reverts if deposit = 0 and deposit fee = 0%', async () => {
@@ -1022,16 +1048,26 @@ describe('=> Collateral', () => {
         .to.emit(collateral, 'Deposit')
         .withArgs(recipient.address, amountToDeposit.sub(fee), fee)
     })
+
+    afterEach(() => {
+      depositHook.hook.reset()
+    })
   })
 
   describe('# withdraw', () => {
+    before(async function () {
+      await setupCollateralStackForWithdrawals()
+      snapshotBeforeEachTest = await ethers.provider.send('evm_snapshot', [])
+    })
+
     beforeEach(async function () {
       if (this.currentTest?.title.includes('= base token decimals')) {
         await setupCollateralStackForWithdrawals(18)
       } else if (this.currentTest?.title.includes('< base token decimals')) {
         await setupCollateralStackForWithdrawals(19)
-      } else {
+      } else if (this.currentTest?.title.includes('sets hook approval back to 0')) {
         await setupCollateralStackForWithdrawals()
+        snapshotBeforeEachTest = await ethers.provider.send('evm_snapshot', [])
       }
       await baseToken.mint(user1.address, parseUnits('1', await baseToken.decimals()))
       await baseToken
@@ -1289,5 +1325,23 @@ describe('=> Collateral', () => {
         .to.emit(collateral, 'Withdraw')
         .withArgs(user1.address, expectedBT.sub(fee), fee)
     })
+
+    afterEach(() => {
+      withdrawHook.hook.reset()
+    })
+  })
+
+  afterEach(async () => {
+    // revert state of chain to after stacks have been initialized.
+    await network.provider.send('evm_revert', [snapshotBeforeEachTest])
+    // we need to store snapshot into a new id because you cannot use ids more than once with evm_revert.
+    snapshotBeforeEachTest = await ethers.provider.send('evm_snapshot', [])
+  })
+
+  after(async () => {
+    // revert state of chain to before the test ran.
+    await network.provider.send('evm_revert', [snapshotBeforeAllTests])
+    // we need to store snapshot into a new id because you cannot use ids more than once with evm_revert.
+    snapshotBeforeAllTests = await ethers.provider.send('evm_snapshot', [])
   })
 })
