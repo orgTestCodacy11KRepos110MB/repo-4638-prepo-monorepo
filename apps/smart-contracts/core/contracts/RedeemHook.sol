@@ -3,16 +3,16 @@ pragma solidity =0.8.7;
 
 import "./interfaces/IPrePOMarket.sol";
 import "./interfaces/IMarketHook.sol";
+import "prepo-shared-contracts/contracts/AllowedCallers.sol";
 import "prepo-shared-contracts/contracts/AllowlistHook.sol";
 import "prepo-shared-contracts/contracts/TokenSenderCaller.sol";
-import "prepo-shared-contracts/contracts/AllowedCallers.sol";
 import "prepo-shared-contracts/contracts/SafeOwnable.sol";
 
 contract RedeemHook is
   IMarketHook,
+  AllowedCallers,
   AllowlistHook,
   TokenSenderCaller,
-  AllowedCallers,
   SafeOwnable
 {
   function hook(

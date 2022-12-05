@@ -20,6 +20,7 @@ import {
   COLLATERAL_FEE_LIMIT,
   grantAndAcceptRole,
   PERCENT_DENOMINATOR,
+  batchGrantAndAcceptRoles,
 } from './utils'
 import { Collateral, TestERC20 } from '../typechain'
 
@@ -75,37 +76,14 @@ describe('=> Collateral', () => {
 
   const setupDepositHook = async (): Promise<void> => {
     await depositRecord.connect(deployer).setAllowedHook(depositHook.address, true)
-    await grantAndAcceptRole(depositHook, deployer, deployer, await depositHook.SET_TREASURY_ROLE())
-    await grantAndAcceptRole(
-      depositHook,
-      deployer,
-      deployer,
-      await depositHook.SET_TOKEN_SENDER_ROLE()
-    )
-    await grantAndAcceptRole(
-      depositHook,
-      deployer,
-      deployer,
-      await depositHook.SET_COLLATERAL_ROLE()
-    )
-    await grantAndAcceptRole(
-      depositHook,
-      deployer,
-      deployer,
-      await depositHook.SET_DEPOSIT_RECORD_ROLE()
-    )
-    await grantAndAcceptRole(
-      depositHook,
-      deployer,
-      deployer,
-      await depositHook.SET_DEPOSITS_ALLOWED_ROLE()
-    )
-    await grantAndAcceptRole(
-      depositHook,
-      deployer,
-      deployer,
-      await depositHook.SET_ALLOWLIST_ROLE()
-    )
+    await batchGrantAndAcceptRoles(depositHook, deployer, deployer, [
+      depositHook.SET_TREASURY_ROLE(),
+      depositHook.SET_TOKEN_SENDER_ROLE(),
+      depositHook.SET_COLLATERAL_ROLE(),
+      depositHook.SET_DEPOSIT_RECORD_ROLE(),
+      depositHook.SET_DEPOSITS_ALLOWED_ROLE(),
+      depositHook.SET_ALLOWLIST_ROLE(),
+    ])
     await depositHook.connect(deployer).setCollateral(collateral.address)
     await depositHook.connect(deployer).setDepositRecord(depositRecord.address)
     await depositHook.connect(deployer).setDepositsAllowed(true)
@@ -116,36 +94,13 @@ describe('=> Collateral', () => {
 
   const setupWithdrawHook = async (): Promise<void> => {
     await depositRecord.connect(deployer).setAllowedHook(withdrawHook.address, true)
-    await grantAndAcceptRole(
-      withdrawHook,
-      deployer,
-      deployer,
-      await withdrawHook.SET_TREASURY_ROLE()
-    )
-    await grantAndAcceptRole(
-      withdrawHook,
-      deployer,
-      deployer,
-      await withdrawHook.SET_TOKEN_SENDER_ROLE()
-    )
-    await grantAndAcceptRole(
-      withdrawHook,
-      deployer,
-      deployer,
-      await withdrawHook.SET_COLLATERAL_ROLE()
-    )
-    await grantAndAcceptRole(
-      withdrawHook,
-      deployer,
-      deployer,
-      await withdrawHook.SET_DEPOSIT_RECORD_ROLE()
-    )
-    await grantAndAcceptRole(
-      withdrawHook,
-      deployer,
-      deployer,
-      await withdrawHook.SET_WITHDRAWALS_ALLOWED_ROLE()
-    )
+    await batchGrantAndAcceptRoles(withdrawHook, deployer, deployer, [
+      withdrawHook.SET_TREASURY_ROLE(),
+      withdrawHook.SET_TOKEN_SENDER_ROLE(),
+      withdrawHook.SET_COLLATERAL_ROLE(),
+      withdrawHook.SET_DEPOSIT_RECORD_ROLE(),
+      withdrawHook.SET_WITHDRAWALS_ALLOWED_ROLE(),
+    ])
     await withdrawHook.connect(deployer).setCollateral(collateral.address)
     await withdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
     await withdrawHook.connect(deployer).setWithdrawalsAllowed(true)
@@ -154,67 +109,26 @@ describe('=> Collateral', () => {
   }
 
   const setupManagerWithdrawHook = async (): Promise<void> => {
-    await grantAndAcceptRole(
-      managerWithdrawHook,
-      deployer,
-      deployer,
-      await managerWithdrawHook.SET_COLLATERAL_ROLE()
-    )
-    await grantAndAcceptRole(
-      managerWithdrawHook,
-      deployer,
-      deployer,
-      await managerWithdrawHook.SET_DEPOSIT_RECORD_ROLE()
-    )
-    await grantAndAcceptRole(
-      managerWithdrawHook,
-      deployer,
-      deployer,
-      await managerWithdrawHook.SET_MIN_RESERVE_PERCENTAGE_ROLE()
-    )
+    await batchGrantAndAcceptRoles(managerWithdrawHook, deployer, deployer, [
+      managerWithdrawHook.SET_COLLATERAL_ROLE(),
+      managerWithdrawHook.SET_DEPOSIT_RECORD_ROLE(),
+      managerWithdrawHook.SET_MIN_RESERVE_PERCENTAGE_ROLE(),
+    ])
     await managerWithdrawHook.connect(deployer).setCollateral(collateral.address)
     await managerWithdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
     await managerWithdrawHook.connect(deployer).setMinReservePercentage(TEST_MIN_RESERVE_PERCENTAGE)
   }
 
   const setupCollateralRoles = async (): Promise<void> => {
-    await grantAndAcceptRole(
-      collateral,
-      deployer,
-      deployer,
-      await collateral.MANAGER_WITHDRAW_ROLE()
-    )
-    await grantAndAcceptRole(collateral, deployer, deployer, await collateral.SET_MANAGER_ROLE())
-    await grantAndAcceptRole(
-      collateral,
-      deployer,
-      deployer,
-      await collateral.SET_DEPOSIT_FEE_ROLE()
-    )
-    await grantAndAcceptRole(
-      collateral,
-      deployer,
-      deployer,
-      await collateral.SET_WITHDRAW_FEE_ROLE()
-    )
-    await grantAndAcceptRole(
-      collateral,
-      deployer,
-      deployer,
-      await collateral.SET_DEPOSIT_HOOK_ROLE()
-    )
-    await grantAndAcceptRole(
-      collateral,
-      deployer,
-      deployer,
-      await collateral.SET_WITHDRAW_HOOK_ROLE()
-    )
-    await grantAndAcceptRole(
-      collateral,
-      deployer,
-      deployer,
-      await collateral.SET_MANAGER_WITHDRAW_HOOK_ROLE()
-    )
+    await batchGrantAndAcceptRoles(collateral, deployer, deployer, [
+      collateral.MANAGER_WITHDRAW_ROLE(),
+      collateral.SET_MANAGER_ROLE(),
+      collateral.SET_DEPOSIT_FEE_ROLE(),
+      collateral.SET_WITHDRAW_FEE_ROLE(),
+      collateral.SET_DEPOSIT_HOOK_ROLE(),
+      collateral.SET_WITHDRAW_HOOK_ROLE(),
+      collateral.SET_MANAGER_WITHDRAW_HOOK_ROLE(),
+    ])
     await collateral.connect(deployer).setManager(manager.address)
   }
 

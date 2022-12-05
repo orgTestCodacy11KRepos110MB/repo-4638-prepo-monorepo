@@ -8,7 +8,7 @@ import { Contract } from 'ethers'
 import { FakeContract, MockContract, smock } from '@defi-wonderland/smock'
 import { withdrawHookFixture } from './fixtures/HookFixture'
 import { smockDepositRecordFixture } from './fixtures/DepositRecordFixture'
-import { getSignerForContract, grantAndAcceptRole } from './utils'
+import { getSignerForContract, grantAndAcceptRole, batchGrantAndAcceptRoles } from './utils'
 import { smockTestERC20Fixture } from './fixtures/TestERC20Fixture'
 import { smockCollateralFixture } from './fixtures/CollateralFixture'
 import { smockTokenSenderFixture } from './fixtures/TokenSenderFixture'
@@ -48,60 +48,17 @@ describe('=> WithdrawHook', () => {
     collateral = await smockCollateralFixture(testToken.address, 18)
     collateralSigner = await getSignerForContract(collateral)
     tokenSender = await smockTokenSenderFixture(testToken.address)
-    await grantAndAcceptRole(
-      withdrawHook,
-      deployer,
-      deployer,
-      await withdrawHook.SET_COLLATERAL_ROLE()
-    )
-    await grantAndAcceptRole(
-      withdrawHook,
-      deployer,
-      deployer,
-      await withdrawHook.SET_DEPOSIT_RECORD_ROLE()
-    )
-    await grantAndAcceptRole(
-      withdrawHook,
-      deployer,
-      deployer,
-      await withdrawHook.SET_WITHDRAWALS_ALLOWED_ROLE()
-    )
-    await grantAndAcceptRole(
-      withdrawHook,
-      deployer,
-      deployer,
-      await withdrawHook.SET_GLOBAL_PERIOD_LENGTH_ROLE()
-    )
-    await grantAndAcceptRole(
-      withdrawHook,
-      deployer,
-      deployer,
-      await withdrawHook.SET_USER_PERIOD_LENGTH_ROLE()
-    )
-    await grantAndAcceptRole(
-      withdrawHook,
-      deployer,
-      deployer,
-      await withdrawHook.SET_GLOBAL_WITHDRAW_LIMIT_PER_PERIOD_ROLE()
-    )
-    await grantAndAcceptRole(
-      withdrawHook,
-      deployer,
-      deployer,
-      await withdrawHook.SET_USER_WITHDRAW_LIMIT_PER_PERIOD_ROLE()
-    )
-    await grantAndAcceptRole(
-      withdrawHook,
-      deployer,
-      deployer,
-      await withdrawHook.SET_TREASURY_ROLE()
-    )
-    await grantAndAcceptRole(
-      withdrawHook,
-      deployer,
-      deployer,
-      await withdrawHook.SET_TOKEN_SENDER_ROLE()
-    )
+    await batchGrantAndAcceptRoles(withdrawHook, deployer, deployer, [
+      withdrawHook.SET_COLLATERAL_ROLE(),
+      withdrawHook.SET_DEPOSIT_RECORD_ROLE(),
+      withdrawHook.SET_WITHDRAWALS_ALLOWED_ROLE(),
+      withdrawHook.SET_GLOBAL_PERIOD_LENGTH_ROLE(),
+      withdrawHook.SET_USER_PERIOD_LENGTH_ROLE(),
+      withdrawHook.SET_GLOBAL_WITHDRAW_LIMIT_PER_PERIOD_ROLE(),
+      withdrawHook.SET_USER_WITHDRAW_LIMIT_PER_PERIOD_ROLE(),
+      withdrawHook.SET_TREASURY_ROLE(),
+      withdrawHook.SET_TOKEN_SENDER_ROLE(),
+    ])
     await grantAndAcceptRole(
       depositRecord,
       deployer,

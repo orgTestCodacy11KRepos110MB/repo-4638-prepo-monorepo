@@ -66,6 +66,20 @@ export async function grantAndAcceptRole(
   await contract.connect(nominee).acceptRole(role)
 }
 
+export async function batchGrantAndAcceptRoles(
+  contract: Contract | MockContract,
+  admin: SignerWithAddress,
+  nominee: SignerWithAddress,
+  roleGetters: Promise<string>[]
+): Promise<void> {
+  const promises: Promise<void>[] = []
+  const roles = await Promise.all(roleGetters)
+  roles.forEach((role) => {
+    promises.push(grantAndAcceptRole(contract, admin, nominee, role))
+  })
+  await Promise.all(promises)
+}
+
 export async function getSignerForContract(
   contract: Contract | MockContract | FakeContract
 ): Promise<SignerWithAddress> {
