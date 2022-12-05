@@ -4,8 +4,8 @@ pragma solidity =0.8.7;
 import "./interfaces/IDepositHook.sol";
 import "./interfaces/IDepositRecord.sol";
 import "./interfaces/INFTAccessHook.sol";
-import "./FeeRebateHook.sol";
 import "prepo-shared-contracts/contracts/AllowlistHook.sol";
+import "prepo-shared-contracts/contracts/TokenSenderCaller.sol";
 import "prepo-shared-contracts/contracts/SafeAccessControlEnumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
@@ -13,8 +13,8 @@ import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 contract DepositHook is
   IDepositHook,
   INFTAccessHook,
-  FeeRebateHook,
   AllowlistHook,
+  TokenSenderCaller,
   SafeAccessControlEnumerable
 {
   using EnumerableMap for EnumerableMap.AddressToUintMap;

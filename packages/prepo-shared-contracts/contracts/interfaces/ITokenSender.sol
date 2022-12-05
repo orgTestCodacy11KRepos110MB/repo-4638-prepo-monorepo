@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity =0.8.7;
 
-import "prepo-shared-contracts/contracts/interfaces/IUintValue.sol";
+import "./IUintValue.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface ITokenSender {

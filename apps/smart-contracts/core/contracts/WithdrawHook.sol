@@ -3,12 +3,12 @@ pragma solidity =0.8.7;
 
 import "./interfaces/IWithdrawHook.sol";
 import "./interfaces/IDepositRecord.sol";
-import "./FeeRebateHook.sol";
+import "prepo-shared-contracts/contracts/TokenSenderCaller.sol";
 import "prepo-shared-contracts/contracts/SafeAccessControlEnumerable.sol";
 
 contract WithdrawHook is
   IWithdrawHook,
-  FeeRebateHook,
+  TokenSenderCaller,
   SafeAccessControlEnumerable
 {
   ICollateral private collateral;

@@ -3,7 +3,7 @@ pragma solidity =0.8.7;
 
 import "./ITokenSender.sol";
 
-interface IFeeRebateHook {
+interface ITokenSenderCaller {
   event TreasuryChange(address treasury);
 
   event TokenSenderChange(address sender);

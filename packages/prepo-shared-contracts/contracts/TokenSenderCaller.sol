@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity =0.8.7;
 
-import "./interfaces/IFeeRebateHook.sol";
+import "./interfaces/ITokenSenderCaller.sol";
 import "./interfaces/ITokenSender.sol";
 
-contract FeeRebateHook is IFeeRebateHook {
+contract TokenSenderCaller is ITokenSenderCaller {
   address internal _treasury;
   ITokenSender internal _tokenSender;
 

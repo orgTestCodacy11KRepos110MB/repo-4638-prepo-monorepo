@@ -4,7 +4,6 @@ import {
   DepositHook,
   WithdrawHook,
   ManagerWithdrawHook,
-  FeeRebateHook,
   MintHook,
   RedeemHook,
 } from '../../typechain'
@@ -22,11 +21,6 @@ export async function withdrawHookFixture(): Promise<WithdrawHook> {
 export async function managerWithdrawHookFixture(): Promise<ManagerWithdrawHook> {
   const managerWithdrawHook = await ethers.getContractFactory('ManagerWithdrawHook')
   return (await managerWithdrawHook.deploy()) as ManagerWithdrawHook
-}
-
-export async function feeRebateHookFixture(): Promise<FeeRebateHook> {
-  const feeRebateHook = await ethers.getContractFactory('FeeRebateHook')
-  return (await feeRebateHook.deploy()) as FeeRebateHook
 }
 
 export async function mintHookFixture(): Promise<MintHook> {
@@ -52,11 +46,6 @@ export async function smockWithdrawHookFixture(): Promise<MockContract> {
 export async function smockManagerWithdrawHookFixture(): Promise<MockContract> {
   const smockManagerWithdrawHookFactory = await smock.mock('ManagerWithdrawHook')
   return smockManagerWithdrawHookFactory.deploy()
-}
-
-export async function smockFeeRebateHookFixture(): Promise<MockContract> {
-  const smockFeeRebateHookFactory = await smock.mock('FeeRebateHook')
-  return smockFeeRebateHookFactory.deploy()
 }
 
 export async function smockMintHookFixture(): Promise<MockContract> {
