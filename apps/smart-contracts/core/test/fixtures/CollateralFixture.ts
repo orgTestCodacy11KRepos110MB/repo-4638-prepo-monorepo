@@ -1,5 +1,5 @@
 import { ethers, upgrades } from 'hardhat'
-import { MockContract, smock } from '@defi-wonderland/smock'
+import { MockContract, FakeContract, smock } from '@defi-wonderland/smock'
 import { Collateral } from '../../typechain'
 
 export async function collateralFixture(
@@ -21,4 +21,9 @@ export async function smockCollateralFixture(
 ): Promise<MockContract> {
   const smockCollateral = await smock.mock('Collateral')
   return (await smockCollateral.deploy(baseToken, baseTokenDecimals)) as MockContract
+}
+
+export async function fakeCollateralFixture(): Promise<FakeContract> {
+  const fakeContract = await smock.fake('Collateral')
+  return fakeContract
 }

@@ -1,6 +1,6 @@
 import { BigNumber } from 'ethers'
 import { ethers } from 'hardhat'
-import { MockContract, smock } from '@defi-wonderland/smock'
+import { FakeContract, MockContract, smock } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { smockLongShortTokenFixture } from './LongShortTokenFixture'
 import { CreateMarketResult } from './PrePOMarketFactoryFixture'
@@ -83,6 +83,11 @@ export async function createSmockPrePOMarket(
     longToken,
     shortToken,
   }
+}
+
+export async function fakePrePOMarketFixture(): Promise<FakeContract> {
+  const fakeContract = await smock.fake('PrePOMarket')
+  return fakeContract
 }
 
 export async function prePOMarketAttachFixture(

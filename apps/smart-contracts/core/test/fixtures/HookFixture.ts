@@ -6,6 +6,7 @@ import {
   ManagerWithdrawHook,
   FeeRebateHook,
   MintHook,
+  RedeemHook,
 } from '../../typechain'
 
 export async function depositHookFixture(): Promise<DepositHook> {
@@ -33,6 +34,11 @@ export async function mintHookFixture(): Promise<MintHook> {
   return (await factory.deploy()) as MintHook
 }
 
+export async function redeemHookFixture(): Promise<RedeemHook> {
+  const factory = await ethers.getContractFactory('RedeemHook')
+  return (await factory.deploy()) as RedeemHook
+}
+
 export async function smockDepositHookFixture(): Promise<MockContract> {
   const smockDepositHookFactory = await smock.mock('DepositHook')
   return smockDepositHookFactory.deploy()
@@ -58,6 +64,11 @@ export async function smockMintHookFixture(): Promise<MockContract> {
   return smockFactory.deploy()
 }
 
+export async function smockRedeemHookFixture(): Promise<MockContract> {
+  const smockFactory = await smock.mock('RedeemHook')
+  return smockFactory.deploy()
+}
+
 export async function smockAccountListFixture(): Promise<MockContract> {
   const smockAccountListFactory = await smock.mock('AccountList')
   return smockAccountListFactory.deploy()
@@ -70,5 +81,10 @@ export async function fakeAccountListFixture(): Promise<FakeContract> {
 
 export async function fakeMintHookFixture(): Promise<FakeContract> {
   const fakeContract = await smock.fake('MintHook')
+  return fakeContract
+}
+
+export async function fakeRedeemHookFixture(): Promise<FakeContract> {
+  const fakeContract = await smock.fake('RedeemHook')
   return fakeContract
 }

@@ -4,7 +4,7 @@ import { ethers, network } from 'hardhat'
 import { MerkleTree } from 'merkletreejs'
 import keccak256 from 'keccak256'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
-import { MockContract } from '@defi-wonderland/smock'
+import { FakeContract, MockContract } from '@defi-wonderland/smock'
 
 export const FEE_DENOMINATOR = 1000000
 export const COLLATERAL_FEE_LIMIT = 100000
@@ -67,7 +67,7 @@ export async function grantAndAcceptRole(
 }
 
 export async function getSignerForContract(
-  contract: Contract | MockContract
+  contract: Contract | MockContract | FakeContract
 ): Promise<SignerWithAddress> {
   /**
    * This gets the signer for a contract. The signer is needed to call
