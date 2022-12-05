@@ -5,7 +5,7 @@ import { ChainId, getPrePOAddressForNetwork } from 'prepo-constants'
 import { utils } from 'prepo-hardhat'
 import { getNetworkByChainId } from 'prepo-utils'
 import dotenv from 'dotenv'
-import { FixedPriceOracle } from '../types/generated'
+import { FixedUintValue } from '../types/generated'
 
 dotenv.config({
   path: '../.env',
@@ -13,7 +13,7 @@ dotenv.config({
 
 const { assertIsTestnetChain, sendTxAndWait } = utils
 
-const deployFunction: DeployFunction = async function deployFixedPriceOracle({
+const deployFunction: DeployFunction = async function deployFixedUintValue({
   ethers,
   deployments,
   getChainId,
@@ -21,7 +21,7 @@ const deployFunction: DeployFunction = async function deployFixedPriceOracle({
   const { deploy } = deployments
   const deployer = (await ethers.getSigners())[0]
   console.log(
-    'Running FixedPriceOracle deployment script with',
+    'Running FixedUintValue deployment script with',
     deployer.address,
     'as the deployer'
   )
@@ -33,18 +33,18 @@ const deployFunction: DeployFunction = async function deployFixedPriceOracle({
    */
   assertIsTestnetChain(currentChain)
 
-  const { address: fixedPriceOracleAddress, newlyDeployed: fixedPriceOracleNewlyDeployed } =
-    await deploy('FixedPriceOracle', {
+  const { address: fixedUintValueAddress, newlyDeployed: fixedUintValueNewlyDeployed } =
+    await deploy('FixedUintValue', {
       from: deployer.address,
-      contract: 'FixedPriceOracle',
+      contract: 'FixedUintValue',
       deterministicDeployment: false,
       args: [],
       skipIfAlreadyDeployed: true,
     })
-  if (fixedPriceOracleNewlyDeployed) {
-    console.log('Deployed FixedPriceOracle to', fixedPriceOracleAddress)
+  if (fixedUintValueNewlyDeployed) {
+    console.log('Deployed FixedUintValue to', fixedUintValueAddress)
   } else {
-    console.log('Existing FixedPriceOracle at', fixedPriceOracleAddress)
+    console.log('Existing FixedUintValue at', fixedUintValueAddress)
   }
   const governanceAddress = getPrePOAddressForNetwork(
     'GOVERNANCE',
@@ -52,11 +52,11 @@ const deployFunction: DeployFunction = async function deployFixedPriceOracle({
     process.env.GOVERNANCE
   )
   console.log('Governance for the current network is at:', governanceAddress)
-  const fixedPriceOracle = (await ethers.getContract('FixedPriceOracle')) as FixedPriceOracle
-  if ((await fixedPriceOracle.owner()) !== governanceAddress) {
+  const fixedUintValue = (await ethers.getContract('FixedUintValue')) as FixedUintValue
+  if ((await fixedUintValue.owner()) !== governanceAddress) {
     console.log('Transferring ownership to', governanceAddress)
     await sendTxAndWait(
-      await fixedPriceOracle.connect(deployer).transferOwnership(governanceAddress)
+      await fixedUintValue.connect(deployer).transferOwnership(governanceAddress)
     )
   }
   console.log('')
@@ -64,4 +64,4 @@ const deployFunction: DeployFunction = async function deployFixedPriceOracle({
 
 export default deployFunction
 
-deployFunction.tags = ['FixedPriceOracle']
+deployFunction.tags = ['FixedUintValue']
