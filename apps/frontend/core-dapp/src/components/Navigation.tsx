@@ -40,7 +40,7 @@ const Wrapper = styled(Flex)`
 `
 
 const Name = styled.p<{ active: boolean }>`
-  color: ${({ active, theme }): string => (active ? theme.color.neutral4 : theme.color.neutral1)};
+  color: ${({ theme }): string => theme.color.neutral1};
   font-size: ${({ theme }): string => theme.fontSize.md};
   font-weight: ${({ theme }): number => theme.fontWeight.medium};
   margin-bottom: 0;
