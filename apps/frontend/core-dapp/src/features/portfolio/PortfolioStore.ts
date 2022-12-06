@@ -51,8 +51,8 @@ export class PortfolioStore {
     const position = this.positions.find(
       (item) => item.market.urlId === marketId && direction === item.position
     )
-    if (position) {
-      this.setSelectedPosition(position)
+    if (position && position.data) {
+      this.setSelectedPosition(position as Required<Position>)
     }
   }
 
