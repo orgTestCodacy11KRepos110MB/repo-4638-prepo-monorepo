@@ -16,31 +16,31 @@ jobs:
       branch_name: ${{ steps.set-branch-name.outputs.branch_name }}
 
     steps:
-    - name: Extract branch name
-      id: set-branch-name
-      if: github.event_name == 'pull_request'
-      run: | 
-        branch_name=${GITHUB_HEAD_REF}
-        echo $branch_name
-        echo "::set-output name=branch_name::$branch_name"
+      - name: Extract branch name
+        id: set-branch-name
+        if: github.event_name == 'pull_request'
+        run: |
+          branch_name=${GITHUB_HEAD_REF}
+          echo $branch_name
+          echo "::set-output name=branch_name::$branch_name"
 
   generate-artifact-key:
-      name: Generate artifact key
-      runs-on: ubuntu-latest
-      outputs:
-        artifact: ${{ steps.set-artifact-key.outputs.artifact }}
+    name: Generate artifact key
+    runs-on: ubuntu-latest
+    outputs:
+      artifact: ${{ steps.set-artifact-key.outputs.artifact }}
 
-      steps:
+    steps:
       - name: Generate artifact key
         id: set-artifact-key
         # Replace possible / on the string to -
-        run: | 
+        run: |
           github_head_ref="${{ github.head_ref }}"
           echo $github_head_ref
           artifact=$(echo "${github_head_ref}" | sed 's/\//\-/g')
           echo $artifact
           echo "::set-output name=artifact::$artifact"
-  
+
   get-github-context:
     name: Get Github Context
     runs-on: ubuntu-latest
@@ -59,54 +59,55 @@ jobs:
     if: github.event_name == 'pull_request'
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
+      projectIds: ${{ join(fromJson(steps.set-matrix.outputs.matrix).include.*.projectId) }}
 
     steps:
-    - name: 'Checkout'
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
+      - name: 'Checkout'
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
-    - name: 'Restore node_modules cache'   
-      uses: actions/cache@v2
-      with:
-        path: '**/node_modules'
-        key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+      - name: 'Restore node_modules cache'
+        uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
 
-    - name: 'Use NodeJS 16'
-      uses: actions/setup-node@v2
-      with:
-        node-version: '16'
-        
-    - name: 'Setup npm'
-      run: |
-        npm set @prepo-io:registry=https://npm.pkg.github.com/prepo-io
-        npm set "//npm.pkg.github.com/:_authToken=${{ secrets.PREPO_PACKAGES_TOKEN }}"
+      - name: 'Use NodeJS 16'
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
 
-    - name: Install Dependencies
-      run: |
-        yarn install --frozen-lockfile
+      - name: 'Setup npm'
+        run: |
+          npm set @prepo-io:registry=https://npm.pkg.github.com/prepo-io
+          npm set "//npm.pkg.github.com/:_authToken=${{ secrets.PREPO_PACKAGES_TOKEN }}"
 
-    - name: Turbo Cache
-      id: turbo-cache
-      uses: actions/cache@v2
-      with:
-        path: node_modules/.cache
-        key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
-        restore-keys: |
-          turbo-${{ github.job }}-${{ github.ref_name }}-
-    
-    - name: Run changed apps script
-      run: FILTER_BRANCH=${GITHUB_HEAD_REF} yarn run changed:ci
+      - name: Install Dependencies
+        run: |
+          yarn install --frozen-lockfile
 
-    - name: Upload changed apps artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: changed-apps-${{ needs.generate-artifact-key.outputs.artifact }}
-        path: changed_apps.json
+      - name: Turbo Cache
+        id: turbo-cache
+        uses: actions/cache@v2
+        with:
+          path: node_modules/.cache
+          key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ github.job }}-${{ github.ref_name }}-
 
-    - name: Set matrix value
-      id: set-matrix
-      run: |
+      - name: Run changed apps script
+        run: FILTER_BRANCH=${GITHUB_HEAD_REF} yarn run changed:ci
+
+      - name: Upload changed apps artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: changed-apps-${{ needs.generate-artifact-key.outputs.artifact }}
+          path: changed_apps.json
+
+      - name: Set matrix value
+        id: set-matrix
+        run: |
           matrix="{\"include\":$(cat changed_apps.json | jq -c -r .)}"
           echo $matrix
           echo $matrix | jq .
@@ -123,31 +124,23 @@ jobs:
 
       - name: Check matrix definition
         run: |
-          matrix='${{ needs.get-changed-apps.outputs.matrix }}'
-          echo $matrix
-          echo $matrix | jq .
-          echo $matrix | json2yaml
-          if [[ $matrix != '' ]] ; then echo "Matrix is not empty string!" ; else echo "Matrix is empty string!" ; fi
-          if [[ $matrix != '[]' ]] ; then echo "Matrix is not empty array!" ; else echo "Matrix is empty array!" ; fi
-          if [[ (needs.get-changed-apps.outputs.matrix != '' && needs.get-changed-apps.outputs.matrix != '[]') ]] ; then echo "Should run pipeline" ; else echo "Should not run pipeline" ; fi
-      
+          projectIdString='${{ needs.get-changed-apps.outputs.projectIds }}'
+          echo $projectIdString
+          if [[ ($projectIdString != '') ]] ; then echo "App changed, deploy!" ; else echo "No app changed." ; fi
+
       - name: Download changed apps artifact
         uses: actions/download-artifact@v2
         with:
           name: changed-apps-${{ needs.generate-artifact-key.outputs.artifact }}
 
-      - name: Print changed apps cache
-        run: cat changed_apps.json | jq -c -r .
-
   deploy-apps:
     name: Deploy apps
     needs: get-changed-apps
     runs-on: ubuntu-latest
-    if: |
-      (needs.get-changed-apps.outputs.matrix != '' && needs.get-changed-apps.outputs.matrix != '[]')
+    if: needs.get-changed-apps.outputs.projectIds != ''
     strategy:
       fail-fast: false
-      matrix: ${{fromJson(needs.get-changed-apps.outputs.matrix)}} 
+      matrix: ${{fromJson(needs.get-changed-apps.outputs.matrix)}}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
