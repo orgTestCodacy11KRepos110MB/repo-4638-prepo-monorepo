@@ -16,11 +16,15 @@ export async function collateralFixture(
 }
 
 export async function smockCollateralFixture(
+  name: string,
+  symbol: string,
   baseToken: string,
   baseTokenDecimals: number
 ): Promise<MockContract> {
-  const smockCollateral = await smock.mock('Collateral')
-  return (await smockCollateral.deploy(baseToken, baseTokenDecimals)) as MockContract
+  const mockFactory = await smock.mock('Collateral')
+  const smockCollateral = await mockFactory.deploy(baseToken, baseTokenDecimals)
+  await smockCollateral.initialize(name, symbol)
+  return smockCollateral
 }
 
 export async function fakeCollateralFixture(): Promise<FakeContract> {

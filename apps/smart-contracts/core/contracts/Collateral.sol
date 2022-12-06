@@ -2,14 +2,12 @@
 pragma solidity =0.8.7;
 
 import "./interfaces/ICollateral.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-ERC20PermitUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "prepo-shared-contracts/contracts/SafeAccessControlEnumerableUpgradeable.sol";
 
 contract Collateral is
   ICollateral,
-  ERC20Upgradeable,
   ERC20PermitUpgradeable,
   SafeAccessControlEnumerableUpgradeable,
   ReentrancyGuardUpgradeable
@@ -63,6 +61,7 @@ contract Collateral is
     external
     override
     nonReentrant
+    returns (uint256)
   {
     uint256 _fee = (_amount * depositFee) / FEE_DENOMINATOR;
     if (depositFee > 0) {
@@ -78,8 +77,11 @@ contract Collateral is
       baseToken.approve(address(depositHook), 0);
     }
     /// Converts amount after fee from base token units to collateral token units.
-    _mint(_recipient, (_amountAfterFee * 1e18) / baseTokenDenominator);
+    uint256 _collateralMintAmount = (_amountAfterFee * 1e18) /
+      baseTokenDenominator;
+    _mint(_recipient, _collateralMintAmount);
     emit Deposit(_recipient, _amountAfterFee, _fee);
+    return _collateralMintAmount;
   }
 
   /// @dev Converts amount from collateral token units to base token units.

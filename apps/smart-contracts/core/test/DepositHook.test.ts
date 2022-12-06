@@ -11,7 +11,7 @@ import { testERC721Fixture } from './fixtures/TestERC721Fixture'
 import { getSignerForContract, grantAndAcceptRole } from './utils'
 import { fakeTokenSenderFixture } from './fixtures/TokenSenderFixture'
 import { smockTestERC20Fixture } from './fixtures/TestERC20Fixture'
-import { smockCollateralFixture } from './fixtures/CollateralFixture'
+import { fakeCollateralFixture } from './fixtures/CollateralFixture'
 import { DepositHook, TestERC721 } from '../typechain'
 
 chai.use(smock.matchers)
@@ -26,7 +26,7 @@ describe('=> DepositHook', () => {
   let tokenSender: FakeContract<Contract>
   let allowlist: MockContract<Contract>
   let depositRecord: MockContract<Contract>
-  let collateral: MockContract<Contract>
+  let collateral: FakeContract<Contract>
   let firstERC721: TestERC721
   let secondERC721: TestERC721
   const TEST_GLOBAL_DEPOSIT_CAP = parseEther('50000')
@@ -46,7 +46,8 @@ describe('=> DepositHook', () => {
     depositHook = await depositHookFixture()
     firstERC721 = await testERC721Fixture('NFT Collection 1', 'NFT1')
     secondERC721 = await testERC721Fixture('NFT Collection 2', 'NFT2')
-    collateral = await smockCollateralFixture(testToken.address, 18)
+    collateral = await fakeCollateralFixture()
+    collateral.getBaseToken.returns(testToken.address)
     collateralSigner = await getSignerForContract(collateral)
     await grantAndAcceptRole(
       depositHook,

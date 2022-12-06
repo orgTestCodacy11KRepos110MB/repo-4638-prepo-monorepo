@@ -63,7 +63,7 @@ export class Core {
       ? await smockTestERC20Fixture('Test USDC', 'TUSDC', 6)
       : await testERC20Fixture('Test USDC', 'TUSDC', 6)
     this.collateral = smocked
-      ? await smockCollateralFixture(this.baseToken.address, 18)
+      ? await smockCollateralFixture('prePO USDC Collateral', 'preUSDC', this.baseToken.address, 18)
       : await collateralFixture('prePO USDC Collateral', 'preUSDC', this.baseToken.address, 18)
     this.collateral.depositHook = smocked
       ? await smockDepositHookFixture()

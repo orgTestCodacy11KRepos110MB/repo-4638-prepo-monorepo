@@ -10,7 +10,7 @@ import { withdrawHookFixture } from './fixtures/HookFixture'
 import { smockDepositRecordFixture } from './fixtures/DepositRecordFixture'
 import { getSignerForContract, grantAndAcceptRole, batchGrantAndAcceptRoles } from './utils'
 import { smockTestERC20Fixture } from './fixtures/TestERC20Fixture'
-import { smockCollateralFixture } from './fixtures/CollateralFixture'
+import { fakeCollateralFixture } from './fixtures/CollateralFixture'
 import { smockTokenSenderFixture } from './fixtures/TokenSenderFixture'
 import { WithdrawHook } from '../typechain'
 
@@ -22,7 +22,7 @@ describe('=> WithdrawHook', () => {
   let withdrawHook: WithdrawHook
   let deployer: SignerWithAddress
   let user: SignerWithAddress
-  let collateral: MockContract<Contract>
+  let collateral: FakeContract<Contract>
   let collateralSigner: SignerWithAddress
   let depositRecord: MockContract<Contract>
   let treasury: SignerWithAddress
@@ -45,7 +45,8 @@ describe('=> WithdrawHook', () => {
     )
     withdrawHook = await withdrawHookFixture()
     testToken = await smockTestERC20Fixture('Test Token', 'TEST', 18)
-    collateral = await smockCollateralFixture(testToken.address, 18)
+    collateral = await fakeCollateralFixture()
+    collateral.getBaseToken.returns(testToken.address)
     collateralSigner = await getSignerForContract(collateral)
     tokenSender = await smockTokenSenderFixture(testToken.address)
     await batchGrantAndAcceptRoles(withdrawHook, deployer, deployer, [

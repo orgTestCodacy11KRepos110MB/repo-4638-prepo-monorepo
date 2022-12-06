@@ -3,7 +3,6 @@ pragma solidity =0.8.7;
 
 import "./ICollateral.sol";
 import "./IPrePOMarket.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/draft-IERC20Permit.sol";
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 
 interface IDepositTradeHelper {
@@ -16,7 +15,7 @@ interface IDepositTradeHelper {
 
   struct OffChainTradeParams {
     address tokenOut;
-    address deadline;
+    uint256 deadline;
     uint256 amountOutMinimum;
     uint160 sqrtPriceLimitX96;
   }
@@ -42,7 +41,7 @@ interface IDepositTradeHelper {
     OffChainTradeParams calldata _tradeParams
   ) external;
 
-  function getBaseToken() external view returns (IERC20Permit);
+  function getBaseToken() external view returns (IERC20);
 
   function getCollateral() external view returns (ICollateral);
 

@@ -1,8 +1,10 @@
-import { BigNumber, providers, Contract, ContractTransaction } from 'ethers'
+import { BigNumber, providers, Contract, ContractTransaction, Signature } from 'ethers'
 import { parse, stringify } from 'envfile'
 import { ChainId, NETWORKS } from 'prepo-constants'
-import { hexZeroPad } from 'ethers/lib/utils'
+import { hexZeroPad, splitSignature } from 'ethers/lib/utils'
 import { AdminClient } from 'defender-admin-client'
+import { MockContract } from '@defi-wonderland/smock'
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { readFileSync, writeFileSync } from 'fs'
 
 function expandToDecimals(n: number, decimals: number): BigNumber {
@@ -100,6 +102,62 @@ async function mineBlocks(provider: providers.Web3Provider, blocks: number): Pro
   }
 }
 
+async function getPermitSignature(
+  token: Contract | MockContract,
+  signer: SignerWithAddress,
+  spender: string,
+  value: BigNumber,
+  deadline: number
+): Promise<Signature> {
+  const [nonce, name, version, chainId] = await Promise.all([
+    token.nonces(signer.address),
+    token.name(),
+    '1',
+    signer.getChainId(),
+  ])
+  return splitSignature(
+    await signer._signTypedData(
+      {
+        name,
+        version,
+        chainId,
+        verifyingContract: token.address,
+      },
+      {
+        Permit: [
+          {
+            name: 'owner',
+            type: 'address',
+          },
+          {
+            name: 'spender',
+            type: 'address',
+          },
+          {
+            name: 'value',
+            type: 'uint256',
+          },
+          {
+            name: 'nonce',
+            type: 'uint256',
+          },
+          {
+            name: 'deadline',
+            type: 'uint256',
+          },
+        ],
+      },
+      {
+        owner: signer.address,
+        spender,
+        value,
+        nonce,
+        deadline,
+      }
+    )
+  )
+}
+
 function mineBlock(provider: providers.Web3Provider, timestamp: number): Promise<void> {
   return provider.send('evm_mine', [timestamp])
 }
@@ -124,4 +182,5 @@ export const utils = {
   mineBlocks,
   mineBlock,
   revertReason,
+  getPermitSignature,
 }

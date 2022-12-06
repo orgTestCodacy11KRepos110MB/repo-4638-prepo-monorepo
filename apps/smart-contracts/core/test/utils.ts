@@ -5,6 +5,10 @@ import { MerkleTree } from 'merkletreejs'
 import keccak256 from 'keccak256'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { FakeContract, MockContract } from '@defi-wonderland/smock'
+import { utils } from 'prepo-hardhat'
+import { PermitStruct } from '../typechain/DepositTradeHelper'
+
+const { getPermitSignature } = utils
 
 export const FEE_DENOMINATOR = 1000000
 export const COLLATERAL_FEE_LIMIT = 100000
@@ -98,4 +102,20 @@ export async function getSignerForContract(
     '0xde0b6b3a7640000', // 1 eth in hex
   ])
   return signer
+}
+
+export async function getPermitFromSignature(
+  token: Contract | MockContract,
+  signer: SignerWithAddress,
+  spender: string,
+  value: BigNumber,
+  deadline: number
+): Promise<PermitStruct> {
+  const signature = await getPermitSignature(token, signer, spender, value, deadline)
+  return <PermitStruct>{
+    deadline,
+    v: signature.v,
+    r: signature.r,
+    s: signature.s,
+  }
 }

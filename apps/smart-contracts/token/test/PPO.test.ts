@@ -7,10 +7,10 @@ import { BigNumber, Contract } from 'ethers'
 import { utils } from 'prepo-hardhat'
 import { formatBytes32String } from 'ethers/lib/utils'
 import { ppoFixture } from './fixtures/PPOFixtures'
-import { generateDomainSeparator, MAX_UINT256, getPermitSignature } from '../utils'
+import { generateDomainSeparator, MAX_UINT256 } from '../utils'
 import { PPO } from '../types/generated'
 
-const { getLastTimestamp, setNextTimestamp } = utils
+const { getLastTimestamp, setNextTimestamp, getPermitSignature } = utils
 
 chai.use(smock.matchers)
 
