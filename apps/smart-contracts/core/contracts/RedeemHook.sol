@@ -3,15 +3,15 @@ pragma solidity =0.8.7;
 
 import "./interfaces/IPrePOMarket.sol";
 import "./interfaces/IMarketHook.sol";
-import "prepo-shared-contracts/contracts/AllowlistHook.sol";
-import "prepo-shared-contracts/contracts/TokenSenderCaller.sol";
 import "prepo-shared-contracts/contracts/AllowedMsgSenders.sol";
+import "prepo-shared-contracts/contracts/AccountListCaller.sol";
+import "prepo-shared-contracts/contracts/TokenSenderCaller.sol";
 import "prepo-shared-contracts/contracts/SafeOwnable.sol";
 
 contract RedeemHook is
   IMarketHook,
   AllowedMsgSenders,
-  AllowlistHook,
+  AccountListCaller,
   TokenSenderCaller,
   SafeOwnable
 {
@@ -20,7 +20,7 @@ contract RedeemHook is
     uint256 amountBeforeFee,
     uint256 amountAfterFee
   ) external virtual override onlyAllowedMsgSenders {
-    require(_allowlist.isIncluded(sender), "redeemer not allowed");
+    require(_accountList.isIncluded(sender), "redeemer not allowed");
     uint256 fee = amountBeforeFee - amountAfterFee;
     if (fee > 0) {
       IPrePOMarket(msg.sender).getCollateral().transferFrom(
@@ -32,15 +32,6 @@ contract RedeemHook is
     }
   }
 
-  function setAllowlist(IAccountList allowlist)
-    public
-    virtual
-    override
-    onlyOwner
-  {
-    super.setAllowlist(allowlist);
-  }
-
   function setAllowedMsgSenders(IAccountList allowedMsgSenders)
     public
     virtual
@@ -48,6 +39,15 @@ contract RedeemHook is
     onlyOwner
   {
     super.setAllowedMsgSenders(allowedMsgSenders);
+  }
+
+  function setAccountList(IAccountList accountList)
+    public
+    virtual
+    override
+    onlyOwner
+  {
+    super.setAccountList(accountList);
   }
 
   function setTreasury(address _treasury) public override onlyOwner {

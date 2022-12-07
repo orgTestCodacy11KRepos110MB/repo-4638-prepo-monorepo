@@ -27,7 +27,7 @@ describe('=> MintHook', () => {
     mintHook = await mintHookFixture()
     allowlist = await smockAccountListFixture()
     msgSendersAllowlist = await fakeAccountListFixture()
-    await mintHook.connect(deployer).setAllowlist(allowlist.address)
+    await mintHook.connect(deployer).setAccountList(allowlist.address)
     await mintHook.connect(deployer).setAllowedMsgSenders(msgSendersAllowlist.address)
   })
 
@@ -41,11 +41,11 @@ describe('=> MintHook', () => {
     })
   })
 
-  describe('# setAllowlist', () => {
+  describe('# setAccountList', () => {
     it('reverts if not owner', async () => {
       expect(await mintHook.owner()).to.not.eq(user.address)
 
-      await expect(mintHook.connect(user).setAllowlist(allowlist.address)).to.be.revertedWith(
+      await expect(mintHook.connect(user).setAccountList(allowlist.address)).to.be.revertedWith(
         'Ownable: caller is not the owner'
       )
     })
@@ -53,7 +53,7 @@ describe('=> MintHook', () => {
     it('succeeds if owner', async () => {
       expect(await mintHook.owner()).to.eq(deployer.address)
 
-      await mintHook.connect(deployer).setAllowlist(allowlist.address)
+      await mintHook.connect(deployer).setAccountList(allowlist.address)
     })
   })
 

@@ -25,7 +25,7 @@ contract AllowlistPurchaseHook is IAllowlistPurchaseHook, SafeOwnable {
     onlyOwner
   {
     allowlist = _newAllowlist;
-    emit AllowlistChange(_newAllowlist);
+    emit AccountListChange(_newAllowlist);
   }
 
   function getAllowlist() external view override returns (IAccountList) {

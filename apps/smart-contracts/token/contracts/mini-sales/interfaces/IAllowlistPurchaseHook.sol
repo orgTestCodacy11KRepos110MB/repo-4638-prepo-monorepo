@@ -14,7 +14,7 @@ interface IAllowlistPurchaseHook is IPurchaseHook {
    * @dev Emitted via `setAllowlist()`.
    * @param newAllowlist Address of the new allowlist
    */
-  event AllowlistChange(IAccountList newAllowlist);
+  event AccountListChange(IAccountList newAllowlist);
 
   /**
    * @notice Sets the allowlist containing addresses that are allowed to

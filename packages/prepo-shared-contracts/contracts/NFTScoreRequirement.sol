@@ -33,7 +33,7 @@ contract NFTScoreRequirement is INFTScoreRequirement {
       "collections.length != scores.length"
     );
     uint256 numCollections = collections.length;
-    for (uint256 i = 0; i < numCollections;) {
+    for (uint256 i = 0; i < numCollections; ) {
       require(scores[i] > 0, "score == 0");
       _collectionToScore.set(address(collections[i]), scores[i]);
       unchecked {
@@ -49,7 +49,7 @@ contract NFTScoreRequirement is INFTScoreRequirement {
     override
   {
     uint256 numCollections = collections.length;
-    for (uint256 i = 0; i < numCollections;) {
+    for (uint256 i = 0; i < numCollections; ) {
       _collectionToScore.remove(address(collections[i]));
       unchecked {
         ++i;
@@ -93,7 +93,7 @@ contract NFTScoreRequirement is INFTScoreRequirement {
   {
     uint256 score;
     uint256 numCollections = _collectionToScore.length();
-    for (uint256 i = 0; i < numCollections;) {
+    for (uint256 i = 0; i < numCollections; ) {
       (address collection, uint256 collectionScore) = _collectionToScore.at(i);
       score += IERC721(collection).balanceOf(account) > 0
         ? collectionScore

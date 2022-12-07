@@ -54,11 +54,11 @@ describe('=> RedeemHook', () => {
     })
   })
 
-  describe('# setAllowlist', () => {
+  describe('# setAccountList', () => {
     it('reverts if not owner', async () => {
       expect(await redeemHook.owner()).to.not.eq(user.address)
 
-      await expect(redeemHook.connect(user).setAllowlist(allowlist.address)).to.be.revertedWith(
+      await expect(redeemHook.connect(user).setAccountList(allowlist.address)).to.be.revertedWith(
         'Ownable: caller is not the owner'
       )
     })
@@ -66,7 +66,7 @@ describe('=> RedeemHook', () => {
     it('succeeds if owner', async () => {
       expect(await redeemHook.owner()).to.eq(deployer.address)
 
-      await redeemHook.connect(deployer).setAllowlist(allowlist.address)
+      await redeemHook.connect(deployer).setAccountList(allowlist.address)
     })
   })
 
@@ -120,7 +120,7 @@ describe('=> RedeemHook', () => {
 
   describe('# hook', () => {
     beforeEach(async () => {
-      await redeemHook.setAllowlist(allowlist.address)
+      await redeemHook.setAccountList(allowlist.address)
       await redeemHook.setAllowedMsgSenders(msgSendersAllowlist.address)
       msgSendersAllowlist.isIncluded.whenCalledWith(deployer.address).returns(true)
     })

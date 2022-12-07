@@ -3,7 +3,7 @@ pragma solidity =0.8.7;
 
 import "./interfaces/IDepositHook.sol";
 import "./interfaces/IDepositRecord.sol";
-import "prepo-shared-contracts/contracts/AllowlistHook.sol";
+import "prepo-shared-contracts/contracts/AccountListCaller.sol";
 import "prepo-shared-contracts/contracts/NFTScoreRequirement.sol";
 import "prepo-shared-contracts/contracts/TokenSenderCaller.sol";
 import "prepo-shared-contracts/contracts/SafeAccessControlEnumerable.sol";
@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 contract DepositHook is
   IDepositHook,
-  AllowlistHook,
+  AccountListCaller,
   NFTScoreRequirement,
   TokenSenderCaller,
   SafeAccessControlEnumerable
@@ -20,24 +20,24 @@ contract DepositHook is
   IDepositRecord private depositRecord;
   bool public override depositsAllowed;
 
-  bytes32 public constant SET_ALLOWLIST_ROLE =
-    keccak256("DepositHook_setAllowlist(IAccountList)");
-  bytes32 public constant SET_TREASURY_ROLE =
-    keccak256("DepositHook_setTreasury(address)");
-  bytes32 public constant SET_TOKEN_SENDER_ROLE =
-    keccak256("DepositHook_setTokenSender(ITokenSender)");
   bytes32 public constant SET_COLLATERAL_ROLE =
     keccak256("DepositHook_setCollateral(address)");
   bytes32 public constant SET_DEPOSIT_RECORD_ROLE =
     keccak256("DepositHook_setDepositRecord(address)");
   bytes32 public constant SET_DEPOSITS_ALLOWED_ROLE =
     keccak256("DepositHook_setDepositsAllowed(bool)");
+  bytes32 public constant SET_ACCOUNT_LIST_ROLE =
+    keccak256("DepositHook_setAccountList(IAccountList)");
   bytes32 public constant SET_REQUIRED_SCORE_ROLE =
     keccak256("DepositHook_setRequiredScore(uint256)");
   bytes32 public constant SET_COLLECTION_SCORES_ROLE =
     keccak256("DepositHook_setCollectionScores(IERC721[],uint256[])");
   bytes32 public constant REMOVE_COLLECTIONS_ROLE =
     keccak256("DepositHook_removeCollections(IERC721[])");
+  bytes32 public constant SET_TREASURY_ROLE =
+    keccak256("DepositHook_setTreasury(address)");
+  bytes32 public constant SET_TOKEN_SENDER_ROLE =
+    keccak256("DepositHook_setTokenSender(ITokenSender)");
 
   modifier onlyCollateral() {
     require(msg.sender == address(collateral), "msg.sender != collateral");
@@ -50,7 +50,7 @@ contract DepositHook is
     uint256 _amountAfterFee
   ) external override onlyCollateral {
     require(depositsAllowed, "deposits not allowed");
-    if (!_allowlist.isIncluded(_sender)) {
+    if (!_accountList.isIncluded(_sender)) {
       require(_satisfiesScoreRequirement(_sender), "depositor not allowed");
     }
     depositRecord.recordDeposit(_sender, _amountAfterFee);
@@ -92,6 +92,14 @@ contract DepositHook is
     emit DepositsAllowedChange(_newDepositsAllowed);
   }
 
+  function setAccountList(IAccountList accountList)
+    public
+    override
+    onlyRole(SET_ACCOUNT_LIST_ROLE)
+  {
+    super.setAccountList(accountList);
+  }
+
   function setRequiredScore(uint256 _newRequiredScore)
     public
     override
@@ -113,14 +121,6 @@ contract DepositHook is
     onlyRole(REMOVE_COLLECTIONS_ROLE)
   {
     super.removeCollections(_collections);
-  }
-
-  function setAllowlist(IAccountList allowlist)
-    public
-    override
-    onlyRole(SET_ALLOWLIST_ROLE)
-  {
-    super.setAllowlist(allowlist);
   }
 
   function setTreasury(address _treasury)

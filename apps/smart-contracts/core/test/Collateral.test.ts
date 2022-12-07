@@ -77,17 +77,17 @@ describe('=> Collateral', () => {
   const setupDepositHook = async (): Promise<void> => {
     await depositRecord.connect(deployer).setAllowedHook(depositHook.address, true)
     await batchGrantAndAcceptRoles(depositHook, deployer, deployer, [
-      depositHook.SET_TREASURY_ROLE(),
-      depositHook.SET_TOKEN_SENDER_ROLE(),
       depositHook.SET_COLLATERAL_ROLE(),
       depositHook.SET_DEPOSIT_RECORD_ROLE(),
       depositHook.SET_DEPOSITS_ALLOWED_ROLE(),
-      depositHook.SET_ALLOWLIST_ROLE(),
+      depositHook.SET_ACCOUNT_LIST_ROLE(),
+      depositHook.SET_TREASURY_ROLE(),
+      depositHook.SET_TOKEN_SENDER_ROLE(),
     ])
     await depositHook.connect(deployer).setCollateral(collateral.address)
     await depositHook.connect(deployer).setDepositRecord(depositRecord.address)
     await depositHook.connect(deployer).setDepositsAllowed(true)
-    await depositHook.connect(deployer).setAllowlist(allowlist.address)
+    await depositHook.connect(deployer).setAccountList(allowlist.address)
     await depositHook.connect(deployer).setTreasury(manager.address)
     await depositHook.connect(deployer).setTokenSender(tokenSender.address)
   }

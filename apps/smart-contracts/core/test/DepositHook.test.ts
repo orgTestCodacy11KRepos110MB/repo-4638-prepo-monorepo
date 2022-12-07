@@ -53,7 +53,7 @@ describe('=> DepositHook', () => {
       depositHook,
       deployer,
       deployer,
-      await depositHook.SET_ALLOWLIST_ROLE()
+      await depositHook.SET_ACCOUNT_LIST_ROLE()
     )
     await grantAndAcceptRole(depositHook, deployer, deployer, await depositHook.SET_TREASURY_ROLE())
     await grantAndAcceptRole(
@@ -113,8 +113,8 @@ describe('=> DepositHook', () => {
     })
 
     it('sets role constants to the correct hash', async () => {
-      expect(await depositHook.SET_ALLOWLIST_ROLE()).to.eq(
-        id('DepositHook_setAllowlist(IAccountList)')
+      expect(await depositHook.SET_ACCOUNT_LIST_ROLE()).to.eq(
+        id('DepositHook_setAccountList(IAccountList)')
       )
       expect(await depositHook.SET_TREASURY_ROLE()).to.eq(id('DepositHook_setTreasury(address)'))
       expect(await depositHook.SET_TOKEN_SENDER_ROLE()).to.eq(
@@ -150,7 +150,7 @@ describe('=> DepositHook', () => {
       await depositHook.connect(deployer).setCollateral(collateral.address)
       await depositHook.connect(deployer).setDepositsAllowed(true)
       await depositHook.connect(deployer).setDepositRecord(depositRecord.address)
-      await depositHook.connect(deployer).setAllowlist(allowlist.address)
+      await depositHook.connect(deployer).setAccountList(allowlist.address)
       await depositHook.connect(deployer).setTreasury(treasury.address)
       await depositHook.connect(deployer).setTokenSender(tokenSender.address)
       await testToken.connect(deployer).mint(collateral.address, TEST_GLOBAL_DEPOSIT_CAP)
@@ -309,32 +309,32 @@ describe('=> DepositHook', () => {
     })
   })
 
-  describe('# setAllowlist', () => {
+  describe('# setAccountList', () => {
     beforeEach(async () => {
       await grantAndAcceptRole(
         depositHook,
         deployer,
         deployer,
-        await depositHook.SET_ALLOWLIST_ROLE()
+        await depositHook.SET_ACCOUNT_LIST_ROLE()
       )
     })
 
     it('reverts if not role holder', async () => {
-      expect(await depositHook.hasRole(await depositHook.SET_ALLOWLIST_ROLE(), user.address)).to.eq(
-        false
-      )
+      expect(
+        await depositHook.hasRole(await depositHook.SET_ACCOUNT_LIST_ROLE(), user.address)
+      ).to.eq(false)
 
-      await expect(depositHook.connect(user).setAllowlist(user.address)).revertedWith(
-        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await depositHook.SET_ALLOWLIST_ROLE()}`
+      await expect(depositHook.connect(user).setAccountList(user.address)).revertedWith(
+        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await depositHook.SET_ACCOUNT_LIST_ROLE()}`
       )
     })
 
     it("doesn't revert if role holder", async () => {
       expect(
-        await depositHook.hasRole(await depositHook.SET_ALLOWLIST_ROLE(), deployer.address)
+        await depositHook.hasRole(await depositHook.SET_ACCOUNT_LIST_ROLE(), deployer.address)
       ).to.eq(true)
 
-      await expect(depositHook.connect(deployer).setAllowlist(user.address))
+      await expect(depositHook.connect(deployer).setAccountList(user.address))
     })
   })
 

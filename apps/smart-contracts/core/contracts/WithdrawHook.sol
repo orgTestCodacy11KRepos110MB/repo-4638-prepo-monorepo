@@ -23,10 +23,6 @@ contract WithdrawHook is
   uint256 private globalAmountWithdrawnThisPeriod;
   mapping(address => uint256) private userToAmountWithdrawnThisPeriod;
 
-  bytes32 public constant SET_TREASURY_ROLE =
-    keccak256("WithdrawHook_setTreasury(address)");
-  bytes32 public constant SET_TOKEN_SENDER_ROLE =
-    keccak256("WithdrawHook_setTokenSender(ITokenSender)");
   bytes32 public constant SET_COLLATERAL_ROLE =
     keccak256("WithdrawHook_setCollateral(address)");
   bytes32 public constant SET_DEPOSIT_RECORD_ROLE =
@@ -41,6 +37,10 @@ contract WithdrawHook is
     keccak256("WithdrawHook_setGlobalWithdrawLimitPerPeriod(uint256)");
   bytes32 public constant SET_USER_WITHDRAW_LIMIT_PER_PERIOD_ROLE =
     keccak256("WithdrawHook_setUserWithdrawLimitPerPeriod(uint256)");
+  bytes32 public constant SET_TREASURY_ROLE =
+    keccak256("WithdrawHook_setTreasury(address)");
+  bytes32 public constant SET_TOKEN_SENDER_ROLE =
+    keccak256("WithdrawHook_setTokenSender(ITokenSender)");
 
   modifier onlyCollateral() {
     require(msg.sender == address(collateral), "msg.sender != collateral");
