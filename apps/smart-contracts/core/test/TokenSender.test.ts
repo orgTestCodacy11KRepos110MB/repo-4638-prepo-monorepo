@@ -9,6 +9,7 @@ import { tokenSenderFixture } from './fixtures/TokenSenderFixture'
 import { smockTestERC20Fixture } from './fixtures/TestERC20Fixture'
 import { grantAndAcceptRole } from './utils'
 import { smockTestUintValueFixture } from './fixtures/TestUintValueFixture'
+import { fakeAccountListFixture } from './fixtures/HookFixture'
 import { TokenSender } from '../typechain/TokenSender'
 
 chai.use(smock.matchers)
@@ -21,11 +22,13 @@ describe('=> TokenSender', () => {
   let user: SignerWithAddress
   let outputToken: FakeContract<Contract>
   let priceOracle: MockContract<Contract>
+  let allowlist: FakeContract<Contract>
   beforeEach(async () => {
     ;[deployer, user] = await ethers.getSigners()
     outputToken = await smockTestERC20Fixture('Output Token', 'OUT', 18)
     tokenSender = await tokenSenderFixture(outputToken.address)
     priceOracle = await smockTestUintValueFixture()
+    allowlist = await fakeAccountListFixture()
     await grantAndAcceptRole(tokenSender, deployer, deployer, await tokenSender.SET_PRICE_ROLE())
     await grantAndAcceptRole(
       tokenSender,
@@ -43,7 +46,7 @@ describe('=> TokenSender', () => {
       tokenSender,
       deployer,
       deployer,
-      await tokenSender.SET_ALLOWED_CALLERS_ROLE()
+      await tokenSender.SET_ALLOWED_MSG_SENDERS_ROLE()
     )
   })
 
@@ -68,8 +71,8 @@ describe('=> TokenSender', () => {
       expect(await tokenSender.SET_SCALED_PRICE_LOWER_BOUND_ROLE()).to.eq(
         id('TokenSender_setScaledPriceLowerBound(uint256)')
       )
-      expect(await tokenSender.SET_ALLOWED_CALLERS_ROLE()).to.eq(
-        id('TokenSender_setAllowedCallers(address[],bool[])')
+      expect(await tokenSender.SET_ALLOWED_MSG_SENDERS_ROLE()).to.eq(
+        id('TokenSender_setAllowedMsgSenders(IAccountList)')
       )
     })
   })
@@ -221,14 +224,14 @@ describe('=> TokenSender', () => {
     })
   })
 
-  describe('# setAllowedCallers', () => {
+  describe('# setAllowedMsgSenders', () => {
     it('reverts if not role holder', async () => {
       expect(
-        await tokenSender.hasRole(await tokenSender.SET_ALLOWED_CALLERS_ROLE(), user.address)
+        await tokenSender.hasRole(await tokenSender.SET_ALLOWED_MSG_SENDERS_ROLE(), user.address)
       ).to.eq(false)
 
-      await expect(tokenSender.connect(user).setAllowedCallers([], [])).revertedWith(
-        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await tokenSender.SET_ALLOWED_CALLERS_ROLE()}`
+      await expect(tokenSender.connect(user).setAllowedMsgSenders(ZERO_ADDRESS)).revertedWith(
+        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await tokenSender.SET_ALLOWED_MSG_SENDERS_ROLE()}`
       )
     })
   })
@@ -236,7 +239,8 @@ describe('=> TokenSender', () => {
   describe('# send', () => {
     beforeEach(async () => {
       await tokenSender.connect(deployer).setPrice(priceOracle.address)
-      await tokenSender.connect(deployer).setAllowedCallers([deployer.address], [true])
+      await tokenSender.connect(deployer).setAllowedMsgSenders(allowlist.address)
+      allowlist.isIncluded.returns(true)
     })
 
     async function calculateExpectedOutput(unconvertedAmount: number): Promise<BigNumber> {
@@ -251,7 +255,8 @@ describe('=> TokenSender', () => {
     }
 
     it('reverts if not allowed caller', async () => {
-      expect(await tokenSender.isCallerAllowed(user.address)).to.eq(false)
+      allowlist.isIncluded.returns(false)
+      expect(await allowlist.isIncluded(user.address)).to.eq(false)
 
       await expect(tokenSender.connect(user).send(user.address, 1)).revertedWith(
         `msg.sender not allowed`

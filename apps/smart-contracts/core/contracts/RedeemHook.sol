@@ -3,14 +3,14 @@ pragma solidity =0.8.7;
 
 import "./interfaces/IPrePOMarket.sol";
 import "./interfaces/IMarketHook.sol";
-import "prepo-shared-contracts/contracts/AllowedCallers.sol";
 import "prepo-shared-contracts/contracts/AllowlistHook.sol";
 import "prepo-shared-contracts/contracts/TokenSenderCaller.sol";
+import "prepo-shared-contracts/contracts/AllowedMsgSenders.sol";
 import "prepo-shared-contracts/contracts/SafeOwnable.sol";
 
 contract RedeemHook is
   IMarketHook,
-  AllowedCallers,
+  AllowedMsgSenders,
   AllowlistHook,
   TokenSenderCaller,
   SafeOwnable
@@ -19,7 +19,7 @@ contract RedeemHook is
     address sender,
     uint256 amountBeforeFee,
     uint256 amountAfterFee
-  ) external virtual override onlyAllowedCallers {
+  ) external virtual override onlyAllowedMsgSenders {
     require(_allowlist.isIncluded(sender), "redeemer not allowed");
     uint256 fee = amountBeforeFee - amountAfterFee;
     if (fee > 0) {
@@ -41,13 +41,13 @@ contract RedeemHook is
     super.setAllowlist(allowlist);
   }
 
-  function setAllowedCallers(address[] memory callers, bool[] memory allowed)
+  function setAllowedMsgSenders(IAccountList allowedMsgSenders)
     public
     virtual
     override
     onlyOwner
   {
-    super.setAllowedCallers(callers, allowed);
+    super.setAllowedMsgSenders(allowedMsgSenders);
   }
 
   function setTreasury(address _treasury) public override onlyOwner {

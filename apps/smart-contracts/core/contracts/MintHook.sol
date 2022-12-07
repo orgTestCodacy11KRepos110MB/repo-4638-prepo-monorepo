@@ -2,16 +2,22 @@
 pragma solidity =0.8.7;
 
 import "./interfaces/IMarketHook.sol";
+import "prepo-shared-contracts/contracts/AllowedMsgSenders.sol";
 import "prepo-shared-contracts/contracts/AllowlistHook.sol";
-import "prepo-shared-contracts/contracts/AllowedCallers.sol";
+import "prepo-shared-contracts/contracts/interfaces/IAccountList.sol";
 import "prepo-shared-contracts/contracts/SafeOwnable.sol";
 
-contract MintHook is IMarketHook, AllowlistHook, AllowedCallers, SafeOwnable {
+contract MintHook is
+  IMarketHook,
+  AllowedMsgSenders,
+  AllowlistHook,
+  SafeOwnable
+{
   function hook(
     address sender,
     uint256 amountBeforeFee,
     uint256 amountAfterFee
-  ) external virtual override onlyAllowedCallers {
+  ) external virtual override onlyAllowedMsgSenders {
     require(_allowlist.isIncluded(sender), "minter not allowed");
   }
 
@@ -24,12 +30,12 @@ contract MintHook is IMarketHook, AllowlistHook, AllowedCallers, SafeOwnable {
     super.setAllowlist(allowlist);
   }
 
-  function setAllowedCallers(address[] memory callers, bool[] memory allowed)
+  function setAllowedMsgSenders(IAccountList allowedMsgSenders)
     public
     virtual
     override
     onlyOwner
   {
-    super.setAllowedCallers(callers, allowed);
+    super.setAllowedMsgSenders(allowedMsgSenders);
   }
 }

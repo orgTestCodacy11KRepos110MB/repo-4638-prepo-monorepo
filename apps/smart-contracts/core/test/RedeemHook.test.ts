@@ -8,7 +8,11 @@ import { ZERO_ADDRESS } from 'prepo-constants'
 import { utils } from 'prepo-hardhat'
 import { getSignerForContract } from './utils'
 import { fakeCollateralFixture } from './fixtures/CollateralFixture'
-import { redeemHookFixture, smockAccountListFixture } from './fixtures/HookFixture'
+import {
+  fakeAccountListFixture,
+  redeemHookFixture,
+  smockAccountListFixture,
+} from './fixtures/HookFixture'
 import { fakeTokenSenderFixture } from './fixtures/TokenSenderFixture'
 import { smockTestERC20Fixture } from './fixtures/TestERC20Fixture'
 import { fakePrePOMarketFixture } from './fixtures/PrePOMarketFixture'
@@ -23,7 +27,8 @@ describe('=> RedeemHook', () => {
   let user: SignerWithAddress
   let treasury: SignerWithAddress
   let redeemHook: RedeemHook
-  let allowlist: MockContract<Contract>
+  let allowlist: FakeContract<Contract>
+  let msgSendersAllowlist: FakeContract<Contract>
   let baseToken: MockContract<Contract>
   let tokenSender: FakeContract<Contract>
   let collateral: FakeContract<Contract>
@@ -34,6 +39,7 @@ describe('=> RedeemHook', () => {
     ;[deployer, user, treasury] = await ethers.getSigners()
     redeemHook = await redeemHookFixture()
     allowlist = await smockAccountListFixture()
+    msgSendersAllowlist = await fakeAccountListFixture()
     baseToken = await smockTestERC20Fixture('Test Token', 'TEST', 18)
     tokenSender = await fakeTokenSenderFixture(baseToken.address)
   })
@@ -64,19 +70,19 @@ describe('=> RedeemHook', () => {
     })
   })
 
-  describe('# setAllowedCallers', () => {
+  describe('# setAllowedMsgSenders', () => {
     it('reverts if not owner', async () => {
       expect(await redeemHook.owner()).to.not.eq(user.address)
 
       await expect(
-        redeemHook.connect(user).setAllowedCallers([user.address], [true])
+        redeemHook.connect(user).setAllowedMsgSenders(msgSendersAllowlist.address)
       ).to.be.revertedWith('Ownable: caller is not the owner')
     })
 
     it('succeeds if owner', async () => {
       expect(await redeemHook.owner()).to.eq(deployer.address)
 
-      await redeemHook.connect(deployer).setAllowedCallers([user.address], [true])
+      await redeemHook.connect(deployer).setAllowedMsgSenders(msgSendersAllowlist.address)
     })
   })
 
@@ -115,10 +121,13 @@ describe('=> RedeemHook', () => {
   describe('# hook', () => {
     beforeEach(async () => {
       await redeemHook.setAllowlist(allowlist.address)
+      await redeemHook.setAllowedMsgSenders(msgSendersAllowlist.address)
+      msgSendersAllowlist.isIncluded.whenCalledWith(deployer.address).returns(true)
     })
 
     it('reverts if caller not allowed', async () => {
-      expect(await redeemHook.isCallerAllowed(user.address)).to.eq(false)
+      msgSendersAllowlist.isIncluded.returns(false)
+      expect(await msgSendersAllowlist.isIncluded(user.address)).to.be.false
 
       await expect(redeemHook.connect(user).hook(user.address, 1, 1)).to.be.revertedWith(
         'msg.sender not allowed'
@@ -126,7 +135,7 @@ describe('=> RedeemHook', () => {
     })
 
     it('reverts if sender not allowed', async () => {
-      await redeemHook.setAllowedCallers([deployer.address], [true])
+      expect(await msgSendersAllowlist.isIncluded(deployer.address)).to.be.true
       expect(await allowlist.isIncluded(user.address)).to.eq(false)
 
       await expect(redeemHook.connect(deployer).hook(user.address, 1, 1)).to.be.revertedWith(
@@ -141,7 +150,8 @@ describe('=> RedeemHook', () => {
         market = await fakePrePOMarketFixture()
         market.getCollateral.returns(collateral.address)
         marketSigner = await getSignerForContract(market)
-        await redeemHook.setAllowedCallers([market.address], [true])
+        await redeemHook.setAllowedMsgSenders(msgSendersAllowlist.address)
+        msgSendersAllowlist.isIncluded.whenCalledWith(marketSigner.address).returns(true)
         await redeemHook.setTreasury(treasury.address)
         await redeemHook.setTokenSender(tokenSender.address)
       })

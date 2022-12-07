@@ -2,7 +2,7 @@
 pragma solidity =0.8.7;
 
 import "prepo-shared-contracts/contracts/interfaces/ITokenSender.sol";
-import "prepo-shared-contracts/contracts/AllowedCallers.sol";
+import "prepo-shared-contracts/contracts/AllowedMsgSenders.sol";
 import "prepo-shared-contracts/contracts/WithdrawERC20.sol";
 import "prepo-shared-contracts/contracts/SafeAccessControlEnumerable.sol";
 import "prepo-shared-contracts/contracts/interfaces/IUintValue.sol";
@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 contract TokenSender is
   ITokenSender,
-  AllowedCallers,
+  AllowedMsgSenders,
   WithdrawERC20, // TODO: Access control when WithdrawERC20 updated
   SafeAccessControlEnumerable
 {
@@ -29,8 +29,8 @@ contract TokenSender is
     keccak256("TokenSender_setPriceMultiplier(uint256)");
   bytes32 public constant SET_SCALED_PRICE_LOWER_BOUND_ROLE =
     keccak256("TokenSender_setScaledPriceLowerBound(uint256)");
-  bytes32 public constant SET_ALLOWED_CALLERS_ROLE =
-    keccak256("TokenSender_setAllowedCallers(address[],bool[])");
+  bytes32 public constant SET_ALLOWED_MSG_SENDERS_ROLE =
+    keccak256("TokenSender_setAllowedMsgSenders(IAccountList)");
 
   constructor(IERC20Metadata outputToken) {
     _outputToken = outputToken;
@@ -40,7 +40,7 @@ contract TokenSender is
   function send(address recipient, uint256 unconvertedAmount)
     external
     override
-    onlyAllowedCallers
+    onlyAllowedMsgSenders
   {
     uint256 scaledPrice = (_price.get() * _priceMultiplier) /
       MULTIPLIER_DENOMINATOR;
@@ -79,12 +79,12 @@ contract TokenSender is
     emit ScaledPriceLowerBoundChange(lowerBound);
   }
 
-  function setAllowedCallers(address[] memory callers, bool[] memory allowed)
+  function setAllowedMsgSenders(IAccountList allowedMsgSenders)
     public
     override
-    onlyRole(SET_ALLOWED_CALLERS_ROLE)
+    onlyRole(SET_ALLOWED_MSG_SENDERS_ROLE)
   {
-    super.setAllowedCallers(callers, allowed);
+    super.setAllowedMsgSenders(allowedMsgSenders);
   }
 
   function getOutputToken() external view override returns (IERC20) {
