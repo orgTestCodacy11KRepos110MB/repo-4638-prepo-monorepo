@@ -42,6 +42,8 @@ contract PrePOMarketFactory is
   function createMarket(
     string memory _tokenNameSuffix,
     string memory _tokenSymbolSuffix,
+    bytes32 longTokenSalt,
+    bytes32 shortTokenSalt,
     address _governance,
     address _collateral,
     uint256 _floorLongPrice,
@@ -55,7 +57,12 @@ contract PrePOMarketFactory is
     (
       LongShortToken _longToken,
       LongShortToken _shortToken
-    ) = _createPairTokens(_tokenNameSuffix, _tokenSymbolSuffix);
+    ) = _createPairTokens(
+        _tokenNameSuffix,
+        _tokenSymbolSuffix,
+        longTokenSalt,
+        shortTokenSalt
+      );
     bytes32 _salt = keccak256(abi.encodePacked(_longToken, _shortToken));
 
     PrePOMarket _newMarket = new PrePOMarket{salt: _salt}(
@@ -87,7 +94,9 @@ contract PrePOMarketFactory is
 
   function _createPairTokens(
     string memory _tokenNameSuffix,
-    string memory _tokenSymbolSuffix
+    string memory _tokenSymbolSuffix,
+    bytes32 _longTokenSalt,
+    bytes32 _shortTokenSalt
   )
     internal
     returns (LongShortToken _newLongToken, LongShortToken _newShortToken)
@@ -104,8 +113,14 @@ contract PrePOMarketFactory is
     string memory _shortTokenSymbol = string(
       abi.encodePacked("S", "_", _tokenSymbolSuffix)
     );
-    _newLongToken = new LongShortToken(_longTokenName, _longTokenSymbol);
-    _newShortToken = new LongShortToken(_shortTokenName, _shortTokenSymbol);
+    _newLongToken = new LongShortToken{salt: _longTokenSalt}(
+      _longTokenName,
+      _longTokenSymbol
+    );
+    _newShortToken = new LongShortToken{salt: _shortTokenSalt}(
+      _shortTokenName,
+      _shortTokenSymbol
+    );
     return (_newLongToken, _newShortToken);
   }
 }

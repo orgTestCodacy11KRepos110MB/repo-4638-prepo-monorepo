@@ -36,6 +36,8 @@ interface IPrePOMarketFactory {
    * e.g. preSTRIPE_100-200_30SEP21 => L_preSTRIPE_100-200_30SEP21.
    * @param tokenNameSuffix The name suffix for the token pair
    * @param tokenSymbolSuffix The symbol suffix for the token pair
+   * @param longTokenSalt salt
+   * @param shortTokenSalt salt
    * @param collateral The address of the collateral token
    * @param governance The address of the governance contract
    * @param floorLongPrice The floor price for the Long token
@@ -47,6 +49,8 @@ interface IPrePOMarketFactory {
   function createMarket(
     string memory tokenNameSuffix,
     string memory tokenSymbolSuffix,
+    bytes32 longTokenSalt,
+    bytes32 shortTokenSalt,
     address collateral,
     address governance,
     uint256 floorLongPrice,

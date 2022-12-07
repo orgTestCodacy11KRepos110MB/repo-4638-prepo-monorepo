@@ -2,6 +2,7 @@ import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { utils } from 'prepo-hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
+import { formatBytes32String } from 'ethers/lib/utils'
 import { testERC20Fixture } from './fixtures/TestERC20Fixture'
 import { LongShortTokenAttachFixture } from './fixtures/LongShortTokenFixture'
 import { prePOMarketAttachFixture } from './fixtures/PrePOMarketFixture'
@@ -95,6 +96,8 @@ describe('=> PrePOMarketFactory', () => {
         factory: prePOMarketFactory,
         tokenNameSuffix: TEST_NAME_SUFFIX,
         tokenSymbolSuffix: TEST_SYMBOL_SUFFIX,
+        longTokenSalt: formatBytes32String('DEFAULT_SALT'),
+        shortTokenSalt: formatBytes32String('DEFAULT_SALT'),
         collateral: collateralToken.address,
         governance: treasury.address,
         floorLongPayout: TEST_FLOOR_PRICE,
@@ -146,6 +149,42 @@ describe('=> PrePOMarketFactory', () => {
       expect(await shortToken.name()).to.eq('SHORT preSTRIPE 100-200 30-September-2021')
       expect(await longToken.symbol()).to.eq('L_preSTRIPE_100-200_30SEP21')
       expect(await shortToken.symbol()).to.eq('S_preSTRIPE_100-200_30SEP21')
+    })
+
+    it('uses `longTokenSalt` to generate the Long token contract address', async () => {
+      const prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
+      const longShortTokenFactory = await ethers.getContractFactory('LongShortToken')
+      const longTokenDeployTx = longShortTokenFactory.getDeployTransaction(
+        `LONG ${defaultParams.tokenNameSuffix}`,
+        `L_${defaultParams.tokenSymbolSuffix}`
+      )
+      const hashedInitCode = ethers.utils.keccak256(longTokenDeployTx.data)
+
+      expect(await prePOMarket.getLongToken()).to.eq(
+        ethers.utils.getCreate2Address(
+          prePOMarketFactory.address,
+          defaultParams.longTokenSalt,
+          hashedInitCode
+        )
+      )
+    })
+
+    it('uses `shortTokenSalt` to generate the Short token contract address', async () => {
+      const prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
+      const longShortTokenFactory = await ethers.getContractFactory('LongShortToken')
+      const shortTokenDeployTx = longShortTokenFactory.getDeployTransaction(
+        `SHORT ${defaultParams.tokenNameSuffix}`,
+        `S_${defaultParams.tokenSymbolSuffix}`
+      )
+      const hashedInitCode = ethers.utils.keccak256(shortTokenDeployTx.data)
+
+      expect(await prePOMarket.getShortToken()).to.eq(
+        ethers.utils.getCreate2Address(
+          prePOMarketFactory.address,
+          defaultParams.shortTokenSalt,
+          hashedInitCode
+        )
+      )
     })
 
     it('should initialize a prePOMarket with the correct values', async () => {

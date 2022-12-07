@@ -2,6 +2,7 @@ import chai, { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { BigNumber, Contract } from 'ethers'
+import { formatBytes32String } from 'ethers/lib/utils'
 import { FakeContract, smock } from '@defi-wonderland/smock'
 import { ZERO_ADDRESS } from 'prepo-constants'
 import { utils } from 'prepo-hardhat'
@@ -68,6 +69,8 @@ describe('=> prePOMarket', () => {
       factory: prePOMarketFactory,
       tokenNameSuffix: TEST_NAME_SUFFIX,
       tokenSymbolSuffix: TEST_SYMBOL_SUFFIX,
+      longTokenSalt: formatBytes32String('LONG_SALT'),
+      shortTokenSalt: formatBytes32String('SHORT_SALT'),
       governance: treasury.address,
       collateral: collateralToken.address,
       floorLongPayout: TEST_FLOOR_PAYOUT,
