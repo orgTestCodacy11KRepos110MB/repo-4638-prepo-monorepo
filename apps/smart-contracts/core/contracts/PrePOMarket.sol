@@ -39,21 +39,8 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
    * transferred to this contract via `createMarket()` in
    * `PrePOMarketFactory.sol`.
    */
-  constructor(
-    address _governance,
-    address _collateral,
-    ILongShortToken _longToken,
-    ILongShortToken _shortToken,
-    uint256 _floorLongPayout,
-    uint256 _ceilingLongPayout,
-    uint256 _floorValuation,
-    uint256 _ceilingValuation,
-    uint256 _expiryTime
-  ) {
-    require(
-      _ceilingLongPayout > _floorLongPayout,
-      "Ceiling must exceed floor"
-    );
+  constructor(address _governance, address _collateral, ILongShortToken _longToken, ILongShortToken _shortToken, uint256 _floorLongPayout, uint256 _ceilingLongPayout, uint256 _floorValuation, uint256 _ceilingValuation, uint256 _expiryTime) {
+    require(_ceilingLongPayout > _floorLongPayout, "Ceiling must exceed floor");
     require(_expiryTime > block.timestamp, "Invalid expiry");
     require(_ceilingLongPayout <= MAX_PAYOUT, "Ceiling cannot exceed 1");
 
@@ -72,31 +59,13 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
 
     expiryTime = _expiryTime;
 
-    emit MarketCreated(
-      address(_longToken),
-      address(_shortToken),
-      _floorLongPayout,
-      _ceilingLongPayout,
-      _floorValuation,
-      _ceilingValuation,
-      _expiryTime
-    );
+    emit MarketCreated(address(_longToken), address(_shortToken), _floorLongPayout, _ceilingLongPayout, _floorValuation, _ceilingValuation, _expiryTime);
   }
 
-  function mint(uint256 _amount)
-    external
-    override
-    nonReentrant
-    returns (uint256)
-  {
+  function mint(uint256 _amount) external override nonReentrant returns (uint256) {
     require(finalLongPayout > MAX_PAYOUT, "Market ended");
-    require(
-      collateral.balanceOf(msg.sender) >= _amount,
-      "Insufficient collateral"
-    );
-    if (address(_mintHook) != address(0)) {
-      _mintHook.hook(msg.sender, _amount, _amount);
-    }
+    require(collateral.balanceOf(msg.sender) >= _amount, "Insufficient collateral");
+    if (address(_mintHook) != address(0)) _mintHook.hook(msg.sender, _amount, _amount);
     collateral.transferFrom(msg.sender, address(this), _amount);
     longToken.mint(msg.sender, _amount);
     shortToken.mint(msg.sender, _amount);
@@ -104,57 +73,30 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
     return _amount;
   }
 
-  function redeem(uint256 _longAmount, uint256 _shortAmount)
-    external
-    override
-    nonReentrant
-  {
-    require(
-      longToken.balanceOf(msg.sender) >= _longAmount,
-      "Insufficient long tokens"
-    );
-    require(
-      shortToken.balanceOf(msg.sender) >= _shortAmount,
-      "Insufficient short tokens"
-    );
+  function redeem(uint256 _longAmount, uint256 _shortAmount) external override nonReentrant {
+    require(longToken.balanceOf(msg.sender) >= _longAmount, "Insufficient long tokens");
+    require(shortToken.balanceOf(msg.sender) >= _shortAmount, "Insufficient short tokens");
 
     uint256 _collateralAmount;
     if (finalLongPayout <= MAX_PAYOUT) {
       uint256 _shortPayout = MAX_PAYOUT - finalLongPayout;
-      _collateralAmount =
-        (finalLongPayout * _longAmount + _shortPayout * _shortAmount) /
-        MAX_PAYOUT;
+      _collateralAmount = (finalLongPayout * _longAmount + _shortPayout * _shortAmount) / MAX_PAYOUT;
     } else {
       require(_longAmount == _shortAmount, "Long and Short must be equal");
       _collateralAmount = _longAmount;
     }
 
     uint256 _actualFee;
-    uint256 _expectedFee = (_collateralAmount * redemptionFee) /
-      FEE_DENOMINATOR;
-    if (redemptionFee > 0) {
-      require(_expectedFee > 0, "fee = 0");
-    } else {
-      require(_collateralAmount > 0, "amount = 0");
-    }
+    uint256 _expectedFee = (_collateralAmount * redemptionFee) / FEE_DENOMINATOR;
+    if (redemptionFee > 0) { require(_expectedFee > 0, "fee = 0"); }
+    else { require(_collateralAmount > 0, "amount = 0"); }
     if (address(_redeemHook) != address(0)) {
       collateral.approve(address(_redeemHook), _expectedFee);
-      uint256 _collateralAllowanceBefore = collateral.allowance(
-        address(this),
-        address(_redeemHook)
-      );
-      _redeemHook.hook(
-        msg.sender,
-        _collateralAmount,
-        _collateralAmount - _expectedFee
-      );
-      _actualFee =
-        _collateralAllowanceBefore -
-        collateral.allowance(address(this), address(_redeemHook));
+      uint256 _collateralAllowanceBefore = collateral.allowance(address(this), address(_redeemHook));
+      _redeemHook.hook(msg.sender, _collateralAmount, _collateralAmount - _expectedFee);
+      _actualFee = _collateralAllowanceBefore - collateral.allowance(address(this), address(_redeemHook));
       collateral.approve(address(_redeemHook), 0);
-    } else {
-      _actualFee = 0;
-    }
+    } else { _actualFee = 0; }
 
     longToken.burnFrom(msg.sender, _longAmount);
     shortToken.burnFrom(msg.sender, _shortAmount);
@@ -174,90 +116,46 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
     emit RedeemHookChange(address(redeemHook));
   }
 
-  function setFinalLongPayout(uint256 _finalLongPayout)
-    external
-    override
-    onlyOwner
-  {
-    require(
-      _finalLongPayout >= floorLongPayout,
-      "Payout cannot be below floor"
-    );
-    require(
-      _finalLongPayout <= ceilingLongPayout,
-      "Payout cannot exceed ceiling"
-    );
+  function setFinalLongPayout(uint256 _finalLongPayout) external override onlyOwner {
+    require(_finalLongPayout >= floorLongPayout, "Payout cannot be below floor");
+    require(_finalLongPayout <= ceilingLongPayout, "Payout cannot exceed ceiling");
     finalLongPayout = _finalLongPayout;
     emit FinalLongPayoutSet(_finalLongPayout);
   }
 
-  function setRedemptionFee(uint256 _redemptionFee)
-    external
-    override
-    onlyOwner
-  {
+  function setRedemptionFee(uint256 _redemptionFee) external override onlyOwner {
     require(_redemptionFee <= FEE_LIMIT, "Exceeds fee limit");
     redemptionFee = _redemptionFee;
     emit RedemptionFeeChange(_redemptionFee);
   }
 
-  function getMintHook() external view override returns (IMarketHook) {
-    return _mintHook;
-  }
+  function getMintHook() external view override returns (IMarketHook) { return _mintHook; }
 
-  function getRedeemHook() external view override returns (IMarketHook) {
-    return _redeemHook;
-  }
+  function getRedeemHook() external view override returns (IMarketHook) { return _redeemHook; }
 
-  function getCollateral() external view override returns (IERC20) {
-    return collateral;
-  }
+  function getCollateral() external view override returns (IERC20) { return collateral; }
 
-  function getLongToken() external view override returns (ILongShortToken) {
-    return longToken;
-  }
+  function getLongToken() external view override returns (ILongShortToken) { return longToken; }
 
-  function getShortToken() external view override returns (ILongShortToken) {
-    return shortToken;
-  }
+  function getShortToken() external view override returns (ILongShortToken) { return shortToken; }
 
-  function getFloorLongPayout() external view override returns (uint256) {
-    return floorLongPayout;
-  }
+  function getFloorLongPayout() external view override returns (uint256) { return floorLongPayout; }
 
-  function getCeilingLongPayout() external view override returns (uint256) {
-    return ceilingLongPayout;
-  }
+  function getCeilingLongPayout() external view override returns (uint256) { return ceilingLongPayout; }
 
-  function getFinalLongPayout() external view override returns (uint256) {
-    return finalLongPayout;
-  }
+  function getFinalLongPayout() external view override returns (uint256) { return finalLongPayout; }
 
-  function getFloorValuation() external view override returns (uint256) {
-    return floorValuation;
-  }
+  function getFloorValuation() external view override returns (uint256) { return floorValuation; }
 
-  function getCeilingValuation() external view override returns (uint256) {
-    return ceilingValuation;
-  }
+  function getCeilingValuation() external view override returns (uint256) { return ceilingValuation; }
 
-  function getRedemptionFee() external view override returns (uint256) {
-    return redemptionFee;
-  }
+  function getRedemptionFee() external view override returns (uint256) { return redemptionFee; }
 
-  function getExpiryTime() external view override returns (uint256) {
-    return expiryTime;
-  }
+  function getExpiryTime() external view override returns (uint256) { return expiryTime; }
 
-  function getMaxPayout() external pure override returns (uint256) {
-    return MAX_PAYOUT;
-  }
+  function getMaxPayout() external pure override returns (uint256) { return MAX_PAYOUT; }
 
-  function getFeeDenominator() external pure override returns (uint256) {
-    return FEE_DENOMINATOR;
-  }
+  function getFeeDenominator() external pure override returns (uint256) { return FEE_DENOMINATOR; }
 
-  function getFeeLimit() external pure override returns (uint256) {
-    return FEE_LIMIT;
-  }
+  function getFeeLimit() external pure override returns (uint256) { return FEE_LIMIT; }
 }

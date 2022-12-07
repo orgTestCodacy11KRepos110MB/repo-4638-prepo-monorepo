@@ -8,18 +8,11 @@ contract ProtectedHook is IProtectedHook, SafeOwnable {
   address private _allowedContract;
 
   modifier onlyAllowedContract() {
-    require(
-      _msgSender() == _allowedContract,
-      "msg.sender != allowed contract"
-    );
+    require(_msgSender() == _allowedContract, "msg.sender != allowed contract");
     _;
   }
 
-  function setAllowedContract(address _newAllowedContract)
-    external
-    override
-    onlyOwner
-  {
+  function setAllowedContract(address _newAllowedContract) external override onlyOwner {
     _allowedContract = _newAllowedContract;
     emit AllowedContractChange(_newAllowedContract);
   }

@@ -11,10 +11,7 @@ contract WithdrawERC20 is IWithdrawERC20, SafeOwnable, ReentrancyGuard {
 
   constructor() {}
 
-  function withdrawERC20(
-    address[] calldata _erc20Tokens,
-    uint256[] calldata _amounts
-  ) external override onlyOwner nonReentrant {
+  function withdrawERC20(address[] calldata _erc20Tokens, uint256[] calldata _amounts) external override onlyOwner nonReentrant {
     require(_erc20Tokens.length == _amounts.length, "Array length mismatch");
     address _owner = owner();
     uint256 _arrayLength = _erc20Tokens.length;
@@ -26,19 +23,11 @@ contract WithdrawERC20 is IWithdrawERC20, SafeOwnable, ReentrancyGuard {
     }
   }
 
-  function withdrawERC20(address[] calldata _erc20Tokens)
-    external
-    override
-    onlyOwner
-    nonReentrant
-  {
+  function withdrawERC20(address[] calldata _erc20Tokens) external override onlyOwner nonReentrant {
     address _owner = owner();
     uint256 _arrayLength = _erc20Tokens.length;
     for (uint256 i; i < _arrayLength; ) {
-      IERC20(_erc20Tokens[i]).safeTransfer(
-        _owner,
-        IERC20(_erc20Tokens[i]).balanceOf(address(this))
-      );
+      IERC20(_erc20Tokens[i]).safeTransfer(_owner, IERC20(_erc20Tokens[i]).balanceOf(address(this)));
       unchecked {
         ++i;
       }

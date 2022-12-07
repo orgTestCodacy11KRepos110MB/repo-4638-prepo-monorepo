@@ -19,45 +19,14 @@ contract DepositTradeHelper is IDepositTradeHelper, SafeOwnable {
     collateral.approve(address(swapRouter), type(uint256).max);
   }
 
-  function depositAndTrade(
-    uint256 baseTokenAmount,
-    Permit calldata baseTokenPermit,
-    Permit calldata collateralPermit,
-    OffChainTradeParams calldata tradeParams
-  ) external override {
-    if (baseTokenPermit.deadline != 0) {
-      IERC20Permit(address(_baseToken)).permit(
-        msg.sender,
-        address(this),
-        type(uint256).max,
-        baseTokenPermit.deadline,
-        baseTokenPermit.v,
-        baseTokenPermit.r,
-        baseTokenPermit.s
-      );
-    }
-    if (collateralPermit.deadline != 0) {
-      _collateral.permit(
-        msg.sender,
-        address(this),
-        type(uint256).max,
-        collateralPermit.deadline,
-        collateralPermit.v,
-        collateralPermit.r,
-        collateralPermit.s
-      );
-    }
+  function depositAndTrade(uint256 baseTokenAmount, Permit calldata baseTokenPermit, Permit calldata collateralPermit, OffChainTradeParams calldata tradeParams) external override {
+    if (baseTokenPermit.deadline != 0) IERC20Permit(address(_baseToken)).permit(msg.sender, address(this), type(uint256).max, baseTokenPermit.deadline, baseTokenPermit.v, baseTokenPermit.r, baseTokenPermit.s);
+    if (collateralPermit.deadline != 0) _collateral.permit(msg.sender, address(this), type(uint256).max, collateralPermit.deadline, collateralPermit.v, collateralPermit.r, collateralPermit.s);
   }
 
-  function getCollateral() external view override returns (ICollateral) {
-    return _collateral;
-  }
+  function getCollateral() external view override returns (ICollateral) { return _collateral; }
 
-  function getBaseToken() external view override returns (IERC20) {
-    return _baseToken;
-  }
+  function getBaseToken() external view override returns (IERC20) { return _baseToken; }
 
-  function getSwapRouter() external view override returns (ISwapRouter) {
-    return _swapRouter;
-  }
+  function getSwapRouter() external view override returns (ISwapRouter) { return _swapRouter; }
 }

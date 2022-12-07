@@ -11,9 +11,7 @@ import "@openzeppelin/contracts-upgradeable/access/IAccessControlEnumerableUpgra
  * @dev Inheriting contract must call `__SafeAccessControlEnumerable_init()`
  * within their own externally exposed `initializer`.
  */
-interface ISafeAccessControlEnumerableUpgradeable is
-  IAccessControlEnumerableUpgradeable
-{
+interface ISafeAccessControlEnumerableUpgradeable is IAccessControlEnumerableUpgradeable {
   /**
    * @dev Emitted via `setRoleAdminNominee()` and `acceptRoleAdmin()`.
    * @param role The role an admin was nominated for
@@ -35,8 +33,7 @@ interface ISafeAccessControlEnumerableUpgradeable is
    * @param role The role a role admin is to be nominated for
    * @param adminRoleNominee The role admin to be nominated
    */
-  function setRoleAdminNominee(bytes32 role, bytes32 adminRoleNominee)
-    external;
+  function setRoleAdminNominee(bytes32 role, bytes32 adminRoleNominee) external;
 
   /**
    * @notice Accepts a role admin nomination.
@@ -71,8 +68,5 @@ interface ISafeAccessControlEnumerableUpgradeable is
    * @param account The address to retrieve nomination status for
    * @return Whether `account` is nominated for `role`
    */
-  function isNominated(bytes32 role, address account)
-    external
-    view
-    returns (bool);
+  function isNominated(bytes32 role, address account) external view returns (bool);
 }

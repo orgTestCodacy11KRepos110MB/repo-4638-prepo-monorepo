@@ -22,26 +22,14 @@ interface IPrePOMarket {
   /// @param floorValuation Market valuation floor
   /// @param ceilingValuation Market valuation ceiling
   /// @param expiryTime Market expiry time
-  event MarketCreated(
-    address longToken,
-    address shortToken,
-    uint256 floorLongPayout,
-    uint256 ceilingLongPayout,
-    uint256 floorValuation,
-    uint256 ceilingValuation,
-    uint256 expiryTime
-  );
+  event MarketCreated(address longToken, address shortToken, uint256 floorLongPayout, uint256 ceilingLongPayout, uint256 floorValuation, uint256 ceilingValuation, uint256 expiryTime);
 
   /// @dev Emitted via `mintLongShortTokens()`.
   /// @param minter The address of the minter
   /// @param amount The amount of Long/Short tokens minted
   event Mint(address indexed minter, uint256 amount);
 
-  event Redemption(
-    address indexed redeemer,
-    uint256 amountAfterFee,
-    uint256 fee
-  );
+  event Redemption(address indexed redeemer, uint256 amountAfterFee, uint256 fee);
 
   event MintHookChange(address hook);
 

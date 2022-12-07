@@ -30,8 +30,7 @@ interface ISafeAccessControlEnumerableCaller {
    * @param safeAccessControlContract Address of the contract to be called
    * @param role The role for which role admin nomination is to be accepted
    */
-  function acceptRoleAdmin(address safeAccessControlContract, bytes32 role)
-    external;
+  function acceptRoleAdmin(address safeAccessControlContract, bytes32 role) external;
 
   /**
    * @notice Nominates an address to be a member of a role for a
@@ -54,8 +53,7 @@ interface ISafeAccessControlEnumerableCaller {
    * @param safeAccessControlContract Address of the contract to be called
    * @param role The role of the nomination to be accepted
    */
-  function acceptRole(address safeAccessControlContract, bytes32 role)
-    external;
+  function acceptRole(address safeAccessControlContract, bytes32 role) external;
 
   /**
    * @notice Allows `account` to renounce their current role for a given

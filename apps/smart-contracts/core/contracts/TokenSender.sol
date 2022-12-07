@@ -23,67 +23,41 @@ contract TokenSender is
   uint256 private immutable _outputTokenDecimalsFactor;
 
   uint256 public constant MULTIPLIER_DENOMINATOR = 10000;
-  bytes32 public constant SET_PRICE_ROLE =
-    keccak256("TokenSender_setPrice(IUintValue)");
-  bytes32 public constant SET_PRICE_MULTIPLIER_ROLE =
-    keccak256("TokenSender_setPriceMultiplier(uint256)");
-  bytes32 public constant SET_SCALED_PRICE_LOWER_BOUND_ROLE =
-    keccak256("TokenSender_setScaledPriceLowerBound(uint256)");
-  bytes32 public constant SET_ALLOWED_MSG_SENDERS_ROLE =
-    keccak256("TokenSender_setAllowedMsgSenders(IAccountList)");
+  bytes32 public constant SET_PRICE_ROLE = keccak256("TokenSender_setPrice(IUintValue)");
+  bytes32 public constant SET_PRICE_MULTIPLIER_ROLE = keccak256("TokenSender_setPriceMultiplier(uint256)");
+  bytes32 public constant SET_SCALED_PRICE_LOWER_BOUND_ROLE = keccak256("TokenSender_setScaledPriceLowerBound(uint256)");
+  bytes32 public constant SET_ALLOWED_MSG_SENDERS_ROLE = keccak256("TokenSender_setAllowedMsgSenders(IAccountList)");
 
   constructor(IERC20Metadata outputToken) {
     _outputToken = outputToken;
     _outputTokenDecimalsFactor = 10**outputToken.decimals();
   }
 
-  function send(address recipient, uint256 unconvertedAmount)
-    external
-    override
-    onlyAllowedMsgSenders
-  {
-    uint256 scaledPrice = (_price.get() * _priceMultiplier) /
-      MULTIPLIER_DENOMINATOR;
+  function send(address recipient, uint256 unconvertedAmount) external override onlyAllowedMsgSenders {
+    uint256 scaledPrice = (_price.get() * _priceMultiplier) / MULTIPLIER_DENOMINATOR;
     if (scaledPrice <= _scaledPriceLowerBound) return;
-    uint256 outputAmount = (unconvertedAmount * _outputTokenDecimalsFactor) /
-      scaledPrice;
+    uint256 outputAmount = (unconvertedAmount * _outputTokenDecimalsFactor) / scaledPrice;
     if (outputAmount == 0) return;
     if (outputAmount > _outputToken.balanceOf(address(this))) return;
     _outputToken.transfer(recipient, outputAmount);
   }
 
-  function setPrice(IUintValue price)
-    external
-    override
-    onlyRole(SET_PRICE_ROLE)
-  {
+  function setPrice(IUintValue price) external override onlyRole(SET_PRICE_ROLE) {
     _price = price;
     emit PriceChange(price);
   }
 
-  function setPriceMultiplier(uint256 multiplier)
-    external
-    override
-    onlyRole(SET_PRICE_MULTIPLIER_ROLE)
-  {
+  function setPriceMultiplier(uint256 multiplier) external override onlyRole(SET_PRICE_MULTIPLIER_ROLE) {
     _priceMultiplier = multiplier;
     emit PriceMultiplierChange(multiplier);
   }
 
-  function setScaledPriceLowerBound(uint256 lowerBound)
-    external
-    override
-    onlyRole(SET_SCALED_PRICE_LOWER_BOUND_ROLE)
-  {
+  function setScaledPriceLowerBound(uint256 lowerBound) external override onlyRole(SET_SCALED_PRICE_LOWER_BOUND_ROLE) {
     _scaledPriceLowerBound = lowerBound;
     emit ScaledPriceLowerBoundChange(lowerBound);
   }
 
-  function setAllowedMsgSenders(IAccountList allowedMsgSenders)
-    public
-    override
-    onlyRole(SET_ALLOWED_MSG_SENDERS_ROLE)
-  {
+  function setAllowedMsgSenders(IAccountList allowedMsgSenders) public override onlyRole(SET_ALLOWED_MSG_SENDERS_ROLE) {
     super.setAllowedMsgSenders(allowedMsgSenders);
   }
 
@@ -99,12 +73,7 @@ contract TokenSender is
     return _priceMultiplier;
   }
 
-  function getScaledPriceLowerBound()
-    external
-    view
-    override
-    returns (uint256)
-  {
+  function getScaledPriceLowerBound() external view override returns (uint256) {
     return _scaledPriceLowerBound;
   }
 }

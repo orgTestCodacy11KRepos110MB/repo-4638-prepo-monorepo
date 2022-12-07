@@ -98,10 +98,7 @@ interface IDepositRecord {
    * @param account The account to retrieve total deposits for
    * @return The total amount of Base Token deposited by a user
    */
-  function getUserDepositAmount(address account)
-    external
-    view
-    returns (uint256);
+  function getUserDepositAmount(address account) external view returns (uint256);
 
   /**
    * @notice Returns whether the contract is allowed to record deposits and

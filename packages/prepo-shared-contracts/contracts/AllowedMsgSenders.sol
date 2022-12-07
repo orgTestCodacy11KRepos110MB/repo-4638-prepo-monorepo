@@ -8,29 +8,14 @@ contract AllowedMsgSenders is IAllowedMsgSenders {
   IAccountList private _allowedMsgSenders;
 
   modifier onlyAllowedMsgSenders() {
-    require(
-      _allowedMsgSenders.isIncluded(msg.sender),
-      "msg.sender not allowed"
-    );
+    require(_allowedMsgSenders.isIncluded(msg.sender), "msg.sender not allowed");
     _;
   }
 
-  function setAllowedMsgSenders(IAccountList allowedMsgSenders)
-    public
-    virtual
-    override
-  {
+  function setAllowedMsgSenders(IAccountList allowedMsgSenders) public virtual override {
     _allowedMsgSenders = allowedMsgSenders;
     emit AllowedMsgSendersChange(allowedMsgSenders);
   }
 
-  function getAllowedMsgSenders()
-    external
-    view
-    virtual
-    override
-    returns (IAccountList)
-  {
-    return _allowedMsgSenders;
-  }
+  function getAllowedMsgSenders() external view virtual override returns (IAccountList) { return _allowedMsgSenders; }
 }

@@ -12,7 +12,5 @@ contract AccountListCaller is IAccountListCaller {
     emit AccountListChange(accountList);
   }
 
-  function getAccountList() external view override returns (IAccountList) {
-    return _accountList;
-  }
+  function getAccountList() external view override returns (IAccountList) { return _accountList; }
 }

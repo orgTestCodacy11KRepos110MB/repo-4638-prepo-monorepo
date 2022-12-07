@@ -5,19 +5,14 @@ import "./interfaces/ISafeAccessControlEnumerable.sol";
 import "./interfaces/ISafeAccessControlEnumerableCaller.sol";
 import "@openzeppelin/contracts/access/IAccessControl.sol";
 
-abstract contract SafeAccessControlEnumerableCaller is
-  ISafeAccessControlEnumerableCaller
-{
+abstract contract SafeAccessControlEnumerableCaller is ISafeAccessControlEnumerableCaller {
   function setRoleAdminNominee(
     address _safeAccessControlContract,
     bytes32 _role,
     bytes32 _adminRoleNominee
   ) public virtual override;
 
-  function acceptRoleAdmin(address _safeAccessControlContract, bytes32 _role)
-    public
-    virtual
-    override;
+  function acceptRoleAdmin(address _safeAccessControlContract, bytes32 _role) public virtual override;
 
   function grantRole(
     address _safeAccessControlContract,
@@ -25,10 +20,7 @@ abstract contract SafeAccessControlEnumerableCaller is
     address _account
   ) public virtual override;
 
-  function acceptRole(address _safeAccessControlContract, bytes32 _role)
-    public
-    virtual
-    override;
+  function acceptRole(address _safeAccessControlContract, bytes32 _role) public virtual override;
 
   function renounceRole(
     address _safeAccessControlContract,

@@ -6,16 +6,11 @@ import "prepo-shared-contracts/contracts/SafeOwnable.sol";
 
 contract AccountList is IAccountList, SafeOwnable {
   uint256 private resetIndex;
-  mapping(uint256 => mapping(address => bool))
-    private _resetIndexToAccountToIncluded;
+  mapping(uint256 => mapping(address => bool)) private _resetIndexToAccountToIncluded;
 
   constructor() {}
 
-  function set(address[] calldata _accounts, bool[] calldata _included)
-    external
-    override
-    onlyOwner
-  {
+  function set(address[] calldata _accounts, bool[] calldata _included) external override onlyOwner {
     require(_accounts.length == _included.length, "Array length mismatch");
     uint256 _arrayLength = _accounts.length;
     for (uint256 i; i < _arrayLength; ) {
@@ -26,17 +21,11 @@ contract AccountList is IAccountList, SafeOwnable {
     }
   }
 
-  function reset(address[] calldata _newIncludedAccounts)
-    external
-    override
-    onlyOwner
-  {
+  function reset(address[] calldata _newIncludedAccounts) external override onlyOwner {
     resetIndex++;
     uint256 _arrayLength = _newIncludedAccounts.length;
     for (uint256 i; i < _arrayLength; ) {
-      _resetIndexToAccountToIncluded[resetIndex][
-        _newIncludedAccounts[i]
-      ] = true;
+      _resetIndexToAccountToIncluded[resetIndex][_newIncludedAccounts[i]] = true;
       unchecked {
         ++i;
       }

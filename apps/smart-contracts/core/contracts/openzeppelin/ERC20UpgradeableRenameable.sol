@@ -35,12 +35,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
  * functions have been added to mitigate the well-known issues around setting
  * allowances. See {IERC20-approve}.
  */
-contract ERC20UpgradeableRenameable is
-  Initializable,
-  ContextUpgradeable,
-  IERC20Upgradeable,
-  IERC20MetadataUpgradeable
-{
+contract ERC20UpgradeableRenameable is Initializable, ContextUpgradeable, IERC20Upgradeable, IERC20MetadataUpgradeable {
   event NameChange(string name);
   event SymbolChange(string symbol);
 
@@ -59,18 +54,12 @@ contract ERC20UpgradeableRenameable is
    * The default value of {decimals} is 18. To select a different value for
    * {decimals} you should overload it.
    */
-  function __ERC20_init(string memory name_, string memory symbol_)
-    internal
-    initializer
-  {
+  function __ERC20_init(string memory name_, string memory symbol_) internal initializer {
     __Context_init_unchained();
     __ERC20_init_unchained(name_, symbol_);
   }
 
-  function __ERC20_init_unchained(string memory name_, string memory symbol_)
-    internal
-    initializer
-  {
+  function __ERC20_init_unchained(string memory name_, string memory symbol_) internal initializer {
     _name = name_;
     _symbol = symbol_;
   }
@@ -117,13 +106,7 @@ contract ERC20UpgradeableRenameable is
   /**
    * @dev See {IERC20-balanceOf}.
    */
-  function balanceOf(address account)
-    public
-    view
-    virtual
-    override
-    returns (uint256)
-  {
+  function balanceOf(address account) public view virtual override returns (uint256) {
     return _balances[account];
   }
 
@@ -135,12 +118,7 @@ contract ERC20UpgradeableRenameable is
    * - `recipient` cannot be the zero address.
    * - the caller must have a balance of at least `amount`.
    */
-  function transfer(address recipient, uint256 amount)
-    public
-    virtual
-    override
-    returns (bool)
-  {
+  function transfer(address recipient, uint256 amount) public virtual override returns (bool) {
     _transfer(_msgSender(), recipient, amount);
     return true;
   }
@@ -148,13 +126,7 @@ contract ERC20UpgradeableRenameable is
   /**
    * @dev See {IERC20-allowance}.
    */
-  function allowance(address owner, address spender)
-    public
-    view
-    virtual
-    override
-    returns (uint256)
-  {
+  function allowance(address owner, address spender) public view virtual override returns (uint256) {
     return _allowances[owner][spender];
   }
 
@@ -165,12 +137,7 @@ contract ERC20UpgradeableRenameable is
    *
    * - `spender` cannot be the zero address.
    */
-  function approve(address spender, uint256 amount)
-    public
-    virtual
-    override
-    returns (bool)
-  {
+  function approve(address spender, uint256 amount) public virtual override returns (bool) {
     _approve(_msgSender(), spender, amount);
     return true;
   }
@@ -196,10 +163,7 @@ contract ERC20UpgradeableRenameable is
     _transfer(sender, recipient, amount);
 
     uint256 currentAllowance = _allowances[sender][_msgSender()];
-    require(
-      currentAllowance >= amount,
-      "ERC20: transfer amount exceeds allowance"
-    );
+    require(currentAllowance >= amount, "ERC20: transfer amount exceeds allowance");
     unchecked {
       _approve(sender, _msgSender(), currentAllowance - amount);
     }
@@ -219,16 +183,8 @@ contract ERC20UpgradeableRenameable is
    *
    * - `spender` cannot be the zero address.
    */
-  function increaseAllowance(address spender, uint256 addedValue)
-    public
-    virtual
-    returns (bool)
-  {
-    _approve(
-      _msgSender(),
-      spender,
-      _allowances[_msgSender()][spender] + addedValue
-    );
+  function increaseAllowance(address spender, uint256 addedValue) public virtual returns (bool) {
+    _approve(_msgSender(), spender, _allowances[_msgSender()][spender] + addedValue);
     return true;
   }
 
@@ -246,16 +202,9 @@ contract ERC20UpgradeableRenameable is
    * - `spender` must have allowance for the caller of at least
    * `subtractedValue`.
    */
-  function decreaseAllowance(address spender, uint256 subtractedValue)
-    public
-    virtual
-    returns (bool)
-  {
+  function decreaseAllowance(address spender, uint256 subtractedValue) public virtual returns (bool) {
     uint256 currentAllowance = _allowances[_msgSender()][spender];
-    require(
-      currentAllowance >= subtractedValue,
-      "ERC20: decreased allowance below zero"
-    );
+    require(currentAllowance >= subtractedValue, "ERC20: decreased allowance below zero");
     unchecked {
       _approve(_msgSender(), spender, currentAllowance - subtractedValue);
     }

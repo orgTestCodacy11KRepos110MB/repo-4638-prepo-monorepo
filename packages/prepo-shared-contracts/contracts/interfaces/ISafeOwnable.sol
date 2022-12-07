@@ -12,10 +12,7 @@ interface ISafeOwnable {
    * @param previousNominee The previous nominee
    * @param newNominee The new nominee
    */
-  event NomineeUpdate(
-    address indexed previousNominee,
-    address indexed newNominee
-  );
+  event NomineeUpdate(address indexed previousNominee, address indexed newNominee);
 
   /**
    * @notice Nominates an address to be owner of the contract.

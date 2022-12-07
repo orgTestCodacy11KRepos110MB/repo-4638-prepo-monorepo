@@ -10,19 +10,13 @@ interface INFTScoreRequirement {
 
   function setRequiredScore(uint256 requiredScore) external;
 
-  function setCollectionScores(
-    IERC721[] memory collections,
-    uint256[] memory scores
-  ) external;
+  function setCollectionScores(IERC721[] memory collections, uint256[] memory scores) external;
 
   function removeCollections(IERC721[] memory collections) external;
 
   function getRequiredScore() external view returns (uint256);
 
-  function getCollectionScore(IERC721 collection)
-    external
-    view
-    returns (uint256);
+  function getCollectionScore(IERC721 collection) external view returns (uint256);
 
   function getAccountScore(address account) external view returns (uint256);
 }

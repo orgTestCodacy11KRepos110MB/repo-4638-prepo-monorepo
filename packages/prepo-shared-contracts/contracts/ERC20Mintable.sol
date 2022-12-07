@@ -6,9 +6,7 @@ import "./SafeOwnable.sol";
 
 //TODO: add tests and interface for this
 contract ERC20Mintable is ERC20, SafeOwnable {
-  constructor(string memory _newName, string memory _newSymbol)
-    ERC20(_newName, _newSymbol)
-  {}
+  constructor(string memory _newName, string memory _newSymbol) ERC20(_newName, _newSymbol) {}
 
   function mint(address _recipient, uint256 _amount) external onlyOwner {
     _mint(_recipient, _amount);

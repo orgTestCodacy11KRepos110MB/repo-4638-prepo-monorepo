@@ -12,7 +12,7 @@
         "singleQuote": false,
         "bracketSpacing": false,
         "explicitTypes": "always",
-        "printWidth": 79
+        "printWidth": 99999
       }
     }
   ]

@@ -30,8 +30,7 @@ interface ISafeAccessControlEnumerable is IAccessControlEnumerable {
    * @param role The role for which role admin is to be nominated
    * @param adminRoleNominee The role admin to be nominated
    */
-  function setRoleAdminNominee(bytes32 role, bytes32 adminRoleNominee)
-    external;
+  function setRoleAdminNominee(bytes32 role, bytes32 adminRoleNominee) external;
 
   /**
    * @notice Accepts a role admin nomination.
@@ -66,8 +65,5 @@ interface ISafeAccessControlEnumerable is IAccessControlEnumerable {
    * @param account The address to retrieve nomination status for
    * @return Whether `account` is nominated for `role`
    */
-  function isNominated(bytes32 role, address account)
-    external
-    view
-    returns (bool);
+  function isNominated(bytes32 role, address account) external view returns (bool);
 }

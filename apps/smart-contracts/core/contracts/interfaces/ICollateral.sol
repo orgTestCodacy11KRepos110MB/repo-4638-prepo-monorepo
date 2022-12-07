@@ -7,17 +7,9 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/draft-IERC20PermitUpgradeable.sol";
 
 interface ICollateral is IERC20Upgradeable, IERC20PermitUpgradeable {
-  event Deposit(
-    address indexed depositor,
-    uint256 amountAfterFee,
-    uint256 fee
-  );
+  event Deposit(address indexed depositor, uint256 amountAfterFee, uint256 fee);
 
-  event Withdraw(
-    address indexed withdrawer,
-    uint256 amountAfterFee,
-    uint256 fee
-  );
+  event Withdraw(address indexed withdrawer, uint256 amountAfterFee, uint256 fee);
 
   event ManagerChange(address manager);
 
@@ -31,9 +23,7 @@ interface ICollateral is IERC20Upgradeable, IERC20PermitUpgradeable {
 
   event ManagerWithdrawHookChange(address hook);
 
-  function deposit(address recipient, uint256 amount)
-    external
-    returns (uint256);
+  function deposit(address recipient, uint256 amount) external returns (uint256);
 
   function withdraw(uint256 amount) external;
 

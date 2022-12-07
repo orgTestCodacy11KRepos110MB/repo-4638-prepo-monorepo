@@ -15,21 +15,10 @@ contract WithdrawERC1155 is IWithdrawERC1155, SafeOwnable, ReentrancyGuard {
     uint256[] calldata _ids,
     uint256[] calldata _amounts
   ) external override onlyOwner nonReentrant {
-    require(
-      _erc1155Tokens.length == _recipients.length &&
-        _recipients.length == _ids.length &&
-        _ids.length == _amounts.length,
-      "Array length mismatch"
-    );
+    require(_erc1155Tokens.length == _recipients.length && _recipients.length == _ids.length && _ids.length == _amounts.length, "Array length mismatch");
     uint256 _arrayLength = _erc1155Tokens.length;
     for (uint256 i; i < _arrayLength; ) {
-      IERC1155(_erc1155Tokens[i]).safeTransferFrom(
-        address(this),
-        _recipients[i],
-        _ids[i],
-        _amounts[i],
-        ""
-      );
+      IERC1155(_erc1155Tokens[i]).safeTransferFrom(address(this), _recipients[i], _ids[i], _amounts[i], "");
       unchecked {
         ++i;
       }

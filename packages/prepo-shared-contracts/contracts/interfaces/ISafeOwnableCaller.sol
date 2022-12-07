@@ -15,8 +15,7 @@ interface ISafeOwnableCaller {
    * nominee is to be set
    * @param nominee The address that will be nominated
    */
-  function transferOwnership(address safeOwnableContract, address nominee)
-    external;
+  function transferOwnership(address safeOwnableContract, address nominee) external;
 
   /**
    * @notice Accepts ownership nomination of the SafeOwnable contract.
