@@ -227,7 +227,7 @@ describe('=> DepositHook', () => {
         depositHook
           .connect(collateralSigner)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
-      ).to.revertedWith('sender not allowed')
+      ).to.revertedWith('depositor not allowed')
     })
 
     it('succeeds if account not on allowlist, required score > 0, and account score = required score', async () => {
@@ -490,36 +490,12 @@ describe('=> DepositHook', () => {
       )
     })
 
-    it('sets to > 0', async () => {
-      expect(await depositHook.getRequiredScore()).to.not.be.gt(0)
-
-      await depositHook.connect(deployer).setRequiredScore(1)
-
-      expect(await depositHook.getRequiredScore()).to.be.gt(0)
-    })
-
-    it('sets to 0', async () => {
-      await depositHook.connect(deployer).setRequiredScore(1)
-      expect(await depositHook.getRequiredScore()).to.not.eq(0)
+    it('succeeds if role holder', async () => {
+      expect(
+        await depositHook.hasRole(await depositHook.SET_REQUIRED_SCORE_ROLE(), deployer.address)
+      ).to.eq(true)
 
       await depositHook.connect(deployer).setRequiredScore(0)
-
-      expect(await depositHook.getRequiredScore()).to.eq(0)
-    })
-
-    it('is idempotent', async () => {
-      await depositHook.connect(deployer).setRequiredScore(1)
-      expect(await depositHook.getRequiredScore()).to.eq(1)
-
-      await depositHook.connect(deployer).setRequiredScore(1)
-
-      expect(await depositHook.getRequiredScore()).to.eq(1)
-    })
-
-    it('emits RequiredScoreChange', async () => {
-      const tx = await depositHook.connect(deployer).setRequiredScore(1)
-
-      await expect(tx).to.emit(depositHook, 'RequiredScoreChange').withArgs(1)
     })
   })
 
@@ -534,116 +510,14 @@ describe('=> DepositHook', () => {
       )
     })
 
-    it('reverts if array length mismatch', async () => {
-      await expect(
-        depositHook.connect(deployer).setCollectionScores([firstERC721.address], [1, 2])
-      ).revertedWith('collections.length != scores.length')
-    })
-
-    it('reverts if single collection with score = 0', async () => {
-      await expect(
-        depositHook.connect(deployer).setCollectionScores([firstERC721.address], [0])
-      ).revertedWith('score == 0')
-    })
-
-    it('reverts if multiple collections and one has score = 0', async () => {
-      await expect(
-        depositHook
-          .connect(deployer)
-          .setCollectionScores([firstERC721.address, secondERC721.address], [1, 0])
-      ).revertedWith('score == 0')
-    })
-
-    it('sets score for a collection', async () => {
-      expect(await depositHook.getCollectionScore(firstERC721.address)).to.eq(0)
-
-      await depositHook.connect(deployer).setCollectionScores([firstERC721.address], [1])
-
-      expect(await depositHook.getCollectionScore(firstERC721.address)).to.eq(1)
-    })
-
-    it('sets score if multiple collections', async () => {
-      expect(await depositHook.getCollectionScore(firstERC721.address)).to.eq(0)
-      expect(await depositHook.getCollectionScore(secondERC721.address)).to.eq(0)
+    it('succeeds if role holder', async () => {
+      expect(
+        await depositHook.hasRole(await depositHook.SET_COLLECTION_SCORES_ROLE(), deployer.address)
+      ).to.eq(true)
 
       await depositHook
         .connect(deployer)
-        .setCollectionScores([firstERC721.address, secondERC721.address], [1, 2])
-
-      expect(await depositHook.getCollectionScore(firstERC721.address)).to.eq(1)
-      expect(await depositHook.getCollectionScore(secondERC721.address)).to.eq(2)
-    })
-
-    it('sets score if duplicate collections', async () => {
-      expect(await depositHook.getCollectionScore(firstERC721.address)).to.eq(0)
-
-      await depositHook
-        .connect(deployer)
-        .setCollectionScores([firstERC721.address, firstERC721.address], [1, 2])
-
-      expect(await depositHook.getCollectionScore(firstERC721.address)).to.eq(2)
-    })
-
-    it('is idempotent', async () => {
-      expect(await depositHook.getCollectionScore(firstERC721.address)).to.eq(0)
-
-      await depositHook.connect(deployer).setCollectionScores([firstERC721.address], [1])
-      expect(await depositHook.getCollectionScore(firstERC721.address)).to.eq(1)
-
-      await depositHook.connect(deployer).setCollectionScores([firstERC721.address], [1])
-      expect(await depositHook.getCollectionScore(firstERC721.address)).to.eq(1)
-    })
-
-    it('is idempotent for multiple collections', async () => {
-      expect(await depositHook.getCollectionScore(firstERC721.address)).to.eq(0)
-      expect(await depositHook.getCollectionScore(secondERC721.address)).to.eq(0)
-
-      await depositHook
-        .connect(deployer)
-        .setCollectionScores([firstERC721.address, secondERC721.address], [1, 2])
-      expect(await depositHook.getCollectionScore(firstERC721.address)).to.eq(1)
-      expect(await depositHook.getCollectionScore(secondERC721.address)).to.eq(2)
-
-      await depositHook
-        .connect(deployer)
-        .setCollectionScores([firstERC721.address, secondERC721.address], [1, 2])
-      expect(await depositHook.getCollectionScore(firstERC721.address)).to.eq(1)
-      expect(await depositHook.getCollectionScore(secondERC721.address)).to.eq(2)
-    })
-
-    it('is idempotent for a collection when another changes', async () => {
-      expect(await depositHook.getCollectionScore(firstERC721.address)).to.eq(0)
-      expect(await depositHook.getCollectionScore(secondERC721.address)).to.eq(0)
-
-      await depositHook
-        .connect(deployer)
-        .setCollectionScores([firstERC721.address, secondERC721.address], [1, 2])
-      expect(await depositHook.getCollectionScore(firstERC721.address)).to.eq(1)
-      expect(await depositHook.getCollectionScore(secondERC721.address)).to.eq(2)
-
-      await depositHook
-        .connect(deployer)
-        .setCollectionScores([firstERC721.address, secondERC721.address], [1, 3])
-      expect(await depositHook.getCollectionScore(firstERC721.address)).to.eq(1)
-      expect(await depositHook.getCollectionScore(secondERC721.address)).to.eq(3)
-    })
-
-    it('emits CollectionScoresChange if single collection', async () => {
-      const tx = await depositHook.connect(deployer).setCollectionScores([firstERC721.address], [1])
-
-      await expect(tx)
-        .to.emit(depositHook, 'CollectionScoresChange')
-        .withArgs([firstERC721.address], [1])
-    })
-
-    it('emits CollectionScoresChange if multiple collections', async () => {
-      const tx = await depositHook
-        .connect(deployer)
-        .setCollectionScores([firstERC721.address, secondERC721.address], [1, 2])
-
-      await expect(tx)
-        .to.emit(depositHook, 'CollectionScoresChange')
-        .withArgs([firstERC721.address, secondERC721.address], [1, 2])
+        .setCollectionScores([firstERC721.address], [secondERC721.address])
     })
   })
 
@@ -658,176 +532,12 @@ describe('=> DepositHook', () => {
       )
     })
 
-    it('removes a collection', async () => {
-      await depositHook.connect(deployer).setCollectionScores([firstERC721.address], [1])
-      expect(await depositHook.getCollectionScore(firstERC721.address)).to.eq(1)
+    it('succeeds if role holder', async () => {
+      expect(
+        await depositHook.hasRole(await depositHook.REMOVE_COLLECTIONS_ROLE(), deployer.address)
+      ).to.eq(true)
 
-      await depositHook.connect(deployer).removeCollections([firstERC721.address])
-
-      expect(await depositHook.getCollectionScore(firstERC721.address)).to.eq(0)
-    })
-
-    it('removes multiple collections', async () => {
-      await depositHook
-        .connect(deployer)
-        .setCollectionScores([firstERC721.address, secondERC721.address], [1, 1])
-      expect(await depositHook.getCollectionScore(firstERC721.address)).to.eq(1)
-      expect(await depositHook.getCollectionScore(secondERC721.address)).to.eq(1)
-
-      await depositHook
-        .connect(deployer)
-        .removeCollections([firstERC721.address, secondERC721.address])
-
-      expect(await depositHook.getCollectionScore(firstERC721.address)).to.eq(0)
-      expect(await depositHook.getCollectionScore(secondERC721.address)).to.eq(0)
-    })
-
-    it('removes specified collection only', async () => {
-      await depositHook
-        .connect(deployer)
-        .setCollectionScores([firstERC721.address, secondERC721.address], [1, 2])
-      expect(await depositHook.getCollectionScore(firstERC721.address)).to.eq(1)
-      expect(await depositHook.getCollectionScore(secondERC721.address)).to.eq(2)
-
-      await depositHook.connect(deployer).removeCollections([firstERC721.address])
-
-      expect(await depositHook.getCollectionScore(firstERC721.address)).to.eq(0)
-      expect(await depositHook.getCollectionScore(secondERC721.address)).to.eq(2)
-    })
-
-    it('is idempotent if single collection', async () => {
-      await depositHook.connect(deployer).setCollectionScores([firstERC721.address], [1])
-      expect(await depositHook.getCollectionScore(firstERC721.address)).to.eq(1)
-      await depositHook.connect(deployer).removeCollections([firstERC721.address])
-      expect(await depositHook.getCollectionScore(firstERC721.address)).to.eq(0)
-
-      await depositHook.connect(deployer).removeCollections([firstERC721.address])
-
-      expect(await depositHook.getCollectionScore(firstERC721.address)).to.eq(0)
-    })
-
-    it('is idempotent if multiple collections', async () => {
-      await depositHook
-        .connect(deployer)
-        .setCollectionScores([firstERC721.address, secondERC721.address], [1, 2])
-      expect(await depositHook.getCollectionScore(firstERC721.address)).to.eq(1)
-      expect(await depositHook.getCollectionScore(secondERC721.address)).to.eq(2)
-      await depositHook
-        .connect(deployer)
-        .removeCollections([firstERC721.address, secondERC721.address])
-      expect(await depositHook.getCollectionScore(firstERC721.address)).to.eq(0)
-      expect(await depositHook.getCollectionScore(secondERC721.address)).to.eq(0)
-
-      await depositHook
-        .connect(deployer)
-        .removeCollections([firstERC721.address, secondERC721.address])
-      expect(await depositHook.getCollectionScore(firstERC721.address)).to.eq(0)
-      expect(await depositHook.getCollectionScore(secondERC721.address)).to.eq(0)
-    })
-
-    it('emits CollectionScoresChange if single collection', async () => {
-      await depositHook.connect(deployer).setCollectionScores([firstERC721.address], [1])
-      expect(await depositHook.getCollectionScore(firstERC721.address)).to.eq(1)
-
-      const tx = await depositHook.connect(deployer).removeCollections([firstERC721.address])
-
-      await expect(tx)
-        .to.emit(depositHook, 'CollectionScoresChange')
-        .withArgs([firstERC721.address], [0])
-    })
-
-    it('emits CollectionScoresChange if multiple collections', async () => {
-      await depositHook
-        .connect(deployer)
-        .setCollectionScores([firstERC721.address, secondERC721.address], [1, 1])
-      expect(await depositHook.getCollectionScore(firstERC721.address)).to.eq(1)
-      expect(await depositHook.getCollectionScore(secondERC721.address)).to.eq(1)
-
-      const tx = await depositHook
-        .connect(deployer)
-        .removeCollections([firstERC721.address, secondERC721.address])
-
-      await expect(tx)
-        .to.emit(depositHook, 'CollectionScoresChange')
-        .withArgs([firstERC721.address, secondERC721.address], [0, 0])
-    })
-  })
-
-  describe('# getAccountScore', () => {
-    async function prepareNFTs(
-      collection: TestERC721,
-      numHeld: number,
-      collectionScore: number
-    ): Promise<void> {
-      if (numHeld > 0) {
-        const mintTxs = []
-        for (let i = 0; i < numHeld; i++) {
-          mintTxs.push(collection.mint(user.address))
-        }
-        await Promise.all(mintTxs)
-      }
-      expect(await collection.balanceOf(user.address)).to.eq(numHeld)
-
-      if (collectionScore > 0) {
-        await depositHook
-          .connect(deployer)
-          .setCollectionScores([collection.address], [collectionScore])
-      }
-    }
-
-    it('returns 0 if holding 0 NFTs from collection with score = 0', async () => {
-      expect(await depositHook.getAccountScore(user.address)).to.eq(0)
-    })
-
-    it('returns 0 if holding 1 NFT from collection with score = 0', async () => {
-      await prepareNFTs(firstERC721, 1, 0)
-
-      expect(await depositHook.getAccountScore(user.address)).to.eq(0)
-    })
-
-    it('returns 0 if holding multiple NFTs from collection with score = 0', async () => {
-      await prepareNFTs(firstERC721, 10, 0)
-
-      expect(await depositHook.getAccountScore(user.address)).to.eq(0)
-    })
-
-    it('returns 1 if holding 1 NFT from collection with score = 1', async () => {
-      await prepareNFTs(firstERC721, 1, 1)
-
-      expect(await depositHook.getAccountScore(user.address)).to.eq(1)
-    })
-
-    it('returns 1 if holding multiple NFTs from collection with score = 1', async () => {
-      await prepareNFTs(firstERC721, 10, 1)
-
-      expect(await depositHook.getAccountScore(user.address)).to.eq(1)
-    })
-
-    it('returns 0 if holding 0 NFTs from collection with score > 0', async () => {
-      await prepareNFTs(firstERC721, 0, 10)
-
-      expect(await depositHook.getAccountScore(user.address)).to.eq(0)
-    })
-
-    it('returns correct value if holding 1 NFT from 2 collections each with score > 0', async () => {
-      await prepareNFTs(firstERC721, 1, 1)
-      await prepareNFTs(secondERC721, 1, 2)
-
-      expect(await depositHook.getAccountScore(user.address)).to.eq(3)
-    })
-
-    it('returns correct value if holding multiple NFTs from 2 collections each with score > 0', async () => {
-      await prepareNFTs(firstERC721, 10, 1)
-      await prepareNFTs(secondERC721, 10, 2)
-
-      expect(await depositHook.getAccountScore(user.address)).to.eq(3)
-    })
-
-    it('returns 1 if holding 1 NFT from collection with score = 0, 1 NFT from collection with score = 1', async () => {
-      await prepareNFTs(firstERC721, 1, 0)
-      await prepareNFTs(secondERC721, 1, 1)
-
-      expect(await depositHook.getAccountScore(user.address)).to.eq(1)
+      await depositHook.connect(deployer).removeCollections([])
     })
   })
 

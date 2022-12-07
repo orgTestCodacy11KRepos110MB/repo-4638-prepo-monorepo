@@ -3,27 +3,22 @@ pragma solidity =0.8.7;
 
 import "./interfaces/IDepositHook.sol";
 import "./interfaces/IDepositRecord.sol";
-import "./interfaces/INFTAccessHook.sol";
 import "prepo-shared-contracts/contracts/AllowlistHook.sol";
+import "prepo-shared-contracts/contracts/NFTScoreRequirement.sol";
 import "prepo-shared-contracts/contracts/TokenSenderCaller.sol";
 import "prepo-shared-contracts/contracts/SafeAccessControlEnumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 
 contract DepositHook is
   IDepositHook,
-  INFTAccessHook,
   AllowlistHook,
+  NFTScoreRequirement,
   TokenSenderCaller,
   SafeAccessControlEnumerable
 {
-  using EnumerableMap for EnumerableMap.AddressToUintMap;
-
   ICollateral private collateral;
   IDepositRecord private depositRecord;
   bool public override depositsAllowed;
-  uint256 private requiredScore;
-  EnumerableMap.AddressToUintMap private collectionToScore;
 
   bytes32 public constant SET_ALLOWLIST_ROLE =
     keccak256("DepositHook_setAllowlist(IAccountList)");
@@ -55,8 +50,8 @@ contract DepositHook is
     uint256 _amountAfterFee
   ) external override onlyCollateral {
     require(depositsAllowed, "deposits not allowed");
-    if (!_allowlist.isIncluded(_sender) && requiredScore > 0) {
-      require(getAccountScore(_sender) >= requiredScore, "sender not allowed");
+    if (!_allowlist.isIncluded(_sender)) {
+      require(_satisfiesScoreRequirement(_sender), "depositor not allowed");
     }
     depositRecord.recordDeposit(_sender, _amountAfterFee);
     uint256 _fee = _amountBeforeFee - _amountAfterFee;
@@ -98,43 +93,26 @@ contract DepositHook is
   }
 
   function setRequiredScore(uint256 _newRequiredScore)
-    external
+    public
     override
     onlyRole(SET_REQUIRED_SCORE_ROLE)
   {
-    requiredScore = _newRequiredScore;
-    emit RequiredScoreChange(_newRequiredScore);
+    super.setRequiredScore(_newRequiredScore);
   }
 
   function setCollectionScores(
     IERC721[] memory _collections,
     uint256[] memory _scores
-  ) external override onlyRole(SET_COLLECTION_SCORES_ROLE) {
-    require(
-      _collections.length == _scores.length,
-      "collections.length != scores.length"
-    );
-    uint256 _numCollections = _collections.length;
-    for (uint256 i = 0; i < _numCollections; ++i) {
-      require(_scores[i] > 0, "score == 0");
-      collectionToScore.set(address(_collections[i]), _scores[i]);
-    }
-    emit CollectionScoresChange(_collections, _scores);
+  ) public override onlyRole(SET_COLLECTION_SCORES_ROLE) {
+    super.setCollectionScores(_collections, _scores);
   }
 
   function removeCollections(IERC721[] memory _collections)
-    external
+    public
     override
     onlyRole(REMOVE_COLLECTIONS_ROLE)
   {
-    uint256 _numCollections = _collections.length;
-    for (uint256 i = 0; i < _numCollections; ++i) {
-      collectionToScore.remove(address(_collections[i]));
-    }
-    emit CollectionScoresChange(
-      _collections,
-      new uint256[](_collections.length)
-    );
+    super.removeCollections(_collections);
   }
 
   function setAllowlist(IAccountList allowlist)
@@ -167,38 +145,5 @@ contract DepositHook is
 
   function getDepositRecord() external view override returns (IDepositRecord) {
     return depositRecord;
-  }
-
-  function getRequiredScore() external view override returns (uint256) {
-    return requiredScore;
-  }
-
-  function getCollectionScore(IERC721 _collection)
-    external
-    view
-    override
-    returns (uint256)
-  {
-    if (collectionToScore.contains(address(_collection))) {
-      return collectionToScore.get(address(_collection));
-    }
-    return 0;
-  }
-
-  function getAccountScore(address _account)
-    public
-    view
-    override
-    returns (uint256)
-  {
-    uint256 score = 0;
-    uint256 _numCollections = collectionToScore.length();
-    for (uint256 i = 0; i < _numCollections; ++i) {
-      (address collection, uint256 collectionScore) = collectionToScore.at(i);
-      score += IERC721(collection).balanceOf(_account) > 0
-        ? collectionScore
-        : 0;
-    }
-    return score;
   }
 }

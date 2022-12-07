@@ -3,7 +3,7 @@ pragma solidity =0.8.7;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-interface INFTAccessHook {
+interface INFTScoreRequirement {
   event RequiredScoreChange(uint256 score);
 
   event CollectionScoresChange(IERC721[] collections, uint256[] scores);
