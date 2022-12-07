@@ -9,7 +9,7 @@ contract DepositTradeHelper is IDepositTradeHelper, SafeOwnable {
   ICollateral private immutable _collateral;
   IERC20 private immutable _baseToken;
   ISwapRouter private immutable _swapRouter;
-  uint256 public constant override POOL_FEE_TIER = 10000;
+  uint24 public constant override POOL_FEE_TIER = 10000;
 
   constructor(ICollateral collateral, ISwapRouter swapRouter) {
     _collateral = collateral;
@@ -36,6 +36,7 @@ contract DepositTradeHelper is IDepositTradeHelper, SafeOwnable {
         baseTokenPermit.s
       );
     }
+    _baseToken.transferFrom(msg.sender, address(this), baseTokenAmount);
     if (collateralPermit.deadline != 0) {
       _collateral.permit(
         msg.sender,
@@ -47,6 +48,27 @@ contract DepositTradeHelper is IDepositTradeHelper, SafeOwnable {
         collateralPermit.s
       );
     }
+    uint256 _collateralAmountMinted = _collateral.deposit(
+      msg.sender,
+      baseTokenAmount
+    );
+    _collateral.transferFrom(
+      msg.sender,
+      address(this),
+      _collateralAmountMinted
+    );
+    ISwapRouter.ExactInputSingleParams
+      memory exactInputSingleParams = ISwapRouter.ExactInputSingleParams(
+        address(_collateral),
+        tradeParams.tokenOut,
+        POOL_FEE_TIER,
+        msg.sender,
+        tradeParams.deadline,
+        _collateralAmountMinted,
+        tradeParams.amountOutMinimum,
+        tradeParams.sqrtPriceLimitX96
+      );
+    _swapRouter.exactInputSingle(exactInputSingleParams);
   }
 
   function getCollateral() external view override returns (ICollateral) {
