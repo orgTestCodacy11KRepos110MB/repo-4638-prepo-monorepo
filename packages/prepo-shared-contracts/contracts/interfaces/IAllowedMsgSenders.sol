@@ -3,6 +3,9 @@ pragma solidity =0.8.7;
 
 import "./IAccountList.sol";
 
+/**
+ * @notice Inheritable module
+ */
 interface IAllowedMsgSenders {
   event AllowedMsgSendersChange(IAccountList allowedMsgSenders);
 
