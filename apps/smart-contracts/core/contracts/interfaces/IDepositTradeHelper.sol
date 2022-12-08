@@ -47,5 +47,5 @@ interface IDepositTradeHelper {
 
   function getSwapRouter() external view returns (ISwapRouter);
 
-  function POOL_FEE_TIER() external view returns (uint256);
+  function POOL_FEE_TIER() external view returns (uint24);
 }
