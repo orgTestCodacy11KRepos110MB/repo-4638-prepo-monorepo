@@ -36,8 +36,8 @@ interface IPrePOMarketFactory {
    * e.g. preSTRIPE_100-200_30SEP21 => L_preSTRIPE_100-200_30SEP21.
    * @param tokenNameSuffix The name suffix for the token pair
    * @param tokenSymbolSuffix The symbol suffix for the token pair
-   * @param longTokenSalt salt
-   * @param shortTokenSalt salt
+   * @param longTokenSalt Salt to influence the Long token contract address
+   * @param shortTokenSalt Salt to influence the Short token contract address
    * @param collateral The address of the collateral token
    * @param governance The address of the governance contract
    * @param floorLongPrice The floor price for the Long token
