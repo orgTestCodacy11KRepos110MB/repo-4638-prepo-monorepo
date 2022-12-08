@@ -1,4 +1,4 @@
 module.exports = {
-  skipFiles: ['core/interfaces', 'core/mocks'],
+  skipFiles: ['interfaces/', 'test/', 'openzeppelin/', 'AccountList.sol'],
   configureYulOptimizer: true,
 }
