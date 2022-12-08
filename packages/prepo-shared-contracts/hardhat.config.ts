@@ -80,6 +80,9 @@ const config: HardhatUserConfig = {
     disambiguatePaths: false,
     runOnCompile: false,
   },
+  gasReporter: {
+    enabled: process.env.REPORT_GAS === 'true',
+  },
 }
 
 export default config
