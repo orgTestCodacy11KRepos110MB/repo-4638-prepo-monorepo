@@ -13,12 +13,16 @@ contract TokenSenderCaller is ITokenSenderCaller {
     emit TreasuryChange(treasury);
   }
 
-  function getTreasury() external view override returns (address) { return _treasury; }
+  function getTreasury() external view override returns (address) {
+    return _treasury;
+  }
 
   function setTokenSender(ITokenSender tokenSender) public virtual override {
     _tokenSender = tokenSender;
     emit TokenSenderChange(address(tokenSender));
   }
 
-  function getTokenSender() external view override returns (ITokenSender) { return _tokenSender; }
+  function getTokenSender() external view override returns (ITokenSender) {
+    return _tokenSender;
+  }
 }

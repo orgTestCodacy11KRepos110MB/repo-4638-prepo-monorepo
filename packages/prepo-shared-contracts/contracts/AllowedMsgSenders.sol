@@ -17,5 +17,7 @@ contract AllowedMsgSenders is IAllowedMsgSenders {
     emit AllowedMsgSendersChange(allowedMsgSenders);
   }
 
-  function getAllowedMsgSenders() external view virtual override returns (IAccountList) { return _allowedMsgSenders; }
+  function getAllowedMsgSenders() external view virtual override returns (IAccountList) {
+    return _allowedMsgSenders;
+  }
 }

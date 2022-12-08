@@ -10,7 +10,9 @@ contract NFTScoreRequirement is INFTScoreRequirement {
   uint256 internal _requiredScore;
   EnumerableMap.AddressToUintMap private _collectionToScore;
 
-  function _satisfiesScoreRequirement(address account) internal view virtual returns (bool) { return _requiredScore == 0 || getAccountScore(account) >= _requiredScore; }
+  function _satisfiesScoreRequirement(address account) internal view virtual returns (bool) {
+    return _requiredScore == 0 || getAccountScore(account) >= _requiredScore;
+  }
 
   function setRequiredScore(uint256 requiredScore) public virtual override {
     _requiredScore = requiredScore;
@@ -23,7 +25,9 @@ contract NFTScoreRequirement is INFTScoreRequirement {
     for (uint256 i = 0; i < numCollections; ) {
       require(scores[i] > 0, "score == 0");
       _collectionToScore.set(address(collections[i]), scores[i]);
-      unchecked { ++i; }
+      unchecked {
+        ++i;
+      }
     }
     emit CollectionScoresChange(collections, scores);
   }
@@ -32,12 +36,16 @@ contract NFTScoreRequirement is INFTScoreRequirement {
     uint256 numCollections = collections.length;
     for (uint256 i = 0; i < numCollections; ) {
       _collectionToScore.remove(address(collections[i]));
-      unchecked { ++i; }
+      unchecked {
+        ++i;
+      }
     }
     emit CollectionScoresChange(collections, new uint256[](collections.length));
   }
 
-  function getRequiredScore() external view virtual override returns (uint256) { return _requiredScore; }
+  function getRequiredScore() external view virtual override returns (uint256) {
+    return _requiredScore;
+  }
 
   function getCollectionScore(IERC721 collection) external view virtual override returns (uint256) {
     if (_collectionToScore.contains(address(collection))) return _collectionToScore.get(address(collection));
@@ -50,7 +58,9 @@ contract NFTScoreRequirement is INFTScoreRequirement {
     for (uint256 i = 0; i < numCollections; ) {
       (address collection, uint256 collectionScore) = _collectionToScore.at(i);
       score += IERC721(collection).balanceOf(account) > 0 ? collectionScore : 0;
-      unchecked { ++i; }
+      unchecked {
+        ++i;
+      }
     }
     return score;
   }
