@@ -10,6 +10,8 @@ export type CreateMarketParams = PrePOMarketParams & {
   factory: PrePOMarketFactory
   tokenNameSuffix: string
   tokenSymbolSuffix: string
+  longTokenSalt: string
+  shortTokenSalt: string
 }
 
 export type CreateMarketResult = {
@@ -32,6 +34,8 @@ export async function createMarketFixture(
     .createMarket(
       marketParams.tokenNameSuffix,
       marketParams.tokenSymbolSuffix,
+      marketParams.longTokenSalt,
+      marketParams.shortTokenSalt,
       marketParams.governance,
       marketParams.collateral,
       marketParams.floorLongPayout,
