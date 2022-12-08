@@ -195,6 +195,8 @@ interface IPrePOMarket {
 
   /**
    * @notice Returns the timestamp of when the market will expire.
+   * @dev This is not an enforced timestamp, market expiry only occurs once
+   * the `finalLongPayout` is set.
    * @return Market expiry timestamp
    */
   function getExpiryTime() external view returns (uint256);
