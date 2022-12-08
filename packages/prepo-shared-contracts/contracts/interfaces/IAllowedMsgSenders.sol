@@ -13,7 +13,7 @@ import "./IAccountList.sol";
  */
 interface IAllowedMsgSenders {
   /**
-   * @dev emitted by `setAllowedMsgSenders()`
+   * @dev Emitted by `setAllowedMsgSenders()`.
    * @param allowedMsgSenders The new list representing allowed `msg.sender`s
    */
   event AllowedMsgSendersChange(IAccountList allowedMsgSenders);

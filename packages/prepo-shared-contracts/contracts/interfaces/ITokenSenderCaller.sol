@@ -11,19 +11,19 @@ import "./ITokenSender.sol";
  */
 interface ITokenSenderCaller {
   /**
-   * @dev emitted by `setTreasury()`
+   * @dev Emitted by `setTreasury()`.
    * @param treasury The new treasury address
    */
   event TreasuryChange(address treasury);
 
   /**
-   * @dev emitted by `setTokenSender()`
+   * @dev Emitted by `setTokenSender()`.
    * @param tokenSender The new `ITokenSender` contract
    */
   event TokenSenderChange(address tokenSender);
 
   /**
-   * @notice Sets the treasury address
+   * @notice Sets the treasury address.
    * @dev This function is meant to be overriden and does not include any
    * access controls.
    * @param treasury The new treasury address
@@ -31,16 +31,16 @@ interface ITokenSenderCaller {
   function setTreasury(address treasury) external;
 
   /**
-   * @notice Sets the token sender contract
+   * @notice Sets the token sender contract.
    * @dev This function is meant to be overriden and does not include any
    * access controls.
    * @param tokenSender The new external token sender contract
    */
   function setTokenSender(ITokenSender tokenSender) external;
 
-  ///@return The treasury address
+  /// @return The treasury address
   function getTreasury() external view returns (address);
 
-  ///@return The external token sender contract
+  /// @return The external token sender contract
   function getTokenSender() external returns (ITokenSender);
 }

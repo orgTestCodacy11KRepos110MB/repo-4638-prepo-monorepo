@@ -9,19 +9,19 @@ import "./IAccountList.sol";
  */
 interface IAccountListCaller {
   /**
-   * @dev emitted by `setAccountList()`
+   * @dev Emitted by `setAccountList()`.
    * @param accountList The new external list
    */
   event AccountListChange(IAccountList accountList);
 
   /**
-   * @notice Sets the external list
+   * @notice Sets the external list.
    * @dev This function is meant to be overriden and does not include any
    * access controls.
    * @param accountList The new external list
    */
   function setAccountList(IAccountList accountList) external;
 
-  ///@return The external list
+  /// @return The external list
   function getAccountList() external view returns (IAccountList);
 }
