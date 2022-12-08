@@ -19,12 +19,7 @@ contract DepositTradeHelper is IDepositTradeHelper, SafeOwnable {
     collateral.approve(address(swapRouter), type(uint256).max);
   }
 
-  function depositAndTrade(
-    uint256 baseTokenAmount,
-    Permit calldata baseTokenPermit,
-    Permit calldata collateralPermit,
-    OffChainTradeParams calldata tradeParams
-  ) external override {
+  function depositAndTrade(uint256 baseTokenAmount, Permit calldata baseTokenPermit, Permit calldata collateralPermit, OffChainTradeParams calldata tradeParams) external override {
     if (baseTokenPermit.deadline != 0) {
       IERC20Permit(address(_baseToken)).permit(msg.sender, address(this), type(uint256).max, baseTokenPermit.deadline, baseTokenPermit.v, baseTokenPermit.r, baseTokenPermit.s);
     }
