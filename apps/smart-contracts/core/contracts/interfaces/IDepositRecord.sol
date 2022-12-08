@@ -3,7 +3,10 @@ pragma solidity =0.8.7;
 
 // TODO interface copy needs some further edits to reflect new implementation
 
-/// @notice Enforces deposit caps.
+/**
+ * @notice Keeps track of global and per-user deposit totals. These totals
+ * are used to enforce caps on the amount a user can deposit.
+ */
 interface IDepositRecord {
   /**
    * @dev Emitted via `setGlobalNetDepositCap()`.
@@ -25,26 +28,19 @@ interface IDepositRecord {
   event AllowedHooksChange(address hook, bool allowed);
 
   /**
-   * @dev This function will be called by a hook before the fee
-   * is subtracted from the initial `amount` passed in.
-   *
-   * Only callable by allowed hooks.
-   *
-   * Reverts if the incoming deposit brings either total over their
+   * @notice Adds `amount` to both the global and `sender`'s deposit totals.
+   * @dev Reverts if the incoming deposit brings either total over their
    * respective caps.
    *
-   * `amount` is added to both the global and user-specific
-   * deposit totals.
+   * Only callable by allowed hooks.
    * @param sender The account making the deposit
    * @param amount The amount actually deposited by the user
    */
   function recordDeposit(address sender, uint256 amount) external;
 
   /**
-   * @notice Called by a hook before the fee is subtracted from
-   * the amount withdrawn from the Strategy.
-   * @dev `amount` is subtracted from the global but not
-   * user-specific deposit totals.
+   * @notice Subtracts `amount` from the global deposit total. Does not deduct
+   * from `msg.sender`'s deposit total.
    *
    * Only callable by allowed hooks.
    * @param amount The amount actually withdrawn by the user
@@ -88,8 +84,7 @@ interface IDepositRecord {
   function getGlobalNetDepositAmount() external view returns (uint256);
 
   /**
-   * @notice Gets the maximum Base Token amount that a user can deposit, not
-   * including withdrawals.
+   * @notice Gets the maximum Base Token amount that a user can deposit.
    * @return The cap on Base Token deposits per user
    */
   function getUserDepositCap() external view returns (uint256);

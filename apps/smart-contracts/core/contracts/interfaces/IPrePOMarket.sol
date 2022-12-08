@@ -69,9 +69,10 @@ interface IPrePOMarket {
    * @notice Mints Long and Short tokens in exchange for `amount`
    * Collateral.
    * @dev Minting is not allowed after the market has ended.
-   *
-   * `owner()` may mint tokens before PublicMinting is enabled to
-   * bootstrap a market with an initial supply.
+   * 
+   * Minting will only be done by the team, and thus relies on the `_mintHook`
+   * to enforce access controls. This is also why there is no fee for `mint()`
+   * as opposed to `redeem()`.
    * @param amount Amount of Collateral to deposit
    * @return Long/Short tokens minted
    */
@@ -85,6 +86,8 @@ interface IPrePOMarket {
    *
    * After the market has ended, users can redeem any amount of
    * Long/Short tokens for Collateral.
+   *
+   * A fee will be taken based on the `redemptionFee` factor.
    * @param longAmount Amount of Long tokens to redeem
    * @param shortAmount Amount of Short tokens to redeem
    */

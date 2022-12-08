@@ -29,6 +29,17 @@ contract DepositHook is IDepositHook, AccountListCaller, NFTScoreRequirement, To
     _;
   }
 
+  /**
+   * @dev Utilizes NFT-based requirement checks only if the depositor is not
+   * within an external allowlist.
+   * 
+   * Records the deposit within `depositRecord`, and sends the fee to the
+   * `_treasury`. Fees will be reimbursed to the user in `PPO` token using the
+   * `_tokenSender` contract.
+   *
+   * Uses `_amountAfterFee` for updating global net deposits since the fee is
+   * not counted towards the Collateral minted and thus is not a liability.
+   */
   function hook(address _sender, uint256 _amountBeforeFee, uint256 _amountAfterFee) external override onlyCollateral {
     require(depositsAllowed, "deposits not allowed");
     if (!_accountList.isIncluded(_sender)) require(_satisfiesScoreRequirement(_sender), "depositor not allowed");

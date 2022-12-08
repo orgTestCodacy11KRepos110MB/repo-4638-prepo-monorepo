@@ -34,13 +34,21 @@ contract WithdrawHook is IWithdrawHook, TokenSenderCaller, SafeAccessControlEnum
     _;
   }
 
-  /*
-   * @dev While we could include the period length in the last reset
-   * timestamp, not initially adding it means that a change in period will
+  /**
+   * @dev Unlike deposits, access controls are not imposed for withdrawals.
+   * However, per-period withdraw limits are enforced.
+   *
+   * While we could include the period length in the last reset timestamp,
+   * not initially adding it means that a change in period will
    * be reflected immediately.
    *
-   * We use `_amountBeforeFee` for updating global net deposits for a more
-   * accurate value.
+   * Records the withdrawal within `depositRecord`, and sends the fee to the
+   * `_treasury`. Fees will be reimbursed to the user in `PPO` token using the
+   * `_tokenSender` contract.
+   *
+   * Uses `_amountBeforeFee` (i.e. the amount of Collateral being burned) for
+   * updating global net deposits to reflect the reduction in the contract's
+   * liabilities.
    */
   function hook(
     address _sender,

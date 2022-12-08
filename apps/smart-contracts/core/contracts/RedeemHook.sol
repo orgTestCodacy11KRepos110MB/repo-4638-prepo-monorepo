@@ -9,6 +9,11 @@ import "prepo-shared-contracts/contracts/TokenSenderCaller.sol";
 import "prepo-shared-contracts/contracts/SafeOwnable.sol";
 
 contract RedeemHook is IMarketHook, AllowedMsgSenders, AccountListCaller, TokenSenderCaller, SafeOwnable {
+  /**
+   * @dev Once a market has ended, users can directly settle their positions
+   * with the market contract. Because users might call `redeem()`, a fee
+   * might be taken and will be reimbursed using `_tokenSender`.
+   */
   function hook(address sender, uint256 amountBeforeFee, uint256 amountAfterFee) external virtual override onlyAllowedMsgSenders {
     require(_accountList.isIncluded(sender), "redeemer not allowed");
     uint256 fee = amountBeforeFee - amountAfterFee;

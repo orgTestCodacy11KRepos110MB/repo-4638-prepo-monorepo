@@ -30,6 +30,8 @@ interface IManagerWithdrawHook is IDepositRecordHook {
    * @notice Based on the current global deposit total, returns the
    * minimum amount of Base Token that must be kept within the collateral
    * contract.
+   * @dev The global deposit total is polled from the same `depositRecord`
+   * contract that the Collateral contract records deposits/withdrawals to.
    * @return The amount that must reside within the contract
    */
   function getMinReserve() external view returns (uint256);
