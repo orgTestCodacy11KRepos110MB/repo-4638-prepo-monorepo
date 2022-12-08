@@ -2,17 +2,18 @@ import chai, { expect } from 'chai'
 import { ethers, network } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { id, parseEther } from 'ethers/lib/utils'
-import { Contract } from 'ethers'
+import { Contract, Signer } from 'ethers'
 import { FakeContract, MockContract, smock } from '@defi-wonderland/smock'
 import { ZERO_ADDRESS } from 'prepo-constants'
 import { depositHookFixture, fakeAccountListFixture } from './fixtures/HookFixture'
 import { smockDepositRecordFixture } from './fixtures/DepositRecordFixture'
 import { testERC721Fixture } from './fixtures/TestERC721Fixture'
-import { getSignerForContract, setAccountBalance, grantAndAcceptRole } from './utils'
+import { grantAndAcceptRole, setAccountBalance } from './utils'
 import { fakeTokenSenderFixture } from './fixtures/TokenSenderFixture'
 import { smockTestERC20Fixture } from './fixtures/TestERC20Fixture'
 import { fakeCollateralFixture } from './fixtures/CollateralFixture'
-import { AccountList, Collateral, DepositHook, TestERC721, TokenSender } from '../typechain'
+import { usesCustomSnapshot, saveSnapshot } from './snapshots'
+import { DepositHook, TestERC721 } from '../typechain'
 
 chai.use(smock.matchers)
 
@@ -33,7 +34,8 @@ describe('=> DepositHook', () => {
   const TEST_AMOUNT_BEFORE_FEE = parseEther('1.01')
   const TEST_AMOUNT_AFTER_FEE = parseEther('1')
 
-  beforeEach(async () => {
+  usesCustomSnapshot('outer')
+  before(async () => {
     ;[deployer, user, treasury] = await ethers.getSigners()
     testToken = await smockTestERC20Fixture('Test Token', 'TEST', 18)
     tokenSender = await fakeTokenSenderFixture()
@@ -48,6 +50,7 @@ describe('=> DepositHook', () => {
     collateral = await fakeCollateralFixture()
     await setAccountBalance(collateral.address, '0.1')
     collateral.getBaseToken.returns(testToken.address)
+    await setAccountBalance(collateral.address)
     await grantAndAcceptRole(
       depositHook,
       deployer,
@@ -104,6 +107,7 @@ describe('=> DepositHook', () => {
       await depositRecord.SET_ALLOWED_HOOK_ROLE()
     )
     await depositRecord.connect(deployer).setAllowedHook(depositHook.address, true)
+    await saveSnapshot()
   })
 
   describe('initial state', () => {
@@ -145,7 +149,8 @@ describe('=> DepositHook', () => {
      * Tests below use different values for TEST_AMOUNT_BEFORE_FEE and
      * TEST_AMOUNT_AFTER_FEE to ensure TEST_AMOUNT_BEFORE_FEE is ignored.
      */
-    beforeEach(async () => {
+    usesCustomSnapshot('hook')
+    before(async () => {
       await depositHook.connect(deployer).setCollateral(collateral.address)
       await depositHook.connect(deployer).setDepositsAllowed(true)
       await depositHook.connect(deployer).setDepositRecord(depositRecord.address)
@@ -157,6 +162,7 @@ describe('=> DepositHook', () => {
       await testToken
         .connect(collateral.wallet)
         .approve(depositHook.address, ethers.constants.MaxUint256)
+      await saveSnapshot()
     })
 
     async function setupScoresForNFTAccess(
@@ -196,7 +202,7 @@ describe('=> DepositHook', () => {
     })
 
     it('succeeds if account on allowlist', async () => {
-      allowlist.isIncluded.whenCalledWith(user.address).returns(true)
+      await allowlist.connect(deployer).set([user.address], [true])
       expect(await allowlist.isIncluded(user.address)).to.eq(true)
 
       await depositHook
@@ -254,6 +260,7 @@ describe('=> DepositHook', () => {
     })
 
     it('calls recordDeposit() if fee = 0', async () => {
+      depositRecord.recordDeposit.reset()
       await depositHook
         .connect(collateral.wallet)
         .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_BEFORE_FEE)
@@ -262,6 +269,7 @@ describe('=> DepositHook', () => {
     })
 
     it('calls recordDeposit() if fee > 0', async () => {
+      depositRecord.recordDeposit.reset()
       await depositHook
         .connect(collateral.wallet)
         .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
@@ -270,6 +278,7 @@ describe('=> DepositHook', () => {
     })
 
     it('transfers fee to treasury if fee > 0', async () => {
+      testToken.transferFrom.reset()
       expect(TEST_AMOUNT_BEFORE_FEE).to.not.eq(TEST_AMOUNT_AFTER_FEE)
 
       await depositHook
@@ -281,6 +290,7 @@ describe('=> DepositHook', () => {
     })
 
     it('calls tokenSender.send() if fee > 0', async () => {
+      tokenSender.send.reset()
       expect(TEST_AMOUNT_BEFORE_FEE).to.not.eq(TEST_AMOUNT_AFTER_FEE)
 
       await depositHook
@@ -292,6 +302,7 @@ describe('=> DepositHook', () => {
     })
 
     it("doesn't transfer fee to treasury if fee = 0", async () => {
+      testToken.transferFrom.reset()
       await depositHook
         .connect(collateral.wallet)
         .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_BEFORE_FEE)
@@ -300,6 +311,7 @@ describe('=> DepositHook', () => {
     })
 
     it("doesn't call tokenSender.send() if fee = 0", async () => {
+      tokenSender.send.reset()
       await depositHook
         .connect(collateral.wallet)
         .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_BEFORE_FEE)
@@ -309,13 +321,15 @@ describe('=> DepositHook', () => {
   })
 
   describe('# setAccountList', () => {
-    beforeEach(async () => {
+    usesCustomSnapshot('setAccountList')
+    before(async () => {
       await grantAndAcceptRole(
         depositHook,
         deployer,
         deployer,
         await depositHook.SET_ACCOUNT_LIST_ROLE()
       )
+      await saveSnapshot()
     })
 
     it('reverts if not role holder', async () => {

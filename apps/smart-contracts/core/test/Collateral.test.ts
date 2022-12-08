@@ -15,6 +15,7 @@ import { collateralFixture } from './fixtures/CollateralFixture'
 import { smockDepositRecordFixture } from './fixtures/DepositRecordFixture'
 import { testERC20Fixture } from './fixtures/TestERC20Fixture'
 import { fakeTokenSenderFixture } from './fixtures/TokenSenderFixture'
+import { usesCustomSnapshot, saveSnapshot } from './snapshots'
 import {
   FEE_DENOMINATOR,
   COLLATERAL_FEE_LIMIT,
@@ -39,8 +40,6 @@ describe('=> Collateral', () => {
   let managerWithdrawHook: MockContract<Contract>
   let allowlist: FakeContract<AccountList>
   let tokenSender: FakeContract<TokenSender>
-  let snapshotBeforeAllTests: string
-  let snapshotBeforeEachTest: string
   const TEST_DEPOSIT_FEE = 1000 // 0.1%
   const TEST_WITHDRAW_FEE = 2000 // 0.2%
   const TEST_GLOBAL_DEPOSIT_CAP = parseEther('50000')
@@ -147,17 +146,14 @@ describe('=> Collateral', () => {
     await setupWithdrawHook()
   }
 
+  usesCustomSnapshot('Collateral')
   before(async () => {
     upgrades.silenceWarnings()
-    snapshotBeforeAllTests = await ethers.provider.send('evm_snapshot', [])
+    await getSignersAndDeployContracts()
+    await saveSnapshot()
   })
 
   describe('initial state', () => {
-    before(async () => {
-      await getSignersAndDeployContracts()
-      snapshotBeforeEachTest = await ethers.provider.send('evm_snapshot', [])
-    })
-
     it('sets base token from constructor', async () => {
       expect(await collateral.getBaseToken()).to.eq(baseToken.address)
     })
@@ -198,10 +194,8 @@ describe('=> Collateral', () => {
   })
 
   describe('# setManager ', () => {
-    before(async () => {
-      await getSignersAndDeployContracts()
+    beforeEach(async () => {
       await grantAndAcceptRole(collateral, deployer, deployer, await collateral.SET_MANAGER_ROLE())
-      snapshotBeforeEachTest = await ethers.provider.send('evm_snapshot', [])
     })
 
     it('reverts if not role holder', async () => {
@@ -251,15 +245,13 @@ describe('=> Collateral', () => {
   })
 
   describe('# setDepositFee', () => {
-    before(async () => {
-      await getSignersAndDeployContracts()
+    beforeEach(async () => {
       await grantAndAcceptRole(
         collateral,
         deployer,
         deployer,
         await collateral.SET_DEPOSIT_FEE_ROLE()
       )
-      snapshotBeforeEachTest = await ethers.provider.send('evm_snapshot', [])
     })
 
     it('reverts if not role holder', async () => {
@@ -323,15 +315,13 @@ describe('=> Collateral', () => {
   })
 
   describe('# setWithdrawFee', () => {
-    before(async () => {
-      await getSignersAndDeployContracts()
+    beforeEach(async () => {
       await grantAndAcceptRole(
         collateral,
         deployer,
         deployer,
         await collateral.SET_WITHDRAW_FEE_ROLE()
       )
-      snapshotBeforeEachTest = await ethers.provider.send('evm_snapshot', [])
     })
 
     it('reverts if not role holder', async () => {
@@ -395,15 +385,13 @@ describe('=> Collateral', () => {
   })
 
   describe('# setDepositHook', () => {
-    before(async () => {
-      await getSignersAndDeployContracts()
+    beforeEach(async () => {
       await grantAndAcceptRole(
         collateral,
         deployer,
         deployer,
         await collateral.SET_DEPOSIT_HOOK_ROLE()
       )
-      snapshotBeforeEachTest = await ethers.provider.send('evm_snapshot', [])
     })
 
     it('reverts if not role holder', async () => {
@@ -453,15 +441,13 @@ describe('=> Collateral', () => {
   })
 
   describe('# setWithdrawHook', () => {
-    before(async () => {
-      await getSignersAndDeployContracts()
+    beforeEach(async () => {
       await grantAndAcceptRole(
         collateral,
         deployer,
         deployer,
         await collateral.SET_WITHDRAW_HOOK_ROLE()
       )
-      snapshotBeforeEachTest = await ethers.provider.send('evm_snapshot', [])
     })
 
     it('reverts if not role holder', async () => {
@@ -511,15 +497,13 @@ describe('=> Collateral', () => {
   })
 
   describe('# setManagerWithdrawHook', () => {
-    before(async () => {
-      await getSignersAndDeployContracts()
+    beforeEach(async () => {
       await grantAndAcceptRole(
         collateral,
         deployer,
         deployer,
         await collateral.SET_MANAGER_WITHDRAW_HOOK_ROLE()
       )
-      snapshotBeforeEachTest = await ethers.provider.send('evm_snapshot', [])
     })
 
     it('reverts if not role holder', async () => {
@@ -569,11 +553,6 @@ describe('=> Collateral', () => {
   })
 
   describe('# getReserve', () => {
-    before(async () => {
-      await getSignersAndDeployContracts()
-      snapshotBeforeEachTest = await ethers.provider.send('evm_snapshot', [])
-    })
-
     it("returns contract's base token balance", async () => {
       await baseToken.connect(deployer).mint(collateral.address, parseEther('1'))
       const contractBalance = await baseToken.balanceOf(collateral.address)
@@ -584,13 +563,14 @@ describe('=> Collateral', () => {
   })
 
   describe('# managerWithdraw', () => {
+    usesCustomSnapshot('Collateral-managerWithdraw')
     before(async () => {
       await getSignersAndDeployContracts()
       await setupCollateralRoles()
       await setupManagerWithdrawHook()
       await baseToken.mint(collateral.address, parseUnits('1', 6))
       await collateral.connect(deployer).setManagerWithdrawHook(managerWithdrawHook.address)
-      snapshotBeforeEachTest = await ethers.provider.send('evm_snapshot', [])
+      await saveSnapshot()
     })
 
     it('reverts if not role holder', async () => {
@@ -663,34 +643,29 @@ describe('=> Collateral', () => {
   describe('# deposit', () => {
     let sender: SignerWithAddress
     let recipient: SignerWithAddress
-    before(async function () {
-      await setupCollateralStackForDeposits()
+
+    async function setupForDepositFunctionTest(
+      baseTokenDecimals: number | undefined = undefined
+    ): Promise<void> {
+      if (baseTokenDecimals === undefined) {
+        await setupCollateralStackForDeposits()
+      } else {
+        await setupCollateralStackForDeposits(baseTokenDecimals)
+      }
       sender = user1
       recipient = user2
-      snapshotBeforeEachTest = await ethers.provider.send('evm_snapshot', [])
-    })
-
-    beforeEach(async function () {
-      if (this.currentTest?.title.includes('= base token decimals')) {
-        await setupCollateralStackForDeposits(18)
-      } else if (this.currentTest?.title.includes('< base token decimals')) {
-        await setupCollateralStackForDeposits(19)
-      } else if (this.currentTest?.title.includes('mints to sender if sender = recipient')) {
-        /**
-         * We have to reset the stack here and take a new snapshot, because now the global
-         * contract variables have been overwritten by the special base token setups above.
-         * If we do not update the snapshot, the contracts we setup to return back to 6 decimals
-         * will be interacting with a network where they never existed.
-         */
-        await setupCollateralStackForDeposits()
-        snapshotBeforeEachTest = await ethers.provider.send('evm_snapshot', [])
-      }
+      await collateral.connect(deployer).setDepositFee(TEST_DEPOSIT_FEE)
+      await collateral.connect(deployer).setDepositHook(depositHook.address)
       await baseToken.mint(sender.address, parseUnits('1', await baseToken.decimals()))
       await baseToken
         .connect(sender)
         .approve(collateral.address, parseUnits('1', await baseToken.decimals()))
-      await collateral.connect(deployer).setDepositFee(TEST_DEPOSIT_FEE)
-      await collateral.connect(deployer).setDepositHook(depositHook.address)
+    }
+
+    usesCustomSnapshot('Collateral-deposit')
+    before(async function () {
+      await setupForDepositFunctionTest()
+      await saveSnapshot()
     })
 
     it('reverts if deposit = 0 and deposit fee = 0%', async () => {
@@ -808,61 +783,72 @@ describe('=> Collateral', () => {
       expect(await baseToken.allowance(collateral.address, depositHook.address)).to.eq(0)
     })
 
-    it('mints decimal-adjusted amount to recipient if decimals > base token decimals', async () => {
-      expect(await collateral.decimals()).to.be.gt(await baseToken.decimals())
-      const recipientCTBefore = await collateral.balanceOf(recipient.address)
-      const amountToDeposit = await baseToken.balanceOf(sender.address)
-      expect(amountToDeposit).to.be.gt(0)
-      expect(await baseToken.allowance(sender.address, collateral.address)).to.be.eq(
-        amountToDeposit
-      )
-      const fee = amountToDeposit.mul(await collateral.getDepositFee()).div(FEE_DENOMINATOR)
-      const expectedCT = amountToDeposit.sub(fee).mul(parseEther('1')).div(USDC_DENOMINATOR)
+    describe('mints decimal-adjusted amount to recipient', () => {
+      it('if decimals > base token decimals', async () => {
+        await setupForDepositFunctionTest()
+        expect(await collateral.decimals()).to.be.gt(await baseToken.decimals())
+        const recipientCTBefore = await collateral.balanceOf(recipient.address)
+        const amountToDeposit = await baseToken.balanceOf(sender.address)
+        expect(amountToDeposit).to.be.gt(0)
+        expect(await baseToken.allowance(sender.address, collateral.address)).to.be.eq(
+          amountToDeposit
+        )
+        const fee = amountToDeposit.mul(await collateral.getDepositFee()).div(FEE_DENOMINATOR)
+        const expectedCT = amountToDeposit.sub(fee).mul(parseEther('1')).div(USDC_DENOMINATOR)
 
-      await collateral.connect(sender).deposit(recipient.address, amountToDeposit)
+        await collateral.connect(sender).deposit(recipient.address, amountToDeposit)
 
-      expect(await collateral.balanceOf(recipient.address)).to.eq(recipientCTBefore.add(expectedCT))
-      expect(await collateral.balanceOf(sender.address)).to.eq(0)
-    })
+        expect(await collateral.balanceOf(recipient.address)).to.eq(
+          recipientCTBefore.add(expectedCT)
+        )
+        expect(await collateral.balanceOf(sender.address)).to.eq(0)
+      })
 
-    it('mints decimal-adjusted amount to recipient if decimals = base token decimals', async () => {
-      // Setup 18 decimal base token
-      expect(await collateral.decimals()).to.eq(await baseToken.decimals())
-      const recipientCTBefore = await collateral.balanceOf(recipient.address)
-      const amountToDeposit = await baseToken.balanceOf(sender.address)
-      expect(amountToDeposit).to.be.gt(0)
-      expect(await baseToken.allowance(sender.address, collateral.address)).to.be.eq(
-        amountToDeposit
-      )
-      const fee = amountToDeposit.mul(await collateral.getDepositFee()).div(FEE_DENOMINATOR)
-      const expectedCT = amountToDeposit.sub(fee)
+      it('if decimals = base token decimals', async () => {
+        // Setup 18 decimal base token
+        await setupForDepositFunctionTest(18)
+        expect(await collateral.decimals()).to.eq(await baseToken.decimals())
+        const recipientCTBefore = await collateral.balanceOf(recipient.address)
+        const amountToDeposit = await baseToken.balanceOf(sender.address)
+        expect(amountToDeposit).to.be.gt(0)
+        expect(await baseToken.allowance(sender.address, collateral.address)).to.be.eq(
+          amountToDeposit
+        )
+        const fee = amountToDeposit.mul(await collateral.getDepositFee()).div(FEE_DENOMINATOR)
+        const expectedCT = amountToDeposit.sub(fee)
 
-      await collateral.connect(sender).deposit(recipient.address, amountToDeposit)
+        await collateral.connect(sender).deposit(recipient.address, amountToDeposit)
 
-      expect(await collateral.balanceOf(recipient.address)).to.eq(recipientCTBefore.add(expectedCT))
-      expect(await collateral.balanceOf(sender.address)).to.eq(0)
-    })
+        expect(await collateral.balanceOf(recipient.address)).to.eq(
+          recipientCTBefore.add(expectedCT)
+        )
+        expect(await collateral.balanceOf(sender.address)).to.eq(0)
+      })
 
-    it('mints decimal-adjusted amount to recipient if decimals < base token decimals', async () => {
-      // Setup 19 decimal base token
-      expect(await collateral.decimals()).to.be.lt(await baseToken.decimals())
-      const recipientCTBefore = await collateral.balanceOf(recipient.address)
-      const amountToDeposit = await baseToken.balanceOf(sender.address)
-      expect(amountToDeposit).to.be.gt(0)
-      expect(await baseToken.allowance(sender.address, collateral.address)).to.be.eq(
-        amountToDeposit
-      )
-      const fee = amountToDeposit.mul(await collateral.getDepositFee()).div(FEE_DENOMINATOR)
-      const GREATER_DECIMAL_DENOMINATOR = parseUnits('1', (await collateral.decimals()) + 1)
-      const expectedCT = amountToDeposit
-        .sub(fee)
-        .mul(parseEther('1'))
-        .div(GREATER_DECIMAL_DENOMINATOR)
+      it('if decimals < base token decimals', async () => {
+        // Setup 19 decimal base token
+        await setupForDepositFunctionTest(19)
+        expect(await collateral.decimals()).to.be.lt(await baseToken.decimals())
+        const recipientCTBefore = await collateral.balanceOf(recipient.address)
+        const amountToDeposit = await baseToken.balanceOf(sender.address)
+        expect(amountToDeposit).to.be.gt(0)
+        expect(await baseToken.allowance(sender.address, collateral.address)).to.be.eq(
+          amountToDeposit
+        )
+        const fee = amountToDeposit.mul(await collateral.getDepositFee()).div(FEE_DENOMINATOR)
+        const GREATER_DECIMAL_DENOMINATOR = parseUnits('1', (await collateral.decimals()) + 1)
+        const expectedCT = amountToDeposit
+          .sub(fee)
+          .mul(parseEther('1'))
+          .div(GREATER_DECIMAL_DENOMINATOR)
 
-      await collateral.connect(sender).deposit(recipient.address, amountToDeposit)
+        await collateral.connect(sender).deposit(recipient.address, amountToDeposit)
 
-      expect(await collateral.balanceOf(recipient.address)).to.eq(recipientCTBefore.add(expectedCT))
-      expect(await collateral.balanceOf(sender.address)).to.eq(0)
+        expect(await collateral.balanceOf(recipient.address)).to.eq(
+          recipientCTBefore.add(expectedCT)
+        )
+        expect(await collateral.balanceOf(sender.address)).to.eq(0)
+      })
     })
 
     it('mints to sender if sender = recipient', async () => {
@@ -980,19 +966,22 @@ describe('=> Collateral', () => {
   })
 
   describe('# withdraw', () => {
+    usesCustomSnapshot('Collateral-withdraw')
     before(async function () {
       await setupCollateralStackForWithdrawals()
-      snapshotBeforeEachTest = await ethers.provider.send('evm_snapshot', [])
+      await saveSnapshot()
     })
 
     beforeEach(async function () {
       if (this.currentTest?.title.includes('= base token decimals')) {
         await setupCollateralStackForWithdrawals(18)
+        await saveSnapshot()
       } else if (this.currentTest?.title.includes('< base token decimals')) {
         await setupCollateralStackForWithdrawals(19)
+        await saveSnapshot()
       } else if (this.currentTest?.title.includes('sets hook approval back to 0')) {
         await setupCollateralStackForWithdrawals()
-        snapshotBeforeEachTest = await ethers.provider.send('evm_snapshot', [])
+        await saveSnapshot()
       }
       await baseToken.mint(user1.address, parseUnits('1', await baseToken.decimals()))
       await baseToken
@@ -1254,19 +1243,5 @@ describe('=> Collateral', () => {
     afterEach(() => {
       withdrawHook.hook.reset()
     })
-  })
-
-  afterEach(async () => {
-    // revert state of chain to after stacks have been initialized.
-    await network.provider.send('evm_revert', [snapshotBeforeEachTest])
-    // we need to store snapshot into a new id because you cannot use ids more than once with evm_revert.
-    snapshotBeforeEachTest = await ethers.provider.send('evm_snapshot', [])
-  })
-
-  after(async () => {
-    // revert state of chain to before the test ran.
-    await network.provider.send('evm_revert', [snapshotBeforeAllTests])
-    // we need to store snapshot into a new id because you cannot use ids more than once with evm_revert.
-    snapshotBeforeAllTests = await ethers.provider.send('evm_snapshot', [])
   })
 })

@@ -126,3 +126,10 @@ export async function getPermitFromSignature(
     s: signature.s,
   }
 }
+
+export async function setAccountBalance(address: string, eth = '0.1'): Promise<void> {
+  await network.provider.send('hardhat_setBalance', [
+    address,
+    ethers.utils.parseEther(eth).toHexString().replace('0x0', '0x'),
+  ])
+}
