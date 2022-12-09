@@ -22,6 +22,7 @@ export enum ROUTES {
   GITHUB = 'https://github.com/prepo-io',
   SIMULATOR = 'https://simulator.prepo.io',
   TOKEN_SALE = 'https://sale.prepo.io/',
+  BOND_BLOG_POST = 'https://medium.com/prepo/ppo-bond-market-launch-d952262233b5',
 }
 
 export const MAILCHIMP_URL =
