@@ -22,6 +22,8 @@ _Note for C4 wardens: Anything included in the C4udit output is considered a pub
 
 This audit covers the entirety of PrePO's pre-IPO/ICO markets product.
 
+![PrePO Core Architecture](https://user-images.githubusercontent.com/5270250/206607395-93accc08-11cb-420a-90a7-4cc588cac7b4.jpg)
+
 # Scope
 
 ## Contracts (16)
