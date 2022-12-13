@@ -2,7 +2,7 @@
 pragma solidity =0.8.7;
 
 import "./ILongShortToken.sol";
-import "./IMarketHook.sol";
+import "./IHook.sol";
 
 /**
  * @notice Users can mint/redeem long/short positions on a specific asset in
@@ -80,9 +80,9 @@ interface IPrePOMarket {
    */
   function redeem(uint256 _longAmount, uint256 _shortAmount) external;
 
-  function setMintHook(IMarketHook mintHook) external;
+  function setMintHook(IHook mintHook) external;
 
-  function setRedeemHook(IMarketHook redeemHook) external;
+  function setRedeemHook(IHook redeemHook) external;
 
   /**
    * @notice Sets the payout a Long token can be redeemed for after the
@@ -103,9 +103,9 @@ interface IPrePOMarket {
    */
   function setRedemptionFee(uint256 _redemptionFee) external;
 
-  function getMintHook() external view returns (IMarketHook);
+  function getMintHook() external view returns (IHook);
 
-  function getRedeemHook() external view returns (IMarketHook);
+  function getRedeemHook() external view returns (IHook);
 
   /// @return Collateral token used to fund Long/Short positions
   function getCollateral() external view returns (IERC20);

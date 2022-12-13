@@ -187,14 +187,12 @@ describe('=> Collateral', () => {
       expect(await collateral.SET_WITHDRAW_FEE_ROLE()).to.eq(
         id('Collateral_setWithdrawFee(uint256)')
       )
-      expect(await collateral.SET_DEPOSIT_HOOK_ROLE()).to.eq(
-        id('Collateral_setDepositHook(ICollateralHook)')
-      )
+      expect(await collateral.SET_DEPOSIT_HOOK_ROLE()).to.eq(id('Collateral_setDepositHook(IHook)'))
       expect(await collateral.SET_WITHDRAW_HOOK_ROLE()).to.eq(
-        id('Collateral_setWithdrawHook(ICollateralHook)')
+        id('Collateral_setWithdrawHook(IHook)')
       )
       expect(await collateral.SET_MANAGER_WITHDRAW_HOOK_ROLE()).to.eq(
-        id('Collateral_setManagerWithdrawHook(ICollateralHook)')
+        id('Collateral_setManagerWithdrawHook(IHook)')
       )
     })
   })

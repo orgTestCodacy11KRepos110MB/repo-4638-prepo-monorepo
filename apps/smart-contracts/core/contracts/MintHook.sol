@@ -1,18 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity =0.8.7;
 
-import "./interfaces/IMarketHook.sol";
+import "./interfaces/IHook.sol";
 import "prepo-shared-contracts/contracts/AllowedMsgSenders.sol";
 import "prepo-shared-contracts/contracts/AccountListCaller.sol";
 import "prepo-shared-contracts/contracts/interfaces/IAccountList.sol";
 import "prepo-shared-contracts/contracts/SafeOwnable.sol";
 
-contract MintHook is
-  IMarketHook,
-  AllowedMsgSenders,
-  AccountListCaller,
-  SafeOwnable
-{
+contract MintHook is IHook, AllowedMsgSenders, AccountListCaller, SafeOwnable {
   function hook(
     address sender,
     uint256 amountBeforeFee,

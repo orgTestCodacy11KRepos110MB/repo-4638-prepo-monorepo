@@ -3,13 +3,14 @@ pragma solidity =0.8.7;
 
 import "./interfaces/ILongShortToken.sol";
 import "./interfaces/IPrePOMarket.sol";
+import "./interfaces/IHook.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
-  IMarketHook private _mintHook;
-  IMarketHook private _redeemHook;
+  IHook private _mintHook;
+  IHook private _redeemHook;
 
   IERC20 private immutable collateral;
   ILongShortToken private immutable longToken;
@@ -164,12 +165,12 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
     emit Redemption(msg.sender, _collateralAfterFee, _actualFee);
   }
 
-  function setMintHook(IMarketHook mintHook) external override onlyOwner {
+  function setMintHook(IHook mintHook) external override onlyOwner {
     _mintHook = mintHook;
     emit MintHookChange(address(mintHook));
   }
 
-  function setRedeemHook(IMarketHook redeemHook) external override onlyOwner {
+  function setRedeemHook(IHook redeemHook) external override onlyOwner {
     _redeemHook = redeemHook;
     emit RedeemHookChange(address(redeemHook));
   }
@@ -201,11 +202,11 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
     emit RedemptionFeeChange(_redemptionFee);
   }
 
-  function getMintHook() external view override returns (IMarketHook) {
+  function getMintHook() external view override returns (IHook) {
     return _mintHook;
   }
 
-  function getRedeemHook() external view override returns (IMarketHook) {
+  function getRedeemHook() external view override returns (IHook) {
     return _redeemHook;
   }
 

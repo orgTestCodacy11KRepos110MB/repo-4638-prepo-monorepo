@@ -1,11 +1,16 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity =0.8.7;
 
+import "./interfaces/IHook.sol";
 import "./interfaces/IManagerWithdrawHook.sol";
+import "./interfaces/IAllowedCollateralCaller.sol";
+import "./interfaces/IDepositRecord.sol";
 import "prepo-shared-contracts/contracts/SafeAccessControlEnumerable.sol";
 
 contract ManagerWithdrawHook is
+  IHook,
   IManagerWithdrawHook,
+  IAllowedCollateralCaller,
   SafeAccessControlEnumerable
 {
   ICollateral private collateral;
