@@ -21,16 +21,17 @@ const { significantDigits } = numberFormatter
 
 const MarketWrapper = styled.div<{ selected?: boolean }>`
   align-items: center;
+  border: ${({ selected, theme }): string =>
+    selected ? `solid 2px ${theme.color.success}` : 'none'};
   border-radius: ${({ theme }): string => theme.borderRadius.base};
-  cursor: ${({ selected }): string => (selected ? 'default' : 'pointer')};
+  cursor: pointer;
   display: flex;
   gap: ${spacingIncrement(16)};
   justify-content: space-between;
   padding: ${spacingIncrement(6)} ${spacingIncrement(8)};
   width: 100%;
   :hover {
-    background-color: ${({ theme, selected }): string =>
-      selected ? 'unset' : theme.color.accentPrimary};
+    background-color: ${({ theme }): string => theme.color.accentPrimary};
   }
 `
 
@@ -48,12 +49,28 @@ const MarketValuation = styled.span<{ size?: 'md' }>`
 
 const MarketItem: React.FC<MarketProps> = ({ id, market, onClick, selected }) => {
   const handleClick = (): void => {
-    if (!selected && onClick) onClick(id)
+    if (onClick) onClick(id)
   }
   return (
     <MarketWrapper onClick={handleClick} selected={selected}>
       <Flex gap={16}>
-        <Icon name={market.iconName} height="48" width="48" />
+        <Flex position="relative">
+          <Icon name={market.iconName} height="48" width="48" />
+          {selected && (
+            <Flex
+              color="white"
+              bg="success"
+              position="absolute"
+              bottom={0}
+              right={0}
+              width={16}
+              height={16}
+              borderRadius={16}
+            >
+              <Icon name="check" width="12" height="12" />
+            </Flex>
+          )}
+        </Flex>
         <div>
           <MarketName>{market.name}</MarketName>
           {market.estimatedValuation !== undefined && (
@@ -65,11 +82,6 @@ const MarketItem: React.FC<MarketProps> = ({ id, market, onClick, selected }) =>
           )}
         </div>
       </Flex>
-      {selected && (
-        <Flex color="success">
-          <Icon name="check" height="24" width="24" />
-        </Flex>
-      )}
     </MarketWrapper>
   )
 }
@@ -122,7 +134,12 @@ const MarketSlideUp: React.FC = () => {
         title="Select a Market"
       >
         {selectedMarket && (
-          <MarketItem id={selectedMarket.urlId} market={selectedMarket} selected />
+          <MarketItem
+            id={selectedMarket.urlId}
+            market={selectedMarket}
+            onClick={onSelectMarket}
+            selected
+          />
         )}
         {Object.entries(markets)
           .filter(([id]) => id !== selectedMarket?.urlId)
