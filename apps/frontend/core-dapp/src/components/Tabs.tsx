@@ -1,11 +1,11 @@
-import { Tabs as ATabs, TabsProps } from 'antd'
+import { Tabs as ATabs, TabsProps as ATabsProps } from 'antd'
 import { ReactNode } from 'react'
 import styled, { Color, Weight } from 'styled-components'
 import { centered, spacingIncrement } from 'prepo-ui'
 
 const { TabPane } = ATabs
 
-type Tab = {
+export type TabProps = {
   heading: ReactNode
   content?: ReactNode
   value?: string | number
@@ -22,11 +22,11 @@ type TabStyles = {
   height?: number
 }
 
-type Props = {
+export type TabsProps = {
   disableMore?: boolean
   styles?: TabStyles
-  tab: Tab[]
-} & TabsProps
+  tab: TabProps[]
+} & ATabsProps
 
 const Wrapper = styled.div<{ disableMore: boolean; styles: TabStyles }>`
   &&& {
@@ -93,7 +93,7 @@ export const secondaryTabsStyles: TabStyles = {
   height: 32,
 }
 
-const Tabs: React.FC<Props> = ({ styles = {}, disableMore = false, tab: data, ...props }) => (
+const Tabs: React.FC<TabsProps> = ({ styles = {}, disableMore = false, tab: data, ...props }) => (
   <Wrapper disableMore={disableMore} styles={styles}>
     {/* eslint-disable-next-line react/jsx-props-no-spreading */}
     <ATabs {...props}>
