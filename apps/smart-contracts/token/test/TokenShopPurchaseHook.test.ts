@@ -10,7 +10,7 @@ import { purchaseHookFixture } from './fixtures/TokenShopFixtures'
 import { mockERC20Fixture } from './fixtures/MockERC20Fixtures'
 import { ZERO, MAX_UINT256 } from '../utils'
 import { MockERC20 } from '../types/generated'
-import { PurchaseHook } from '../types/generated/contracts/token-shop/PurchaseHook'
+import { PurchaseHook } from '../types/generated/contracts/shop/PurchaseHook'
 
 chai.use(smock.matchers)
 
