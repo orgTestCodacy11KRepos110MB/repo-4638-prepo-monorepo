@@ -13,14 +13,14 @@ contract Collateral is
   SafeAccessControlEnumerableUpgradeable,
   ReentrancyGuardUpgradeable
 {
-  IERC20 private immutable baseToken;
-  uint256 private immutable baseTokenDenominator;
-  address private manager;
-  uint256 private depositFee;
-  uint256 private withdrawFee;
-  IHook private depositHook;
-  IHook private withdrawHook;
-  IHook private managerWithdrawHook;
+  IERC20 private immutable _baseToken;
+  uint256 private immutable _baseTokenDenominator;
+  address private _manager;
+  uint256 private _depositFee;
+  uint256 private _withdrawFee;
+  IHook private _depositHook;
+  IHook private _withdrawHook;
+  IHook private _managerWithdrawHook;
 
   uint256 public constant FEE_DENOMINATOR = 1000000;
   uint256 public constant FEE_LIMIT = 100000;
@@ -39,18 +39,18 @@ contract Collateral is
   bytes32 public constant SET_MANAGER_WITHDRAW_HOOK_ROLE =
     keccak256("Collateral_setManagerWithdrawHook(IHook)");
 
-  constructor(IERC20 _newBaseToken, uint256 _newBaseTokenDecimals) {
-    baseToken = _newBaseToken;
-    baseTokenDenominator = 10**_newBaseTokenDecimals;
+  constructor(IERC20 baseToken, uint256 baseTokenDecimals) {
+    _baseToken = baseToken;
+    _baseTokenDenominator = 10**baseTokenDecimals;
   }
 
-  function initialize(string memory _name, string memory _symbol)
+  function initialize(string memory name, string memory symbol)
     public
     initializer
   {
     __SafeAccessControlEnumerable_init();
-    __ERC20_init(_name, _symbol);
-    __ERC20Permit_init(_name);
+    __ERC20_init(name, symbol);
+    __ERC20Permit_init(name);
   }
 
   /**
@@ -58,154 +58,150 @@ contract Collateral is
    * (withdrawable by manager). Converts amount after fee from base token
    * units to collateral token units.
    */
-  function deposit(address _recipient, uint256 _amount)
+  function deposit(address recipient, uint256 amount)
     external
     override
     nonReentrant
     returns (uint256)
   {
-    uint256 _fee = (_amount * depositFee) / FEE_DENOMINATOR;
-    if (depositFee > 0) {
-      require(_fee > 0, "fee = 0");
+    uint256 fee = (amount * _depositFee) / FEE_DENOMINATOR;
+    if (_depositFee > 0) {
+      require(fee > 0, "fee = 0");
     } else {
-      require(_amount > 0, "amount = 0");
+      require(amount > 0, "amount = 0");
     }
-    baseToken.transferFrom(msg.sender, address(this), _amount);
-    uint256 _amountAfterFee = _amount - _fee;
-    if (address(depositHook) != address(0)) {
-      baseToken.approve(address(depositHook), _fee);
-      depositHook.hook(_recipient, _amount, _amountAfterFee);
-      baseToken.approve(address(depositHook), 0);
+    _baseToken.transferFrom(msg.sender, address(this), amount);
+    uint256 amountAfterFee = amount - fee;
+    if (address(_depositHook) != address(0)) {
+      _baseToken.approve(address(_depositHook), fee);
+      _depositHook.hook(recipient, amount, amountAfterFee);
+      _baseToken.approve(address(_depositHook), 0);
     }
     /// Converts amount after fee from base token units to collateral token units.
-    uint256 _collateralMintAmount = (_amountAfterFee * 1e18) /
-      baseTokenDenominator;
-    _mint(_recipient, _collateralMintAmount);
-    emit Deposit(_recipient, _amountAfterFee, _fee);
-    return _collateralMintAmount;
+    uint256 collateralMintAmount = (amountAfterFee * 1e18) /
+      _baseTokenDenominator;
+    _mint(recipient, collateralMintAmount);
+    emit Deposit(recipient, amountAfterFee, fee);
+    return collateralMintAmount;
   }
 
   /// @dev Converts amount from collateral token units to base token units.
-  function withdraw(uint256 _amount) external override nonReentrant {
-    uint256 _baseTokenAmount = (_amount * baseTokenDenominator) / 1e18;
-    uint256 _fee = (_baseTokenAmount * withdrawFee) / FEE_DENOMINATOR;
-    if (withdrawFee > 0) {
-      require(_fee > 0, "fee = 0");
+  function withdraw(uint256 amount) external override nonReentrant {
+    uint256 baseTokenAmount = (amount * _baseTokenDenominator) / 1e18;
+    uint256 fee = (baseTokenAmount * _withdrawFee) / FEE_DENOMINATOR;
+    if (_withdrawFee > 0) {
+      require(fee > 0, "fee = 0");
     } else {
-      require(_baseTokenAmount > 0, "amount = 0");
+      require(baseTokenAmount > 0, "amount = 0");
     }
-    _burn(msg.sender, _amount);
-    uint256 _baseTokenAmountAfterFee = _baseTokenAmount - _fee;
-    if (address(withdrawHook) != address(0)) {
-      baseToken.approve(address(withdrawHook), _fee);
-      withdrawHook.hook(
-        msg.sender,
-        _baseTokenAmount,
-        _baseTokenAmountAfterFee
-      );
-      baseToken.approve(address(withdrawHook), 0);
+    _burn(msg.sender, amount);
+    uint256 baseTokenAmountAfterFee = baseTokenAmount - fee;
+    if (address(_withdrawHook) != address(0)) {
+      _baseToken.approve(address(_withdrawHook), fee);
+      _withdrawHook.hook(msg.sender, baseTokenAmount, baseTokenAmountAfterFee);
+      _baseToken.approve(address(_withdrawHook), 0);
     }
-    baseToken.transfer(msg.sender, _baseTokenAmountAfterFee);
-    emit Withdraw(msg.sender, _baseTokenAmountAfterFee, _fee);
+    _baseToken.transfer(msg.sender, baseTokenAmountAfterFee);
+    emit Withdraw(msg.sender, baseTokenAmountAfterFee, fee);
   }
 
-  function managerWithdraw(uint256 _amount)
+  function managerWithdraw(uint256 amount)
     external
     override
     onlyRole(MANAGER_WITHDRAW_ROLE)
     nonReentrant
   {
-    if (address(managerWithdrawHook) != address(0)) {
-      managerWithdrawHook.hook(msg.sender, _amount, _amount);
+    if (address(_managerWithdrawHook) != address(0)) {
+      _managerWithdrawHook.hook(msg.sender, amount, amount);
     }
-    baseToken.transfer(manager, _amount);
+    _baseToken.transfer(_manager, amount);
   }
 
-  function setManager(address _newManager)
+  function setManager(address manager)
     external
     override
     onlyRole(SET_MANAGER_ROLE)
   {
-    manager = _newManager;
-    emit ManagerChange(_newManager);
+    _manager = manager;
+    emit ManagerChange(manager);
   }
 
-  function setDepositFee(uint256 _newDepositFee)
+  function setDepositFee(uint256 depositFee)
     external
     override
     onlyRole(SET_DEPOSIT_FEE_ROLE)
   {
-    require(_newDepositFee <= FEE_LIMIT, "exceeds fee limit");
-    depositFee = _newDepositFee;
-    emit DepositFeeChange(_newDepositFee);
+    require(depositFee <= FEE_LIMIT, "exceeds fee limit");
+    _depositFee = depositFee;
+    emit DepositFeeChange(depositFee);
   }
 
-  function setWithdrawFee(uint256 _newWithdrawFee)
+  function setWithdrawFee(uint256 withdrawFee)
     external
     override
     onlyRole(SET_WITHDRAW_FEE_ROLE)
   {
-    require(_newWithdrawFee <= FEE_LIMIT, "exceeds fee limit");
-    withdrawFee = _newWithdrawFee;
-    emit WithdrawFeeChange(_newWithdrawFee);
+    require(withdrawFee <= FEE_LIMIT, "exceeds fee limit");
+    _withdrawFee = withdrawFee;
+    emit WithdrawFeeChange(withdrawFee);
   }
 
-  function setDepositHook(IHook _newDepositHook)
+  function setDepositHook(IHook depositHook)
     external
     override
     onlyRole(SET_DEPOSIT_HOOK_ROLE)
   {
-    depositHook = _newDepositHook;
-    emit DepositHookChange(address(_newDepositHook));
+    _depositHook = depositHook;
+    emit DepositHookChange(address(depositHook));
   }
 
-  function setWithdrawHook(IHook _newWithdrawHook)
+  function setWithdrawHook(IHook withdrawHook)
     external
     override
     onlyRole(SET_WITHDRAW_HOOK_ROLE)
   {
-    withdrawHook = _newWithdrawHook;
-    emit WithdrawHookChange(address(_newWithdrawHook));
+    _withdrawHook = withdrawHook;
+    emit WithdrawHookChange(address(withdrawHook));
   }
 
-  function setManagerWithdrawHook(IHook _newManagerWithdrawHook)
+  function setManagerWithdrawHook(IHook managerWithdrawHook)
     external
     override
     onlyRole(SET_MANAGER_WITHDRAW_HOOK_ROLE)
   {
-    managerWithdrawHook = _newManagerWithdrawHook;
-    emit ManagerWithdrawHookChange(address(_newManagerWithdrawHook));
+    _managerWithdrawHook = managerWithdrawHook;
+    emit ManagerWithdrawHookChange(address(managerWithdrawHook));
   }
 
   function getBaseToken() external view override returns (IERC20) {
-    return baseToken;
+    return _baseToken;
   }
 
   function getManager() external view override returns (address) {
-    return manager;
+    return _manager;
   }
 
   function getDepositFee() external view override returns (uint256) {
-    return depositFee;
+    return _depositFee;
   }
 
   function getWithdrawFee() external view override returns (uint256) {
-    return withdrawFee;
+    return _withdrawFee;
   }
 
   function getDepositHook() external view override returns (IHook) {
-    return depositHook;
+    return _depositHook;
   }
 
   function getWithdrawHook() external view override returns (IHook) {
-    return withdrawHook;
+    return _withdrawHook;
   }
 
   function getManagerWithdrawHook() external view override returns (IHook) {
-    return managerWithdrawHook;
+    return _managerWithdrawHook;
   }
 
   function getReserve() external view override returns (uint256) {
-    return baseToken.balanceOf(address(this));
+    return _baseToken.balanceOf(address(this));
   }
 }

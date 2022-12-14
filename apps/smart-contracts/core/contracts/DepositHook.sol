@@ -20,9 +20,9 @@ contract DepositHook is
   TokenSenderCaller,
   SafeAccessControlEnumerable
 {
-  ICollateral private collateral;
-  IDepositRecord private depositRecord;
-  bool public override depositsAllowed;
+  ICollateral private _collateral;
+  IDepositRecord private _depositRecord;
+  bool private _depositsAllowed;
 
   bytes32 public constant SET_COLLATERAL_ROLE =
     keccak256("DepositHook_setCollateral(address)");
@@ -44,56 +44,56 @@ contract DepositHook is
     keccak256("DepositHook_setTokenSender(ITokenSender)");
 
   modifier onlyCollateral() {
-    require(msg.sender == address(collateral), "msg.sender != collateral");
+    require(msg.sender == address(_collateral), "msg.sender != collateral");
     _;
   }
 
   function hook(
-    address _sender,
-    uint256 _amountBeforeFee,
-    uint256 _amountAfterFee
+    address sender,
+    uint256 amountBeforeFee,
+    uint256 amountAfterFee
   ) external override onlyCollateral {
-    require(depositsAllowed, "deposits not allowed");
-    if (!_accountList.isIncluded(_sender)) {
-      require(_satisfiesScoreRequirement(_sender), "depositor not allowed");
+    require(_depositsAllowed, "deposits not allowed");
+    if (!_accountList.isIncluded(sender)) {
+      require(_satisfiesScoreRequirement(sender), "depositor not allowed");
     }
-    depositRecord.recordDeposit(_sender, _amountAfterFee);
-    uint256 _fee = _amountBeforeFee - _amountAfterFee;
+    _depositRecord.recordDeposit(sender, amountAfterFee);
+    uint256 _fee = amountBeforeFee - amountAfterFee;
     if (_fee > 0) {
-      collateral.getBaseToken().transferFrom(
-        address(collateral),
+      _collateral.getBaseToken().transferFrom(
+        address(_collateral),
         _treasury,
         _fee
       );
-      _tokenSender.send(_sender, _fee);
+      _tokenSender.send(sender, _fee);
     }
   }
 
-  function setCollateral(ICollateral _newCollateral)
+  function setCollateral(ICollateral collateral)
     external
     override
     onlyRole(SET_COLLATERAL_ROLE)
   {
-    collateral = _newCollateral;
-    emit CollateralChange(address(_newCollateral));
+    _collateral = collateral;
+    emit CollateralChange(address(collateral));
   }
 
-  function setDepositRecord(IDepositRecord _newDepositRecord)
+  function setDepositRecord(IDepositRecord depositRecord)
     external
     override
     onlyRole(SET_DEPOSIT_RECORD_ROLE)
   {
-    depositRecord = _newDepositRecord;
-    emit DepositRecordChange(address(_newDepositRecord));
+    _depositRecord = depositRecord;
+    emit DepositRecordChange(address(depositRecord));
   }
 
-  function setDepositsAllowed(bool _newDepositsAllowed)
+  function setDepositsAllowed(bool depositsAllowed)
     external
     override
     onlyRole(SET_DEPOSITS_ALLOWED_ROLE)
   {
-    depositsAllowed = _newDepositsAllowed;
-    emit DepositsAllowedChange(_newDepositsAllowed);
+    _depositsAllowed = depositsAllowed;
+    emit DepositsAllowedChange(depositsAllowed);
   }
 
   function setAccountList(IAccountList accountList)
@@ -104,50 +104,54 @@ contract DepositHook is
     super.setAccountList(accountList);
   }
 
-  function setRequiredScore(uint256 _newRequiredScore)
+  function setRequiredScore(uint256 requiredScore)
     public
     override
     onlyRole(SET_REQUIRED_SCORE_ROLE)
   {
-    super.setRequiredScore(_newRequiredScore);
+    super.setRequiredScore(requiredScore);
   }
 
   function setCollectionScores(
-    IERC721[] memory _collections,
-    uint256[] memory _scores
+    IERC721[] memory collections,
+    uint256[] memory scores
   ) public override onlyRole(SET_COLLECTION_SCORES_ROLE) {
-    super.setCollectionScores(_collections, _scores);
+    super.setCollectionScores(collections, scores);
   }
 
-  function removeCollections(IERC721[] memory _collections)
+  function removeCollections(IERC721[] memory collections)
     public
     override
     onlyRole(REMOVE_COLLECTIONS_ROLE)
   {
-    super.removeCollections(_collections);
+    super.removeCollections(collections);
   }
 
-  function setTreasury(address _treasury)
+  function setTreasury(address treasury)
     public
     override
     onlyRole(SET_TREASURY_ROLE)
   {
-    super.setTreasury(_treasury);
+    super.setTreasury(treasury);
   }
 
-  function setTokenSender(ITokenSender _tokenSender)
+  function setTokenSender(ITokenSender tokenSender)
     public
     override
     onlyRole(SET_TOKEN_SENDER_ROLE)
   {
-    super.setTokenSender(_tokenSender);
+    super.setTokenSender(tokenSender);
   }
 
   function getCollateral() external view override returns (ICollateral) {
-    return collateral;
+    return _collateral;
   }
 
   function getDepositRecord() external view override returns (IDepositRecord) {
-    return depositRecord;
+    return _depositRecord;
+  }
+
+  function depositsAllowed() external view override returns (bool) {
+    return _depositsAllowed;
   }
 }

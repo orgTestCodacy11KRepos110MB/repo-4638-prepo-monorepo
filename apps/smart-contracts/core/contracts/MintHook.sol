@@ -10,8 +10,8 @@ import "prepo-shared-contracts/contracts/SafeOwnable.sol";
 contract MintHook is IHook, AllowedMsgSenders, AccountListCaller, SafeOwnable {
   function hook(
     address sender,
-    uint256 amountBeforeFee,
-    uint256 amountAfterFee
+    uint256,
+    uint256
   ) external virtual override onlyAllowedMsgSenders {
     require(_accountList.isIncluded(sender), "minter not allowed");
   }

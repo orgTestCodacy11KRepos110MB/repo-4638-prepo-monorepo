@@ -15,17 +15,17 @@ contract WithdrawHook is
   TokenSenderCaller,
   SafeAccessControlEnumerable
 {
-  ICollateral private collateral;
-  IDepositRecord private depositRecord;
-  bool public override withdrawalsAllowed;
-  uint256 private globalPeriodLength;
-  uint256 private userPeriodLength;
-  uint256 private globalWithdrawLimitPerPeriod;
-  uint256 private userWithdrawLimitPerPeriod;
-  uint256 private lastGlobalPeriodReset;
-  uint256 private lastUserPeriodReset;
-  uint256 private globalAmountWithdrawnThisPeriod;
-  mapping(address => uint256) private userToAmountWithdrawnThisPeriod;
+  ICollateral private _collateral;
+  IDepositRecord private _depositRecord;
+  bool public _withdrawalsAllowed;
+  uint256 private _globalPeriodLength;
+  uint256 private _userPeriodLength;
+  uint256 private _globalWithdrawLimitPerPeriod;
+  uint256 private _userWithdrawLimitPerPeriod;
+  uint256 private _lastGlobalPeriodReset;
+  uint256 private _lastUserPeriodReset;
+  uint256 private _globalAmountWithdrawnThisPeriod;
+  mapping(address => uint256) private _userToAmountWithdrawnThisPeriod;
 
   bytes32 public constant SET_COLLATERAL_ROLE =
     keccak256("WithdrawHook_setCollateral(address)");
@@ -47,7 +47,7 @@ contract WithdrawHook is
     keccak256("WithdrawHook_setTokenSender(ITokenSender)");
 
   modifier onlyCollateral() {
-    require(msg.sender == address(collateral), "msg.sender != collateral");
+    require(msg.sender == address(_collateral), "msg.sender != collateral");
     _;
   }
 
@@ -60,134 +60,140 @@ contract WithdrawHook is
    * accurate value.
    */
   function hook(
-    address _sender,
-    uint256 _amountBeforeFee,
-    uint256 _amountAfterFee
+    address sender,
+    uint256 amountBeforeFee,
+    uint256 amountAfterFee
   ) external override onlyCollateral {
-    require(withdrawalsAllowed, "withdrawals not allowed");
-    if (lastGlobalPeriodReset + globalPeriodLength < block.timestamp) {
-      lastGlobalPeriodReset = block.timestamp;
-      globalAmountWithdrawnThisPeriod = _amountBeforeFee;
+    require(_withdrawalsAllowed, "withdrawals not allowed");
+    if (_lastGlobalPeriodReset + _globalPeriodLength < block.timestamp) {
+      _lastGlobalPeriodReset = block.timestamp;
+      _globalAmountWithdrawnThisPeriod = amountBeforeFee;
     } else {
       require(
-        globalAmountWithdrawnThisPeriod + _amountBeforeFee <=
-          globalWithdrawLimitPerPeriod,
+        _globalAmountWithdrawnThisPeriod + amountBeforeFee <=
+          _globalWithdrawLimitPerPeriod,
         "global withdraw limit exceeded"
       );
-      globalAmountWithdrawnThisPeriod += _amountBeforeFee;
+      _globalAmountWithdrawnThisPeriod += amountBeforeFee;
     }
-    if (lastUserPeriodReset + userPeriodLength < block.timestamp) {
-      lastUserPeriodReset = block.timestamp;
-      userToAmountWithdrawnThisPeriod[_sender] = _amountBeforeFee;
+    if (_lastUserPeriodReset + _userPeriodLength < block.timestamp) {
+      _lastUserPeriodReset = block.timestamp;
+      _userToAmountWithdrawnThisPeriod[sender] = amountBeforeFee;
     } else {
       require(
-        userToAmountWithdrawnThisPeriod[_sender] + _amountBeforeFee <=
-          userWithdrawLimitPerPeriod,
+        _userToAmountWithdrawnThisPeriod[sender] + amountBeforeFee <=
+          _userWithdrawLimitPerPeriod,
         "user withdraw limit exceeded"
       );
-      userToAmountWithdrawnThisPeriod[_sender] += _amountBeforeFee;
+      _userToAmountWithdrawnThisPeriod[sender] += amountBeforeFee;
     }
-    depositRecord.recordWithdrawal(_amountBeforeFee);
-    uint256 _fee = _amountBeforeFee - _amountAfterFee;
-    if (_fee > 0) {
-      collateral.getBaseToken().transferFrom(
-        address(collateral),
+    _depositRecord.recordWithdrawal(amountBeforeFee);
+    uint256 fee = amountBeforeFee - amountAfterFee;
+    if (fee > 0) {
+      _collateral.getBaseToken().transferFrom(
+        address(_collateral),
         _treasury,
-        _fee
+        fee
       );
-      _tokenSender.send(_sender, _fee);
+      _tokenSender.send(sender, fee);
     }
   }
 
-  function setCollateral(ICollateral _newCollateral)
+  function setCollateral(ICollateral collateral)
     external
     override
     onlyRole(SET_COLLATERAL_ROLE)
   {
-    collateral = _newCollateral;
-    emit CollateralChange(address(_newCollateral));
+    _collateral = collateral;
+    emit CollateralChange(address(collateral));
   }
 
-  function setDepositRecord(IDepositRecord _newDepositRecord)
+  function setDepositRecord(IDepositRecord depositRecord)
     external
     override
     onlyRole(SET_DEPOSIT_RECORD_ROLE)
   {
-    depositRecord = _newDepositRecord;
-    emit DepositRecordChange(address(_newDepositRecord));
+    _depositRecord = depositRecord;
+    emit DepositRecordChange(address(depositRecord));
   }
 
-  function setWithdrawalsAllowed(bool _newWithdrawalsAllowed)
+  function setWithdrawalsAllowed(bool withdrawalsAllowed)
     external
     override
     onlyRole(SET_WITHDRAWALS_ALLOWED_ROLE)
   {
-    withdrawalsAllowed = _newWithdrawalsAllowed;
-    emit WithdrawalsAllowedChange(_newWithdrawalsAllowed);
+    _withdrawalsAllowed = withdrawalsAllowed;
+    emit WithdrawalsAllowedChange(withdrawalsAllowed);
   }
 
-  function setGlobalPeriodLength(uint256 _newGlobalPeriodLength)
+  function setGlobalPeriodLength(uint256 globalPeriodLength)
     external
     override
     onlyRole(SET_GLOBAL_PERIOD_LENGTH_ROLE)
   {
-    globalPeriodLength = _newGlobalPeriodLength;
-    emit GlobalPeriodLengthChange(_newGlobalPeriodLength);
+    _globalPeriodLength = globalPeriodLength;
+    emit GlobalPeriodLengthChange(globalPeriodLength);
   }
 
-  function setUserPeriodLength(uint256 _newUserPeriodLength)
+  function setUserPeriodLength(uint256 userPeriodLength)
     external
     override
     onlyRole(SET_USER_PERIOD_LENGTH_ROLE)
   {
-    userPeriodLength = _newUserPeriodLength;
-    emit UserPeriodLengthChange(_newUserPeriodLength);
+    _userPeriodLength = userPeriodLength;
+    emit UserPeriodLengthChange(userPeriodLength);
   }
 
   function setGlobalWithdrawLimitPerPeriod(
-    uint256 _newGlobalWithdrawLimitPerPeriod
+    uint256 globalWithdrawLimitPerPeriod
   ) external override onlyRole(SET_GLOBAL_WITHDRAW_LIMIT_PER_PERIOD_ROLE) {
-    globalWithdrawLimitPerPeriod = _newGlobalWithdrawLimitPerPeriod;
-    emit GlobalWithdrawLimitPerPeriodChange(_newGlobalWithdrawLimitPerPeriod);
+    _globalWithdrawLimitPerPeriod = globalWithdrawLimitPerPeriod;
+    emit GlobalWithdrawLimitPerPeriodChange(globalWithdrawLimitPerPeriod);
   }
 
-  function setUserWithdrawLimitPerPeriod(
-    uint256 _newUserWithdrawLimitPerPeriod
-  ) external override onlyRole(SET_USER_WITHDRAW_LIMIT_PER_PERIOD_ROLE) {
-    userWithdrawLimitPerPeriod = _newUserWithdrawLimitPerPeriod;
-    emit UserWithdrawLimitPerPeriodChange(_newUserWithdrawLimitPerPeriod);
+  function setUserWithdrawLimitPerPeriod(uint256 userWithdrawLimitPerPeriod)
+    external
+    override
+    onlyRole(SET_USER_WITHDRAW_LIMIT_PER_PERIOD_ROLE)
+  {
+    _userWithdrawLimitPerPeriod = userWithdrawLimitPerPeriod;
+    emit UserWithdrawLimitPerPeriodChange(userWithdrawLimitPerPeriod);
   }
 
-  function setTreasury(address _treasury)
+  function setTreasury(address treasury)
     public
     override
     onlyRole(SET_TREASURY_ROLE)
   {
-    super.setTreasury(_treasury);
+    super.setTreasury(treasury);
   }
 
-  function setTokenSender(ITokenSender _tokenSender)
+  function setTokenSender(ITokenSender tokenSender)
     public
     override
     onlyRole(SET_TOKEN_SENDER_ROLE)
   {
-    super.setTokenSender(_tokenSender);
+    super.setTokenSender(tokenSender);
   }
 
   function getCollateral() external view override returns (ICollateral) {
-    return collateral;
+    return _collateral;
   }
 
   function getDepositRecord() external view override returns (IDepositRecord) {
-    return depositRecord;
+    return _depositRecord;
+  }
+
+  function withdrawalsAllowed() external view override returns (bool) {
+    return _withdrawalsAllowed;
   }
 
   function getGlobalPeriodLength() external view override returns (uint256) {
-    return globalPeriodLength;
+    return _globalPeriodLength;
   }
 
   function getUserPeriodLength() external view override returns (uint256) {
-    return userPeriodLength;
+    return _userPeriodLength;
   }
 
   function getGlobalWithdrawLimitPerPeriod()
@@ -196,7 +202,7 @@ contract WithdrawHook is
     override
     returns (uint256)
   {
-    return globalWithdrawLimitPerPeriod;
+    return _globalWithdrawLimitPerPeriod;
   }
 
   function getUserWithdrawLimitPerPeriod()
@@ -205,7 +211,7 @@ contract WithdrawHook is
     override
     returns (uint256)
   {
-    return userWithdrawLimitPerPeriod;
+    return _userWithdrawLimitPerPeriod;
   }
 
   function getLastGlobalPeriodReset()
@@ -214,11 +220,11 @@ contract WithdrawHook is
     override
     returns (uint256)
   {
-    return lastGlobalPeriodReset;
+    return _lastGlobalPeriodReset;
   }
 
   function getLastUserPeriodReset() external view override returns (uint256) {
-    return lastUserPeriodReset;
+    return _lastUserPeriodReset;
   }
 
   function getGlobalAmountWithdrawnThisPeriod()
@@ -227,7 +233,7 @@ contract WithdrawHook is
     override
     returns (uint256)
   {
-    return globalAmountWithdrawnThisPeriod;
+    return _globalAmountWithdrawnThisPeriod;
   }
 
   function getAmountWithdrawnThisPeriod(address _user)
@@ -236,6 +242,6 @@ contract WithdrawHook is
     override
     returns (uint256)
   {
-    return userToAmountWithdrawnThisPeriod[_user];
+    return _userToAmountWithdrawnThisPeriod[_user];
   }
 }

@@ -5,11 +5,11 @@ import "./interfaces/IDepositRecord.sol";
 import "prepo-shared-contracts/contracts/SafeAccessControlEnumerable.sol";
 
 contract DepositRecord is IDepositRecord, SafeAccessControlEnumerable {
-  uint256 private globalNetDepositCap;
-  uint256 private globalNetDepositAmount;
-  uint256 private userDepositCap;
-  mapping(address => uint256) private userToDeposits;
-  mapping(address => bool) private allowedHooks;
+  uint256 private _globalNetDepositCap;
+  uint256 private _globalNetDepositAmount;
+  uint256 private _userDepositCap;
+  mapping(address => uint256) private _userToDeposits;
+  mapping(address => bool) private _allowedHooks;
 
   bytes32 public constant SET_GLOBAL_NET_DEPOSIT_CAP_ROLE =
     keccak256("DepositRecord_setGlobalNetDepositCap(uint256)");
@@ -19,73 +19,73 @@ contract DepositRecord is IDepositRecord, SafeAccessControlEnumerable {
     keccak256("DepositRecord_setAllowedHook(address)");
 
   modifier onlyAllowedHooks() {
-    require(allowedHooks[msg.sender], "msg.sender != allowed hook");
+    require(_allowedHooks[msg.sender], "msg.sender != allowed hook");
     _;
   }
 
-  constructor(uint256 _newGlobalNetDepositCap, uint256 _newUserDepositCap) {
-    globalNetDepositCap = _newGlobalNetDepositCap;
-    userDepositCap = _newUserDepositCap;
+  constructor(uint256 globalNetDepositCap, uint256 userDepositCap) {
+    _globalNetDepositCap = globalNetDepositCap;
+    _userDepositCap = userDepositCap;
   }
 
-  function recordDeposit(address _sender, uint256 _amount)
+  function recordDeposit(address sender, uint256 amount)
     external
     override
     onlyAllowedHooks
   {
     require(
-      _amount + globalNetDepositAmount <= globalNetDepositCap,
+      amount + _globalNetDepositAmount <= _globalNetDepositCap,
       "Global deposit cap exceeded"
     );
     require(
-      _amount + userToDeposits[_sender] <= userDepositCap,
+      amount + _userToDeposits[sender] <= _userDepositCap,
       "User deposit cap exceeded"
     );
-    globalNetDepositAmount += _amount;
-    userToDeposits[_sender] += _amount;
+    _globalNetDepositAmount += amount;
+    _userToDeposits[sender] += amount;
   }
 
-  function recordWithdrawal(uint256 _amount)
+  function recordWithdrawal(uint256 amount)
     external
     override
     onlyAllowedHooks
   {
-    if (globalNetDepositAmount > _amount) {
-      globalNetDepositAmount -= _amount;
+    if (_globalNetDepositAmount > amount) {
+      _globalNetDepositAmount -= amount;
     } else {
-      globalNetDepositAmount = 0;
+      _globalNetDepositAmount = 0;
     }
   }
 
-  function setGlobalNetDepositCap(uint256 _newGlobalNetDepositCap)
+  function setGlobalNetDepositCap(uint256 globalNetDepositCap)
     external
     override
     onlyRole(SET_GLOBAL_NET_DEPOSIT_CAP_ROLE)
   {
-    globalNetDepositCap = _newGlobalNetDepositCap;
-    emit GlobalNetDepositCapChange(globalNetDepositCap);
+    _globalNetDepositCap = globalNetDepositCap;
+    emit GlobalNetDepositCapChange(_globalNetDepositCap);
   }
 
-  function setUserDepositCap(uint256 _newUserDepositCap)
+  function setUserDepositCap(uint256 userDepositCap)
     external
     override
     onlyRole(SET_USER_DEPOSIT_CAP_ROLE)
   {
-    userDepositCap = _newUserDepositCap;
-    emit UserDepositCapChange(_newUserDepositCap);
+    _userDepositCap = userDepositCap;
+    emit UserDepositCapChange(userDepositCap);
   }
 
-  function setAllowedHook(address _hook, bool _allowed)
+  function setAllowedHook(address hook, bool allowed)
     external
     override
     onlyRole(SET_ALLOWED_HOOK_ROLE)
   {
-    allowedHooks[_hook] = _allowed;
-    emit AllowedHooksChange(_hook, _allowed);
+    _allowedHooks[hook] = allowed;
+    emit AllowedHooksChange(hook, allowed);
   }
 
   function getGlobalNetDepositCap() external view override returns (uint256) {
-    return globalNetDepositCap;
+    return _globalNetDepositCap;
   }
 
   function getGlobalNetDepositAmount()
@@ -94,23 +94,23 @@ contract DepositRecord is IDepositRecord, SafeAccessControlEnumerable {
     override
     returns (uint256)
   {
-    return globalNetDepositAmount;
+    return _globalNetDepositAmount;
   }
 
   function getUserDepositCap() external view override returns (uint256) {
-    return userDepositCap;
+    return _userDepositCap;
   }
 
-  function getUserDepositAmount(address _account)
+  function getUserDepositAmount(address account)
     external
     view
     override
     returns (uint256)
   {
-    return userToDeposits[_account];
+    return _userToDeposits[account];
   }
 
-  function isHookAllowed(address _hook) external view override returns (bool) {
-    return allowedHooks[_hook];
+  function isHookAllowed(address hook) external view override returns (bool) {
+    return _allowedHooks[hook];
   }
 }

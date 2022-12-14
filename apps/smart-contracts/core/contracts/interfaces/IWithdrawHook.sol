@@ -14,17 +14,17 @@ interface IWithdrawHook is IDepositRecordHook {
 
   event UserWithdrawLimitPerPeriodChange(uint256 limit);
 
-  function setWithdrawalsAllowed(bool newWithdrawalsAllowed) external;
+  function setWithdrawalsAllowed(bool withdrawalsAllowed) external;
 
-  function setGlobalPeriodLength(uint256 newGlobalPeriodLength) external;
+  function setGlobalPeriodLength(uint256 globalPeriodLength) external;
 
-  function setUserPeriodLength(uint256 newUserPeriodLength) external;
+  function setUserPeriodLength(uint256 userPeriodLength) external;
 
   function setGlobalWithdrawLimitPerPeriod(
-    uint256 newGlobalWithdrawLimitPerPeriod
+    uint256 globalWithdrawLimitPerPeriod
   ) external;
 
-  function setUserWithdrawLimitPerPeriod(uint256 newUserWithdrawLimitPerPeriod)
+  function setUserWithdrawLimitPerPeriod(uint256 userWithdrawLimitPerPeriod)
     external;
 
   function withdrawalsAllowed() external view returns (bool);

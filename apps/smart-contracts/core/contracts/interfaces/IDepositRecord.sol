@@ -54,17 +54,17 @@ interface IDepositRecord {
   /**
    * @notice Sets the global net deposit cap.
    * @dev Only callable by owner().
-   * @param newGlobalNetDepositCap The new global net deposit cap
+   * @param globalNetDepositCap The new global net deposit cap
    */
-  function setGlobalNetDepositCap(uint256 newGlobalNetDepositCap) external;
+  function setGlobalNetDepositCap(uint256 globalNetDepositCap) external;
 
   /**
    * @notice Sets the cap on Base Token deposits per user. User deposit caps
    * are not calculated in a net fashion, unlike global caps.
    * @dev Only callable by owner().
-   * @param newUserDepositCap The new account deposit cap
+   * @param userDepositCap The new account deposit cap
    */
-  function setUserDepositCap(uint256 newUserDepositCap) external;
+  function setUserDepositCap(uint256 userDepositCap) external;
 
   /**
    * @notice Sets if a contract is allowed to record deposits

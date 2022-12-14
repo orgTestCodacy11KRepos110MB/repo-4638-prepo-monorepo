@@ -6,7 +6,7 @@ import "./IDepositRecord.sol";
 interface IDepositRecordHook {
   event DepositRecordChange(address depositRecord);
 
-  function setDepositRecord(IDepositRecord newDepositRecord) external;
+  function setDepositRecord(IDepositRecord depositRecord) external;
 
   function getDepositRecord() external view returns (IDepositRecord);
 }

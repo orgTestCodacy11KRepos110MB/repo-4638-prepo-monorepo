@@ -6,7 +6,7 @@ import "./IDepositRecordHook.sol";
 interface IManagerWithdrawHook is IDepositRecordHook {
   event MinReservePercentageChange(uint256 percentage);
 
-  function setMinReservePercentage(uint256 newMinReservePercentage) external;
+  function setMinReservePercentage(uint256 minReservePercentage) external;
 
   function getMinReservePercentage() external view returns (uint256);
 

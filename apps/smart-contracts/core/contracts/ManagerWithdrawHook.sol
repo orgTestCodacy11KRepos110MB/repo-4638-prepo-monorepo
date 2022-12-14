@@ -13,9 +13,9 @@ contract ManagerWithdrawHook is
   IAllowedCollateralCaller,
   SafeAccessControlEnumerable
 {
-  ICollateral private collateral;
-  IDepositRecord private depositRecord;
-  uint256 private minReservePercentage;
+  ICollateral private _collateral;
+  IDepositRecord private _depositRecord;
+  uint256 private _minReservePercentage;
 
   uint256 public constant PERCENT_DENOMINATOR = 1000000;
   bytes32 public constant SET_COLLATERAL_ROLE =
@@ -28,57 +28,57 @@ contract ManagerWithdrawHook is
   function hook(
     address,
     uint256,
-    uint256 _amountAfterFee
+    uint256 amountAfterFee
   ) external view override {
     require(
-      collateral.getReserve() - _amountAfterFee >= getMinReserve(),
+      _collateral.getReserve() - amountAfterFee >= getMinReserve(),
       "reserve would fall below minimum"
     );
   }
 
-  function setCollateral(ICollateral _newCollateral)
+  function setCollateral(ICollateral collateral)
     external
     override
     onlyRole(SET_COLLATERAL_ROLE)
   {
-    collateral = _newCollateral;
-    emit CollateralChange(address(_newCollateral));
+    _collateral = collateral;
+    emit CollateralChange(address(collateral));
   }
 
-  function setDepositRecord(IDepositRecord _newDepositRecord)
+  function setDepositRecord(IDepositRecord depositRecord)
     external
     override
     onlyRole(SET_DEPOSIT_RECORD_ROLE)
   {
-    depositRecord = _newDepositRecord;
-    emit DepositRecordChange(address(_newDepositRecord));
+    _depositRecord = depositRecord;
+    emit DepositRecordChange(address(depositRecord));
   }
 
-  function setMinReservePercentage(uint256 _newMinReservePercentage)
+  function setMinReservePercentage(uint256 minReservePercentage)
     external
     override
     onlyRole(SET_MIN_RESERVE_PERCENTAGE_ROLE)
   {
-    require(_newMinReservePercentage <= PERCENT_DENOMINATOR, ">100%");
-    minReservePercentage = _newMinReservePercentage;
-    emit MinReservePercentageChange(_newMinReservePercentage);
+    require(minReservePercentage <= PERCENT_DENOMINATOR, ">100%");
+    _minReservePercentage = minReservePercentage;
+    emit MinReservePercentageChange(minReservePercentage);
   }
 
   function getCollateral() external view override returns (ICollateral) {
-    return collateral;
+    return _collateral;
   }
 
   function getDepositRecord() external view override returns (IDepositRecord) {
-    return depositRecord;
+    return _depositRecord;
   }
 
   function getMinReservePercentage() external view override returns (uint256) {
-    return minReservePercentage;
+    return _minReservePercentage;
   }
 
   function getMinReserve() public view override returns (uint256) {
     return
-      (depositRecord.getGlobalNetDepositAmount() * minReservePercentage) /
+      (_depositRecord.getGlobalNetDepositAmount() * _minReservePercentage) /
       PERCENT_DENOMINATOR;
   }
 }
