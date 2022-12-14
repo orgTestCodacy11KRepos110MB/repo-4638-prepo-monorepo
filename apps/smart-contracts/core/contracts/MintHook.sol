@@ -13,7 +13,7 @@ contract MintHook is IHook, AllowedMsgSenders, AccountListCaller, SafeOwnable {
     uint256,
     uint256
   ) external virtual override onlyAllowedMsgSenders {
-    require(_accountList.isIncluded(sender), "minter not allowed");
+    require(_accountList.isIncluded(sender), "Minter not allowed");
   }
 
   function setAllowedMsgSenders(IAccountList allowedMsgSenders)

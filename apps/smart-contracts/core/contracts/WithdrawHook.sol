@@ -58,7 +58,7 @@ contract WithdrawHook is
     uint256 amountBeforeFee,
     uint256 amountAfterFee
   ) external override onlyCollateral {
-    require(_withdrawalsAllowed, "withdrawals not allowed");
+    require(_withdrawalsAllowed, "Withdrawals not allowed");
     if (_lastGlobalPeriodReset + _globalPeriodLength < block.timestamp) {
       _lastGlobalPeriodReset = block.timestamp;
       _globalAmountWithdrawnThisPeriod = amountBeforeFee;
@@ -66,7 +66,7 @@ contract WithdrawHook is
       require(
         _globalAmountWithdrawnThisPeriod + amountBeforeFee <=
           _globalWithdrawLimitPerPeriod,
-        "global withdraw limit exceeded"
+        "Global withdraw limit exceeded"
       );
       _globalAmountWithdrawnThisPeriod += amountBeforeFee;
     }
@@ -77,7 +77,7 @@ contract WithdrawHook is
       require(
         _userToAmountWithdrawnThisPeriod[sender] + amountBeforeFee <=
           _userWithdrawLimitPerPeriod,
-        "user withdraw limit exceeded"
+        "User withdraw limit exceeded"
       );
       _userToAmountWithdrawnThisPeriod[sender] += amountBeforeFee;
     }

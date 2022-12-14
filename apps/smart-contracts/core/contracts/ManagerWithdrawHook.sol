@@ -31,7 +31,7 @@ contract ManagerWithdrawHook is
   ) external view override {
     require(
       _collateral.getReserve() - amountAfterFee >= getMinReserve(),
-      "reserve would fall below minimum"
+      "Falls below min reserve"
     );
   }
 

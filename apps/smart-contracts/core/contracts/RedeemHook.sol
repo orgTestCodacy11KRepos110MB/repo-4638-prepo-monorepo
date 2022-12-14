@@ -20,7 +20,7 @@ contract RedeemHook is
     uint256 amountBeforeFee,
     uint256 amountAfterFee
   ) external virtual override onlyAllowedMsgSenders {
-    require(_accountList.isIncluded(sender), "redeemer not allowed");
+    require(_accountList.isIncluded(sender), "Redeemer not allowed");
     uint256 fee = amountBeforeFee - amountAfterFee;
     if (fee > 0) {
       IPrePOMarket(msg.sender).getCollateral().transferFrom(

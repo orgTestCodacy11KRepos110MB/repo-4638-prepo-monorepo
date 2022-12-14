@@ -182,7 +182,7 @@ describe('=> DepositHook', () => {
 
       await expect(
         depositHook.connect(user).hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
-      ).to.revertedWith('msg.sender != collateral')
+      ).revertedWith('msg.sender != collateral')
     })
 
     it('reverts if deposits not allowed', async () => {
@@ -193,7 +193,7 @@ describe('=> DepositHook', () => {
         depositHook
           .connect(collateralSigner)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
-      ).to.revertedWith('deposits not allowed')
+      ).revertedWith('Deposits not allowed')
     })
 
     it('succeeds if account on allowlist', async () => {
@@ -227,7 +227,7 @@ describe('=> DepositHook', () => {
         depositHook
           .connect(collateralSigner)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
-      ).to.revertedWith('depositor not allowed')
+      ).revertedWith('Depositor not allowed')
     })
 
     it('succeeds if account not on allowlist, required score > 0, and account score = required score', async () => {

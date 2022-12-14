@@ -363,9 +363,9 @@ describe('=> WithdrawHook', () => {
           previousResetTimestamp + TEST_GLOBAL_PERIOD_LENGTH - 1
         )
 
-        await expect(
-          withdrawHook.connect(collateralSigner).hook(user.address, 1, 1)
-        ).to.revertedWith('global withdraw limit exceeded')
+        await expect(withdrawHook.connect(collateralSigner).hook(user.address, 1, 1)).revertedWith(
+          'Global withdraw limit exceeded'
+        )
       })
     })
 
@@ -517,9 +517,9 @@ describe('=> WithdrawHook', () => {
           previousResetTimestamp + TEST_USER_PERIOD_LENGTH - 1
         )
 
-        await expect(
-          withdrawHook.connect(collateralSigner).hook(user.address, 1, 1)
-        ).to.revertedWith('user withdraw limit exceeded')
+        await expect(withdrawHook.connect(collateralSigner).hook(user.address, 1, 1)).revertedWith(
+          'User withdraw limit exceeded'
+        )
       })
 
       it('adds to user amount withdrawn if user withdraw limit exactly reached for period', async () => {
@@ -552,9 +552,9 @@ describe('=> WithdrawHook', () => {
           previousResetTimestamp + TEST_USER_PERIOD_LENGTH - 1
         )
 
-        await expect(
-          withdrawHook.connect(collateralSigner).hook(user.address, 1, 1)
-        ).to.revertedWith('user withdraw limit exceeded')
+        await expect(withdrawHook.connect(collateralSigner).hook(user.address, 1, 1)).revertedWith(
+          'User withdraw limit exceeded'
+        )
       })
     })
   })

@@ -131,7 +131,7 @@ contract Collateral is
     override
     onlyRole(SET_DEPOSIT_FEE_ROLE)
   {
-    require(depositFee <= FEE_LIMIT, "exceeds fee limit");
+    require(depositFee <= FEE_LIMIT, "Exceeds fee limit");
     _depositFee = depositFee;
     emit DepositFeeChange(depositFee);
   }
@@ -141,7 +141,7 @@ contract Collateral is
     override
     onlyRole(SET_WITHDRAW_FEE_ROLE)
   {
-    require(withdrawFee <= FEE_LIMIT, "exceeds fee limit");
+    require(withdrawFee <= FEE_LIMIT, "Exceeds fee limit");
     _withdrawFee = withdrawFee;
     emit WithdrawFeeChange(withdrawFee);
   }

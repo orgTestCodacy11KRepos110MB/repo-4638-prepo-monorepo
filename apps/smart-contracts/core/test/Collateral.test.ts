@@ -275,7 +275,7 @@ describe('=> Collateral', () => {
     it('reverts if > FEE_LIMIT', async () => {
       await expect(
         collateral.connect(deployer).setDepositFee(COLLATERAL_FEE_LIMIT + 1)
-      ).revertedWith('exceeds fee limit')
+      ).revertedWith('Exceeds fee limit')
     })
 
     it('sets to FEE_LIMIT', async () => {
@@ -347,7 +347,7 @@ describe('=> Collateral', () => {
     it('reverts if > FEE_LIMIT', async () => {
       await expect(
         collateral.connect(deployer).setWithdrawFee(COLLATERAL_FEE_LIMIT + 1)
-      ).revertedWith('exceeds fee limit')
+      ).revertedWith('Exceeds fee limit')
     })
 
     it('sets to FEE_LIMIT', async () => {

@@ -47,9 +47,9 @@ contract DepositHook is
     uint256 amountBeforeFee,
     uint256 amountAfterFee
   ) external override onlyCollateral {
-    require(_depositsAllowed, "deposits not allowed");
+    require(_depositsAllowed, "Deposits not allowed");
     if (!_accountList.isIncluded(sender)) {
-      require(_satisfiesScoreRequirement(sender), "depositor not allowed");
+      require(_satisfiesScoreRequirement(sender), "Depositor not allowed");
     }
     _depositRecord.recordDeposit(sender, amountAfterFee);
     uint256 _fee = amountBeforeFee - amountAfterFee;

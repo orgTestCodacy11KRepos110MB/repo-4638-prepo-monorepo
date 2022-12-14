@@ -139,7 +139,7 @@ describe('=> RedeemHook', () => {
       expect(await allowlist.isIncluded(user.address)).to.eq(false)
 
       await expect(redeemHook.connect(deployer).hook(user.address, 1, 1)).revertedWith(
-        'redeemer not allowed'
+        'Redeemer not allowed'
       )
     })
 

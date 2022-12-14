@@ -317,7 +317,7 @@ describe('=> ManagerWithdrawHook', () => {
 
       await expect(
         managerWithdrawHook.connect(user).hook(user.address, IGNORED_ARGUMENT, amountToWithdraw)
-      ).to.revertedWith('reserve would fall below minimum')
+      ).to.revertedWith('Falls below min reserve')
     })
 
     it('allows withdrawal down to exactly reserve minimum', async () => {

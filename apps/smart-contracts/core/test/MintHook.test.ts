@@ -91,7 +91,7 @@ describe('=> MintHook', () => {
       expect(await allowlist.isIncluded(user.address)).to.eq(false)
 
       await expect(mintHook.connect(market).hook(user.address, 2, 1)).revertedWith(
-        'minter not allowed'
+        'Minter not allowed'
       )
     })
 
