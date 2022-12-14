@@ -98,7 +98,7 @@ contract SavingsManager is ISavingsManager, PausableModule {
       _savingsContracts.length == len && _revenueRecipients.length == len,
       "Invalid inputs"
     );
-    for (uint256 i = 0; i < len; i++) {
+    for (uint256 i = 0; i < len; ) {
       _updateSavingsContract(_mAssets[i], _savingsContracts[i]);
       emit SavingsContractAdded(_mAssets[i], _savingsContracts[i]);
 
@@ -106,6 +106,9 @@ contract SavingsManager is ISavingsManager, PausableModule {
         _revenueRecipients[i]
       );
       emit RevenueRecipientSet(_mAssets[i], _revenueRecipients[i]);
+      unchecked {
+        ++i;
+      }
     }
     savingsRate = _savingsRate;
     DURATION = _duration;

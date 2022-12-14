@@ -152,7 +152,7 @@ contract MV1 is
 
     uint256 len = _bAssets.length;
     require(len > 0, "No bAssets");
-    for (uint256 i = 0; i < len; i++) {
+    for (uint256 i = 0; i < len; ) {
       MassetManager.addBasset(
         data.bAssetPersonal,
         data.bAssetData,
@@ -162,6 +162,9 @@ contract MV1 is
         1e8,
         _bAssets[i].hasTxFee
       );
+      unchecked {
+        ++i;
+      }
     }
 
     uint64 startA = SafeCast.toUint64(_config.a * A_PRECISION);
@@ -719,12 +722,18 @@ contract MV1 is
     indexes = new uint8[](len);
 
     Asset memory input_;
-    for (uint256 i = 0; i < len; i++) {
+    for (uint256 i = 0; i < len; ) {
       input_ = _getAsset(_bAssets[i]);
       indexes[i] = input_.idx;
 
-      for (uint256 j = i + 1; j < len; j++) {
+      for (uint256 j = i + 1; j < len; ) {
         require(_bAssets[i] != _bAssets[j], "Duplicate asset");
+        unchecked {
+          ++j;
+        }
+      }
+      unchecked {
+        ++i;
       }
     }
   }

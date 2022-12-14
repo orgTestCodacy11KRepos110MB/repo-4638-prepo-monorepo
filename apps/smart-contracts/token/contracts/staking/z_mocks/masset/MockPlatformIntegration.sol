@@ -54,16 +54,22 @@ contract MockPlatformIntegration is IPlatformIntegration, ImmutableModule {
 
     uint256 bAssetCount = _bAssets.length;
     require(bAssetCount == _pTokens.length, "Invalid input arrays");
-    for (uint256 i = 0; i < bAssetCount; i++) {
+    for (uint256 i = 0; i < bAssetCount; ) {
       _setPTokenAddress(_bAssets[i], _pTokens[i]);
+      unchecked {
+        ++i;
+      }
     }
   }
 
   function addWhitelist(address[] memory _whitelisted) external {
     require(_whitelisted.length > 0, "Empty whitelist array");
 
-    for (uint256 i = 0; i < _whitelisted.length; i++) {
+    for (uint256 i = 0; i < _whitelisted.length; ) {
       _addWhitelist(_whitelisted[i]);
+      unchecked {
+        ++i;
+      }
     }
   }
 
@@ -258,8 +264,11 @@ contract MockPlatformIntegration is IPlatformIntegration, ImmutableModule {
     uint256 bAssetCount = bAssetsMapped.length;
     address lendingPoolVault = address(_getLendingPool());
     // approve the pool to spend the bAsset
-    for (uint256 i = 0; i < bAssetCount; i++) {
+    for (uint256 i = 0; i < bAssetCount; ) {
       MassetHelpers.safeInfiniteApprove(bAssetsMapped[i], lendingPoolVault);
+      unchecked {
+        ++i;
+      }
     }
   }
 

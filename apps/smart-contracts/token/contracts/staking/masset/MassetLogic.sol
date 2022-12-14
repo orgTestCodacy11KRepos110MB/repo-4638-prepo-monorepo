@@ -95,7 +95,7 @@ library MassetLogic {
     BassetData[] memory cachedBassetData = _data.bAssetData;
     uint256 maxCache = _getCacheDetails(_data, _config.supply);
     // Transfer the Bassets to the integrator, update storage and calc MassetQ
-    for (uint256 i = 0; i < len; i++) {
+    for (uint256 i = 0; i < len; ) {
       if (_inputQuantities[i] > 0) {
         uint8 idx = _indices[i];
         BassetData memory bData = cachedBassetData[idx];
@@ -109,6 +109,9 @@ library MassetLogic {
         _data.bAssetData[idx].vaultBalance =
           bData.vaultBalance +
           SafeCast.toUint128(quantitiesDeposited[i]);
+      }
+      unchecked {
+        ++i;
       }
     }
     // Validate the proposed mint, after token transfer
@@ -294,7 +297,7 @@ library MassetLogic {
     uint256 len = cachedBassetData.length;
     outputs = new address[](len);
     outputQuantities = new uint256[](len);
-    for (uint256 i = 0; i < len; i++) {
+    for (uint256 i = 0; i < len; ) {
       // Get amount out, proportionate to redemption quantity
       uint256 amountOut = (cachedBassetData[i].vaultBalance * deductedInput) /
         _config.supply;
@@ -316,6 +319,9 @@ library MassetLogic {
         _recipient,
         maxCache
       );
+      unchecked {
+        ++i;
+      }
     }
   }
 
@@ -377,7 +383,7 @@ library MassetLogic {
       _data,
       _config.supply - mAssetQuantity + fee
     );
-    for (uint256 i = 0; i < _indices.length; i++) {
+    for (uint256 i = 0; i < _indices.length; ) {
       uint8 idx = _indices[i];
       _withdrawTokens(
         _outputQuantities[i],
@@ -389,6 +395,9 @@ library MassetLogic {
       _data.bAssetData[idx].vaultBalance =
         cachedBassetData[idx].vaultBalance -
         SafeCast.toUint128(_outputQuantities[i]);
+      unchecked {
+        ++i;
+      }
     }
   }
 
@@ -586,11 +595,14 @@ library MassetLogic {
     uint256 len = _indices.length;
     uint8 idx;
     uint256 scaledInput;
-    for (uint256 i = 0; i < len; i++) {
+    for (uint256 i = 0; i < len; ) {
       idx = _indices[i];
       scaledInput = (_rawInputs[i] * _bAssets[idx].ratio) / 1e8;
       x[idx] += scaledInput;
       sum += scaledInput;
+      unchecked {
+        ++i;
+      }
     }
     // 4. Finalise mint
     require(_inBounds(x, sum, _config.limits), "Exceeds weight limits");
@@ -739,10 +751,13 @@ library MassetLogic {
     // 3. Sub deposits from x and sum
     uint256 len = _indices.length;
     uint256 ratioed;
-    for (uint256 i = 0; i < len; i++) {
+    for (uint256 i = 0; i < len; ) {
       ratioed = (_rawOutputs[i] * _bAssets[_indices[i]].ratio) / 1e8;
       x[_indices[i]] -= ratioed;
       sum -= ratioed;
+      unchecked {
+        ++i;
+      }
     }
     require(_inBounds(x, sum, _config.limits), "Exceeds weight limits");
     // 4. Get new value of reserves according to invariant
@@ -821,11 +836,14 @@ library MassetLogic {
     uint256 len = _bAssets.length;
     x = new uint256[](len);
     uint256 r;
-    for (uint256 i = 0; i < len; i++) {
+    for (uint256 i = 0; i < len; ) {
       BassetData memory bAsset = _bAssets[i];
       r = (bAsset.vaultBalance * bAsset.ratio) / 1e8;
       x[i] = r;
       sum += r;
+      unchecked {
+        ++i;
+      }
     }
   }
 
@@ -844,9 +862,12 @@ library MassetLogic {
     uint256 len = _x.length;
     inBounds = true;
     uint256 w;
-    for (uint256 i = 0; i < len; i++) {
+    for (uint256 i = 0; i < len; ) {
       w = (_x[i] * 1e18) / _sum;
       if (w > _limits.max || w < _limits.min) return false;
+      unchecked {
+        ++i;
+      }
     }
   }
 
@@ -874,10 +895,13 @@ library MassetLogic {
     uint256 kPrev;
     k = _sum;
 
-    for (uint256 i = 0; i < 256; i++) {
+    for (uint256 i = 0; i < 256; ) {
       uint256 kP = k;
-      for (uint256 j = 0; j < len; j++) {
+      for (uint256 j = 0; j < len; ) {
         kP = (kP * k) / (_x[j] * len);
+        unchecked {
+          ++j;
+        }
       }
       kPrev = k;
       k =
@@ -885,6 +909,9 @@ library MassetLogic {
         (((nA - A_PRECISION) * k) / A_PRECISION + ((len + 1) * kP));
       if (_hasConverged(k, kPrev)) {
         return k;
+      }
+      unchecked {
+        ++i;
       }
     }
 
@@ -928,10 +955,13 @@ library MassetLogic {
 
     (uint256 sum_, uint256 nA, uint256 kP) = (0, _a * len, _targetK);
 
-    for (uint256 i = 0; i < len; i++) {
+    for (uint256 i = 0; i < len; ) {
       if (i != _idx) {
         sum_ += _x[i];
         kP = (kP * _targetK) / (_x[i] * len);
+      }
+      unchecked {
+        ++i;
       }
     }
 

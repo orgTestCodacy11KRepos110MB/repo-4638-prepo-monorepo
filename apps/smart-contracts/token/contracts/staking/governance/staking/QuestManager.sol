@@ -243,7 +243,7 @@ contract QuestManager is
     );
 
     uint256 len = _quests.length;
-    for (uint256 i = 0; i < len; i++) {
+    for (uint256 i = 0; i < len; ) {
       Quest memory quest = _quests[i];
       if (quest.model == QuestType.SEASONAL) {
         require(
@@ -251,6 +251,9 @@ contract QuestManager is
             block.timestamp > quest.expiry,
           "All seasonal quests must have expired"
         );
+      }
+      unchecked {
+        ++i;
       }
     }
 
@@ -281,7 +284,7 @@ contract QuestManager is
     uint8 questMultiplier = checkForSeasonFinish(_account);
 
     // For each quest
-    for (uint256 i = 0; i < len; i++) {
+    for (uint256 i = 0; i < len; ) {
       require(_validQuest(_ids[i]), "Invalid Quest ID");
       require(!hasCompleted(_account, _ids[i]), "Quest already completed");
       require(
@@ -300,14 +303,20 @@ contract QuestManager is
         _balances[_account].seasonMultiplier += quest.multiplier;
       }
       questMultiplier += quest.multiplier;
+      unchecked {
+        ++i;
+      }
     }
 
     uint256 len2 = _stakedTokens.length;
-    for (uint256 i = 0; i < len2; i++) {
+    for (uint256 i = 0; i < len2; ) {
       IStakedToken(_stakedTokens[i]).applyQuestMultiplier(
         _account,
         questMultiplier
       );
+      unchecked {
+        ++i;
+      }
     }
 
     emit QuestCompleteQuests(_account, _ids);
@@ -336,7 +345,7 @@ contract QuestManager is
     Quest memory quest = _quests[_questId];
 
     // For each user account
-    for (uint256 i = 0; i < len; i++) {
+    for (uint256 i = 0; i < len; ) {
       require(
         !hasCompleted(_accounts[i], _questId),
         "Quest already completed"
@@ -357,11 +366,17 @@ contract QuestManager is
       questMultiplier += quest.multiplier;
 
       uint256 len2 = _stakedTokens.length;
-      for (uint256 j = 0; j < len2; j++) {
+      for (uint256 j = 0; j < len2; ) {
         IStakedToken(_stakedTokens[j]).applyQuestMultiplier(
           _accounts[i],
           questMultiplier
         );
+        unchecked {
+          ++j;
+        }
+      }
+      unchecked {
+        ++i;
       }
     }
 

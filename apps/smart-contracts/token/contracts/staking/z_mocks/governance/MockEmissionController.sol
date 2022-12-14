@@ -81,10 +81,13 @@ contract MockEmissionController is IGovernanceHook {
     // 1. Get voting power sum from stakingContracts
     uint256 len = stakingContractsArr.length;
     uint256 votingPower = 0;
-    for (uint256 i = 0; i < len; i++) {
+    for (uint256 i = 0; i < len; ) {
       votingPower += GamifiedVotingToken(stakingContractsArr[i]).getVotes(
         msg.sender
       );
+      unchecked {
+        ++i;
+      }
     }
     // 2. Fetch old bitmap and reduce all based on old preference
     _moveVotingPower(_getPreferences(msg.sender), votingPower, _subtract);
@@ -101,13 +104,16 @@ contract MockEmissionController is IGovernanceHook {
     function(uint256, uint256) view returns (uint256) _op
   ) internal {
     uint256 len = _preferenceData.count;
-    for (uint256 i = 0; i < len; i++) {
+    for (uint256 i = 0; i < len; ) {
       Preference memory pref = _preferenceData.prefs[i];
       // e.g. 5e17 * 1e18 / 1e18 * 100e18 / 1e18
       // = 50e18
       uint256 amountToChange = (((pref.weight * 1e18) / _preferenceData.sum) *
         _amount) / 1e18;
       dials[pref.id].votes = _op(dials[pref.id].votes, amountToChange);
+      unchecked {
+        ++i;
+      }
     }
   }
 
@@ -127,7 +133,7 @@ contract MockEmissionController is IGovernanceHook {
     uint256 bitmap = preferenceBitmaps[_account];
     uint8 weighting;
     preferences.prefs = new Preference[](4);
-    for (uint8 i = 0; i < 32; i++) {
+    for (uint8 i = 0; i < 32; ) {
       unchecked {
         weighting = uint8(bitmap >> (i * 8));
       }
@@ -135,6 +141,9 @@ contract MockEmissionController is IGovernanceHook {
         preferences.prefs[preferences.count] = Preference(i, weighting);
         preferences.sum += weighting;
         preferences.count++;
+      }
+      unchecked {
+        ++i;
       }
     }
   }

@@ -620,8 +620,11 @@ abstract contract GamifiedToken is
       i++;
     }
     bytes memory bytesArray = new bytes(i);
-    for (i = 0; i < 32 && _bytes32[i] != 0; i++) {
+    for (i = 0; i < 32 && _bytes32[i] != 0; ) {
       bytesArray[i] = _bytes32[i];
+      unchecked {
+        ++i;
+      }
     }
     return string(bytesArray);
   }

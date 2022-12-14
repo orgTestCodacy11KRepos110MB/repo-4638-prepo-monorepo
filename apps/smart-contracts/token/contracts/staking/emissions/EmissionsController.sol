@@ -184,13 +184,19 @@ contract EmissionsController is
     epochs = EpochHistory({startEpoch: startEpoch, lastEpoch: startEpoch});
 
     // 2.0 - Add each of the dials
-    for (uint256 i = 0; i < len; i++) {
+    for (uint256 i = 0; i < len; ) {
       _addDial(_recipients[i], _caps[i], _notifies[i]);
+      unchecked {
+        ++i;
+      }
     }
 
     // 3.0 - Initialize the staking contracts
-    for (uint256 i = 0; i < _stakingContracts.length; i++) {
+    for (uint256 i = 0; i < _stakingContracts.length; ) {
       _addStakingContract(_stakingContracts[i]);
+      unchecked {
+        ++i;
+      }
     }
   }
 
@@ -210,8 +216,11 @@ contract EmissionsController is
     returns (uint256 votingPower)
   {
     // For each configured staking contract
-    for (uint256 i = 0; i < stakingContracts.length; i++) {
+    for (uint256 i = 0; i < stakingContracts.length; ) {
       votingPower += stakingContracts[i].getVotes(account);
+      unchecked {
+        ++i;
+      }
     }
   }
 
@@ -281,7 +290,7 @@ contract EmissionsController is
     uint256 dialLen = dials.length;
     dialVotes = new uint256[](dialLen);
 
-    for (uint256 i = 0; i < dialLen; i++) {
+    for (uint256 i = 0; i < dialLen; ) {
       DialData memory dialData = dials[i];
 
       uint256 voteHistoryLen = dialData.voteHistory.length;
@@ -292,6 +301,10 @@ contract EmissionsController is
       }
 
       dialVotes[i] = dialData.voteHistory[voteHistoryLen - 1].votes;
+
+      unchecked {
+        ++i;
+      }
     }
   }
 
@@ -306,13 +319,16 @@ contract EmissionsController is
     view
     returns (Preference[16] memory preferences)
   {
-    for (uint256 i = 0; i < 16; i++) {
+    for (uint256 i = 0; i < 16; ) {
       preferences[i].weight = uint8(
         voterPreferences[voter].dialWeights >> (i * 16)
       );
       preferences[i].dialId = uint8(
         voterPreferences[voter].dialWeights >> ((i * 16) + 8)
       );
+      unchecked {
+        ++i;
+      }
     }
   }
 
@@ -347,8 +363,11 @@ contract EmissionsController is
 
     uint256 len = dials.length;
     require(len < 254, "Max dial count reached");
-    for (uint256 i = 0; i < len; i++) {
+    for (uint256 i = 0; i < len; ) {
       require(dials[i].recipient != _recipient, "Dial already exists");
+      unchecked {
+        ++i;
+      }
     }
 
     dials.push();
@@ -404,11 +423,14 @@ contract EmissionsController is
     );
 
     uint256 len = stakingContracts.length;
-    for (uint256 i = 0; i < len; i++) {
+    for (uint256 i = 0; i < len; ) {
       require(
         address(stakingContracts[i]) != _stakingContract,
         "StakingContract already exists"
       );
+      unchecked {
+        ++i;
+      }
     }
 
     stakingContractAddTime[_stakingContract] = SafeCast.toUint32(
@@ -438,7 +460,7 @@ contract EmissionsController is
 
     // For each specified dial
     uint256 dialId;
-    for (uint256 i = 0; i < dialLen; i++) {
+    for (uint256 i = 0; i < dialLen; ) {
       dialId = _dialIds[i];
       require(dialId < dials.length, "Invalid dial id");
 
@@ -448,6 +470,9 @@ contract EmissionsController is
       dials[dialId].balance += SafeCast.toUint96(_amounts[i]);
 
       emit DonatedRewards(dialId, _amounts[i]);
+      unchecked {
+        ++i;
+      }
     }
 
     // Transfer the total donated rewards to this Emissions Controller contract
@@ -473,7 +498,7 @@ contract EmissionsController is
     uint256 totalDialVotes;
     uint256 dialLen = dials.length;
     uint256[] memory dialVotes = new uint256[](dialLen);
-    for (uint256 i = 0; i < dialLen; i++) {
+    for (uint256 i = 0; i < dialLen; ) {
       DialData memory dialData = dials[i];
       if (dialData.disabled) continue;
 
@@ -497,13 +522,16 @@ contract EmissionsController is
         dialVotes[i] = votes;
         totalDialVotes += votes;
       }
+      unchecked {
+        ++i;
+      }
     }
 
     // 3.0 - Deal with the capped dials
     uint256[] memory distributionAmounts = new uint256[](dialLen);
     uint256 postCappedVotes = totalDialVotes;
     uint256 postCappedEmission = emissionForEpoch;
-    for (uint256 k = 0; k < dialLen; k++) {
+    for (uint256 k = 0; k < dialLen; ) {
       DialData memory dialData = dials[k];
       // 3.1 - If the dial has a cap and isn't disabled, check if it's over the threshold
       if (dialData.cap > 0 && !dialData.disabled) {
@@ -524,10 +552,13 @@ contract EmissionsController is
           dialVotes[k] = 0;
         }
       }
+      unchecked {
+        ++k;
+      }
     }
 
     // 4.0 - Calculate the distribution amounts for each dial
-    for (uint256 l = 0; l < dialLen; l++) {
+    for (uint256 l = 0; l < dialLen; ) {
       // Skip dial if no votes, disabled or was over cap
       if (dialVotes[l] == 0) {
         continue;
@@ -538,6 +569,10 @@ contract EmissionsController is
         (dialVotes[l] * postCappedEmission) /
         postCappedVotes;
       dials[l].balance += SafeCast.toUint96(distributionAmounts[l]);
+
+      unchecked {
+        ++l;
+      }
     }
 
     emit PeriodRewards(distributionAmounts);
@@ -550,7 +585,7 @@ contract EmissionsController is
   function distributeRewards(uint256[] memory _dialIds) external {
     // For each specified dial
     uint256 len = _dialIds.length;
-    for (uint256 i = 0; i < len; i++) {
+    for (uint256 i = 0; i < len; ) {
       require(_dialIds[i] < dials.length, "Invalid dial id");
       DialData memory dialData = dials[_dialIds[i]];
 
@@ -573,6 +608,9 @@ contract EmissionsController is
       }
 
       emit DistributedReward(_dialIds[i], dialData.balance);
+      unchecked {
+        ++i;
+      }
     }
   }
 
@@ -621,7 +659,7 @@ contract EmissionsController is
     // 2.0 - Log new preferences
     uint256 newTotalWeight;
     uint256 newDialWeights;
-    for (uint256 i = 0; i < _preferences.length; i++) {
+    for (uint256 i = 0; i < _preferences.length; ) {
       require(_preferences[i].dialId < dials.length, "Invalid dial id");
       require(_preferences[i].weight > 0, "Must give a dial some weight");
       newTotalWeight += _preferences[i].weight;
@@ -630,6 +668,9 @@ contract EmissionsController is
       newDialWeights |= uint256(_preferences[i].weight) << (i * 16);
       // Add staker's dial id
       newDialWeights |= uint256(_preferences[i].dialId) << ((i * 16) + 8);
+      unchecked {
+        ++i;
+      }
     }
 
     // 2.1 - In the likely scenario less than 16 preferences are given, add a breaker with max uint
@@ -736,7 +777,7 @@ contract EmissionsController is
     );
 
     // 1.0 - Loop through voter preferences until dialId == 255 or until end
-    for (uint256 i = 0; i < 16; i++) {
+    for (uint256 i = 0; i < 16; ) {
       uint256 dialId = uint8(preferences.dialWeights >> ((i * 16) + 8));
       if (dialId == 255) break;
 
@@ -765,6 +806,9 @@ contract EmissionsController is
       } else {
         // Epoch already exists for this dial so just update the dial's weighted votes
         latestHistoricVotes.votes = newVotes;
+      }
+      unchecked {
+        ++i;
       }
     }
   }

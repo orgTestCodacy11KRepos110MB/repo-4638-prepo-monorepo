@@ -21,7 +21,7 @@ library MV1Migrator {
     uint256 len = importedBasket.bassets.length;
     uint256[] memory scaledVaultBalances = new uint256[](len);
     uint256 maxScaledVaultBalance;
-    for (uint8 i = 0; i < len; i++) {
+    for (uint8 i = 0; i < len; ) {
       Basset memory bAsset = importedBasket.bassets[i];
       address bAssetAddress = bAsset.addr;
       bAssetIndexes[bAssetAddress] = i;
@@ -46,6 +46,9 @@ library MV1Migrator {
       uint128 scaledVaultBalance = (vaultBalance * ratio) / 1e8;
       scaledVaultBalances[i] = scaledVaultBalance;
       maxScaledVaultBalance += scaledVaultBalance;
+      unchecked {
+        ++i;
+      }
     }
 
     // Check each bAsset is under 25.01% weight
@@ -56,8 +59,11 @@ library MV1Migrator {
       revert("Invalid length");
     }
     maxScaledVaultBalance = (maxScaledVaultBalance * 2501) / 10000;
-    for (uint8 i = 0; i < len; i++) {
+    for (uint8 i = 0; i < len; ) {
       require(scaledVaultBalances[i] < maxScaledVaultBalance, "imbalanced");
+      unchecked {
+        ++i;
+      }
     }
   }
 }

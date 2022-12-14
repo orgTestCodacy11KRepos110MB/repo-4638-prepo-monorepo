@@ -123,7 +123,7 @@ library MassetManager {
     indices = new uint8[](count);
     rawGains = new uint256[](count);
     // 1. Calculate rawGains in each bAsset, in comparison to current vault balance
-    for (uint256 i = 0; i < count; i++) {
+    for (uint256 i = 0; i < count; ) {
       indices[i] = uint8(i);
       BassetPersonal memory bPersonal = _bAssetPersonal[i];
       BassetData memory bData = bAssetData_[i];
@@ -145,6 +145,9 @@ library MassetManager {
         rawGains[i] = interestDelta;
       } else {
         rawGains[i] = 0;
+      }
+      unchecked {
+        ++i;
       }
     }
   }
@@ -198,7 +201,7 @@ library MassetManager {
     uint256 len = _bAssets.length;
     require(len > 0, "Must migrate some bAssets");
 
-    for (uint256 i = 0; i < len; i++) {
+    for (uint256 i = 0; i < len; ) {
       // 1. Check that the bAsset is in the basket
       address bAsset = _bAssets[i];
       uint256 index = _getAssetIndex(_bAssetPersonal, _bAssetIndexes, bAsset);
@@ -257,6 +260,9 @@ library MassetManager {
           newCache <= cache.mulTruncate(upperMargin),
         "Must transfer full amount"
       );
+      unchecked {
+        ++i;
+      }
     }
 
     emit BassetsMigrated(_bAssets, _newIntegration);
@@ -309,10 +315,13 @@ library MassetManager {
     _bAssetPersonal[i].status = BassetStatus.Normal;
 
     bool undergoingRecol = false;
-    for (uint256 j = 0; j < _bAssetPersonal.length; j++) {
+    for (uint256 j = 0; j < _bAssetPersonal.length; ) {
       if (_bAssetPersonal[j].status != BassetStatus.Normal) {
         undergoingRecol = true;
         break;
+      }
+      unchecked {
+        ++j;
       }
     }
     _basket.undergoingRecol = undergoingRecol;
