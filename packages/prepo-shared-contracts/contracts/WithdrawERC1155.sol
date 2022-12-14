@@ -7,25 +7,27 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract WithdrawERC1155 is IWithdrawERC1155, SafeOwnable, ReentrancyGuard {
+  constructor() {}
+
   function withdrawERC1155(
-    address[] calldata erc1155Tokens,
-    address[] calldata recipients,
-    uint256[] calldata ids,
-    uint256[] calldata amounts
+    address[] calldata _erc1155Tokens,
+    address[] calldata _recipients,
+    uint256[] calldata _ids,
+    uint256[] calldata _amounts
   ) external override onlyOwner nonReentrant {
     require(
-      erc1155Tokens.length == recipients.length &&
-        recipients.length == ids.length &&
-        ids.length == amounts.length,
+      _erc1155Tokens.length == _recipients.length &&
+        _recipients.length == _ids.length &&
+        _ids.length == _amounts.length,
       "Array length mismatch"
     );
-    uint256 arrayLength = erc1155Tokens.length;
-    for (uint256 i; i < arrayLength; ) {
-      IERC1155(erc1155Tokens[i]).safeTransferFrom(
+    uint256 _arrayLength = _erc1155Tokens.length;
+    for (uint256 i; i < _arrayLength; ) {
+      IERC1155(_erc1155Tokens[i]).safeTransferFrom(
         address(this),
-        recipients[i],
-        ids[i],
-        amounts[i],
+        _recipients[i],
+        _ids[i],
+        _amounts[i],
         ""
       );
       unchecked {

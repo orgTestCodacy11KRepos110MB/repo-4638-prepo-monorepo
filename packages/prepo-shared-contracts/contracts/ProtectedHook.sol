@@ -15,13 +15,13 @@ contract ProtectedHook is IProtectedHook, SafeOwnable {
     _;
   }
 
-  function setAllowedContract(address allowedContract)
+  function setAllowedContract(address _newAllowedContract)
     external
     override
     onlyOwner
   {
-    _allowedContract = allowedContract;
-    emit AllowedContractChange(allowedContract);
+    _allowedContract = _newAllowedContract;
+    emit AllowedContractChange(_newAllowedContract);
   }
 
   function getAllowedContract() external view override returns (address) {

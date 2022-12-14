@@ -23,9 +23,9 @@ interface IAccountList {
    * @notice Removes every address from the set. Atomically includes any
    * addresses in `newIncludedAccounts`.
    * @dev Only callable by `owner()`.
-   * @param includedAccounts Addresses to include after reset
+   * @param newIncludedAccounts Addresses to include after reset
    */
-  function reset(address[] calldata includedAccounts) external;
+  function reset(address[] calldata newIncludedAccounts) external;
 
   /**
    * @param account Address to check inclusion for

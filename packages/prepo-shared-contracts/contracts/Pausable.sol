@@ -14,9 +14,9 @@ contract Pausable is IPausable, SafeOwnable {
 
   constructor() {}
 
-  function setPaused(bool paused) external override onlyOwner {
-    _paused = paused;
-    emit PausedChange(paused);
+  function setPaused(bool _newPaused) external override onlyOwner {
+    _paused = _newPaused;
+    emit PausedChange(_newPaused);
   }
 
   function isPaused() external view override returns (bool) {

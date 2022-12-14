@@ -16,90 +16,90 @@ abstract contract SafeAccessControlEnumerableUpgradeable is
     _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
   }
 
-  function setRoleAdminNominee(bytes32 role, bytes32 roleAdminNominee)
+  function setRoleAdminNominee(bytes32 _role, bytes32 _roleAdminNominee)
     public
     virtual
     override
-    onlyRole(getRoleAdmin(role))
+    onlyRole(getRoleAdmin(_role))
   {
-    _setRoleAdminNominee(role, roleAdminNominee);
+    _setRoleAdminNominee(_role, _roleAdminNominee);
   }
 
-  function acceptRoleAdmin(bytes32 role)
+  function acceptRoleAdmin(bytes32 _role)
     public
     virtual
     override
-    onlyRole(_roleToRoleAdminNominee[role])
+    onlyRole(_roleToRoleAdminNominee[_role])
   {
-    _setRoleAdmin(role, _roleToRoleAdminNominee[role]);
-    _setRoleAdminNominee(role, 0x00);
+    _setRoleAdmin(_role, _roleToRoleAdminNominee[_role]);
+    _setRoleAdminNominee(_role, 0x00);
   }
 
-  function grantRole(bytes32 role, address account)
+  function grantRole(bytes32 _role, address _account)
     public
     virtual
     override
-    onlyRole(getRoleAdmin(role))
+    onlyRole(getRoleAdmin(_role))
   {
-    _setRoleNominee(role, account, true);
+    _setRoleNominee(_role, _account, true);
   }
 
-  function acceptRole(bytes32 role) public virtual override {
+  function acceptRole(bytes32 _role) public virtual override {
     require(
-      _roleToAccountToNominated[role][_msgSender()],
+      _roleToAccountToNominated[_role][_msgSender()],
       "msg.sender != role nominee"
     );
-    _setRoleNominee(role, _msgSender(), false);
-    _grantRole(role, _msgSender());
+    _setRoleNominee(_role, _msgSender(), false);
+    _grantRole(_role, _msgSender());
   }
 
-  function revokeNomination(bytes32 role, address account)
+  function revokeNomination(bytes32 _role, address _account)
     public
     virtual
     override
-    onlyRole(getRoleAdmin(role))
+    onlyRole(getRoleAdmin(_role))
   {
-    _setRoleNominee(role, account, false);
+    _setRoleNominee(_role, _account, false);
   }
 
-  function getRoleAdminNominee(bytes32 role)
+  function getRoleAdminNominee(bytes32 _role)
     public
     view
     virtual
     override
     returns (bytes32)
   {
-    return _roleToRoleAdminNominee[role];
+    return _roleToRoleAdminNominee[_role];
   }
 
-  function isNominated(bytes32 role, address account)
+  function isNominated(bytes32 _role, address _account)
     public
     view
     virtual
     override
     returns (bool)
   {
-    return _roleToAccountToNominated[role][account];
+    return _roleToAccountToNominated[_role][_account];
   }
 
-  function _setRoleAdminNominee(bytes32 role, bytes32 newRoleAdminNominee)
+  function _setRoleAdminNominee(bytes32 _role, bytes32 _newRoleAdminNominee)
     internal
     virtual
   {
     emit RoleAdminNomineeUpdate(
-      _roleToRoleAdminNominee[role],
-      newRoleAdminNominee
+      _roleToRoleAdminNominee[_role],
+      _newRoleAdminNominee
     );
-    _roleToRoleAdminNominee[role] = newRoleAdminNominee;
+    _roleToRoleAdminNominee[_role] = _newRoleAdminNominee;
   }
 
   function _setRoleNominee(
-    bytes32 role,
-    address account,
-    bool nominationStatus
+    bytes32 _role,
+    address _account,
+    bool _nominationStatus
   ) internal virtual {
-    _roleToAccountToNominated[role][account] = nominationStatus;
-    emit RoleNomineeUpdate(role, account, nominationStatus);
+    _roleToAccountToNominated[_role][_account] = _nominationStatus;
+    emit RoleNomineeUpdate(_role, _account, _nominationStatus);
   }
 
   /**

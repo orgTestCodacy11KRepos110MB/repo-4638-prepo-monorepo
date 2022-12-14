@@ -3,9 +3,9 @@ pragma solidity =0.8.7;
 
 // TODO: remove in favor of SafeMultiOwnable
 interface IProtectedHook {
-  event AllowedContractChange(address allowedContract);
+  event AllowedContractChange(address newAllowedContract);
 
-  function setAllowedContract(address allowedContract) external;
+  function setAllowedContract(address newAllowedContract) external;
 
   function getAllowedContract() external view returns (address);
 }
