@@ -13,9 +13,9 @@ interface IPPO is IERC20Upgradeable, IERC20PermitUpgradeable {
    * `_beforeTokenTransfer()`.
    *
    * Only callable by `owner()`.
-   * @param newTransferHook Address of the `ITransferHook` contract
+   * @param hook Address of the `ITransferHook` contract
    */
-  function setTransferHook(ITransferHook newTransferHook) external;
+  function setTransferHook(ITransferHook hook) external;
 
   /**
    * @notice Mints `amount` PPO to `recipient`.

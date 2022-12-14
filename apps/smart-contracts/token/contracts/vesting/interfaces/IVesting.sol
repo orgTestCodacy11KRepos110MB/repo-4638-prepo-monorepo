@@ -18,21 +18,21 @@ interface IVesting {
 
   /**
    * @dev Only callable by `owner()`.
-   * @param newToken Address of the ERC20 token to be vested
+   * @param token Address of the ERC20 token to be vested
    */
-  function setToken(address newToken) external;
+  function setToken(address token) external;
 
   /**
    * @dev Only callable by `owner()`.
-   * @param newVestingStartTime Unix timestamp for when the vesting starts
+   * @param vestingStartTime Unix timestamp for when the vesting starts
    */
-  function setVestingStartTime(uint256 newVestingStartTime) external;
+  function setVestingStartTime(uint256 vestingStartTime) external;
 
   /**
    * @dev Only callable by `owner()`.
-   * @param newVestingEndTime Unix timestamp for when the vesting ends
+   * @param vestingEndTime Unix timestamp for when the vesting ends
    */
-  function setVestingEndTime(uint256 newVestingEndTime) external;
+  function setVestingEndTime(uint256 vestingEndTime) external;
 
   /**
    * @notice Sets/Adjusts allocation amount of ERC20 tokens

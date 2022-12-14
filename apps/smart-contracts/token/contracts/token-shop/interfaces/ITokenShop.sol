@@ -25,9 +25,9 @@ interface ITokenShop {
   /**
    * @notice Sets the purchase hook to be called during a purchase.
    * @dev Only callable by `owner()`.
-   * @param newPurchaseHook Address of the new purchase hook
+   * @param purchaseHook Address of the new purchase hook
    */
-  function setPurchaseHook(address newPurchaseHook) external;
+  function setPurchaseHook(address purchaseHook) external;
 
   /**
    * @notice Purchases corresponding `amounts` of `ids` of each ERC721/1155

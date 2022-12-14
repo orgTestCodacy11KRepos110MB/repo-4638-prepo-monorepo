@@ -9,154 +9,153 @@ import "prepo-shared-contracts/contracts/WithdrawERC20.sol";
 contract Vesting is IVesting, Pausable, WithdrawERC20 {
   using SafeERC20 for IERC20;
 
-  IERC20 private token;
-  uint256 private vestingStartTime;
-  uint256 private vestingEndTime;
+  IERC20 private _token;
+  uint256 private _vestingStartTime;
+  uint256 private _vestingEndTime;
 
-  mapping(address => uint256) private recipientToAllocatedAmount;
-  mapping(address => uint256) private recipientToClaimedAmount;
+  mapping(address => uint256) private _recipientToAllocatedAmount;
+  mapping(address => uint256) private _recipientToClaimedAmount;
 
   uint256 private totalAllocatedSupply;
 
   constructor() {}
 
-  function setToken(address _newToken) external override onlyOwner {
-    token = IERC20(_newToken);
+  function setToken(address token) external override onlyOwner {
+    _token = IERC20(token);
   }
 
-  function setVestingStartTime(uint256 _newVestingStartTime)
+  function setVestingStartTime(uint256 vestingStartTime)
     external
     override
     onlyOwner
   {
     require(
-      _newVestingStartTime < vestingEndTime,
+      vestingStartTime < _vestingEndTime,
       "Vesting start time >= end time"
     );
-    vestingStartTime = _newVestingStartTime;
+    _vestingStartTime = vestingStartTime;
   }
 
-  function setVestingEndTime(uint256 _newVestingEndTime)
+  function setVestingEndTime(uint256 vestingEndTime)
     external
     override
     onlyOwner
   {
     require(
-      _newVestingEndTime > vestingStartTime,
+      vestingEndTime > _vestingStartTime,
       "Vesting end time <= start time"
     );
-    vestingEndTime = _newVestingEndTime;
+    _vestingEndTime = vestingEndTime;
   }
 
   function setAllocations(
-    address[] calldata _recipients,
-    uint256[] calldata _amounts
+    address[] calldata recipients,
+    uint256[] calldata amounts
   ) external override onlyOwner {
-    require(_recipients.length == _amounts.length, "Array length mismatch");
-    uint256 _newTotalAllocatedSupply = totalAllocatedSupply;
-    uint256 _arrayLength = _recipients.length;
-    for (uint256 i; i < _arrayLength; ) {
-      uint256 _amount = _amounts[i];
-      address _recipient = _recipients[i];
-      uint256 _prevAllocatedAmount = recipientToAllocatedAmount[_recipient];
+    require(recipients.length == amounts.length, "Array length mismatch");
+    uint256 newTotalAllocatedSupply = totalAllocatedSupply;
+    uint256 arrayLength = recipients.length;
+    for (uint256 i; i < arrayLength; ) {
+      uint256 amount = amounts[i];
+      address recipient = recipients[i];
+      uint256 prevAllocatedAmount = _recipientToAllocatedAmount[recipient];
       /**
        * If the new allocation amount is greater than _prevAllocatedAmount,
        * the absolute difference is added to
        * _newTotalAllocatedSupply, otherwise it is subtracted.
        */
-      if (_amount > _prevAllocatedAmount) {
+      if (amount > prevAllocatedAmount) {
         unchecked {
-          _newTotalAllocatedSupply += _amount - _prevAllocatedAmount;
+          newTotalAllocatedSupply += amount - prevAllocatedAmount;
         }
       } else {
         unchecked {
-          _newTotalAllocatedSupply -= _prevAllocatedAmount - _amount;
+          newTotalAllocatedSupply -= prevAllocatedAmount - amount;
         }
       }
-      recipientToAllocatedAmount[_recipient] = _amount;
-      emit Allocation(_recipient, _amount);
+      _recipientToAllocatedAmount[recipient] = amount;
+      emit Allocation(recipient, amount);
       unchecked {
         ++i;
       }
     }
 
-    totalAllocatedSupply = _newTotalAllocatedSupply;
+    totalAllocatedSupply = newTotalAllocatedSupply;
   }
 
   function claim() external override nonReentrant whenNotPaused {
-    uint256 _claimableAmount = getClaimableAmount(msg.sender);
-    IERC20 _vestedToken = token;
-    require(_claimableAmount != 0, "Claimable amount = 0");
+    uint256 claimableAmount = getClaimableAmount(msg.sender);
+    IERC20 vestedToken = _token;
+    require(claimableAmount != 0, "Claimable amount = 0");
     require(
-      _vestedToken.balanceOf(address(this)) >= _claimableAmount,
+      vestedToken.balanceOf(address(this)) >= claimableAmount,
       "Insufficient balance in contract"
     );
-    recipientToClaimedAmount[msg.sender] += _claimableAmount;
-    _vestedToken.transfer(msg.sender, _claimableAmount);
-    emit Claim(msg.sender, _claimableAmount);
+    _recipientToClaimedAmount[msg.sender] += claimableAmount;
+    vestedToken.transfer(msg.sender, claimableAmount);
+    emit Claim(msg.sender, claimableAmount);
   }
 
-  function getClaimableAmount(address _recipient)
+  function getClaimableAmount(address recipient)
     public
     view
     override
     returns (uint256)
   {
-    uint256 _vestedAmount = getVestedAmount(_recipient);
-    uint256 _claimedTillNow = recipientToClaimedAmount[_recipient];
-    if (_vestedAmount > _claimedTillNow) {
-      return (_vestedAmount - _claimedTillNow);
+    uint256 vestedAmount = getVestedAmount(recipient);
+    uint256 claimedTillNow = _recipientToClaimedAmount[recipient];
+    if (vestedAmount > claimedTillNow) {
+      return (vestedAmount - claimedTillNow);
     } else {
       return 0;
     }
   }
 
-  function getVestedAmount(address _recipient)
+  function getVestedAmount(address recipient)
     public
     view
     override
     returns (uint256)
   {
-    uint256 _start = vestingStartTime;
-    uint256 _end = vestingEndTime;
-    uint256 _allocated = recipientToAllocatedAmount[_recipient];
-    if (block.timestamp < _start) return 0;
-    uint256 _vested = (_allocated * (block.timestamp - _start)) /
-      (_end - _start);
-    return _vested < _allocated ? _vested : _allocated;
+    uint256 start = _vestingStartTime;
+    uint256 end = _vestingEndTime;
+    uint256 allocated = _recipientToAllocatedAmount[recipient];
+    if (block.timestamp < start) return 0;
+    uint256 _vested = (allocated * (block.timestamp - start)) / (end - start);
+    return _vested < allocated ? _vested : allocated;
   }
 
   function getToken() external view override returns (address) {
-    return address(token);
+    return address(_token);
   }
 
   function getVestingStartTime() external view override returns (uint256) {
-    return vestingStartTime;
+    return _vestingStartTime;
   }
 
   function getVestingEndTime() external view override returns (uint256) {
-    return vestingEndTime;
+    return _vestingEndTime;
   }
 
-  function getAmountAllocated(address _recipient)
+  function getAmountAllocated(address recipient)
     external
     view
     override
     returns (uint256)
   {
-    return recipientToAllocatedAmount[_recipient];
+    return _recipientToAllocatedAmount[recipient];
   }
 
   function getTotalAllocatedSupply() external view override returns (uint256) {
     return totalAllocatedSupply;
   }
 
-  function getClaimedAmount(address _recipient)
+  function getClaimedAmount(address recipient)
     external
     view
     override
     returns (uint256)
   {
-    return recipientToClaimedAmount[_recipient];
+    return _recipientToClaimedAmount[recipient];
   }
 }

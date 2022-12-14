@@ -5,45 +5,43 @@ import "prepo-shared-contracts/contracts/interfaces/IAccountList.sol";
 import "prepo-shared-contracts/contracts/SafeOwnable.sol";
 
 contract AccountList is IAccountList, SafeOwnable {
-  uint256 private resetIndex;
+  uint256 private _resetIndex;
   mapping(uint256 => mapping(address => bool))
     private _resetIndexToAccountToIncluded;
 
   constructor() {}
 
-  function set(address[] calldata _accounts, bool[] calldata _included)
+  function set(address[] calldata accounts, bool[] calldata included)
     external
     override
     onlyOwner
   {
-    require(_accounts.length == _included.length, "Array length mismatch");
-    uint256 _arrayLength = _accounts.length;
-    for (uint256 i; i < _arrayLength; ) {
-      _resetIndexToAccountToIncluded[resetIndex][_accounts[i]] = _included[i];
+    require(accounts.length == included.length, "Array length mismatch");
+    uint256 arrayLength = accounts.length;
+    for (uint256 i; i < arrayLength; ) {
+      _resetIndexToAccountToIncluded[_resetIndex][accounts[i]] = included[i];
       unchecked {
         ++i;
       }
     }
   }
 
-  function reset(address[] calldata _newIncludedAccounts)
+  function reset(address[] calldata includedAccounts)
     external
     override
     onlyOwner
   {
-    resetIndex++;
-    uint256 _arrayLength = _newIncludedAccounts.length;
-    for (uint256 i; i < _arrayLength; ) {
-      _resetIndexToAccountToIncluded[resetIndex][
-        _newIncludedAccounts[i]
-      ] = true;
+    _resetIndex++;
+    uint256 arrayLength = includedAccounts.length;
+    for (uint256 i; i < arrayLength; ) {
+      _resetIndexToAccountToIncluded[_resetIndex][includedAccounts[i]] = true;
       unchecked {
         ++i;
       }
     }
   }
 
-  function isIncluded(address _account) external view override returns (bool) {
-    return _resetIndexToAccountToIncluded[resetIndex][_account];
+  function isIncluded(address account) external view override returns (bool) {
+    return _resetIndexToAccountToIncluded[_resetIndex][account];
   }
 }

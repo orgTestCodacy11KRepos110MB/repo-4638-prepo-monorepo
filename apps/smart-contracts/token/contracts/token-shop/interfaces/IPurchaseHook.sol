@@ -66,9 +66,9 @@ interface IPurchaseHook {
 
   /**
    * @notice Sets the TokenShop contract that will be allowed to call hooks.
-   * @param newTokenShop Address of the new TokenShop contract
+   * @param tokenShop Address of the new TokenShop contract
    */
-  function setTokenShop(address newTokenShop) external;
+  function setTokenShop(address tokenShop) external;
 
   /**
    * @param tokenContract The ERC721 contract

@@ -39,15 +39,15 @@ interface IMiniSales {
 
   /**
    * @dev Emitted via `setPrice()`.
-   * @param newPrice New sale token price in terms of payment token
+   * @param price New sale token price in terms of payment token
    */
-  event PriceChange(uint256 newPrice);
+  event PriceChange(uint256 price);
 
   /**
    * @dev Emitted via `setPurchaseHook()`.
-   * @param newPurchaseHook Address of the new purchase hook
+   * @param hook Address of the new purchase hook
    */
-  event PurchaseHookChange(IPurchaseHook newPurchaseHook);
+  event PurchaseHookChange(IPurchaseHook hook);
 
   /**
    * @notice Purchases sale token in exchange for payment token at a fixed
@@ -77,18 +77,18 @@ interface IMiniSales {
    * price of 1.234 USDC would be set as 1.234e6 since USDC has 6 decimals.
    *
    * Only callable by `owner()`.
-   * @param newPrice New fixed price of sale token
+   * @param price New fixed price of sale token
    */
-  function setPrice(uint256 newPrice) external;
+  function setPrice(uint256 price) external;
 
   /**
    * @notice Sets the `IPurchaseHook` contract to be called during a purchase.
    * @dev Can be set to zero address to make the sale unpermissioned.
    *
    * Only callable by `owner()`.
-   * @param newPurchaseHook Address of the new purchase hook
+   * @param purchaseHook Address of the new purchase hook
    */
-  function setPurchaseHook(IPurchaseHook newPurchaseHook) external;
+  function setPurchaseHook(IPurchaseHook purchaseHook) external;
 
   /// @return The ERC20 token being sold
   function getSaleToken() external view returns (IERC20);

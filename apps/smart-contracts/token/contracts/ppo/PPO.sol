@@ -48,71 +48,71 @@ contract PPO is
   ERC20BurnableUpgradeable,
   ERC20PermitUpgradeable
 {
-  ITransferHook private transferHook;
+  ITransferHook private _transferHook;
 
-  function initialize(string memory _name, string memory _symbol)
+  function initialize(string memory name, string memory symbol)
     public
     initializer
   {
     __Ownable_init();
-    __ERC20_init(_name, _symbol);
-    __ERC20Permit_init(_name);
+    __ERC20_init(name, symbol);
+    __ERC20Permit_init(name);
   }
 
-  function setTransferHook(ITransferHook _newTransferHook)
+  function setTransferHook(ITransferHook transferHook)
     external
     override
     onlyOwner
   {
-    transferHook = _newTransferHook;
+    _transferHook = transferHook;
   }
 
-  function mint(address _recipient, uint256 _amount)
+  function mint(address recipient, uint256 amount)
     external
     override
     onlyOwner
   {
-    _mint(_recipient, _amount);
+    _mint(recipient, amount);
   }
 
-  function burn(uint256 _amount)
+  function burn(uint256 amount)
     public
     override(IPPO, ERC20BurnableUpgradeable)
   {
-    super.burn(_amount);
+    super.burn(amount);
   }
 
-  function burnFrom(address _account, uint256 _amount)
+  function burnFrom(address account, uint256 amount)
     public
     override(IPPO, ERC20BurnableUpgradeable)
   {
-    super.burnFrom(_account, _amount);
+    super.burnFrom(account, amount);
   }
 
   function transferFromWithPermit(
-    address _from,
-    address _to,
-    uint256 _amount,
-    uint256 _deadline,
-    uint8 _v,
-    bytes32 _r,
-    bytes32 _s
+    address from,
+    address to,
+    uint256 amount,
+    uint256 deadline,
+    uint8 v,
+    bytes32 r,
+    bytes32 s
   ) external override {
-    permit(_from, _msgSender(), _amount, _deadline, _v, _r, _s);
-    transferFrom(_from, _to, _amount);
+    permit(from, _msgSender(), amount, deadline, v, r, s);
+    transferFrom(from, to, amount);
   }
 
   function getTransferHook() external view override returns (ITransferHook) {
-    return transferHook;
+    return _transferHook;
   }
 
   function _beforeTokenTransfer(
-    address _from,
-    address _to,
-    uint256 _amount
+    address from,
+    address to,
+    uint256 amount
   ) internal override {
-    require(address(transferHook) != address(0), "Transfer hook not set");
-    transferHook.hook(_from, _to, _amount);
-    super._beforeTokenTransfer(_from, _to, _amount);
+    require(address(_transferHook) != address(0), "Transfer hook not set");
+    _transferHook.hook(from, to, amount);
+    super._beforeTokenTransfer(from, to, amount);
   }
 }

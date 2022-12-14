@@ -21,97 +21,87 @@ contract TokenShop is
 {
   using SafeERC20 for IERC20;
 
-  IERC20 private paymentToken;
-  IPurchaseHook private purchaseHook;
-  mapping(address => mapping(uint256 => uint256)) private contractToIdToPrice;
+  IERC20 private _paymentToken;
+  IPurchaseHook private _purchaseHook;
+  mapping(address => mapping(uint256 => uint256)) private _contractToIdToPrice;
   mapping(address => mapping(address => uint256))
-    private userToERC721ToPurchaseCount;
+    private _userToERC721ToPurchaseCount;
   mapping(address => mapping(address => mapping(uint256 => uint256)))
-    private userToERC1155ToIdToPurchaseCount;
+    private _userToERC1155ToIdToPurchaseCount;
 
-  constructor(address _newPaymentToken) {
-    paymentToken = IERC20(_newPaymentToken);
+  constructor(address paymentToken) {
+    _paymentToken = IERC20(paymentToken);
   }
 
   function setContractToIdToPrice(
-    address[] memory _tokenContracts,
-    uint256[] memory _ids,
-    uint256[] memory _prices
+    address[] memory tokenContracts,
+    uint256[] memory ids,
+    uint256[] memory prices
   ) external override onlyOwner {
     require(
-      _tokenContracts.length == _prices.length &&
-        _ids.length == _prices.length,
+      tokenContracts.length == prices.length && ids.length == prices.length,
       "Array length mismatch"
     );
-    uint256 _arrayLength = _tokenContracts.length;
-    for (uint256 i; i < _arrayLength; ) {
-      contractToIdToPrice[_tokenContracts[i]][_ids[i]] = _prices[i];
+    uint256 arrayLength = tokenContracts.length;
+    for (uint256 i; i < arrayLength; ) {
+      _contractToIdToPrice[tokenContracts[i]][ids[i]] = prices[i];
       unchecked {
         ++i;
       }
     }
   }
 
-  function setPurchaseHook(address _newPurchaseHook)
-    external
-    override
-    onlyOwner
-  {
-    purchaseHook = IPurchaseHook(_newPurchaseHook);
+  function setPurchaseHook(address purchaseHook) external override onlyOwner {
+    _purchaseHook = IPurchaseHook(purchaseHook);
   }
 
   function purchase(
-    address[] memory _tokenContracts,
-    uint256[] memory _ids,
-    uint256[] memory _amounts,
-    uint256[] memory _purchasePrices
+    address[] memory tokenContracts,
+    uint256[] memory ids,
+    uint256[] memory amounts,
+    uint256[] memory purchasePrices
   ) external override nonReentrant whenNotPaused {
     require(
-      _tokenContracts.length == _ids.length &&
-        _ids.length == _amounts.length &&
-        _amounts.length == _purchasePrices.length,
+      tokenContracts.length == ids.length &&
+        ids.length == amounts.length &&
+        amounts.length == purchasePrices.length,
       "Array length mismatch"
     );
-    IPurchaseHook _hook = purchaseHook;
-    require(address(_hook) != address(0), "Purchase hook not set");
-    uint256 _arrayLength = _tokenContracts.length;
-    for (uint256 i; i < _arrayLength; ) {
-      uint256 _price = contractToIdToPrice[_tokenContracts[i]][_ids[i]];
-      require(_price != 0, "Non-purchasable item");
-      require(_purchasePrices[i] >= _price, "Purchase price < Price");
-      uint256 _totalPaymentAmount = _price * _amounts[i];
-      paymentToken.transferFrom(
+    IPurchaseHook hook = _purchaseHook;
+    require(address(hook) != address(0), "Purchase hook not set");
+    uint256 arrayLength = tokenContracts.length;
+    for (uint256 i; i < arrayLength; ) {
+      uint256 price = _contractToIdToPrice[tokenContracts[i]][ids[i]];
+      require(price != 0, "Non-purchasable item");
+      require(purchasePrices[i] >= price, "Purchase price < Price");
+      uint256 totalPaymentAmount = price * amounts[i];
+      _paymentToken.transferFrom(
         _msgSender(),
         address(this),
-        _totalPaymentAmount
+        totalPaymentAmount
       );
-      bool _isERC1155 = IERC1155(_tokenContracts[i]).supportsInterface(
+      bool isERC1155 = IERC1155(tokenContracts[i]).supportsInterface(
         type(IERC1155).interfaceId
       );
-      if (_isERC1155) {
-        _hook.hookERC1155(
-          msg.sender,
-          _tokenContracts[i],
-          _ids[i],
-          _amounts[i]
-        );
-        userToERC1155ToIdToPurchaseCount[msg.sender][_tokenContracts[i]][
-          _ids[i]
-        ] += _amounts[i];
-        IERC1155(_tokenContracts[i]).safeTransferFrom(
+      if (isERC1155) {
+        hook.hookERC1155(msg.sender, tokenContracts[i], ids[i], amounts[i]);
+        _userToERC1155ToIdToPurchaseCount[msg.sender][tokenContracts[i]][
+          ids[i]
+        ] += amounts[i];
+        IERC1155(tokenContracts[i]).safeTransferFrom(
           address(this),
           _msgSender(),
-          _ids[i],
-          _amounts[i],
+          ids[i],
+          amounts[i],
           ""
         );
       } else {
-        _hook.hookERC721(msg.sender, _tokenContracts[i], _ids[i]);
-        ++userToERC721ToPurchaseCount[msg.sender][_tokenContracts[i]];
-        IERC721(_tokenContracts[i]).safeTransferFrom(
+        hook.hookERC721(msg.sender, tokenContracts[i], ids[i]);
+        ++_userToERC721ToPurchaseCount[msg.sender][tokenContracts[i]];
+        IERC721(tokenContracts[i]).safeTransferFrom(
           address(this),
           _msgSender(),
-          _ids[i]
+          ids[i]
         );
       }
       unchecked {
@@ -120,38 +110,38 @@ contract TokenShop is
     }
   }
 
-  function getPrice(address _tokenContract, uint256 _id)
+  function getPrice(address tokenContract, uint256 id)
     external
     view
     override
     returns (uint256)
   {
-    return contractToIdToPrice[_tokenContract][_id];
+    return _contractToIdToPrice[tokenContract][id];
   }
 
   function getPaymentToken() external view override returns (address) {
-    return address(paymentToken);
+    return address(_paymentToken);
   }
 
   function getPurchaseHook() external view override returns (IPurchaseHook) {
-    return purchaseHook;
+    return _purchaseHook;
   }
 
-  function getERC721PurchaseCount(address _user, address _tokenContract)
+  function getERC721PurchaseCount(address user, address tokenContract)
     external
     view
     override
     returns (uint256)
   {
-    return userToERC721ToPurchaseCount[_user][_tokenContract];
+    return _userToERC721ToPurchaseCount[user][tokenContract];
   }
 
   function getERC1155PurchaseCount(
-    address _user,
-    address _tokenContract,
-    uint256 _id
+    address user,
+    address tokenContract,
+    uint256 id
   ) external view override returns (uint256) {
-    return userToERC1155ToIdToPurchaseCount[_user][_tokenContract][_id];
+    return _userToERC1155ToIdToPurchaseCount[user][tokenContract][id];
   }
 
   function onERC721Received(

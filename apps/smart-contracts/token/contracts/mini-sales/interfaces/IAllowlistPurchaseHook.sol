@@ -12,17 +12,17 @@ import "prepo-shared-contracts/contracts/interfaces/IAccountList.sol";
 interface IAllowlistPurchaseHook is IPurchaseHook {
   /**
    * @dev Emitted via `setAllowlist()`.
-   * @param newAllowlist Address of the new allowlist
+   * @param allowlist Address of the new allowlist
    */
-  event AccountListChange(IAccountList newAllowlist);
+  event AllowlistChange(IAccountList allowlist);
 
   /**
    * @notice Sets the allowlist containing addresses that are allowed to
    * purchase.
    * @dev Only callable by `owner()`.
-   * @param newAllowlist Address of the new allowlist
+   * @param allowlist Address of the new allowlist
    */
-  function setAllowlist(IAccountList newAllowlist) external;
+  function setAllowlist(IAccountList allowlist) external;
 
   /// @return The allowlist contract
   function getAllowlist() external view returns (IAccountList);

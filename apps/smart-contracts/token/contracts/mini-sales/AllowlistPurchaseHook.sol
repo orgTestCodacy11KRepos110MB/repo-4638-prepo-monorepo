@@ -5,30 +5,26 @@ import "./interfaces/IAllowlistPurchaseHook.sol";
 import "prepo-shared-contracts/contracts/SafeOwnable.sol";
 
 contract AllowlistPurchaseHook is IAllowlistPurchaseHook, SafeOwnable {
-  IAccountList private allowlist;
+  IAccountList private _allowlist;
 
   constructor() {}
 
   function hook(
     address, // _purchaser
-    address _recipient,
+    address recipient,
     uint256, // _amount
     uint256, // _price
     bytes calldata // _data
   ) public virtual override {
-    require(allowlist.isIncluded(_recipient), "Recipient not allowed");
+    require(_allowlist.isIncluded(recipient), "Recipient not allowed");
   }
 
-  function setAllowlist(IAccountList _newAllowlist)
-    external
-    override
-    onlyOwner
-  {
-    allowlist = _newAllowlist;
-    emit AccountListChange(_newAllowlist);
+  function setAllowlist(IAccountList allowlist) external override onlyOwner {
+    _allowlist = allowlist;
+    emit AllowlistChange(allowlist);
   }
 
   function getAllowlist() external view override returns (IAccountList) {
-    return allowlist;
+    return _allowlist;
   }
 }

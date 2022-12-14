@@ -8,41 +8,41 @@ contract RestrictedTransferHook is
   IRestrictedTransferHook,
   BlocklistTransferHook
 {
-  IAccountList private sourceAllowlist;
-  IAccountList private destinationAllowlist;
+  IAccountList private _sourceAllowlist;
+  IAccountList private _destinationAllowlist;
 
   constructor() {}
 
   function hook(
-    address _from,
-    address _to,
-    uint256 _amount
+    address from,
+    address to,
+    uint256 amount
   ) public virtual override(BlocklistTransferHook, ITransferHook) {
-    super.hook(_from, _to, _amount);
-    if (sourceAllowlist.isIncluded(_from)) return;
-    require(destinationAllowlist.isIncluded(_to), "Destination not allowed");
+    super.hook(from, to, amount);
+    if (_sourceAllowlist.isIncluded(from)) return;
+    require(_destinationAllowlist.isIncluded(to), "Destination not allowed");
   }
 
-  function setSourceAllowlist(IAccountList _newSourceAllowlist)
+  function setSourceAllowlist(IAccountList sourceAllowlist)
     external
     override
     onlyOwner
   {
-    sourceAllowlist = _newSourceAllowlist;
-    emit SourceAllowlistChange(_newSourceAllowlist);
+    _sourceAllowlist = sourceAllowlist;
+    emit SourceAllowlistChange(sourceAllowlist);
   }
 
-  function setDestinationAllowlist(IAccountList _newDestinationAllowlist)
+  function setDestinationAllowlist(IAccountList destinationAllowlist)
     external
     override
     onlyOwner
   {
-    destinationAllowlist = _newDestinationAllowlist;
-    emit DestinationAllowlistChange(_newDestinationAllowlist);
+    _destinationAllowlist = destinationAllowlist;
+    emit DestinationAllowlistChange(destinationAllowlist);
   }
 
   function getSourceAllowlist() external view override returns (IAccountList) {
-    return sourceAllowlist;
+    return _sourceAllowlist;
   }
 
   function getDestinationAllowlist()
@@ -51,6 +51,6 @@ contract RestrictedTransferHook is
     override
     returns (IAccountList)
   {
-    return destinationAllowlist;
+    return _destinationAllowlist;
   }
 }

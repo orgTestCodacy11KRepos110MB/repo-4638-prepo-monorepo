@@ -11,16 +11,16 @@ import "prepo-shared-contracts/contracts/interfaces/IAccountList.sol";
 interface IBlocklistTransferHook is ITransferHook {
   /**
    * @dev Emitted via `setBlocklist()`.
-   * @param newBlocklist Address of the `IAccountList` contract
+   * @param blocklist Address of the `IAccountList` contract
    */
-  event BlocklistChange(IAccountList newBlocklist);
+  event BlocklistChange(IAccountList blocklist);
 
   /**
    * @notice Sets the `IAccountList` contract that specifies the addresses to
    * block.
-   * @param newBlocklist Address of the `IAccountList` contract
+   * @param blocklist Address of the `IAccountList` contract
    */
-  function setBlocklist(IAccountList newBlocklist) external;
+  function setBlocklist(IAccountList blocklist) external;
 
   ///@return The blocklist contract
   function getBlocklist() external view returns (IAccountList);

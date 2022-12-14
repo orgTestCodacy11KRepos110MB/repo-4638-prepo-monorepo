@@ -18,30 +18,29 @@ import "prepo-shared-contracts/contracts/interfaces/IAccountList.sol";
 interface IRestrictedTransferHook is IBlocklistTransferHook {
   /**
    * @dev Emitted via `setSourceAllowlist()`.
-   * @param newSourceAllowlist Address of the `IAccountList` contract
+   * @param allowlist Address of the `IAccountList` contract
    */
-  event SourceAllowlistChange(IAccountList newSourceAllowlist);
+  event SourceAllowlistChange(IAccountList allowlist);
 
   /**
    * @dev Emitted via `setDestinationAllowlist()`.
-   * @param newDestinationAllowlist Address of the `IAccountList` contract
+   * @param allowlist Address of the `IAccountList` contract
    */
-  event DestinationAllowlistChange(IAccountList newDestinationAllowlist);
+  event DestinationAllowlistChange(IAccountList allowlist);
 
   /**
    * @notice Sets the external `IAccountList` contract that specifies the
    * allowlisted source addresses.
-   * @param newSourceAllowlist Address of the `IAccountList` contract
+   * @param sourceAllowlist Address of the `IAccountList` contract
    */
-  function setSourceAllowlist(IAccountList newSourceAllowlist) external;
+  function setSourceAllowlist(IAccountList sourceAllowlist) external;
 
   /**
    * @notice Sets the external `IAccountList` contract that specifies the
    * allowlisted destination addresses.
-   * @param newDestinationAllowlist Address of the `IAccountList` contract
+   * @param destinationAllowlist Address of the `IAccountList` contract
    */
-  function setDestinationAllowlist(IAccountList newDestinationAllowlist)
-    external;
+  function setDestinationAllowlist(IAccountList destinationAllowlist) external;
 
   ///@return The source allowlist contract
   function getSourceAllowlist() external view returns (IAccountList);

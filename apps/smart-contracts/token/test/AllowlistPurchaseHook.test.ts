@@ -161,10 +161,10 @@ describe('AllowlistPurchaseHook', () => {
       expect(await allowlistPurchaseHook.getAllowlist()).to.eq(JUNK_ADDRESS)
     })
 
-    it('emits AccountListChange', async () => {
+    it('emits AllowlistChange', async () => {
       const tx = await allowlistPurchaseHook.connect(owner).setAllowlist(JUNK_ADDRESS)
 
-      await expect(tx).to.emit(allowlistPurchaseHook, 'AccountListChange').withArgs(JUNK_ADDRESS)
+      await expect(tx).to.emit(allowlistPurchaseHook, 'AllowlistChange').withArgs(JUNK_ADDRESS)
     })
   })
 })
