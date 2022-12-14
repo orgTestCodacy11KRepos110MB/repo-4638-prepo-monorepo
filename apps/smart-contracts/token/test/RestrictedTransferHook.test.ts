@@ -183,7 +183,7 @@ describe('RestrictedTransferHook', () => {
 
       await expect(
         restrictedTransferHook.connect(ppoToken).hook(sender.address, recipient.address, 1)
-      ).to.be.reverted
+      ).reverted
     })
 
     it('reverts if source allowlist set to incompatible contract', async () => {
@@ -195,7 +195,7 @@ describe('RestrictedTransferHook', () => {
 
       await expect(
         restrictedTransferHook.connect(ppoToken).hook(sender.address, recipient.address, 1)
-      ).to.be.reverted
+      ).reverted
     })
 
     it('reverts if destination allowlist not set', async () => {
@@ -204,7 +204,7 @@ describe('RestrictedTransferHook', () => {
 
       await expect(
         restrictedTransferHook.connect(ppoToken).hook(sender.address, recipient.address, 1)
-      ).to.be.reverted
+      ).reverted
     })
 
     it('reverts if destination allowlist set to incompatible contract', async () => {
@@ -218,7 +218,7 @@ describe('RestrictedTransferHook', () => {
 
       await expect(
         restrictedTransferHook.connect(ppoToken).hook(sender.address, recipient.address, 1)
-      ).to.be.reverted
+      ).reverted
     })
 
     describe('if sender blocked', () => {
@@ -231,7 +231,7 @@ describe('RestrictedTransferHook', () => {
 
         await expect(
           restrictedTransferHook.connect(ppoToken).hook(sender.address, recipient.address, 1)
-        ).to.be.revertedWith('Sender blocked')
+        ).revertedWith('Sender blocked')
       })
 
       it('reverts if recipient is allowed destination', async () => {
@@ -239,7 +239,7 @@ describe('RestrictedTransferHook', () => {
 
         await expect(
           restrictedTransferHook.connect(ppoToken).hook(sender.address, recipient.address, 1)
-        ).to.be.revertedWith('Sender blocked')
+        ).revertedWith('Sender blocked')
       })
 
       it('reverts if sender is allowed source and recipient is allowed destination', async () => {
@@ -248,7 +248,7 @@ describe('RestrictedTransferHook', () => {
 
         await expect(
           restrictedTransferHook.connect(ppoToken).hook(sender.address, recipient.address, 1)
-        ).to.be.revertedWith('Sender blocked')
+        ).revertedWith('Sender blocked')
       })
 
       it('reverts if sender is not allowed source and recipient is not allowed destination', async () => {
@@ -257,7 +257,7 @@ describe('RestrictedTransferHook', () => {
 
         await expect(
           restrictedTransferHook.connect(ppoToken).hook(sender.address, recipient.address, 1)
-        ).to.be.revertedWith('Sender blocked')
+        ).revertedWith('Sender blocked')
       })
     })
 
@@ -271,7 +271,7 @@ describe('RestrictedTransferHook', () => {
 
         await expect(
           restrictedTransferHook.connect(ppoToken).hook(sender.address, recipient.address, 1)
-        ).to.be.revertedWith('Recipient blocked')
+        ).revertedWith('Recipient blocked')
       })
 
       it('reverts if recipient is allowed destination', async () => {
@@ -279,7 +279,7 @@ describe('RestrictedTransferHook', () => {
 
         await expect(
           restrictedTransferHook.connect(ppoToken).hook(sender.address, recipient.address, 1)
-        ).to.be.revertedWith('Recipient blocked')
+        ).revertedWith('Recipient blocked')
       })
 
       it('reverts if sender is allowed source and recipient is allowed destination', async () => {
@@ -288,7 +288,7 @@ describe('RestrictedTransferHook', () => {
 
         await expect(
           restrictedTransferHook.connect(ppoToken).hook(sender.address, recipient.address, 1)
-        ).to.be.revertedWith('Recipient blocked')
+        ).revertedWith('Recipient blocked')
       })
 
       it('reverts if sender is not allowed source and recipient is not allowed destination', async () => {
@@ -297,7 +297,7 @@ describe('RestrictedTransferHook', () => {
 
         await expect(
           restrictedTransferHook.connect(ppoToken).hook(sender.address, recipient.address, 1)
-        ).to.be.revertedWith('Recipient blocked')
+        ).revertedWith('Recipient blocked')
       })
     })
 
@@ -312,7 +312,7 @@ describe('RestrictedTransferHook', () => {
 
         await expect(
           restrictedTransferHook.connect(ppoToken).hook(sender.address, recipient.address, 1)
-        ).to.be.revertedWith('Sender blocked')
+        ).revertedWith('Sender blocked')
       })
 
       it('reverts if recipient is allowed destination', async () => {
@@ -320,7 +320,7 @@ describe('RestrictedTransferHook', () => {
 
         await expect(
           restrictedTransferHook.connect(ppoToken).hook(sender.address, recipient.address, 1)
-        ).to.be.revertedWith('Sender blocked')
+        ).revertedWith('Sender blocked')
       })
 
       it('reverts if sender is allowed source and recipient is allowed destination', async () => {
@@ -329,7 +329,7 @@ describe('RestrictedTransferHook', () => {
 
         await expect(
           restrictedTransferHook.connect(ppoToken).hook(sender.address, recipient.address, 1)
-        ).to.be.revertedWith('Sender blocked')
+        ).revertedWith('Sender blocked')
       })
 
       it('reverts if sender is not allowed source and recipient is not allowed destination', async () => {
@@ -338,7 +338,7 @@ describe('RestrictedTransferHook', () => {
 
         await expect(
           restrictedTransferHook.connect(ppoToken).hook(sender.address, recipient.address, 1)
-        ).to.be.revertedWith('Sender blocked')
+        ).revertedWith('Sender blocked')
       })
     })
 
@@ -379,7 +379,7 @@ describe('RestrictedTransferHook', () => {
 
         await expect(
           restrictedTransferHook.connect(ppoToken).hook(sender.address, recipient.address, 1)
-        ).to.be.revertedWith('Destination not allowed')
+        ).revertedWith('Destination not allowed')
       })
     })
   })

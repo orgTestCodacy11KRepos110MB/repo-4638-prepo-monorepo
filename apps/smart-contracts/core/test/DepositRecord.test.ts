@@ -85,7 +85,7 @@ describe('=> DepositRecord', () => {
 
       await expect(
         depositRecord.connect(user2).recordDeposit(user.address, TEST_AMOUNT_TWO)
-      ).to.be.revertedWith('msg.sender != allowed hook')
+      ).revertedWith('msg.sender != allowed hook')
     })
 
     it("should correctly add 'amount' to both deposited totals when starting from zero", async () => {
@@ -118,7 +118,7 @@ describe('=> DepositRecord', () => {
       expect(await depositRecord.getGlobalNetDepositAmount()).to.eq(TEST_USER_DEPOSIT_CAP)
       expect(await depositRecord.getUserDepositAmount(user.address)).to.eq(TEST_USER_DEPOSIT_CAP)
 
-      await expect(depositRecord.connect(user).recordDeposit(user.address, 1)).to.be.revertedWith(
+      await expect(depositRecord.connect(user).recordDeposit(user.address, 1)).revertedWith(
         'User deposit cap exceeded'
       )
     })
@@ -140,9 +140,9 @@ describe('=> DepositRecord', () => {
       expect(await depositRecord.getGlobalNetDepositAmount()).to.eq(TEST_GLOBAL_DEPOSIT_CAP)
       const lastAccountAddress = allSigners[accountsToReachCap].address
 
-      await expect(
-        depositRecord.connect(user).recordDeposit(lastAccountAddress, 1)
-      ).to.be.revertedWith('Global deposit cap exceeded')
+      await expect(depositRecord.connect(user).recordDeposit(lastAccountAddress, 1)).revertedWith(
+        'Global deposit cap exceeded'
+      )
     })
   })
 
@@ -157,9 +157,9 @@ describe('=> DepositRecord', () => {
     it('reverts if caller not allowed', async () => {
       expect(await depositRecord.isHookAllowed(user2.address)).to.eq(false)
 
-      await expect(
-        depositRecord.connect(user2).recordWithdrawal(TEST_AMOUNT_TWO)
-      ).to.be.revertedWith('msg.sender != allowed hook')
+      await expect(depositRecord.connect(user2).recordWithdrawal(TEST_AMOUNT_TWO)).revertedWith(
+        'msg.sender != allowed hook'
+      )
     })
 
     it('subtracts from global deposits if withdrawal > 0 and global deposits > 0', async () => {

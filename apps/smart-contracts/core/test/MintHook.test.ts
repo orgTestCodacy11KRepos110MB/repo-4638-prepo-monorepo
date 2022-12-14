@@ -63,7 +63,7 @@ describe('=> MintHook', () => {
 
       await expect(
         mintHook.connect(user).setAllowedMsgSenders(msgSendersAllowlist.address)
-      ).to.be.revertedWith('Ownable: caller is not the owner')
+      ).revertedWith('Ownable: caller is not the owner')
     })
 
     it('succeeds if owner', async () => {
@@ -81,7 +81,7 @@ describe('=> MintHook', () => {
     it('reverts if caller not allowed', async () => {
       expect(await msgSendersAllowlist.isIncluded(user.address)).to.be.false
 
-      await expect(mintHook.connect(user).hook(user.address, 2, 1)).to.be.revertedWith(
+      await expect(mintHook.connect(user).hook(user.address, 2, 1)).revertedWith(
         'msg.sender not allowed'
       )
     })
@@ -90,7 +90,7 @@ describe('=> MintHook', () => {
       expect(await msgSendersAllowlist.isIncluded(market.address)).to.be.true
       expect(await allowlist.isIncluded(user.address)).to.eq(false)
 
-      await expect(mintHook.connect(market).hook(user.address, 2, 1)).to.be.revertedWith(
+      await expect(mintHook.connect(market).hook(user.address, 2, 1)).revertedWith(
         'minter not allowed'
       )
     })

@@ -356,7 +356,7 @@ describe('TokenShop', () => {
         tokenShop
           .connect(user1)
           .purchase([paymentToken.address], [erc1155Id1], [erc1155Id1Amount], [erc1155Id1Price])
-      ).to.be.reverted
+      ).reverted
     })
 
     it('reverts if ERC1155 hook reverts', async () => {
@@ -364,7 +364,7 @@ describe('TokenShop', () => {
 
       await expect(
         tokenShop.connect(user1).purchase(tokenContracts, tokenIds, amounts, purchasePrices)
-      ).to.be.reverted
+      ).reverted
     })
 
     it('reverts if ERC721 hook reverts', async () => {
@@ -372,7 +372,7 @@ describe('TokenShop', () => {
 
       await expect(
         tokenShop.connect(user1).purchase(tokenContracts, tokenIds, amounts, purchasePrices)
-      ).to.be.reverted
+      ).reverted
     })
 
     it('reverts if purchase price < price', async () => {

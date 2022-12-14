@@ -116,7 +116,7 @@ describe('BlocklistTransferHook', () => {
 
       await expect(
         blocklistTransferHook.connect(ppoToken).hook(sender.address, recipient.address, 1)
-      ).to.be.revertedWith('Sender blocked')
+      ).revertedWith('Sender blocked')
     })
 
     it('reverts if recipient blocked', async () => {
@@ -124,7 +124,7 @@ describe('BlocklistTransferHook', () => {
 
       await expect(
         blocklistTransferHook.connect(ppoToken).hook(sender.address, recipient.address, 1)
-      ).to.be.revertedWith('Recipient blocked')
+      ).revertedWith('Recipient blocked')
     })
 
     it('reverts if both sender and recipient blocked', async () => {
@@ -133,7 +133,7 @@ describe('BlocklistTransferHook', () => {
 
       await expect(
         blocklistTransferHook.connect(ppoToken).hook(sender.address, recipient.address, 1)
-      ).to.be.revertedWith('Sender blocked')
+      ).revertedWith('Sender blocked')
     })
 
     it('reverts if blocklist not set', async () => {
@@ -142,7 +142,7 @@ describe('BlocklistTransferHook', () => {
 
       await expect(
         blocklistTransferHook.connect(ppoToken).hook(sender.address, recipient.address, 1)
-      ).to.be.reverted
+      ).reverted
     })
 
     it('reverts if blocklist set to incompatible contract', async () => {
@@ -152,7 +152,7 @@ describe('BlocklistTransferHook', () => {
 
       await expect(
         blocklistTransferHook.connect(ppoToken).hook(sender.address, recipient.address, 1)
-      ).to.be.reverted
+      ).reverted
     })
 
     it("doesn't revert if both sender and recipient not blocked", async () => {

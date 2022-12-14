@@ -147,7 +147,7 @@ describe('=> PPO', () => {
     it('reverts if transfer hook reverts', async () => {
       fakeTransferHook.hook.reverts()
 
-      await expect(ppo.connect(owner).mint(user1.address, 1)).to.be.reverted
+      await expect(ppo.connect(owner).mint(user1.address, 1)).reverted
     })
 
     it('calls transfer hook with correct parameters', async () => {
@@ -259,7 +259,7 @@ describe('=> PPO', () => {
     it('reverts if transfer hook reverts', async () => {
       fakeTransferHook.hook.reverts()
 
-      await expect(ppo.connect(user1).burn(1)).to.be.reverted
+      await expect(ppo.connect(user1).burn(1)).reverted
     })
 
     it('calls transfer hook with correct parameters', async () => {
@@ -352,7 +352,7 @@ describe('=> PPO', () => {
       fakeTransferHook.hook.reverts()
       await ppo.connect(user1).approve(user2.address, 1)
 
-      await expect(ppo.connect(user2).burnFrom(user1.address, 1)).to.be.reverted
+      await expect(ppo.connect(user2).burnFrom(user1.address, 1)).reverted
     })
 
     it('calls transfer hook with correct parameters', async () => {
@@ -704,7 +704,7 @@ describe('=> PPO', () => {
             r,
             s
           )
-      ).to.be.reverted
+      ).reverted
       expect(await fakeTransferHook.hook).to.have.been.called
     })
 
@@ -1000,7 +1000,7 @@ describe('=> PPO', () => {
     it('reverts if transfer hook reverts', async () => {
       fakeTransferHook.hook.reverts()
 
-      await expect(ppo.connect(user1).transfer(user2.address, 1)).to.be.reverted
+      await expect(ppo.connect(user1).transfer(user2.address, 1)).reverted
     })
 
     it('calls transfer hook with correct parameters', async () => {
@@ -1029,7 +1029,7 @@ describe('=> PPO', () => {
       fakeTransferHook.hook.reverts()
       await ppo.connect(user1).approve(user2.address, 1)
 
-      await expect(ppo.connect(user2).transferFrom(user1.address, user2.address, 1)).to.be.reverted
+      await expect(ppo.connect(user2).transferFrom(user1.address, user2.address, 1)).reverted
     })
 
     it('calls transfer hook with correct parameters', async () => {

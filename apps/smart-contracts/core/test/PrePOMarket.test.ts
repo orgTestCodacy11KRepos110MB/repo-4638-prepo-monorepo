@@ -425,7 +425,7 @@ describe('=> prePOMarket', () => {
 
       await prePOMarket.connect(user).mint(TEST_MINT_AMOUNT)
 
-      expect(mintHook.hook).to.be.calledWith(user.address, TEST_MINT_AMOUNT, TEST_MINT_AMOUNT)
+      expect(mintHook.hook).calledWith(user.address, TEST_MINT_AMOUNT, TEST_MINT_AMOUNT)
     })
 
     it('ignores hook if not set', async () => {
@@ -437,7 +437,7 @@ describe('=> prePOMarket', () => {
 
       await prePOMarket.connect(user).mint(TEST_MINT_AMOUNT)
 
-      expect(mintHook.hook).to.not.be.called
+      expect(mintHook.hook).not.called
     })
 
     it('reverts if hook reverts', async () => {
@@ -447,7 +447,7 @@ describe('=> prePOMarket', () => {
       await collateralToken.connect(user).approve(prePOMarket.address, TEST_MINT_AMOUNT)
       mintHook.hook.reverts()
 
-      await expect(prePOMarket.connect(user).mint(TEST_MINT_AMOUNT)).to.be.reverted
+      await expect(prePOMarket.connect(user).mint(TEST_MINT_AMOUNT)).reverted
     })
 
     it('emits Mint', async () => {
@@ -543,7 +543,7 @@ describe('=> prePOMarket', () => {
       await setupMarket()
       await prePOMarket.connect(treasury).setRedemptionFee(0)
 
-      await expect(prePOMarket.connect(user).redeem(0, 0)).to.be.revertedWith('amount = 0')
+      await expect(prePOMarket.connect(user).redeem(0, 0)).revertedWith('amount = 0')
     })
 
     it('reverts if amounts = 0, fee = 0%, and after market end', async () => {
@@ -551,14 +551,14 @@ describe('=> prePOMarket', () => {
       expect(await prePOMarket.getFinalLongPayout()).to.be.lte(MAX_PAYOUT)
       await prePOMarket.connect(treasury).setRedemptionFee(0)
 
-      await expect(prePOMarket.connect(user).redeem(0, 0)).to.be.revertedWith('amount = 0')
+      await expect(prePOMarket.connect(user).redeem(0, 0)).revertedWith('amount = 0')
     })
 
     it('reverts if amounts = 0, fee > 0%, and before market end', async () => {
       await setupMarket()
       expect(await prePOMarket.getRedemptionFee()).to.be.gt(0)
 
-      await expect(prePOMarket.connect(user).redeem(0, 0)).to.be.revertedWith('fee = 0')
+      await expect(prePOMarket.connect(user).redeem(0, 0)).revertedWith('fee = 0')
     })
 
     it('reverts if amounts = 0, fee > 0%, and after market end', async () => {
@@ -566,7 +566,7 @@ describe('=> prePOMarket', () => {
       expect(await prePOMarket.getFinalLongPayout()).to.be.lte(MAX_PAYOUT)
       expect(await prePOMarket.getRedemptionFee()).to.be.gt(0)
 
-      await expect(prePOMarket.connect(user).redeem(0, 0)).to.be.revertedWith('fee = 0')
+      await expect(prePOMarket.connect(user).redeem(0, 0)).revertedWith('fee = 0')
     })
 
     it('reverts if hook reverts', async () => {
@@ -596,9 +596,9 @@ describe('=> prePOMarket', () => {
       expect(totalOwed).to.be.gt(0)
       expect(calculateFee(totalOwed, await prePOMarket.getRedemptionFee())).to.eq(0)
 
-      await expect(
-        prePOMarket.connect(user).redeem(longToRedeem, shortToRedeem)
-      ).to.be.revertedWith('fee = 0')
+      await expect(prePOMarket.connect(user).redeem(longToRedeem, shortToRedeem)).revertedWith(
+        'fee = 0'
+      )
     })
 
     it('reverts if amounts > 0, fee amount = 0, fee > 0%, and redeeming more long', async () => {
@@ -618,9 +618,9 @@ describe('=> prePOMarket', () => {
       expect(totalOwed).to.be.gt(0)
       expect(calculateFee(totalOwed, await prePOMarket.getRedemptionFee())).to.eq(0)
 
-      await expect(
-        prePOMarket.connect(user).redeem(longToRedeem, shortToRedeem)
-      ).to.be.revertedWith('fee = 0')
+      await expect(prePOMarket.connect(user).redeem(longToRedeem, shortToRedeem)).revertedWith(
+        'fee = 0'
+      )
     })
 
     it('reverts if amounts > 0, fee amount = 0, fee > 0%, and redeeming more short', async () => {
@@ -640,9 +640,9 @@ describe('=> prePOMarket', () => {
       expect(totalOwed).to.be.gt(0)
       expect(calculateFee(totalOwed, await prePOMarket.getRedemptionFee())).to.eq(0)
 
-      await expect(
-        prePOMarket.connect(user).redeem(longToRedeem, shortToRedeem)
-      ).to.be.revertedWith('fee = 0')
+      await expect(prePOMarket.connect(user).redeem(longToRedeem, shortToRedeem)).revertedWith(
+        'fee = 0'
+      )
     })
 
     it('should not allow long token redemption exceeding long token balance', async () => {
@@ -794,7 +794,7 @@ describe('=> prePOMarket', () => {
 
       await prePOMarket.connect(user).redeem(longToRedeem, shortToRedeem)
 
-      expect(redeemHook.hook).to.be.calledWith(user.address, totalOwed, totalOwed.sub(redeemFee))
+      expect(redeemHook.hook).calledWith(user.address, totalOwed, totalOwed.sub(redeemFee))
     })
 
     it('ignores hook if not set', async () => {
@@ -805,7 +805,7 @@ describe('=> prePOMarket', () => {
 
       await prePOMarket.connect(user).redeem(longToRedeem, shortToRedeem)
 
-      expect(redeemHook.hook).to.not.be.called
+      expect(redeemHook.hook).not.called
     })
 
     it('approves fee for hook to use', async () => {

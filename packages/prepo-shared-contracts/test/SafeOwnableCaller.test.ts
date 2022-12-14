@@ -62,7 +62,7 @@ describe('SafeOwnableCallerTest', () => {
         safeOwnableCaller
           .connect(owner)
           ['transferOwnership(address,address)'](mockOwnedContract.address, user1.address)
-      ).to.be.reverted
+      ).reverted
       expect(mockOwnedContract.transferOwnership).to.have.been.called
     })
 
@@ -103,7 +103,7 @@ describe('SafeOwnableCallerTest', () => {
 
       await expect(
         safeOwnableCaller.connect(owner)['acceptOwnership(address)'](mockOwnedContract.address)
-      ).to.be.reverted
+      ).reverted
       expect(mockOwnedContract.acceptOwnership).to.have.been.called
     })
 
@@ -141,7 +141,7 @@ describe('SafeOwnableCallerTest', () => {
 
       await expect(
         safeOwnableCaller.connect(owner)['renounceOwnership(address)'](mockOwnedContract.address)
-      ).to.be.reverted
+      ).reverted
       expect(mockOwnedContract.renounceOwnership).to.have.been.called
     })
 

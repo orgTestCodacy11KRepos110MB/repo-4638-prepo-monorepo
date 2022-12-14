@@ -259,7 +259,7 @@ describe('=> DepositHook', () => {
         .connect(collateralSigner)
         .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_BEFORE_FEE)
 
-      expect(depositRecord.recordDeposit).to.be.calledWith(user.address, TEST_AMOUNT_BEFORE_FEE)
+      expect(depositRecord.recordDeposit).calledWith(user.address, TEST_AMOUNT_BEFORE_FEE)
     })
 
     it('calls recordDeposit() if fee > 0', async () => {
@@ -267,7 +267,7 @@ describe('=> DepositHook', () => {
         .connect(collateralSigner)
         .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
 
-      expect(depositRecord.recordDeposit).to.be.calledWith(user.address, TEST_AMOUNT_AFTER_FEE)
+      expect(depositRecord.recordDeposit).calledWith(user.address, TEST_AMOUNT_AFTER_FEE)
     })
 
     it('transfers fee to treasury if fee > 0', async () => {
@@ -278,7 +278,7 @@ describe('=> DepositHook', () => {
         .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
 
       const fee = TEST_AMOUNT_BEFORE_FEE.sub(TEST_AMOUNT_AFTER_FEE)
-      expect(testToken.transferFrom).to.be.calledWith(collateral.address, treasury.address, fee)
+      expect(testToken.transferFrom).calledWith(collateral.address, treasury.address, fee)
     })
 
     it('calls tokenSender.send() if fee > 0', async () => {
@@ -289,7 +289,7 @@ describe('=> DepositHook', () => {
         .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
 
       const fee = TEST_AMOUNT_BEFORE_FEE.sub(TEST_AMOUNT_AFTER_FEE)
-      expect(tokenSender.send).to.be.calledWith(user.address, fee)
+      expect(tokenSender.send).calledWith(user.address, fee)
     })
 
     it("doesn't transfer fee to treasury if fee = 0", async () => {
@@ -297,7 +297,7 @@ describe('=> DepositHook', () => {
         .connect(collateralSigner)
         .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_BEFORE_FEE)
 
-      expect(testToken.transferFrom).to.not.be.called
+      expect(testToken.transferFrom).not.called
     })
 
     it("doesn't call tokenSender.send() if fee = 0", async () => {
@@ -305,7 +305,7 @@ describe('=> DepositHook', () => {
         .connect(collateralSigner)
         .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_BEFORE_FEE)
 
-      expect(tokenSender.send).to.not.be.called
+      expect(tokenSender.send).not.called
     })
   })
 

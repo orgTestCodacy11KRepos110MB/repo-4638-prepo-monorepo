@@ -72,7 +72,7 @@ describe('AllowlistPurchaseHook', () => {
         allowlistPurchaseHook
           .connect(allowedContract)
           .hook(purchaser.address, recipient.address, 1, 1, dataPayloadA)
-      ).to.be.revertedWith('Recipient not allowed')
+      ).revertedWith('Recipient not allowed')
     })
 
     it('reverts if allowlist not set', async () => {
@@ -83,7 +83,7 @@ describe('AllowlistPurchaseHook', () => {
         allowlistPurchaseHook
           .connect(allowedContract)
           .hook(purchaser.address, recipient.address, 1, 1, dataPayloadA)
-      ).to.be.reverted
+      ).reverted
     })
 
     it('reverts if allowlist set to incompatible contract', async () => {
@@ -95,7 +95,7 @@ describe('AllowlistPurchaseHook', () => {
         allowlistPurchaseHook
           .connect(allowedContract)
           .hook(purchaser.address, recipient.address, 1, 1, dataPayloadA)
-      ).to.be.reverted
+      ).reverted
     })
 
     it('succeeds if recipient allowed', async () => {

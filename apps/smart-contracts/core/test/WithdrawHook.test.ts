@@ -150,7 +150,7 @@ describe('=> WithdrawHook', () => {
         .connect(collateralSigner)
         .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
 
-      expect(depositRecord.recordWithdrawal).to.be.calledWith(TEST_AMOUNT_BEFORE_FEE)
+      expect(depositRecord.recordWithdrawal).calledWith(TEST_AMOUNT_BEFORE_FEE)
     })
 
     it("doesn't revert if withdrawing 0", async () => {
@@ -166,7 +166,7 @@ describe('=> WithdrawHook', () => {
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
 
         const fee = TEST_AMOUNT_BEFORE_FEE.sub(TEST_AMOUNT_AFTER_FEE)
-        expect(testToken.transferFrom).to.be.calledWith(collateral.address, treasury.address, fee)
+        expect(testToken.transferFrom).calledWith(collateral.address, treasury.address, fee)
       })
 
       it('calls tokenSender.send() if fee > 0', async () => {
@@ -177,7 +177,7 @@ describe('=> WithdrawHook', () => {
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
 
         const fee = TEST_AMOUNT_BEFORE_FEE.sub(TEST_AMOUNT_AFTER_FEE)
-        expect(tokenSender.send).to.be.calledWith(user.address, fee)
+        expect(tokenSender.send).calledWith(user.address, fee)
       })
 
       it("doesn't transfer fee to treasury if fee = 0", async () => {
@@ -185,7 +185,7 @@ describe('=> WithdrawHook', () => {
           .connect(collateralSigner)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_BEFORE_FEE)
 
-        expect(testToken.transferFrom).to.not.be.called
+        expect(testToken.transferFrom).not.called
       })
 
       it("doesn't call tokenSender.send() if fee = 0", async () => {
@@ -193,7 +193,7 @@ describe('=> WithdrawHook', () => {
           .connect(collateralSigner)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_BEFORE_FEE)
 
-        expect(tokenSender.send).to.not.be.called
+        expect(tokenSender.send).not.called
       })
     })
 

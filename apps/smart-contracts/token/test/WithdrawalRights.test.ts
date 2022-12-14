@@ -163,7 +163,7 @@ describe('WithdrawalRights', () => {
     })
 
     it('sets tokenId owner to recipient', async () => {
-      await expect(withdrawalRights.ownerOf(0)).to.be.revertedWith('ERC721: invalid token ID')
+      await expect(withdrawalRights.ownerOf(0)).revertedWith('ERC721: invalid token ID')
 
       await withdrawalRights.connect(ppoStaking).mint(user1.address)
 

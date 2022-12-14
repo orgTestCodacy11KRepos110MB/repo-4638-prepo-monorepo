@@ -131,7 +131,7 @@ describe('PPOGamifiedToken', () => {
 
       await expect(
         gamifiedToken.connect(user1).setTimeMultiplierCalculator(mockSteppedTimeMultiplier.address)
-      ).to.be.revertedWith('Only governor can execute')
+      ).revertedWith('Only governor can execute')
     })
 
     it('sets new calculator to non-zero address', async () => {
@@ -199,9 +199,9 @@ describe('PPOGamifiedToken', () => {
     it('reverts if not governor', async () => {
       expect(await nexus.governor()).to.not.eq(user1)
 
-      await expect(
-        gamifiedToken.connect(user1).setMaxMultiplier(MAX_MULTIPLIER)
-      ).to.be.revertedWith('Only governor can execute')
+      await expect(gamifiedToken.connect(user1).setMaxMultiplier(MAX_MULTIPLIER)).revertedWith(
+        'Only governor can execute'
+      )
     })
 
     it('sets new max to value > 0', async () => {
@@ -394,7 +394,7 @@ describe('PPOGamifiedToken', () => {
 
       await gamifiedToken.connect(user1).applyAchievementsMultiplier(user1.address, 0)
 
-      expect(mockSteppedTimeMultiplier.calculate).to.be.calledWith(lastBlockTime)
+      expect(mockSteppedTimeMultiplier.calculate).calledWith(lastBlockTime)
     })
   })
 
@@ -423,7 +423,7 @@ describe('PPOGamifiedToken', () => {
 
       await gamifiedToken.enterCooldownPeriod(user1.address, 1)
 
-      expect(mockSteppedTimeMultiplier.calculate).to.be.calledWith(lastBlockTime)
+      expect(mockSteppedTimeMultiplier.calculate).calledWith(lastBlockTime)
     })
   })
 
@@ -452,7 +452,7 @@ describe('PPOGamifiedToken', () => {
 
       await gamifiedToken.exitCooldownPeriod(user1.address)
 
-      expect(mockSteppedTimeMultiplier.calculate).to.be.calledWith(lastBlockTime)
+      expect(mockSteppedTimeMultiplier.calculate).calledWith(lastBlockTime)
     })
   })
 
@@ -483,7 +483,7 @@ describe('PPOGamifiedToken', () => {
 
       await gamifiedToken.reviewTimestamp(user1.address)
 
-      expect(mockSteppedTimeMultiplier.calculate).to.be.calledWith(lastBlockTime)
+      expect(mockSteppedTimeMultiplier.calculate).calledWith(lastBlockTime)
     })
   })
 
@@ -512,7 +512,7 @@ describe('PPOGamifiedToken', () => {
 
       await gamifiedToken.mintRaw(user1.address, 1, false)
 
-      expect(mockSteppedTimeMultiplier.calculate).to.be.calledWith(lastBlockTime)
+      expect(mockSteppedTimeMultiplier.calculate).calledWith(lastBlockTime)
     })
   })
 
@@ -542,7 +542,7 @@ describe('PPOGamifiedToken', () => {
 
       await gamifiedToken.burnRaw(user1.address, 1, false, false)
 
-      expect(mockSteppedTimeMultiplier.calculate).to.be.calledWith(lastBlockTime)
+      expect(mockSteppedTimeMultiplier.calculate).calledWith(lastBlockTime)
     })
   })
 })

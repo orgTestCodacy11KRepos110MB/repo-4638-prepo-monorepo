@@ -76,7 +76,7 @@ describe('=> RedeemHook', () => {
 
       await expect(
         redeemHook.connect(user).setAllowedMsgSenders(msgSendersAllowlist.address)
-      ).to.be.revertedWith('Ownable: caller is not the owner')
+      ).revertedWith('Ownable: caller is not the owner')
     })
 
     it('succeeds if owner', async () => {
@@ -90,7 +90,7 @@ describe('=> RedeemHook', () => {
     it('reverts if not owner', async () => {
       expect(await redeemHook.owner()).to.not.eq(user.address)
 
-      await expect(redeemHook.connect(user).setTreasury(treasury.address)).to.be.revertedWith(
+      await expect(redeemHook.connect(user).setTreasury(treasury.address)).revertedWith(
         'Ownable: caller is not the owner'
       )
     })
@@ -106,7 +106,7 @@ describe('=> RedeemHook', () => {
     it('reverts if not owner', async () => {
       expect(await redeemHook.owner()).to.not.eq(user.address)
 
-      await expect(redeemHook.connect(user).setTokenSender(tokenSender.address)).to.be.revertedWith(
+      await expect(redeemHook.connect(user).setTokenSender(tokenSender.address)).revertedWith(
         'Ownable: caller is not the owner'
       )
     })
@@ -129,7 +129,7 @@ describe('=> RedeemHook', () => {
       msgSendersAllowlist.isIncluded.returns(false)
       expect(await msgSendersAllowlist.isIncluded(user.address)).to.be.false
 
-      await expect(redeemHook.connect(user).hook(user.address, 1, 1)).to.be.revertedWith(
+      await expect(redeemHook.connect(user).hook(user.address, 1, 1)).revertedWith(
         'msg.sender not allowed'
       )
     })
@@ -138,7 +138,7 @@ describe('=> RedeemHook', () => {
       expect(await msgSendersAllowlist.isIncluded(deployer.address)).to.be.true
       expect(await allowlist.isIncluded(user.address)).to.eq(false)
 
-      await expect(redeemHook.connect(deployer).hook(user.address, 1, 1)).to.be.revertedWith(
+      await expect(redeemHook.connect(deployer).hook(user.address, 1, 1)).revertedWith(
         'redeemer not allowed'
       )
     })
@@ -159,25 +159,25 @@ describe('=> RedeemHook', () => {
       it('transfers fee to treasury if fee > 0', async () => {
         await redeemHook.connect(marketSigner).hook(user.address, 2, 1)
 
-        expect(collateral.transferFrom).to.be.calledWith(market.address, treasury.address, 1)
+        expect(collateral.transferFrom).calledWith(market.address, treasury.address, 1)
       })
 
       it('calls tokenSender.send() if fee > 0', async () => {
         await redeemHook.connect(marketSigner).hook(user.address, 2, 1)
 
-        expect(tokenSender.send).to.be.calledWith(user.address, 1)
+        expect(tokenSender.send).calledWith(user.address, 1)
       })
 
       it("doesn't transfer fee to treasury if fee = 0", async () => {
         await redeemHook.connect(marketSigner).hook(user.address, 1, 1)
 
-        expect(collateral.transferFrom).to.not.be.called
+        expect(collateral.transferFrom).not.called
       })
 
       it("doesn't call tokenSender.send() if fee = 0", async () => {
         await redeemHook.connect(marketSigner).hook(user.address, 1, 1)
 
-        expect(tokenSender.send).to.not.be.called
+        expect(tokenSender.send).not.called
       })
     })
   })

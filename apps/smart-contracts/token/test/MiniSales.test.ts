@@ -121,7 +121,7 @@ describe('=> MiniSales', () => {
         miniSales
           .connect(purchaser)
           .purchase(recipient.address, saleTokenAmount, testPrice, dataPayloadA)
-      ).to.be.reverted
+      ).reverted
       expect(fakeAllowlistPurchaseHook.hook).to.have.been.calledOnce
     })
 

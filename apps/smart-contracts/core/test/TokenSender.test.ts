@@ -270,7 +270,7 @@ describe('=> TokenSender', () => {
 
       await tokenSender.connect(deployer).send(user.address, 0)
 
-      expect(outputToken.transfer).to.not.be.called
+      expect(outputToken.transfer).not.called
     })
 
     it("doesn't transfer if price = 0", async () => {
@@ -280,7 +280,7 @@ describe('=> TokenSender', () => {
 
       await tokenSender.connect(deployer).send(user.address, 1)
 
-      expect(outputToken.transfer).to.not.be.called
+      expect(outputToken.transfer).not.called
     })
 
     it("doesn't transfer if price > 0 and priceMultiplier = 0", async () => {
@@ -290,7 +290,7 @@ describe('=> TokenSender', () => {
 
       await tokenSender.connect(deployer).send(user.address, 1)
 
-      expect(outputToken.transfer).to.not.be.called
+      expect(outputToken.transfer).not.called
     })
 
     it("doesn't transfer if scaled price < lowerBound", async () => {
@@ -300,7 +300,7 @@ describe('=> TokenSender', () => {
 
       await tokenSender.connect(deployer).send(user.address, 1)
 
-      expect(outputToken.transfer).to.not.be.called
+      expect(outputToken.transfer).not.called
     })
 
     it("doesn't transfer if scaled price = lowerBound", async () => {
@@ -310,7 +310,7 @@ describe('=> TokenSender', () => {
 
       await tokenSender.connect(deployer).send(user.address, 1)
 
-      expect(outputToken.transfer).to.not.be.called
+      expect(outputToken.transfer).not.called
     })
 
     it("doesn't transfer if outputAmount > token balance", async () => {
@@ -323,7 +323,7 @@ describe('=> TokenSender', () => {
 
       await tokenSender.connect(deployer).send(user.address, 1)
 
-      expect(outputToken.transfer).to.not.be.called
+      expect(outputToken.transfer).not.called
     })
 
     it("doesn't transfer if outputAmount = 0", async () => {
@@ -337,7 +337,7 @@ describe('=> TokenSender', () => {
 
       await tokenSender.connect(deployer).send(user.address, unconvertedAmount)
 
-      expect(outputToken.transfer).to.not.be.called
+      expect(outputToken.transfer).not.called
     })
 
     it('transfers', async () => {
@@ -353,7 +353,7 @@ describe('=> TokenSender', () => {
 
       await tokenSender.connect(deployer).send(user.address, unconvertedAmount)
 
-      expect(outputToken.transfer).to.be.calledWith(user.address, outputAmount)
+      expect(outputToken.transfer).calledWith(user.address, outputAmount)
       expect(await outputToken.balanceOf(user.address)).to.be.eq(outputAmount)
     })
   })

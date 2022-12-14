@@ -629,7 +629,7 @@ describe('=> Collateral', () => {
 
       await collateral.connect(deployer).managerWithdraw(amountToWithdraw)
 
-      expect(managerWithdrawHook.hook).to.be.calledWith(
+      expect(managerWithdrawHook.hook).calledWith(
         deployer.address,
         amountToWithdraw,
         amountToWithdraw
@@ -696,7 +696,7 @@ describe('=> Collateral', () => {
     it('reverts if deposit = 0 and deposit fee = 0%', async () => {
       await collateral.connect(deployer).setDepositFee(0)
 
-      await expect(collateral.connect(sender).deposit(recipient.address, 0)).to.be.revertedWith(
+      await expect(collateral.connect(sender).deposit(recipient.address, 0)).revertedWith(
         'amount = 0'
       )
     })
@@ -704,9 +704,7 @@ describe('=> Collateral', () => {
     it('reverts if deposit = 0 and deposit fee > 0%', async () => {
       expect(await collateral.getDepositFee()).to.be.gt(0)
 
-      await expect(collateral.connect(sender).deposit(recipient.address, 0)).to.be.revertedWith(
-        'fee = 0'
-      )
+      await expect(collateral.connect(sender).deposit(recipient.address, 0)).revertedWith('fee = 0')
     })
 
     it('reverts if deposit > 0, fee = 0, and deposit fee > 0%', async () => {
@@ -717,7 +715,7 @@ describe('=> Collateral', () => {
 
       await expect(
         collateral.connect(sender).deposit(recipient.address, amountToDeposit)
-      ).to.be.revertedWith('fee = 0')
+      ).revertedWith('fee = 0')
     })
 
     it('reverts if insufficient approval', async () => {
@@ -730,7 +728,7 @@ describe('=> Collateral', () => {
 
       await expect(
         collateral.connect(sender).deposit(recipient.address, amountToDeposit)
-      ).to.be.revertedWith('ERC20: insufficient allowance')
+      ).revertedWith('ERC20: insufficient allowance')
     })
 
     it('reverts if insufficient balance', async () => {
@@ -743,7 +741,7 @@ describe('=> Collateral', () => {
 
       await expect(
         collateral.connect(sender).deposit(recipient.address, amountToDeposit)
-      ).to.be.revertedWith('ERC20: transfer amount exceeds balance')
+      ).revertedWith('ERC20: transfer amount exceeds balance')
     })
 
     it('reverts if hook reverts', async () => {
@@ -939,7 +937,7 @@ describe('=> Collateral', () => {
 
       await collateral.connect(sender).deposit(recipient.address, amountToDeposit)
 
-      expect(depositHook.hook).to.be.calledWith(
+      expect(depositHook.hook).calledWith(
         recipient.address,
         amountToDeposit,
         amountToDeposit.sub(fee)
@@ -1237,7 +1235,7 @@ describe('=> Collateral', () => {
 
       await collateral.connect(user1).withdraw(amountToWithdraw)
 
-      expect(withdrawHook.hook).to.be.calledWith(user1.address, expectedBT, expectedBT.sub(fee))
+      expect(withdrawHook.hook).calledWith(user1.address, expectedBT, expectedBT.sub(fee))
     })
 
     it('emits Withdraw', async () => {
