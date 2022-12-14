@@ -44,7 +44,7 @@ contract PrePOMarketFactory is
     string memory _tokenSymbolSuffix,
     bytes32 longTokenSalt,
     bytes32 shortTokenSalt,
-    address _governance,
+    address owner,
     address _collateral,
     uint256 _floorLongPrice,
     uint256 _ceilingLongPrice,
@@ -66,7 +66,7 @@ contract PrePOMarketFactory is
     bytes32 _salt = keccak256(abi.encodePacked(_longToken, _shortToken));
 
     PrePOMarket _newMarket = new PrePOMarket{salt: _salt}(
-      _governance,
+      owner,
       _collateral,
       ILongShortToken(address(_longToken)),
       ILongShortToken(address(_shortToken)),

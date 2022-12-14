@@ -41,7 +41,7 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
    * `PrePOMarketFactory.sol`.
    */
   constructor(
-    address _governance,
+    address owner,
     address _collateral,
     ILongShortToken _longToken,
     ILongShortToken _shortToken,
@@ -58,7 +58,7 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
     require(_expiryTime > block.timestamp, "Invalid expiry");
     require(_ceilingLongPayout <= MAX_PAYOUT, "Ceiling cannot exceed 1");
 
-    transferOwnership(_governance);
+    transferOwnership(owner);
 
     collateral = IERC20(_collateral);
     longToken = _longToken;
