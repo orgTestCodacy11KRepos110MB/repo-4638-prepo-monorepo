@@ -55,23 +55,23 @@ describe('=> PrePOMarketFactory', () => {
     })
 
     it('should correctly set validity of collateral to true', async () => {
-      expect(await prePOMarketFactory.isCollateralValid(collateralToken.address)).to.eq(false)
+      expect(await prePOMarketFactory.isValidCollateral(collateralToken.address)).to.eq(false)
 
       await prePOMarketFactory
         .connect(deployer)
         .setCollateralValidity(collateralToken.address, true)
 
-      expect(await prePOMarketFactory.isCollateralValid(collateralToken.address)).to.eq(true)
+      expect(await prePOMarketFactory.isValidCollateral(collateralToken.address)).to.eq(true)
     })
 
     it('should correctly set validity of collateral to false', async () => {
-      expect(await prePOMarketFactory.isCollateralValid(collateralToken.address)).to.eq(false)
+      expect(await prePOMarketFactory.isValidCollateral(collateralToken.address)).to.eq(false)
 
       await prePOMarketFactory
         .connect(deployer)
         .setCollateralValidity(collateralToken.address, false)
 
-      expect(await prePOMarketFactory.isCollateralValid(collateralToken.address)).to.eq(false)
+      expect(await prePOMarketFactory.isValidCollateral(collateralToken.address)).to.eq(false)
     })
 
     it('should emit a CollateralValidityChanged event', async () => {

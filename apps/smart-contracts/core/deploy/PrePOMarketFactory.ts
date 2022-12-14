@@ -52,7 +52,7 @@ const deployFunction: DeployFunction = async function ({
     )) as PrePOMarketFactory
     console.log('Upgraded PrePOMarketFactory at', prePOMarketFactory.address)
   }
-  if (!(await prePOMarketFactory.isCollateralValid(collateral.address))) {
+  if (!(await prePOMarketFactory.isValidCollateral(collateral.address))) {
     console.log(
       'Configuring PrePOMarketFactory to set Collateral at',
       collateral.address,

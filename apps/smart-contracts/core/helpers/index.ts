@@ -1,7 +1,7 @@
 import { HardhatEthersHelpers } from '@nomiclabs/hardhat-ethers/types'
 import { Contract, ContractTransaction } from 'ethers'
 import { getAddress } from 'ethers/lib/utils'
-import { PrePOMarketFactory } from '../typechain'
+import { PrePOMarketFactory, Collateral } from '../typechain'
 
 /**
  * Check if deployment for the specified network exists. Need to do this
@@ -22,15 +22,13 @@ async function fetchExistingDeploymentFromEnvironment(
   return (await contractFactory.attach(existingAddress)) as Contract
 }
 // TODO: replace collateral with preUSD
-// export async function fetchExistingCollateral(
-//   chainId: string,
-//   ethers: HardhatEthersHelpers
-// ): Promise<Collateral> {
-//   return (await fetchExistingDeploymentFromEnvironment(
-//     `COLLATERAL_${chainId}`,
-//     await ethers.getContractFactory('Collateral')
-//   )) as Collateral
-// }
+// eslint-disable-next-line require-await
+export async function fetchExistingCollateral(
+  chainId: string,
+  ethers: HardhatEthersHelpers
+): Promise<Collateral> {
+  throw new Error('not implemented')
+}
 
 export async function fetchExistingPrePOMarketFactory(
   chainId: string,

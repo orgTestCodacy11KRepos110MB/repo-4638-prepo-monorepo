@@ -74,7 +74,7 @@ interface IPrePOMarketFactory {
    * @param collateral The address of the collateral contract
    * @return Whether the collateral contract is valid
    */
-  function isCollateralValid(address collateral) external view returns (bool);
+  function isValidCollateral(address collateral) external view returns (bool);
 
   /**
    * @dev `longShortHash` is a keccak256 hash of the long token address and

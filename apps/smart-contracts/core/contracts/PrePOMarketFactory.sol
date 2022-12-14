@@ -21,7 +21,7 @@ contract PrePOMarketFactory is
     OwnableUpgradeable.__Ownable_init();
   }
 
-  function isCollateralValid(address _collateral)
+  function isValidCollateral(address _collateral)
     external
     view
     override
