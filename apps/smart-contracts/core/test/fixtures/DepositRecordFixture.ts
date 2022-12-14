@@ -1,6 +1,6 @@
 import { BigNumber } from 'ethers'
 import { ethers } from 'hardhat'
-import { MockContract, smock } from '@defi-wonderland/smock'
+import { FakeContract, MockContract, smock } from '@defi-wonderland/smock'
 import { DepositRecord } from '../../typechain'
 
 export async function depositRecordFixture(
@@ -17,4 +17,9 @@ export async function smockDepositRecordFixture(
 ): Promise<MockContract> {
   const smockDepositRecord = await smock.mock('DepositRecord')
   return (await smockDepositRecord.deploy(globalDepositCap, userDepositCap)) as MockContract
+}
+
+export async function fakeDepositRecordFixture(): Promise<FakeContract<DepositRecord>> {
+  const fakeContract = await smock.fake<DepositRecord>('DepositRecord')
+  return fakeContract
 }

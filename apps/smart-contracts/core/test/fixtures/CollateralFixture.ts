@@ -27,7 +27,7 @@ export async function smockCollateralFixture(
   return smockCollateral
 }
 
-export async function fakeCollateralFixture(): Promise<FakeContract> {
-  const fakeContract = await smock.fake('Collateral')
+export async function fakeCollateralFixture(): Promise<FakeContract<Collateral>> {
+  const fakeContract = await smock.fake<Collateral>('Collateral')
   return fakeContract
 }

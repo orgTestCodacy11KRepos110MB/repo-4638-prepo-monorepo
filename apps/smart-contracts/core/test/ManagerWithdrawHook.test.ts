@@ -7,10 +7,10 @@ import { MockContract, FakeContract, smock } from '@defi-wonderland/smock'
 import { ZERO_ADDRESS } from 'prepo-constants'
 import { managerWithdrawHookFixture } from './fixtures/HookFixture'
 import { testERC20Fixture } from './fixtures/TestERC20Fixture'
-import { smockDepositRecordFixture } from './fixtures/DepositRecordFixture'
+import { fakeDepositRecordFixture } from './fixtures/DepositRecordFixture'
 import { grantAndAcceptRole, PERCENT_DENOMINATOR } from './utils'
 import { fakeCollateralFixture } from './fixtures/CollateralFixture'
-import { ManagerWithdrawHook, TestERC20 } from '../typechain'
+import { Collateral, DepositRecord, ManagerWithdrawHook, TestERC20 } from '../typechain'
 
 chai.use(smock.matchers)
 
@@ -19,15 +19,14 @@ describe('=> ManagerWithdrawHook', () => {
   let user: SignerWithAddress
   let managerWithdrawHook: ManagerWithdrawHook
   let baseToken: TestERC20
-  let depositRecord: MockContract<Contract>
-  let collateral: FakeContract<Contract>
+  let depositRecord: FakeContract<DepositRecord>
+  let collateral: FakeContract<Collateral>
   const TEST_GLOBAL_DEPOSIT_CAP = parseEther('50000')
-  const TEST_USER_DEPOSIT_CAP = parseEther('50')
   const TEST_MIN_RESERVE_PERCENTAGE = 250000 // 25%
 
   const getSignersAndDeployHook = async (): Promise<void> => {
     ;[deployer, user] = await ethers.getSigners()
-    depositRecord = await smockDepositRecordFixture(TEST_GLOBAL_DEPOSIT_CAP, TEST_USER_DEPOSIT_CAP)
+    depositRecord = await fakeDepositRecordFixture()
     baseToken = await testERC20Fixture('USD Coin', 'USDC', 6)
     collateral = await fakeCollateralFixture()
     managerWithdrawHook = await managerWithdrawHookFixture()

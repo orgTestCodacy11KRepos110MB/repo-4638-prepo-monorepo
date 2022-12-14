@@ -1,5 +1,5 @@
 import { ethers } from 'hardhat'
-import { MockContract, smock } from '@defi-wonderland/smock'
+import { FakeContract, MockContract, smock } from '@defi-wonderland/smock'
 import { TestUintValue } from '../../typechain/TestUintValue'
 
 export async function testUintValueFixture(): Promise<TestUintValue> {
@@ -10,4 +10,9 @@ export async function testUintValueFixture(): Promise<TestUintValue> {
 export async function smockTestUintValueFixture(): Promise<MockContract> {
   const smockFactory = await smock.mock('TestUintValue')
   return (await smockFactory.deploy()) as MockContract
+}
+
+export async function fakeTestUintValueFixture(): Promise<FakeContract<TestUintValue>> {
+  const fakeContract = await smock.fake<TestUintValue>('TestUintValue')
+  return fakeContract
 }

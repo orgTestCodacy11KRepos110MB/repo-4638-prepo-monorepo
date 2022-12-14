@@ -22,7 +22,7 @@ import {
   PERCENT_DENOMINATOR,
   batchGrantAndAcceptRoles,
 } from './utils'
-import { Collateral, TestERC20 } from '../typechain'
+import { AccountList, Collateral, TestERC20, TokenSender } from '../typechain'
 
 chai.use(smock.matchers)
 
@@ -37,8 +37,8 @@ describe('=> Collateral', () => {
   let depositHook: MockContract<Contract>
   let withdrawHook: MockContract<Contract>
   let managerWithdrawHook: MockContract<Contract>
-  let allowlist: FakeContract<Contract>
-  let tokenSender: FakeContract<Contract>
+  let allowlist: FakeContract<AccountList>
+  let tokenSender: FakeContract<TokenSender>
   let snapshotBeforeAllTests: string
   let snapshotBeforeEachTest: string
   const TEST_DEPOSIT_FEE = 1000 // 0.1%
@@ -65,7 +65,7 @@ describe('=> Collateral', () => {
     withdrawHook = await smockWithdrawHookFixture()
     managerWithdrawHook = await smockManagerWithdrawHookFixture()
     allowlist = await fakeAccountListFixture()
-    tokenSender = await fakeTokenSenderFixture(baseToken.address)
+    tokenSender = await fakeTokenSenderFixture()
     await grantAndAcceptRole(
       depositRecord,
       deployer,

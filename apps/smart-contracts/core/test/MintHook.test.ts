@@ -10,7 +10,7 @@ import {
   mintHookFixture,
   smockAccountListFixture,
 } from './fixtures/HookFixture'
-import { MintHook } from '../typechain'
+import { AccountList, MintHook } from '../typechain'
 
 chai.use(smock.matchers)
 
@@ -20,7 +20,7 @@ describe('=> MintHook', () => {
   let market: SignerWithAddress
   let mintHook: MintHook
   let allowlist: MockContract<Contract>
-  let msgSendersAllowlist: FakeContract<Contract>
+  let msgSendersAllowlist: FakeContract<AccountList>
 
   beforeEach(async () => {
     ;[deployer, user, market] = await ethers.getSigners()

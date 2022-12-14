@@ -5,14 +5,14 @@ import { id, parseEther } from 'ethers/lib/utils'
 import { Contract } from 'ethers'
 import { FakeContract, MockContract, smock } from '@defi-wonderland/smock'
 import { ZERO_ADDRESS } from 'prepo-constants'
-import { depositHookFixture, smockAccountListFixture } from './fixtures/HookFixture'
+import { depositHookFixture, fakeAccountListFixture } from './fixtures/HookFixture'
 import { smockDepositRecordFixture } from './fixtures/DepositRecordFixture'
 import { testERC721Fixture } from './fixtures/TestERC721Fixture'
-import { getSignerForContract, grantAndAcceptRole } from './utils'
+import { getSignerForContract, setAccountBalance, grantAndAcceptRole } from './utils'
 import { fakeTokenSenderFixture } from './fixtures/TokenSenderFixture'
 import { smockTestERC20Fixture } from './fixtures/TestERC20Fixture'
 import { fakeCollateralFixture } from './fixtures/CollateralFixture'
-import { DepositHook, TestERC721 } from '../typechain'
+import { AccountList, Collateral, DepositHook, TestERC721, TokenSender } from '../typechain'
 
 chai.use(smock.matchers)
 
@@ -20,13 +20,12 @@ describe('=> DepositHook', () => {
   let deployer: SignerWithAddress
   let user: SignerWithAddress
   let treasury: SignerWithAddress
-  let collateralSigner: SignerWithAddress
   let depositHook: DepositHook
   let testToken: MockContract<Contract>
-  let tokenSender: FakeContract<Contract>
-  let allowlist: MockContract<Contract>
+  let tokenSender: FakeContract<TokenSender>
+  let allowlist: FakeContract<AccountList>
   let depositRecord: MockContract<Contract>
-  let collateral: FakeContract<Contract>
+  let collateral: FakeContract<Collateral>
   let firstERC721: TestERC721
   let secondERC721: TestERC721
   const TEST_GLOBAL_DEPOSIT_CAP = parseEther('50000')
@@ -37,8 +36,8 @@ describe('=> DepositHook', () => {
   beforeEach(async () => {
     ;[deployer, user, treasury] = await ethers.getSigners()
     testToken = await smockTestERC20Fixture('Test Token', 'TEST', 18)
-    tokenSender = await fakeTokenSenderFixture(testToken.address)
-    allowlist = await smockAccountListFixture()
+    tokenSender = await fakeTokenSenderFixture()
+    allowlist = await fakeAccountListFixture()
     depositRecord = await smockDepositRecordFixture(
       TEST_GLOBAL_DEPOSIT_CAP,
       TEST_ACCOUNT_DEPOSIT_CAP
@@ -47,8 +46,8 @@ describe('=> DepositHook', () => {
     firstERC721 = await testERC721Fixture('NFT Collection 1', 'NFT1')
     secondERC721 = await testERC721Fixture('NFT Collection 2', 'NFT2')
     collateral = await fakeCollateralFixture()
+    await setAccountBalance(collateral.address, '0.1')
     collateral.getBaseToken.returns(testToken.address)
-    collateralSigner = await getSignerForContract(collateral)
     await grantAndAcceptRole(
       depositHook,
       deployer,
@@ -156,7 +155,7 @@ describe('=> DepositHook', () => {
       await testToken.connect(deployer).mint(collateral.address, TEST_GLOBAL_DEPOSIT_CAP)
       await testToken.connect(deployer).mint(user.address, TEST_GLOBAL_DEPOSIT_CAP)
       await testToken
-        .connect(collateralSigner)
+        .connect(collateral.wallet)
         .approve(depositHook.address, ethers.constants.MaxUint256)
     })
 
@@ -191,7 +190,7 @@ describe('=> DepositHook', () => {
 
       await expect(
         depositHook
-          .connect(collateralSigner)
+          .connect(collateral.wallet)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
       ).revertedWith('Deposits not allowed')
     })
@@ -201,7 +200,7 @@ describe('=> DepositHook', () => {
       expect(await allowlist.isIncluded(user.address)).to.eq(true)
 
       await depositHook
-        .connect(collateralSigner)
+        .connect(collateral.wallet)
         .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
     })
 
@@ -211,7 +210,7 @@ describe('=> DepositHook', () => {
       expect(await depositHook.getRequiredScore()).to.eq(0)
 
       await depositHook
-        .connect(collateralSigner)
+        .connect(collateral.wallet)
         .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
     })
 
@@ -225,7 +224,7 @@ describe('=> DepositHook', () => {
 
       await expect(
         depositHook
-          .connect(collateralSigner)
+          .connect(collateral.wallet)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
       ).revertedWith('Depositor not allowed')
     })
@@ -238,7 +237,7 @@ describe('=> DepositHook', () => {
       )
 
       await depositHook
-        .connect(collateralSigner)
+        .connect(collateral.wallet)
         .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
     })
 
@@ -250,13 +249,13 @@ describe('=> DepositHook', () => {
       )
 
       await depositHook
-        .connect(collateralSigner)
+        .connect(collateral.wallet)
         .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
     })
 
     it('calls recordDeposit() if fee = 0', async () => {
       await depositHook
-        .connect(collateralSigner)
+        .connect(collateral.wallet)
         .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_BEFORE_FEE)
 
       expect(depositRecord.recordDeposit).calledWith(user.address, TEST_AMOUNT_BEFORE_FEE)
@@ -264,7 +263,7 @@ describe('=> DepositHook', () => {
 
     it('calls recordDeposit() if fee > 0', async () => {
       await depositHook
-        .connect(collateralSigner)
+        .connect(collateral.wallet)
         .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
 
       expect(depositRecord.recordDeposit).calledWith(user.address, TEST_AMOUNT_AFTER_FEE)
@@ -274,7 +273,7 @@ describe('=> DepositHook', () => {
       expect(TEST_AMOUNT_BEFORE_FEE).to.not.eq(TEST_AMOUNT_AFTER_FEE)
 
       await depositHook
-        .connect(collateralSigner)
+        .connect(collateral.wallet)
         .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
 
       const fee = TEST_AMOUNT_BEFORE_FEE.sub(TEST_AMOUNT_AFTER_FEE)
@@ -285,7 +284,7 @@ describe('=> DepositHook', () => {
       expect(TEST_AMOUNT_BEFORE_FEE).to.not.eq(TEST_AMOUNT_AFTER_FEE)
 
       await depositHook
-        .connect(collateralSigner)
+        .connect(collateral.wallet)
         .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
 
       const fee = TEST_AMOUNT_BEFORE_FEE.sub(TEST_AMOUNT_AFTER_FEE)
@@ -294,7 +293,7 @@ describe('=> DepositHook', () => {
 
     it("doesn't transfer fee to treasury if fee = 0", async () => {
       await depositHook
-        .connect(collateralSigner)
+        .connect(collateral.wallet)
         .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_BEFORE_FEE)
 
       expect(testToken.transferFrom).not.called
@@ -302,7 +301,7 @@ describe('=> DepositHook', () => {
 
     it("doesn't call tokenSender.send() if fee = 0", async () => {
       await depositHook
-        .connect(collateralSigner)
+        .connect(collateral.wallet)
         .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_BEFORE_FEE)
 
       expect(tokenSender.send).not.called

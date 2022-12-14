@@ -3,20 +3,15 @@ import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { parseEther } from 'ethers/lib/utils'
 import { BigNumber, Contract } from 'ethers'
-import { MockContract, FakeContract, smock } from '@defi-wonderland/smock'
+import { FakeContract, smock } from '@defi-wonderland/smock'
 import { ZERO_ADDRESS } from 'prepo-constants'
 import { utils } from 'prepo-hardhat'
 import { getSignerForContract } from './utils'
 import { fakeCollateralFixture } from './fixtures/CollateralFixture'
-import {
-  fakeAccountListFixture,
-  redeemHookFixture,
-  smockAccountListFixture,
-} from './fixtures/HookFixture'
+import { fakeAccountListFixture, redeemHookFixture } from './fixtures/HookFixture'
 import { fakeTokenSenderFixture } from './fixtures/TokenSenderFixture'
-import { smockTestERC20Fixture } from './fixtures/TestERC20Fixture'
 import { fakePrePOMarketFixture } from './fixtures/PrePOMarketFixture'
-import { RedeemHook } from '../typechain'
+import { AccountList, Collateral, RedeemHook, TokenSender } from '../typechain'
 
 chai.use(smock.matchers)
 
@@ -27,21 +22,19 @@ describe('=> RedeemHook', () => {
   let user: SignerWithAddress
   let treasury: SignerWithAddress
   let redeemHook: RedeemHook
-  let allowlist: FakeContract<Contract>
-  let msgSendersAllowlist: FakeContract<Contract>
-  let baseToken: MockContract<Contract>
-  let tokenSender: FakeContract<Contract>
-  let collateral: FakeContract<Contract>
+  let allowlist: FakeContract<AccountList>
+  let msgSendersAllowlist: FakeContract<AccountList>
+  let tokenSender: FakeContract<TokenSender>
+  let collateral: FakeContract<Collateral>
   let market: FakeContract<Contract>
   let marketSigner: SignerWithAddress
 
   beforeEach(async () => {
     ;[deployer, user, treasury] = await ethers.getSigners()
     redeemHook = await redeemHookFixture()
-    allowlist = await smockAccountListFixture()
+    allowlist = await fakeAccountListFixture()
     msgSendersAllowlist = await fakeAccountListFixture()
-    baseToken = await smockTestERC20Fixture('Test Token', 'TEST', 18)
-    tokenSender = await fakeTokenSenderFixture(baseToken.address)
+    tokenSender = await fakeTokenSenderFixture()
   })
 
   describe('initial state', () => {
@@ -145,7 +138,7 @@ describe('=> RedeemHook', () => {
 
     describe('fee reimbursement', () => {
       beforeEach(async () => {
-        await allowlist.set([user.address], [true])
+        allowlist.isIncluded.whenCalledWith(user.address).returns(true)
         collateral = await fakeCollateralFixture()
         market = await fakePrePOMarketFixture()
         market.getCollateral.returns(collateral.address)

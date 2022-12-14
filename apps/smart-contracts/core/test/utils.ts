@@ -104,6 +104,13 @@ export async function getSignerForContract(
   return signer
 }
 
+export async function setAccountBalance(address: string, eth: string): Promise<void> {
+  await network.provider.send('hardhat_setBalance', [
+    address,
+    ethers.utils.parseEther(eth).toHexString().replace('0x0', '0x'),
+  ])
+}
+
 export async function getPermitFromSignature(
   token: Contract | MockContract,
   signer: SignerWithAddress,

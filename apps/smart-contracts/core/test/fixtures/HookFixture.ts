@@ -6,6 +6,7 @@ import {
   ManagerWithdrawHook,
   MintHook,
   RedeemHook,
+  AccountList,
 } from '../../typechain'
 
 export async function depositHookFixture(): Promise<DepositHook> {
@@ -63,8 +64,8 @@ export async function smockAccountListFixture(): Promise<MockContract> {
   return smockAccountListFactory.deploy()
 }
 
-export async function fakeAccountListFixture(): Promise<FakeContract> {
-  const fakeContract = await smock.fake('AccountList')
+export async function fakeAccountListFixture(): Promise<FakeContract<AccountList>> {
+  const fakeContract = await smock.fake<AccountList>('AccountList')
   return fakeContract
 }
 

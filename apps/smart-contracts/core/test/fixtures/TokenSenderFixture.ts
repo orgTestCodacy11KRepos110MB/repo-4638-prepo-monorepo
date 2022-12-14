@@ -12,7 +12,7 @@ export async function smockTokenSenderFixture(outputToken): Promise<MockContract
   return mockFactory.deploy(outputToken)
 }
 
-export async function fakeTokenSenderFixture(outputToken): Promise<FakeContract> {
-  const fakeTokenSender = await smock.fake('TokenSender')
-  return fakeTokenSender
+export async function fakeTokenSenderFixture(): Promise<FakeContract<TokenSender>> {
+  const fakeContract = await smock.fake<TokenSender>('TokenSender')
+  return fakeContract
 }
