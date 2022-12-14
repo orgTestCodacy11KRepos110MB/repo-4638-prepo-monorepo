@@ -5,17 +5,17 @@ import "./interfaces/ISafeOwnable.sol";
 import "./interfaces/ISafeOwnableCaller.sol";
 
 abstract contract SafeOwnableCaller is ISafeOwnableCaller {
-  function transferOwnership(address _safeOwnableContract, address _nominee)
+  function transferOwnership(address safeOwnableContract, address nominee)
     public
     virtual
     override;
 
-  function acceptOwnership(address _safeOwnableContract)
+  function acceptOwnership(address safeOwnableContract)
     public
     virtual
     override;
 
-  function renounceOwnership(address _safeOwnableContract)
+  function renounceOwnership(address safeOwnableContract)
     public
     virtual
     override;

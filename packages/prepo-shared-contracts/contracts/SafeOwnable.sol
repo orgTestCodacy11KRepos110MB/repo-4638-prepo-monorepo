@@ -12,13 +12,13 @@ contract SafeOwnable is ISafeOwnable, Ownable {
     _;
   }
 
-  function transferOwnership(address _newNominee)
+  function transferOwnership(address nominee)
     public
     virtual
     override(ISafeOwnable, Ownable)
     onlyOwner
   {
-    _setNominee(_newNominee);
+    _setNominee(nominee);
   }
 
   function acceptOwnership() public virtual override onlyNominee {
@@ -40,9 +40,9 @@ contract SafeOwnable is ISafeOwnable, Ownable {
     return _nominee;
   }
 
-  function _setNominee(address _newNominee) internal virtual {
+  function _setNominee(address nominee) internal virtual {
     address _oldNominee = _nominee;
-    _nominee = _newNominee;
-    emit NomineeUpdate(_oldNominee, _newNominee);
+    _nominee = nominee;
+    emit NomineeUpdate(_oldNominee, nominee);
   }
 }

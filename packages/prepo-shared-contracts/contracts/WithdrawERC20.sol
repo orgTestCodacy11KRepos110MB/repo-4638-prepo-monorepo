@@ -9,35 +9,33 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 contract WithdrawERC20 is IWithdrawERC20, SafeOwnable, ReentrancyGuard {
   using SafeERC20 for IERC20;
 
-  constructor() {}
-
   function withdrawERC20(
-    address[] calldata _erc20Tokens,
-    uint256[] calldata _amounts
+    address[] calldata erc20Tokens,
+    uint256[] calldata amounts
   ) external override onlyOwner nonReentrant {
-    require(_erc20Tokens.length == _amounts.length, "Array length mismatch");
-    address _owner = owner();
-    uint256 _arrayLength = _erc20Tokens.length;
-    for (uint256 i; i < _arrayLength; ) {
-      IERC20(_erc20Tokens[i]).safeTransfer(_owner, _amounts[i]);
+    require(erc20Tokens.length == amounts.length, "Array length mismatch");
+    address owner = owner();
+    uint256 arrayLength = erc20Tokens.length;
+    for (uint256 i; i < arrayLength; ) {
+      IERC20(erc20Tokens[i]).safeTransfer(owner, amounts[i]);
       unchecked {
         ++i;
       }
     }
   }
 
-  function withdrawERC20(address[] calldata _erc20Tokens)
+  function withdrawERC20(address[] calldata erc20Tokens)
     external
     override
     onlyOwner
     nonReentrant
   {
-    address _owner = owner();
-    uint256 _arrayLength = _erc20Tokens.length;
-    for (uint256 i; i < _arrayLength; ) {
-      IERC20(_erc20Tokens[i]).safeTransfer(
-        _owner,
-        IERC20(_erc20Tokens[i]).balanceOf(address(this))
+    address owner = owner();
+    uint256 arrayLength = erc20Tokens.length;
+    for (uint256 i; i < arrayLength; ) {
+      IERC20(erc20Tokens[i]).safeTransfer(
+        owner,
+        IERC20(erc20Tokens[i]).balanceOf(address(this))
       );
       unchecked {
         ++i;

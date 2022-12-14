@@ -6,13 +6,13 @@ import "./SafeOwnable.sol";
 
 //TODO: add tests and interface for this
 contract ERC1155Mintable is ERC1155, SafeOwnable {
-  constructor(string memory _newUri) ERC1155(_newUri) {}
+  constructor(string memory uri) ERC1155(uri) {}
 
   function mint(
-    address _recipient,
-    uint256 _id,
-    uint256 _amount
+    address recipient,
+    uint256 id,
+    uint256 amount
   ) external onlyOwner {
-    _mint(_recipient, _id, _amount, "");
+    _mint(recipient, id, amount, "");
   }
 }
