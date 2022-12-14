@@ -3,17 +3,16 @@ pragma solidity =0.8.7;
 
 import "./interfaces/IHook.sol";
 import "./interfaces/IManagerWithdrawHook.sol";
-import "./interfaces/IAllowedCollateralCaller.sol";
 import "./interfaces/IDepositRecord.sol";
+import "./AllowedCollateralCaller.sol";
 import "prepo-shared-contracts/contracts/SafeAccessControlEnumerable.sol";
 
 contract ManagerWithdrawHook is
   IHook,
   IManagerWithdrawHook,
-  IAllowedCollateralCaller,
+  AllowedCollateralCaller,
   SafeAccessControlEnumerable
 {
-  ICollateral private _collateral;
   IDepositRecord private _depositRecord;
   uint256 private _minReservePercentage;
 
@@ -37,12 +36,11 @@ contract ManagerWithdrawHook is
   }
 
   function setCollateral(ICollateral collateral)
-    external
+    public
     override
     onlyRole(SET_COLLATERAL_ROLE)
   {
-    _collateral = collateral;
-    emit CollateralChange(address(collateral));
+    super.setCollateral(collateral);
   }
 
   function setDepositRecord(IDepositRecord depositRecord)
@@ -62,10 +60,6 @@ contract ManagerWithdrawHook is
     require(minReservePercentage <= PERCENT_DENOMINATOR, ">100%");
     _minReservePercentage = minReservePercentage;
     emit MinReservePercentageChange(minReservePercentage);
-  }
-
-  function getCollateral() external view override returns (ICollateral) {
-    return _collateral;
   }
 
   function getDepositRecord() external view override returns (IDepositRecord) {

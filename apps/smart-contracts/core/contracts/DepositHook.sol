@@ -2,9 +2,9 @@
 pragma solidity =0.8.7;
 
 import "./interfaces/IHook.sol";
-import "./interfaces/IAllowedCollateralCaller.sol";
 import "./interfaces/IDepositHook.sol";
 import "./interfaces/IDepositRecord.sol";
+import "./AllowedCollateralCaller.sol";
 import "prepo-shared-contracts/contracts/AccountListCaller.sol";
 import "prepo-shared-contracts/contracts/NFTScoreRequirement.sol";
 import "prepo-shared-contracts/contracts/TokenSenderCaller.sol";
@@ -13,14 +13,13 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 contract DepositHook is
   IHook,
-  IAllowedCollateralCaller,
   IDepositHook,
   AccountListCaller,
   NFTScoreRequirement,
   TokenSenderCaller,
+  AllowedCollateralCaller,
   SafeAccessControlEnumerable
 {
-  ICollateral private _collateral;
   IDepositRecord private _depositRecord;
   bool private _depositsAllowed;
 
@@ -42,11 +41,6 @@ contract DepositHook is
     keccak256("DepositHook_setTreasury(address)");
   bytes32 public constant SET_TOKEN_SENDER_ROLE =
     keccak256("DepositHook_setTokenSender(ITokenSender)");
-
-  modifier onlyCollateral() {
-    require(msg.sender == address(_collateral), "msg.sender != collateral");
-    _;
-  }
 
   function hook(
     address sender,
@@ -70,12 +64,11 @@ contract DepositHook is
   }
 
   function setCollateral(ICollateral collateral)
-    external
+    public
     override
     onlyRole(SET_COLLATERAL_ROLE)
   {
-    _collateral = collateral;
-    emit CollateralChange(address(collateral));
+    super.setCollateral(collateral);
   }
 
   function setDepositRecord(IDepositRecord depositRecord)
@@ -141,10 +134,6 @@ contract DepositHook is
     onlyRole(SET_TOKEN_SENDER_ROLE)
   {
     super.setTokenSender(tokenSender);
-  }
-
-  function getCollateral() external view override returns (ICollateral) {
-    return _collateral;
   }
 
   function getDepositRecord() external view override returns (IDepositRecord) {

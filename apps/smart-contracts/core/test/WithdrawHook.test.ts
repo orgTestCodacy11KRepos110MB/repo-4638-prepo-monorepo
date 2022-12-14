@@ -570,39 +570,12 @@ describe('=> WithdrawHook', () => {
       )
     })
 
-    it('should be settable to an address', async () => {
-      expect(await withdrawHook.getCollateral()).to.eq(ZERO_ADDRESS)
+    it('succeeds if role holder', async () => {
+      expect(
+        await withdrawHook.hasRole(await withdrawHook.SET_COLLATERAL_ROLE(), deployer.address)
+      ).to.eq(true)
 
       await withdrawHook.connect(deployer).setCollateral(collateral.address)
-
-      expect(await withdrawHook.getCollateral()).to.eq(collateral.address)
-    })
-
-    it('should be settable to the zero address', async () => {
-      await withdrawHook.connect(deployer).setCollateral(collateral.address)
-      expect(await withdrawHook.getCollateral()).to.eq(collateral.address)
-
-      await withdrawHook.connect(deployer).setCollateral(ZERO_ADDRESS)
-
-      expect(await withdrawHook.getCollateral()).to.eq(ZERO_ADDRESS)
-    })
-
-    it('should be settable to the same value twice', async () => {
-      expect(await withdrawHook.getCollateral()).to.eq(ZERO_ADDRESS)
-
-      await withdrawHook.connect(deployer).setCollateral(collateral.address)
-
-      expect(await withdrawHook.getCollateral()).to.eq(collateral.address)
-
-      await withdrawHook.connect(deployer).setCollateral(collateral.address)
-
-      expect(await withdrawHook.getCollateral()).to.eq(collateral.address)
-    })
-
-    it('emits CollateralChange', async () => {
-      const tx = await withdrawHook.connect(deployer).setCollateral(collateral.address)
-
-      await expect(tx).to.emit(withdrawHook, 'CollateralChange').withArgs(collateral.address)
     })
   })
 

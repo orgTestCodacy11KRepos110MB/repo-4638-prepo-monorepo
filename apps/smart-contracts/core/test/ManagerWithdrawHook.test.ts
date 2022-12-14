@@ -114,39 +114,15 @@ describe('=> ManagerWithdrawHook', () => {
       )
     })
 
-    it('sets to non-zero address', async () => {
-      expect(await managerWithdrawHook.getCollateral()).to.eq(ZERO_ADDRESS)
+    it('succeeds if role holder', async () => {
+      expect(
+        await managerWithdrawHook.hasRole(
+          await managerWithdrawHook.SET_COLLATERAL_ROLE(),
+          deployer.address
+        )
+      ).to.eq(true)
 
       await managerWithdrawHook.connect(deployer).setCollateral(collateral.address)
-
-      expect(await managerWithdrawHook.getCollateral()).to.eq(collateral.address)
-    })
-
-    it('sets to zero address', async () => {
-      await managerWithdrawHook.connect(deployer).setCollateral(collateral.address)
-      expect(await managerWithdrawHook.getCollateral()).to.eq(collateral.address)
-
-      await managerWithdrawHook.connect(deployer).setCollateral(ZERO_ADDRESS)
-
-      expect(await managerWithdrawHook.getCollateral()).to.eq(ZERO_ADDRESS)
-    })
-
-    it('is idempotent', async () => {
-      expect(await managerWithdrawHook.getCollateral()).to.eq(ZERO_ADDRESS)
-
-      await managerWithdrawHook.connect(deployer).setCollateral(collateral.address)
-
-      expect(await managerWithdrawHook.getCollateral()).to.eq(collateral.address)
-
-      await managerWithdrawHook.connect(deployer).setCollateral(collateral.address)
-
-      expect(await managerWithdrawHook.getCollateral()).to.eq(collateral.address)
-    })
-
-    it('emits CollateralChange', async () => {
-      const tx = await managerWithdrawHook.connect(deployer).setCollateral(collateral.address)
-
-      await expect(tx).to.emit(managerWithdrawHook, 'CollateralChange').withArgs(collateral.address)
     })
   })
 

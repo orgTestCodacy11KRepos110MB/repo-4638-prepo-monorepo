@@ -3,19 +3,18 @@ pragma solidity =0.8.7;
 
 import "./interfaces/IHook.sol";
 import "./interfaces/IWithdrawHook.sol";
-import "./interfaces/IAllowedCollateralCaller.sol";
 import "./interfaces/IDepositRecord.sol";
+import "./AllowedCollateralCaller.sol";
 import "prepo-shared-contracts/contracts/TokenSenderCaller.sol";
 import "prepo-shared-contracts/contracts/SafeAccessControlEnumerable.sol";
 
 contract WithdrawHook is
   IHook,
   IWithdrawHook,
-  IAllowedCollateralCaller,
   TokenSenderCaller,
+  AllowedCollateralCaller,
   SafeAccessControlEnumerable
 {
-  ICollateral private _collateral;
   IDepositRecord private _depositRecord;
   bool public _withdrawalsAllowed;
   uint256 private _globalPeriodLength;
@@ -45,11 +44,6 @@ contract WithdrawHook is
     keccak256("WithdrawHook_setTreasury(address)");
   bytes32 public constant SET_TOKEN_SENDER_ROLE =
     keccak256("WithdrawHook_setTokenSender(ITokenSender)");
-
-  modifier onlyCollateral() {
-    require(msg.sender == address(_collateral), "msg.sender != collateral");
-    _;
-  }
 
   /*
    * @dev While we could include the period length in the last reset
@@ -100,12 +94,11 @@ contract WithdrawHook is
   }
 
   function setCollateral(ICollateral collateral)
-    external
+    public
     override
     onlyRole(SET_COLLATERAL_ROLE)
   {
-    _collateral = collateral;
-    emit CollateralChange(address(collateral));
+    super.setCollateral(collateral);
   }
 
   function setDepositRecord(IDepositRecord depositRecord)
@@ -174,10 +167,6 @@ contract WithdrawHook is
     onlyRole(SET_TOKEN_SENDER_ROLE)
   {
     super.setTokenSender(tokenSender);
-  }
-
-  function getCollateral() external view override returns (ICollateral) {
-    return _collateral;
   }
 
   function getDepositRecord() external view override returns (IDepositRecord) {

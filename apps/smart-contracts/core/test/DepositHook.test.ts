@@ -334,7 +334,7 @@ describe('=> DepositHook', () => {
         await depositHook.hasRole(await depositHook.SET_ACCOUNT_LIST_ROLE(), deployer.address)
       ).to.eq(true)
 
-      await expect(depositHook.connect(deployer).setAccountList(user.address))
+      await depositHook.connect(deployer).setAccountList(user.address)
     })
   })
 
@@ -349,39 +349,12 @@ describe('=> DepositHook', () => {
       )
     })
 
-    it('should be settable to an address', async () => {
-      expect(await depositHook.getCollateral()).to.eq(ZERO_ADDRESS)
+    it('succeeds if role holder', async () => {
+      expect(
+        await depositHook.hasRole(await depositHook.SET_COLLATERAL_ROLE(), deployer.address)
+      ).to.eq(true)
 
       await depositHook.connect(deployer).setCollateral(collateral.address)
-
-      expect(await depositHook.getCollateral()).to.eq(collateral.address)
-    })
-
-    it('should be settable to the zero address', async () => {
-      await depositHook.connect(deployer).setCollateral(collateral.address)
-      expect(await depositHook.getCollateral()).to.eq(collateral.address)
-
-      await depositHook.connect(deployer).setCollateral(ZERO_ADDRESS)
-
-      expect(await depositHook.getCollateral()).to.eq(ZERO_ADDRESS)
-    })
-
-    it('should be settable to the same value twice', async () => {
-      expect(await depositHook.getCollateral()).to.eq(ZERO_ADDRESS)
-
-      await depositHook.connect(deployer).setCollateral(collateral.address)
-
-      expect(await depositHook.getCollateral()).to.eq(collateral.address)
-
-      await depositHook.connect(deployer).setCollateral(collateral.address)
-
-      expect(await depositHook.getCollateral()).to.eq(collateral.address)
-    })
-
-    it('emits CollateralChange', async () => {
-      const tx = await depositHook.connect(deployer).setCollateral(collateral.address)
-
-      await expect(tx).to.emit(depositHook, 'CollateralChange').withArgs(collateral.address)
     })
   })
 
