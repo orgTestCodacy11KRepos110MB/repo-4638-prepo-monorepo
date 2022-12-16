@@ -19,11 +19,8 @@ class Snapshot {
 }
 
 export class Snapshotter {
-  // Snapshot stack and setup code. This is the magic sauce that allows us to
-  // nest snapshot arrangements, where we need some configuration to be done
-  // in the outermost block, and then want the option to have nested snapshots
-  // within inner describe blocks.
-  // This will be cleaned up prior to proper implementation.
+  // Snapshot stack and setup code. This allows us to nest snapshotting blocks
+  // and have them all work together.
   private outerSetupComplete = false
   private snapshotStack: Snapshot[] = []
   private setActiveSnapshot(snapshot: Snapshot): void {
