@@ -13,7 +13,7 @@ import { fakeTokenSenderFixture } from './fixtures/TokenSenderFixture'
 import { smockTestERC20Fixture } from './fixtures/TestERC20Fixture'
 import { fakeCollateralFixture } from './fixtures/CollateralFixture'
 import { usesCustomSnapshot, saveSnapshot } from './snapshots'
-import { DepositHook, TestERC721 } from '../typechain'
+import { AccountList, Collateral, DepositHook, TestERC721, TokenSender } from '../typechain'
 
 chai.use(smock.matchers)
 

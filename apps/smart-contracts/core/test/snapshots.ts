@@ -61,6 +61,7 @@ export function usesCustomSnapshot(name: string | undefined = undefined): void {
 
     beforeEach(async () => {
       // Before each, take a snapshot
+      console.log(headSnapshot().name, 'Hooking into beforeEach')
       await headSnapshot().snapshot()
     })
 
