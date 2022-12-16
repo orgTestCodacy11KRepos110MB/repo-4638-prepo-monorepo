@@ -15,7 +15,7 @@ import { collateralFixture } from './fixtures/CollateralFixture'
 import { smockDepositRecordFixture } from './fixtures/DepositRecordFixture'
 import { testERC20Fixture } from './fixtures/TestERC20Fixture'
 import { fakeTokenSenderFixture } from './fixtures/TokenSenderFixture'
-import { usesCustomSnapshot, saveSnapshot } from './snapshots'
+import { Snapshotter } from './snapshots'
 import {
   FEE_DENOMINATOR,
   COLLATERAL_FEE_LIMIT,
@@ -26,6 +26,7 @@ import {
 import { AccountList, Collateral, TestERC20, TokenSender } from '../typechain'
 
 chai.use(smock.matchers)
+const snapshotter = new Snapshotter()
 
 describe('=> Collateral', () => {
   let deployer: SignerWithAddress
@@ -146,11 +147,11 @@ describe('=> Collateral', () => {
     await setupWithdrawHook()
   }
 
-  usesCustomSnapshot('Collateral')
+  snapshotter.usesCustomSnapshot('Collateral')
   before(async () => {
     upgrades.silenceWarnings()
     await getSignersAndDeployContracts()
-    await saveSnapshot()
+    await snapshotter.saveSnapshot()
   })
 
   describe('initial state', () => {
@@ -563,14 +564,14 @@ describe('=> Collateral', () => {
   })
 
   describe('# managerWithdraw', () => {
-    usesCustomSnapshot('Collateral-managerWithdraw')
+    snapshotter.usesCustomSnapshot('Collateral-managerWithdraw')
     before(async () => {
       await getSignersAndDeployContracts()
       await setupCollateralRoles()
       await setupManagerWithdrawHook()
       await baseToken.mint(collateral.address, parseUnits('1', 6))
       await collateral.connect(deployer).setManagerWithdrawHook(managerWithdrawHook.address)
-      await saveSnapshot()
+      await snapshotter.saveSnapshot()
     })
 
     it('reverts if not role holder', async () => {
@@ -662,10 +663,10 @@ describe('=> Collateral', () => {
         .approve(collateral.address, parseUnits('1', await baseToken.decimals()))
     }
 
-    usesCustomSnapshot('Collateral-deposit')
+    snapshotter.usesCustomSnapshot('Collateral-deposit')
     before(async function () {
       await setupForDepositFunctionTest()
-      await saveSnapshot()
+      await snapshotter.saveSnapshot()
     })
 
     it('reverts if deposit = 0 and deposit fee = 0%', async () => {
@@ -966,22 +967,22 @@ describe('=> Collateral', () => {
   })
 
   describe('# withdraw', () => {
-    usesCustomSnapshot('Collateral-withdraw')
+    snapshotter.usesCustomSnapshot('Collateral-withdraw')
     before(async function () {
       await setupCollateralStackForWithdrawals()
-      await saveSnapshot()
+      await snapshotter.saveSnapshot()
     })
 
     beforeEach(async function () {
       if (this.currentTest?.title.includes('= base token decimals')) {
         await setupCollateralStackForWithdrawals(18)
-        await saveSnapshot()
+        await snapshotter.saveSnapshot()
       } else if (this.currentTest?.title.includes('< base token decimals')) {
         await setupCollateralStackForWithdrawals(19)
-        await saveSnapshot()
+        await snapshotter.saveSnapshot()
       } else if (this.currentTest?.title.includes('sets hook approval back to 0')) {
         await setupCollateralStackForWithdrawals()
-        await saveSnapshot()
+        await snapshotter.saveSnapshot()
       }
       await baseToken.mint(user1.address, parseUnits('1', await baseToken.decimals()))
       await baseToken

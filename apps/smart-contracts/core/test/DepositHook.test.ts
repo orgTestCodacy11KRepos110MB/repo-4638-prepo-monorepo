@@ -12,10 +12,11 @@ import { grantAndAcceptRole, setAccountBalance } from './utils'
 import { fakeTokenSenderFixture } from './fixtures/TokenSenderFixture'
 import { smockTestERC20Fixture } from './fixtures/TestERC20Fixture'
 import { fakeCollateralFixture } from './fixtures/CollateralFixture'
-import { usesCustomSnapshot, saveSnapshot } from './snapshots'
+import { Snapshotter } from './snapshots'
 import { AccountList, Collateral, DepositHook, TestERC721, TokenSender } from '../typechain'
 
 chai.use(smock.matchers)
+const snapshotter = new Snapshotter()
 
 describe('=> DepositHook', () => {
   let deployer: SignerWithAddress
@@ -34,7 +35,7 @@ describe('=> DepositHook', () => {
   const TEST_AMOUNT_BEFORE_FEE = parseEther('1.01')
   const TEST_AMOUNT_AFTER_FEE = parseEther('1')
 
-  usesCustomSnapshot('outer')
+  snapshotter.usesCustomSnapshot('outer')
   before(async () => {
     ;[deployer, user, treasury] = await ethers.getSigners()
     testToken = await smockTestERC20Fixture('Test Token', 'TEST', 18)
@@ -107,7 +108,7 @@ describe('=> DepositHook', () => {
       await depositRecord.SET_ALLOWED_HOOK_ROLE()
     )
     await depositRecord.connect(deployer).setAllowedHook(depositHook.address, true)
-    await saveSnapshot()
+    await snapshotter.saveSnapshot()
   })
 
   describe('initial state', () => {
@@ -149,7 +150,7 @@ describe('=> DepositHook', () => {
      * Tests below use different values for TEST_AMOUNT_BEFORE_FEE and
      * TEST_AMOUNT_AFTER_FEE to ensure TEST_AMOUNT_BEFORE_FEE is ignored.
      */
-    usesCustomSnapshot('hook')
+    snapshotter.usesCustomSnapshot('hook')
     before(async () => {
       await depositHook.connect(deployer).setCollateral(collateral.address)
       await depositHook.connect(deployer).setDepositsAllowed(true)
@@ -162,7 +163,7 @@ describe('=> DepositHook', () => {
       await testToken
         .connect(collateral.wallet)
         .approve(depositHook.address, ethers.constants.MaxUint256)
-      await saveSnapshot()
+      await snapshotter.saveSnapshot()
     })
 
     async function setupScoresForNFTAccess(
@@ -202,7 +203,7 @@ describe('=> DepositHook', () => {
     })
 
     it('succeeds if account on allowlist', async () => {
-      await allowlist.connect(deployer).set([user.address], [true])
+      allowlist.isIncluded.whenCalledWith(user.address).returns(true)
       expect(await allowlist.isIncluded(user.address)).to.eq(true)
 
       await depositHook
@@ -212,6 +213,7 @@ describe('=> DepositHook', () => {
 
     it('succeeds if account not on allowlist, and required score = 0', async () => {
       await setupScoresForNFTAccess(0, 0)
+      allowlist.isIncluded.whenCalledWith(user.address).returns(false)
       expect(await allowlist.isIncluded(user.address)).to.eq(false)
       expect(await depositHook.getRequiredScore()).to.eq(0)
 
@@ -222,6 +224,7 @@ describe('=> DepositHook', () => {
 
     it('reverts if account not on allowlist, required score > 0, and account score < required score', async () => {
       await setupScoresForNFTAccess(0, 1)
+      allowlist.isIncluded.whenCalledWith(user.address).returns(false)
       expect(await allowlist.isIncluded(user.address)).to.eq(false)
       expect(await depositHook.getRequiredScore()).to.be.gt(0)
       expect(await depositHook.getAccountScore(user.address)).to.be.lt(
@@ -321,7 +324,7 @@ describe('=> DepositHook', () => {
   })
 
   describe('# setAccountList', () => {
-    usesCustomSnapshot('setAccountList')
+    snapshotter.usesCustomSnapshot('setAccountList')
     before(async () => {
       await grantAndAcceptRole(
         depositHook,
@@ -329,7 +332,7 @@ describe('=> DepositHook', () => {
         deployer,
         await depositHook.SET_ACCOUNT_LIST_ROLE()
       )
-      await saveSnapshot()
+      await snapshotter.saveSnapshot()
     })
 
     it('reverts if not role holder', async () => {

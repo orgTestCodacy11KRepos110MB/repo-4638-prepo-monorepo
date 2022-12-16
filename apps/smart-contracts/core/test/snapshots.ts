@@ -1,3 +1,4 @@
+/* eslint max-classes-per-file: 0 */
 import { ethers, network } from 'hardhat'
 
 class Snapshot {
@@ -17,66 +18,68 @@ class Snapshot {
   }
 }
 
-// Snapshot stack and setup code. This is the magic sauce that allows us to
-// nest snapshot arrangements, where we need some configuration to be done
-// in the outermost block, and then want the option to have nested snapshots
-// within inner describe blocks.
-// This will be cleaned up prior to proper implementation.
-let outerSetupComplete = false
-const snapshotStack: Snapshot[] = []
-function setActiveSnapshot(snapshot: Snapshot): void {
-  console.log('Setting active snapshot', snapshot.name)
-  snapshotStack.push(snapshot)
-}
-function headSnapshot(): Snapshot {
-  return snapshotStack[snapshotStack.length - 1]
-}
-async function popActiveSnapshot(): Promise<void> {
-  // Pop the snapshot
-  snapshotStack.pop()
-  if (snapshotStack.length > 0) {
-    // If we have another in the stack, revert the blockchain to this snapshot
-    console.log('Reverting to snapshot', headSnapshot().name, headSnapshot().snapshotId)
-    await headSnapshot().reset()
-  } else if (snapshotStack.length === 0) {
-    // Otherwise we've popped the last one off the stack, so we're done, and our
-    // outer setup is no longer complete.
-    outerSetupComplete = false
+export class Snapshotter {
+  // Snapshot stack and setup code. This is the magic sauce that allows us to
+  // nest snapshot arrangements, where we need some configuration to be done
+  // in the outermost block, and then want the option to have nested snapshots
+  // within inner describe blocks.
+  // This will be cleaned up prior to proper implementation.
+  private outerSetupComplete = false
+  private snapshotStack: Snapshot[] = []
+  private setActiveSnapshot(snapshot: Snapshot): void {
+    console.log('Setting active snapshot', snapshot.name)
+    this.snapshotStack.push(snapshot)
   }
-}
-
-// This is the actual function which sets up snapshotting for a given block.
-export function usesCustomSnapshot(name: string | undefined = undefined): void {
-  // Create our snapshot abstraction
-  const snapshot: Snapshot = new Snapshot(name || '')
-
-  before(() => {
-    // When this block becomes active, we set this snapshot as active
-    setActiveSnapshot(snapshot)
-  })
-
-  if (!outerSetupComplete) {
-    // This is the outermost block in our stack, we must do the required setup
-    outerSetupComplete = true
-
-    beforeEach(async () => {
-      // Before each, take a snapshot
-      console.log(headSnapshot().name, 'Hooking into beforeEach')
-      await headSnapshot().snapshot()
-    })
-
-    afterEach(() => {
-      // After each test, we revert the blockchain state to the currently active snapshot
-      headSnapshot().reset()
-    })
+  private headSnapshot(): Snapshot {
+    return this.snapshotStack[this.snapshotStack.length - 1]
+  }
+  private async popActiveSnapshot(): Promise<void> {
+    // Pop the snapshot
+    this.snapshotStack.pop()
+    if (this.snapshotStack.length > 0) {
+      // If we have another in the stack, revert the blockchain to this snapshot
+      console.log('Reverting to snapshot', this.headSnapshot().name, this.headSnapshot().snapshotId)
+      await this.headSnapshot().reset()
+    } else if (this.snapshotStack.length === 0) {
+      // Otherwise we've popped the last one off the stack, so we're done, and our
+      // outer setup is no longer complete.
+      this.outerSetupComplete = false
+    }
   }
 
-  after(async () => {
-    // After this block is finished, pop the snapshot
-    await popActiveSnapshot()
-  })
-}
+  // This is the actual function which sets up snapshotting for a given block.
+  public usesCustomSnapshot(name: string | undefined = undefined): void {
+    // Create our snapshot abstraction
+    const snapshot: Snapshot = new Snapshot(name || '')
 
-export async function saveSnapshot(): Promise<void> {
-  await headSnapshot().snapshot()
+    before(() => {
+      // When this block becomes active, we set this snapshot as active
+      this.setActiveSnapshot(snapshot)
+    })
+
+    if (!this.outerSetupComplete) {
+      // This is the outermost block in our stack, we must do the required setup
+      this.outerSetupComplete = true
+
+      beforeEach(async () => {
+        // Before each, take a snapshot
+        console.log(this.headSnapshot().name, 'Hooking into beforeEach')
+        await this.headSnapshot().snapshot()
+      })
+
+      afterEach(() => {
+        // After each test, we revert the blockchain state to the currently active snapshot
+        this.headSnapshot().reset()
+      })
+    }
+
+    after(async () => {
+      // After this block is finished, pop the snapshot
+      await this.popActiveSnapshot()
+    })
+  }
+
+  public async saveSnapshot(): Promise<void> {
+    await this.headSnapshot().snapshot()
+  }
 }
