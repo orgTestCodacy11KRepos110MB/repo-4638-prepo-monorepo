@@ -74,6 +74,10 @@ describe('=> prePOMarket', () => {
     collateralToken = await testERC20Fixture('prePO USDC Collateral', 'preUSD', 18)
     await collateralToken.mint(deployer.address, MOCK_COLLATERAL_SUPPLY)
     prePOMarketFactory = await prePOMarketFactoryFixture()
+    await batchGrantAndAcceptRoles(prePOMarketFactory, deployer, deployer, [
+      prePOMarketFactory.CREATE_MARKET_ROLE(),
+      prePOMarketFactory.SET_COLLATERAL_VALIDITY_ROLE(),
+    ])
     await prePOMarketFactory.setCollateralValidity(collateralToken.address, true)
     defaultParams = {
       caller: deployer,
