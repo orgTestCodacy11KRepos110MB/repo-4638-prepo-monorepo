@@ -141,23 +141,13 @@ describe('=> Collateral', () => {
     await setupDepositHook()
   }
 
-  const setupCollateralStackForWithdrawals = async (
-    baseTokenDecimals: number = USDC_DECIMALS
-  ): Promise<void> => {
-    await setupCollateralStackForDeposits(baseTokenDecimals)
-    await setupWithdrawHook()
-  }
-
-  before(() => {
+  before(async () => {
     upgrades.silenceWarnings()
+    await getSignersAndDeployContracts()
+    snapshotter.saveSnapshot()
   })
 
   describe('initial state', () => {
-    before(async () => {
-      await getSignersAndDeployContracts()
-      snapshotter.saveSnapshot()
-    })
-
     it('sets base token from constructor', async () => {
       expect(await collateral.getBaseToken()).to.eq(baseToken.address)
     })
@@ -520,6 +510,7 @@ describe('=> Collateral', () => {
         deployer,
         await collateral.SET_MANAGER_WITHDRAW_HOOK_ROLE()
       )
+      await snapshotter.saveSnapshot()
     })
 
     it('reverts if not role holder', async () => {
@@ -569,11 +560,14 @@ describe('=> Collateral', () => {
   })
 
   describe('# getReserve', () => {
+    before(async () => {
+      await getSignersAndDeployContracts()
+    })
+
     it("returns contract's base token balance", async () => {
       await baseToken.connect(deployer).mint(collateral.address, parseEther('1'))
       const contractBalance = await baseToken.balanceOf(collateral.address)
       expect(contractBalance).to.be.eq(parseEther('1'))
-
       expect(await collateral.getReserve()).to.eq(contractBalance)
     })
   })
@@ -659,34 +653,27 @@ describe('=> Collateral', () => {
     snapshotter.usesCustomSnapshot()
     let sender: SignerWithAddress
     let recipient: SignerWithAddress
-    before(async function () {
-      await setupCollateralStackForDeposits()
+
+    async function setupDeposit(baseTokenDecimals?: number): Promise<void> {
+      if (!baseTokenDecimals) {
+        await setupCollateralStackForDeposits(USDC_DECIMALS)
+      } else {
+        await setupCollateralStackForDeposits(baseTokenDecimals)
+      }
       sender = user1
       recipient = user2
-    })
+      await baseToken.mint(sender.address, parseUnits('1', await baseToken.decimals()))
+      await baseToken
+        .connect(sender)
+        .approve(collateral.address, parseUnits('1', await baseToken.decimals()))
+      await collateral.connect(deployer).setDepositFee(TEST_DEPOSIT_FEE)
+      await collateral.connect(deployer).setDepositHook(depositHook.address)
+    }
 
-    // beforeEach(async function () {
-    //   if (this.currentTest?.title.includes('= base token decimals')) {
-    //     await setupCollateralStackForDeposits(18)
-    //   } else if (this.currentTest?.title.includes('< base token decimals')) {
-    //     await setupCollateralStackForDeposits(19)
-    //   } else if (this.currentTest?.title.includes('mints to sender if sender = recipient')) {
-    //     /**
-    //      * We have to reset the stack here and take a new snapshot, because now the global
-    //      * contract variables have been overwritten by the special base token setups above.
-    //      * If we do not update the snapshot, the contracts we setup to return back to 6 decimals
-    //      * will be interacting with a network where they never existed.
-    //      */
-    //     await setupCollateralStackForDeposits()
-    //     snapshotBeforeEachTest = await ethers.provider.send('evm_snapshot', [])
-    //   }
-    //   await baseToken.mint(sender.address, parseUnits('1', await baseToken.decimals()))
-    //   await baseToken
-    //     .connect(sender)
-    //     .approve(collateral.address, parseUnits('1', await baseToken.decimals()))
-    //   await collateral.connect(deployer).setDepositFee(TEST_DEPOSIT_FEE)
-    //   await collateral.connect(deployer).setDepositHook(depositHook.address)
-    // })
+    before(async function () {
+      await setupDeposit()
+      await snapshotter.saveSnapshot()
+    })
 
     it('reverts if deposit = 0 and deposit fee = 0%', async () => {
       await collateral.connect(deployer).setDepositFee(0)
@@ -803,61 +790,77 @@ describe('=> Collateral', () => {
       expect(await baseToken.allowance(collateral.address, depositHook.address)).to.eq(0)
     })
 
-    it('mints decimal-adjusted amount to recipient if decimals > base token decimals', async () => {
-      expect(await collateral.decimals()).to.be.gt(await baseToken.decimals())
-      const recipientCTBefore = await collateral.balanceOf(recipient.address)
-      const amountToDeposit = await baseToken.balanceOf(sender.address)
-      expect(amountToDeposit).to.be.gt(0)
-      expect(await baseToken.allowance(sender.address, collateral.address)).to.be.eq(
-        amountToDeposit
-      )
-      const fee = amountToDeposit.mul(await collateral.getDepositFee()).div(FEE_DENOMINATOR)
-      const expectedCT = amountToDeposit.sub(fee).mul(parseEther('1')).div(USDC_DENOMINATOR)
+    describe("mints decimal-adjusted amount to recipient's balance", () => {
+      after(async () => {
+        await setupDeposit()
+        await snapshotter.saveSnapshot()
+      })
 
-      await collateral.connect(sender).deposit(recipient.address, amountToDeposit)
+      it('if decimals > base token decimals', async () => {
+        await setupDeposit()
+        expect(await collateral.decimals()).to.be.gt(await baseToken.decimals())
+        const recipientCTBefore = await collateral.balanceOf(recipient.address)
+        const amountToDeposit = await baseToken.balanceOf(sender.address)
+        expect(amountToDeposit).to.be.gt(0)
+        expect(await baseToken.allowance(sender.address, collateral.address)).to.be.eq(
+          amountToDeposit
+        )
+        const fee = amountToDeposit.mul(await collateral.getDepositFee()).div(FEE_DENOMINATOR)
+        const expectedCT = amountToDeposit.sub(fee).mul(parseEther('1')).div(USDC_DENOMINATOR)
 
-      expect(await collateral.balanceOf(recipient.address)).to.eq(recipientCTBefore.add(expectedCT))
-      expect(await collateral.balanceOf(sender.address)).to.eq(0)
-    })
+        await collateral.connect(sender).deposit(recipient.address, amountToDeposit)
 
-    it('mints decimal-adjusted amount to recipient if decimals = base token decimals', async () => {
-      // Setup 18 decimal base token
-      expect(await collateral.decimals()).to.eq(await baseToken.decimals())
-      const recipientCTBefore = await collateral.balanceOf(recipient.address)
-      const amountToDeposit = await baseToken.balanceOf(sender.address)
-      expect(amountToDeposit).to.be.gt(0)
-      expect(await baseToken.allowance(sender.address, collateral.address)).to.be.eq(
-        amountToDeposit
-      )
-      const fee = amountToDeposit.mul(await collateral.getDepositFee()).div(FEE_DENOMINATOR)
-      const expectedCT = amountToDeposit.sub(fee)
+        expect(await collateral.balanceOf(recipient.address)).to.eq(
+          recipientCTBefore.add(expectedCT)
+        )
+        expect(await collateral.balanceOf(sender.address)).to.eq(0)
+      })
 
-      await collateral.connect(sender).deposit(recipient.address, amountToDeposit)
+      it('if decimals = base token decimals', async () => {
+        // Setup 18 decimal base token
+        await setupDeposit(18)
+        expect(await collateral.decimals()).to.eq(await baseToken.decimals())
+        const recipientCTBefore = await collateral.balanceOf(recipient.address)
+        const amountToDeposit = await baseToken.balanceOf(sender.address)
+        expect(amountToDeposit).to.be.gt(0)
+        expect(await baseToken.allowance(sender.address, collateral.address)).to.be.eq(
+          amountToDeposit
+        )
+        const fee = amountToDeposit.mul(await collateral.getDepositFee()).div(FEE_DENOMINATOR)
+        const expectedCT = amountToDeposit.sub(fee)
 
-      expect(await collateral.balanceOf(recipient.address)).to.eq(recipientCTBefore.add(expectedCT))
-      expect(await collateral.balanceOf(sender.address)).to.eq(0)
-    })
+        await collateral.connect(sender).deposit(recipient.address, amountToDeposit)
 
-    it('mints decimal-adjusted amount to recipient if decimals < base token decimals', async () => {
-      // Setup 19 decimal base token
-      expect(await collateral.decimals()).to.be.lt(await baseToken.decimals())
-      const recipientCTBefore = await collateral.balanceOf(recipient.address)
-      const amountToDeposit = await baseToken.balanceOf(sender.address)
-      expect(amountToDeposit).to.be.gt(0)
-      expect(await baseToken.allowance(sender.address, collateral.address)).to.be.eq(
-        amountToDeposit
-      )
-      const fee = amountToDeposit.mul(await collateral.getDepositFee()).div(FEE_DENOMINATOR)
-      const GREATER_DECIMAL_DENOMINATOR = parseUnits('1', (await collateral.decimals()) + 1)
-      const expectedCT = amountToDeposit
-        .sub(fee)
-        .mul(parseEther('1'))
-        .div(GREATER_DECIMAL_DENOMINATOR)
+        expect(await collateral.balanceOf(recipient.address)).to.eq(
+          recipientCTBefore.add(expectedCT)
+        )
+        expect(await collateral.balanceOf(sender.address)).to.eq(0)
+      })
 
-      await collateral.connect(sender).deposit(recipient.address, amountToDeposit)
+      it('if decimals < base token decimals', async () => {
+        // Setup 19 decimal base token
+        await setupDeposit(19)
+        expect(await collateral.decimals()).to.be.lt(await baseToken.decimals())
+        const recipientCTBefore = await collateral.balanceOf(recipient.address)
+        const amountToDeposit = await baseToken.balanceOf(sender.address)
+        expect(amountToDeposit).to.be.gt(0)
+        expect(await baseToken.allowance(sender.address, collateral.address)).to.be.eq(
+          amountToDeposit
+        )
+        const fee = amountToDeposit.mul(await collateral.getDepositFee()).div(FEE_DENOMINATOR)
+        const GREATER_DECIMAL_DENOMINATOR = parseUnits('1', (await collateral.decimals()) + 1)
+        const expectedCT = amountToDeposit
+          .sub(fee)
+          .mul(parseEther('1'))
+          .div(GREATER_DECIMAL_DENOMINATOR)
 
-      expect(await collateral.balanceOf(recipient.address)).to.eq(recipientCTBefore.add(expectedCT))
-      expect(await collateral.balanceOf(sender.address)).to.eq(0)
+        await collateral.connect(sender).deposit(recipient.address, amountToDeposit)
+
+        expect(await collateral.balanceOf(recipient.address)).to.eq(
+          recipientCTBefore.add(expectedCT)
+        )
+        expect(await collateral.balanceOf(sender.address)).to.eq(0)
+      })
     })
 
     it('mints to sender if sender = recipient', async () => {
@@ -976,30 +979,29 @@ describe('=> Collateral', () => {
 
   describe('# withdraw', () => {
     snapshotter.usesCustomSnapshot()
-    // before(async function () {
-    //   await setupCollateralStackForWithdrawals()
-    //   snapshotBeforeEachTest = await ethers.provider.send('evm_snapshot', [])
-    // })
 
-    // beforeEach(async function () {
-    //   if (this.currentTest?.title.includes('= base token decimals')) {
-    //     await setupCollateralStackForWithdrawals(18)
-    //   } else if (this.currentTest?.title.includes('< base token decimals')) {
-    //     await setupCollateralStackForWithdrawals(19)
-    //   } else if (this.currentTest?.title.includes('sets hook approval back to 0')) {
-    //     await setupCollateralStackForWithdrawals()
-    //     snapshotBeforeEachTest = await ethers.provider.send('evm_snapshot', [])
-    //   }
-    //   await baseToken.mint(user1.address, parseUnits('1', await baseToken.decimals()))
-    //   await baseToken
-    //     .connect(user1)
-    //     .approve(collateral.address, parseUnits('1', await baseToken.decimals()))
-    //   await collateral
-    //     .connect(user1)
-    //     .deposit(user1.address, parseUnits('1', await baseToken.decimals()))
-    //   await collateral.connect(deployer).setWithdrawFee(TEST_WITHDRAW_FEE)
-    //   await collateral.connect(deployer).setWithdrawHook(withdrawHook.address)
-    // })
+    async function setupWithdraw(baseTokenDecimals?: number): Promise<void> {
+      if (!baseTokenDecimals) {
+        await setupCollateralStackForDeposits(USDC_DECIMALS)
+      } else {
+        await setupCollateralStackForDeposits(baseTokenDecimals)
+      }
+      await setupWithdrawHook()
+      await baseToken.mint(user1.address, parseUnits('1', await baseToken.decimals()))
+      await baseToken
+        .connect(user1)
+        .approve(collateral.address, parseUnits('1', await baseToken.decimals()))
+      await collateral
+        .connect(user1)
+        .deposit(user1.address, parseUnits('1', await baseToken.decimals()))
+      await collateral.connect(deployer).setWithdrawFee(TEST_WITHDRAW_FEE)
+      await collateral.connect(deployer).setWithdrawHook(withdrawHook.address)
+    }
+
+    before(async function () {
+      await setupWithdraw()
+      snapshotter.saveSnapshot()
+    })
 
     it('reverts if withdrawal = 0 and withdraw fee = 0%', async () => {
       await collateral.connect(deployer).setWithdrawFee(0)
@@ -1075,94 +1077,117 @@ describe('=> Collateral', () => {
         .withArgs(user1.address, ZERO_ADDRESS, amountToWithdraw)
     })
 
-    it('approves fee to hook adjusting for when decimals > base token decimals', async () => {
-      expect(await collateral.decimals()).to.be.gt(await baseToken.decimals())
-      const amountToWithdraw = await collateral.balanceOf(user1.address)
-      expect(amountToWithdraw).to.be.gt(0)
-      const expectedBT = amountToWithdraw.mul(USDC_DENOMINATOR).div(parseEther('1'))
-      const fee = expectedBT.mul(await collateral.getWithdrawFee()).div(FEE_DENOMINATOR)
-      expect(await baseToken.allowance(collateral.address, withdrawHook.address)).to.be.eq(0)
+    describe('when decimals > base token decimals', () => {
+      snapshotter.usesCustomSnapshot()
+      before(async () => {
+        await setupWithdraw()
+      })
 
-      const tx = await collateral.connect(user1).withdraw(amountToWithdraw)
+      it('approves fee to hook', async () => {
+        expect(await collateral.decimals()).to.be.gt(await baseToken.decimals())
+        const amountToWithdraw = await collateral.balanceOf(user1.address)
+        expect(amountToWithdraw).to.be.gt(0)
+        const expectedBT = amountToWithdraw.mul(USDC_DENOMINATOR).div(parseEther('1'))
+        const fee = expectedBT.mul(await collateral.getWithdrawFee()).div(FEE_DENOMINATOR)
+        expect(await baseToken.allowance(collateral.address, withdrawHook.address)).to.be.eq(0)
 
-      await expect(tx)
-        .to.emit(baseToken, 'Approval')
-        .withArgs(collateral.address, withdrawHook.address, fee)
+        const tx = await collateral.connect(user1).withdraw(amountToWithdraw)
+
+        await expect(tx)
+          .to.emit(baseToken, 'Approval')
+          .withArgs(collateral.address, withdrawHook.address, fee)
+      })
+
+      it('transfers base tokens to user', async () => {
+        expect(await collateral.decimals()).to.be.gt(await baseToken.decimals())
+        const userBTBefore = await baseToken.balanceOf(user1.address)
+        const amountToWithdraw = await collateral.balanceOf(user1.address)
+        expect(amountToWithdraw).to.be.gt(0)
+        const expectedBT = amountToWithdraw.mul(USDC_DENOMINATOR).div(parseEther('1'))
+        const fee = expectedBT.mul(await collateral.getWithdrawFee()).div(FEE_DENOMINATOR)
+
+        await collateral.connect(user1).withdraw(amountToWithdraw)
+
+        expect(await baseToken.balanceOf(user1.address)).to.eq(
+          userBTBefore.add(expectedBT.sub(fee))
+        )
+      })
     })
 
-    it('transfers base tokens to user adjusting for when decimals > base token decimals', async () => {
-      expect(await collateral.decimals()).to.be.gt(await baseToken.decimals())
-      const userBTBefore = await baseToken.balanceOf(user1.address)
-      const amountToWithdraw = await collateral.balanceOf(user1.address)
-      expect(amountToWithdraw).to.be.gt(0)
-      const expectedBT = amountToWithdraw.mul(USDC_DENOMINATOR).div(parseEther('1'))
-      const fee = expectedBT.mul(await collateral.getWithdrawFee()).div(FEE_DENOMINATOR)
+    describe('when decimals = base token decimals', () => {
+      snapshotter.usesCustomSnapshot()
+      before(async () => {
+        await setupWithdraw(18)
+      })
 
-      await collateral.connect(user1).withdraw(amountToWithdraw)
+      it('approves fee to hook', async () => {
+        expect(await collateral.decimals()).to.eq(await baseToken.decimals())
+        const amountToWithdraw = await collateral.balanceOf(user1.address)
+        expect(amountToWithdraw).to.be.gt(0)
+        const expectedBT = amountToWithdraw
+        const fee = expectedBT.mul(await collateral.getWithdrawFee()).div(FEE_DENOMINATOR)
+        expect(await baseToken.allowance(collateral.address, withdrawHook.address)).to.be.eq(0)
 
-      expect(await baseToken.balanceOf(user1.address)).to.eq(userBTBefore.add(expectedBT.sub(fee)))
+        const tx = await collateral.connect(user1).withdraw(amountToWithdraw)
+
+        await expect(tx)
+          .to.emit(baseToken, 'Approval')
+          .withArgs(collateral.address, withdrawHook.address, fee)
+      })
+
+      it('transfers base tokens to user', async () => {
+        expect(await collateral.decimals()).to.eq(await baseToken.decimals())
+        const userBTBefore = await baseToken.balanceOf(user1.address)
+        const amountToWithdraw = await collateral.balanceOf(user1.address)
+        expect(amountToWithdraw).to.be.gt(0)
+        const expectedBT = amountToWithdraw
+        const fee = expectedBT.mul(await collateral.getWithdrawFee()).div(FEE_DENOMINATOR)
+
+        await collateral.connect(user1).withdraw(amountToWithdraw)
+
+        expect(await baseToken.balanceOf(user1.address)).to.eq(
+          userBTBefore.add(expectedBT.sub(fee))
+        )
+      })
     })
 
-    it('approves fee to hook adjusting for when decimals = base token decimals', async () => {
-      // Setup 18 decimal base token
-      expect(await collateral.decimals()).to.eq(await baseToken.decimals())
-      const amountToWithdraw = await collateral.balanceOf(user1.address)
-      expect(amountToWithdraw).to.be.gt(0)
-      const expectedBT = amountToWithdraw
-      const fee = expectedBT.mul(await collateral.getWithdrawFee()).div(FEE_DENOMINATOR)
-      expect(await baseToken.allowance(collateral.address, withdrawHook.address)).to.be.eq(0)
+    describe('when decimals < base token decimals', () => {
+      snapshotter.usesCustomSnapshot()
+      before(async () => {
+        await setupWithdraw(19)
+      })
 
-      const tx = await collateral.connect(user1).withdraw(amountToWithdraw)
+      it('approves fee to hook', async () => {
+        expect(await collateral.decimals()).to.be.lt(await baseToken.decimals())
+        const amountToWithdraw = await collateral.balanceOf(user1.address)
+        expect(amountToWithdraw).to.be.gt(0)
+        const GREATER_DECIMAL_DENOMINATOR = parseUnits('1', (await collateral.decimals()) + 1)
+        const expectedBT = amountToWithdraw.mul(GREATER_DECIMAL_DENOMINATOR).div(parseEther('1'))
+        const fee = expectedBT.mul(await collateral.getWithdrawFee()).div(FEE_DENOMINATOR)
+        expect(await baseToken.allowance(collateral.address, withdrawHook.address)).to.be.eq(0)
 
-      await expect(tx)
-        .to.emit(baseToken, 'Approval')
-        .withArgs(collateral.address, withdrawHook.address, fee)
-    })
+        const tx = await collateral.connect(user1).withdraw(amountToWithdraw)
 
-    it('transfers base tokens to user adjusting for when decimals = base token decimals', async () => {
-      // Setup 18 decimal base token
-      expect(await collateral.decimals()).to.eq(await baseToken.decimals())
-      const userBTBefore = await baseToken.balanceOf(user1.address)
-      const amountToWithdraw = await collateral.balanceOf(user1.address)
-      expect(amountToWithdraw).to.be.gt(0)
-      const expectedBT = amountToWithdraw
-      const fee = expectedBT.mul(await collateral.getWithdrawFee()).div(FEE_DENOMINATOR)
+        await expect(tx)
+          .to.emit(baseToken, 'Approval')
+          .withArgs(collateral.address, withdrawHook.address, fee)
+      })
 
-      await collateral.connect(user1).withdraw(amountToWithdraw)
+      it('transfers base tokens to user', async () => {
+        expect(await collateral.decimals()).to.be.lt(await baseToken.decimals())
+        const userBTBefore = await baseToken.balanceOf(user1.address)
+        const amountToWithdraw = await collateral.balanceOf(user1.address)
+        expect(amountToWithdraw).to.be.gt(0)
+        const GREATER_DECIMAL_DENOMINATOR = parseUnits('1', (await collateral.decimals()) + 1)
+        const expectedBT = amountToWithdraw.mul(GREATER_DECIMAL_DENOMINATOR).div(parseEther('1'))
+        const fee = expectedBT.mul(await collateral.getWithdrawFee()).div(FEE_DENOMINATOR)
 
-      expect(await baseToken.balanceOf(user1.address)).to.eq(userBTBefore.add(expectedBT.sub(fee)))
-    })
+        await collateral.connect(user1).withdraw(amountToWithdraw)
 
-    it('approves fee to hook adjusting for when decimals < base token decimals', async () => {
-      // Setup 19 decimal base token
-      expect(await collateral.decimals()).to.be.lt(await baseToken.decimals())
-      const amountToWithdraw = await collateral.balanceOf(user1.address)
-      expect(amountToWithdraw).to.be.gt(0)
-      const GREATER_DECIMAL_DENOMINATOR = parseUnits('1', (await collateral.decimals()) + 1)
-      const expectedBT = amountToWithdraw.mul(GREATER_DECIMAL_DENOMINATOR).div(parseEther('1'))
-      const fee = expectedBT.mul(await collateral.getWithdrawFee()).div(FEE_DENOMINATOR)
-      expect(await baseToken.allowance(collateral.address, withdrawHook.address)).to.be.eq(0)
-
-      const tx = await collateral.connect(user1).withdraw(amountToWithdraw)
-
-      await expect(tx)
-        .to.emit(baseToken, 'Approval')
-        .withArgs(collateral.address, withdrawHook.address, fee)
-    })
-
-    it('transfers base tokens to user adjusting for when decimals < base token decimals', async () => {
-      // Setup 19 decimal base token
-      expect(await collateral.decimals()).to.be.lt(await baseToken.decimals())
-      const userBTBefore = await baseToken.balanceOf(user1.address)
-      const amountToWithdraw = await collateral.balanceOf(user1.address)
-      expect(amountToWithdraw).to.be.gt(0)
-      const GREATER_DECIMAL_DENOMINATOR = parseUnits('1', (await collateral.decimals()) + 1)
-      const expectedBT = amountToWithdraw.mul(GREATER_DECIMAL_DENOMINATOR).div(parseEther('1'))
-      const fee = expectedBT.mul(await collateral.getWithdrawFee()).div(FEE_DENOMINATOR)
-
-      await collateral.connect(user1).withdraw(amountToWithdraw)
-
-      expect(await baseToken.balanceOf(user1.address)).to.eq(userBTBefore.add(expectedBT.sub(fee)))
+        expect(await baseToken.balanceOf(user1.address)).to.eq(
+          userBTBefore.add(expectedBT.sub(fee))
+        )
+      })
     })
 
     it('sets hook approval back to 0', async () => {
