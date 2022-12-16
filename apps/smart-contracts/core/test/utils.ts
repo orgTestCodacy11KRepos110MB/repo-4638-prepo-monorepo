@@ -1,11 +1,13 @@
 import { parseEther } from '@ethersproject/units'
-import { BigNumber, Contract } from 'ethers'
+import { BigNumber, Contract, PopulatedTransaction } from 'ethers'
 import { ethers, network } from 'hardhat'
 import { MerkleTree } from 'merkletreejs'
 import keccak256 from 'keccak256'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { FakeContract, MockContract } from '@defi-wonderland/smock'
 import { utils } from 'prepo-hardhat'
+import { expect } from 'chai'
+import { id } from 'ethers/lib/utils'
 import { PermitStruct } from '../typechain/DepositTradeHelper'
 
 const { getPermitSignature } = utils
@@ -125,4 +127,37 @@ export async function getPermitFromSignature(
     r: signature.r,
     s: signature.s,
   }
+}
+
+export async function testRoleConstants(roles: (Promise<string> | string)[]): Promise<void> {
+  const roleTest = async (roleGetter: Promise<string>, roleConstant: string): Promise<void> => {
+    expect(await roleGetter).eq(
+      id(roleConstant),
+      `Role constant does not match for ${roleConstant}`
+    )
+  }
+  const tests: Promise<void>[] = []
+  for (let i = 0; i < roles.length; i += 2) {
+    const roleGetter = roles[i] as Promise<string>
+    const roleConstant = roles[i + 1] as string
+    tests.push(roleTest(roleGetter, roleConstant))
+  }
+  await Promise.all(tests)
+}
+
+export async function revertsIfNotRoleHolder(
+  rolePromise: Promise<string>,
+  populatedTransactionPromise: Promise<PopulatedTransaction>
+): Promise<void> {
+  const account = (await ethers.getSigners()).pop()
+  const role = await rolePromise
+  const populatedTransaction = await populatedTransactionPromise
+  const contract = await ethers.getContractAt(
+    'SafeAccessControlEnumerable',
+    populatedTransaction.to
+  )
+  expect(await contract.hasRole(role, account.address)).eq(false)
+  await expect(account.sendTransaction(populatedTransaction)).revertedWith(
+    `AccessControl: account ${account.address.toLowerCase()} is missing role ${role}`
+  )
 }
