@@ -3,10 +3,11 @@ import { ethers } from 'hardhat'
 import { utils } from 'prepo-hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { LongShortTokenFixture } from './fixtures/LongShortTokenFixture'
-import { saveSnapshot, usesCustomSnapshot } from './snapshots'
+import { Snapshotter } from './snapshots'
 import { LongShortToken } from '../typechain/LongShortToken'
 
 const { revertReason } = utils
+const snapshotter = new Snapshotter()
 
 describe('=> LongShortToken', () => {
   let longShort: LongShortToken
@@ -14,14 +15,14 @@ describe('=> LongShortToken', () => {
   let user: SignerWithAddress
   let user2: SignerWithAddress
 
-  usesCustomSnapshot()
+  snapshotter.usesCustomSnapshot()
   before(async () => {
     ;[deployer, user, user2] = await ethers.getSigners()
     longShort = await LongShortTokenFixture(
       'preSTRIPE LONG 100-200 30-September-2021',
       'preSTRP_L_100-200_30SEP21'
     )
-    await saveSnapshot()
+    await snapshotter.saveSnapshot()
   })
 
   describe('# initialize', () => {
