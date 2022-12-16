@@ -51,7 +51,6 @@ describe('=> DepositHook', () => {
     collateral = await fakeCollateralFixture()
     await setAccountBalance(collateral.address, '0.1')
     collateral.getBaseToken.returns(testToken.address)
-    await setAccountBalance(collateral.address)
     await grantAndAcceptRole(
       depositHook,
       deployer,
