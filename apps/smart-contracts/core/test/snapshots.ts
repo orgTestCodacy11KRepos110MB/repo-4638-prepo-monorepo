@@ -24,7 +24,6 @@ export class Snapshotter {
   private outerSetupComplete = false
   private snapshotStack: Snapshot[] = []
   private setActiveSnapshot(snapshot: Snapshot): void {
-    console.log('Setting active snapshot', snapshot.name)
     this.snapshotStack.push(snapshot)
   }
   private headSnapshot(): Snapshot {
@@ -35,7 +34,6 @@ export class Snapshotter {
     this.snapshotStack.pop()
     if (this.snapshotStack.length > 0) {
       // If we have another in the stack, revert the blockchain to this snapshot
-      console.log('Reverting to snapshot', this.headSnapshot().name, this.headSnapshot().snapshotId)
       await this.headSnapshot().reset()
     } else if (this.snapshotStack.length === 0) {
       // Otherwise we've popped the last one off the stack, so we're done, and our
@@ -60,7 +58,6 @@ export class Snapshotter {
 
       beforeEach(async () => {
         // Before each, take a snapshot
-        console.log(this.headSnapshot().name, 'Hooking into beforeEach')
         await this.headSnapshot().snapshot()
       })
 
