@@ -7,8 +7,13 @@ import "./interfaces/IHook.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "prepo-shared-contracts/contracts/SafeAccessControlEnumerable.sol";
 
-contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
+contract PrePOMarket is
+  IPrePOMarket,
+  ReentrancyGuard,
+  SafeAccessControlEnumerable
+{
   IHook private _mintHook;
   IHook private _redeemHook;
 
@@ -30,6 +35,13 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
   uint256 private constant MAX_PAYOUT = 1e18;
   uint256 private constant FEE_DENOMINATOR = 1000000;
   uint256 private constant FEE_LIMIT = 100000;
+
+  bytes32 public constant SET_MINT_HOOK_ROLE = keccak256("setMintHook");
+  bytes32 public constant SET_REDEEM_HOOK_ROLE = keccak256("setRedeemHook");
+  bytes32 public constant SET_FINAL_LONG_PAYOUT_ROLE =
+    keccak256("setFinalLongPayout");
+  bytes32 public constant SET_REDEMPTION_FEE_ROLE =
+    keccak256("setRedemptionFee");
 
   /**
    * Assumes `_collateral`, `_longToken`, and `_shortToken` are
@@ -58,7 +70,8 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
     require(_expiryTime > block.timestamp, "Invalid expiry");
     require(_ceilingLongPayout <= MAX_PAYOUT, "Ceiling cannot exceed 1");
 
-    transferOwnership(owner);
+    _revokeRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    _grantRole(DEFAULT_ADMIN_ROLE, owner);
 
     collateral = IERC20(_collateral);
     longToken = _longToken;
@@ -165,12 +178,20 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
     emit Redemption(msg.sender, _collateralAfterFee, _actualFee);
   }
 
-  function setMintHook(IHook mintHook) external override onlyOwner {
+  function setMintHook(IHook mintHook)
+    external
+    override
+    onlyRole(SET_MINT_HOOK_ROLE)
+  {
     _mintHook = mintHook;
     emit MintHookChange(address(mintHook));
   }
 
-  function setRedeemHook(IHook redeemHook) external override onlyOwner {
+  function setRedeemHook(IHook redeemHook)
+    external
+    override
+    onlyRole(SET_REDEEM_HOOK_ROLE)
+  {
     _redeemHook = redeemHook;
     emit RedeemHookChange(address(redeemHook));
   }
@@ -178,7 +199,7 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
   function setFinalLongPayout(uint256 _finalLongPayout)
     external
     override
-    onlyOwner
+    onlyRole(SET_FINAL_LONG_PAYOUT_ROLE)
   {
     require(
       _finalLongPayout >= floorLongPayout,
@@ -195,7 +216,7 @@ contract PrePOMarket is IPrePOMarket, Ownable, ReentrancyGuard {
   function setRedemptionFee(uint256 _redemptionFee)
     external
     override
-    onlyOwner
+    onlyRole(SET_REDEMPTION_FEE_ROLE)
   {
     require(_redemptionFee <= FEE_LIMIT, "Exceeds fee limit");
     redemptionFee = _redemptionFee;

@@ -4,7 +4,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-wit
 import { BigNumber, Contract } from 'ethers'
 import { formatBytes32String } from 'ethers/lib/utils'
 import { FakeContract, smock } from '@defi-wonderland/smock'
-import { ZERO_ADDRESS } from 'prepo-constants'
+import { DEFAULT_ADMIN_ROLE, ZERO_ADDRESS } from 'prepo-constants'
 import { utils } from 'prepo-hardhat'
 import { testERC20Fixture } from './fixtures/TestERC20Fixture'
 import { LongShortTokenAttachFixture } from './fixtures/LongShortTokenFixture'
@@ -22,6 +22,9 @@ import {
   MARKET_FEE_LIMIT,
   FEE_DENOMINATOR,
   getLastTimestamp,
+  batchGrantAndAcceptRoles,
+  revertsIfNotRoleHolder,
+  testRoleConstants,
 } from './utils'
 import { PrePOMarketFactory } from '../typechain/PrePOMarketFactory'
 import { PrePOMarket } from '../typechain/PrePOMarket'
@@ -38,7 +41,6 @@ describe('=> prePOMarket', () => {
   let prePOMarketFactory: PrePOMarketFactory
   let deployer: SignerWithAddress
   let user: SignerWithAddress
-  let user2: SignerWithAddress
   let treasury: SignerWithAddress
   let defaultParams: CreateMarketParams
   const TEST_NAME_SUFFIX = 'preSTRIPE 100-200 30-September-2021'
@@ -58,8 +60,17 @@ describe('=> prePOMarket', () => {
     return createMarketResult
   }
 
+  async function grantAllRoles(account: SignerWithAddress): Promise<void> {
+    await batchGrantAndAcceptRoles(prePOMarket, treasury, account, [
+      prePOMarket.SET_MINT_HOOK_ROLE(),
+      prePOMarket.SET_REDEEM_HOOK_ROLE(),
+      prePOMarket.SET_FINAL_LONG_PAYOUT_ROLE(),
+      prePOMarket.SET_REDEMPTION_FEE_ROLE(),
+    ])
+  }
+
   beforeEach(async () => {
-    ;[deployer, user, user2, treasury] = await ethers.getSigners()
+    ;[deployer, user, treasury] = await ethers.getSigners()
     collateralToken = await testERC20Fixture('prePO USDC Collateral', 'preUSD', 18)
     await collateralToken.mint(deployer.address, MOCK_COLLATERAL_SUPPLY)
     prePOMarketFactory = await prePOMarketFactoryFixture()
@@ -102,10 +113,32 @@ describe('=> prePOMarket', () => {
       expect(await prePOMarket.getFeeLimit()).to.eq(MARKET_FEE_LIMIT)
     })
 
-    it('should set owner to governance', async () => {
+    it('sets role constants to correct hash', async () => {
       prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
+      await testRoleConstants([
+        prePOMarket.SET_MINT_HOOK_ROLE(),
+        'setMintHook',
+        prePOMarket.SET_REDEEM_HOOK_ROLE(),
+        'setRedeemHook',
+        prePOMarket.SET_FINAL_LONG_PAYOUT_ROLE(),
+        'setFinalLongPayout',
+        prePOMarket.SET_REDEMPTION_FEE_ROLE(),
+        'setRedemptionFee',
+      ])
+    })
 
-      expect(await prePOMarket.owner()).to.eq(treasury.address)
+    it('sets governance as role admin', async () => {
+      const createMarketResult = await createMarket(defaultParams)
+      prePOMarket = await prePOMarketAttachFixture(createMarketResult)
+
+      expect(await prePOMarket.hasRole(DEFAULT_ADMIN_ROLE, treasury.address)).eq(true)
+    })
+
+    it('revokes admin role from deployer', async () => {
+      const createMarketResult = await createMarket(defaultParams)
+      prePOMarket = await prePOMarketAttachFixture(createMarketResult)
+
+      expect(await prePOMarket.hasRole(DEFAULT_ADMIN_ROLE, deployer.address)).eq(false)
     })
 
     it('should not allow floor = ceiling', async () => {
@@ -179,11 +212,13 @@ describe('=> prePOMarket', () => {
   describe('# setFinalLongPayout', () => {
     beforeEach(async () => {
       prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
+      await grantAllRoles(treasury)
     })
 
-    it('should only be usable by the owner', async () => {
-      await expect(prePOMarket.connect(user).setFinalLongPayout(MAX_PAYOUT)).to.revertedWith(
-        revertReason('Ownable: caller is not the owner')
+    it('reverts if not role holder', async () => {
+      await revertsIfNotRoleHolder(
+        prePOMarket.SET_FINAL_LONG_PAYOUT_ROLE(),
+        prePOMarket.populateTransaction.setFinalLongPayout(MAX_PAYOUT)
       )
     })
 
@@ -226,13 +261,13 @@ describe('=> prePOMarket', () => {
   describe('# setMintHook', () => {
     beforeEach(async () => {
       prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
+      await grantAllRoles(treasury)
     })
 
-    it('reverts if not owner', async () => {
-      expect(await prePOMarket.owner()).to.not.eq(user.address)
-
-      await expect(prePOMarket.connect(user).setMintHook(user.address)).to.revertedWith(
-        'Ownable: caller is not the owner'
+    it('reverts if not role holder', async () => {
+      await revertsIfNotRoleHolder(
+        prePOMarket.SET_MINT_HOOK_ROLE(),
+        prePOMarket.populateTransaction.setMintHook(user.address)
       )
     })
 
@@ -275,13 +310,13 @@ describe('=> prePOMarket', () => {
   describe('# setRedeemHook', () => {
     beforeEach(async () => {
       prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
+      await grantAllRoles(treasury)
     })
 
-    it('reverts if not owner', async () => {
-      expect(await prePOMarket.owner()).to.not.eq(user.address)
-
-      await expect(prePOMarket.connect(user).setRedeemHook(user.address)).to.revertedWith(
-        'Ownable: caller is not the owner'
+    it('reverts if not role holder', async () => {
+      await revertsIfNotRoleHolder(
+        prePOMarket.SET_REDEEM_HOOK_ROLE(),
+        prePOMarket.populateTransaction.setRedeemHook(user.address)
       )
     })
 
@@ -324,12 +359,14 @@ describe('=> prePOMarket', () => {
   describe('# setRedemptionFee', () => {
     beforeEach(async () => {
       prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
+      await grantAllRoles(treasury)
     })
 
-    it('reverts if not owner', async () => {
-      await expect(
-        prePOMarket.connect(user).setRedemptionFee(MARKET_FEE_LIMIT - 1)
-      ).to.revertedWith(revertReason('Ownable: caller is not the owner'))
+    it('reverts if not role holder', async () => {
+      await revertsIfNotRoleHolder(
+        prePOMarket.SET_REDEMPTION_FEE_ROLE(),
+        prePOMarket.populateTransaction.setRedemptionFee(MARKET_FEE_LIMIT + 1)
+      )
     })
 
     it('reverts if > FEE_LIMIT', async () => {
@@ -375,6 +412,7 @@ describe('=> prePOMarket', () => {
     let mintHook: FakeContract<Contract>
     beforeEach(async () => {
       prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
+      await grantAllRoles(treasury)
     })
 
     it('prevents minting if market ended', async () => {
@@ -505,6 +543,7 @@ describe('=> prePOMarket', () => {
 
     const setupMarket = async (): Promise<BigNumber> => {
       prePOMarket = await prePOMarketAttachFixture(await createMarket(defaultParams))
+      await grantAllRoles(treasury)
       redeemHook = await fakeMintHookFixture()
       const amountMinted = await mintTestPosition()
       await approveTokensForRedemption(user, amountMinted)
