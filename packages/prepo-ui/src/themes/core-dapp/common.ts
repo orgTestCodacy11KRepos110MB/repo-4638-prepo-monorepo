@@ -6,6 +6,8 @@ export const borderRadius = {
   md: '16px',
   sm: '14px',
   xs: '12px',
+  '2xs': '10px',
+  '3xs': '8px',
 }
 
 // Borders

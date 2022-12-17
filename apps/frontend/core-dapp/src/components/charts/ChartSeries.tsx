@@ -40,7 +40,8 @@ export const ChartSeries: React.FC<ChartSeriesProps & Props> = ({
     detailsBoxRef,
     details,
     chartTooltip.formatter?.formatPrice,
-    chartTooltip.formatter?.formatTime
+    chartTooltip.formatter?.formatTime,
+    chartTooltip.formatter?.valueColor
   )
 }
 

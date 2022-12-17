@@ -15,6 +15,7 @@ import HistogramChart from '../../components/charts/templates/HistogramChart'
 import useSelectedMarket from '../../hooks/useSelectedMarket'
 import LoadingLottie from '../../components/lottie-animations/LoadingLottie'
 import { numberFormatter } from '../../utils/numberFormatter'
+import { useRootStore } from '../../context/RootStoreProvider'
 
 const { significantDigits } = numberFormatter
 
@@ -80,7 +81,7 @@ const defaultTimeFrames = [
   ChartTimeframe.WEEK,
   ChartTimeframe.MONTH,
   ChartTimeframe.YEAR,
-  ChartTimeframe.MAX,
+  ChartTimeframe.ALL,
 ]
 
 const ChartTypes: React.FC<{ onChange: (view: ChartView) => void }> = ({ onChange }) => (
@@ -106,6 +107,8 @@ const ChartTimeframes: React.FC<{
 )
 
 const MarketChart: React.FC = () => {
+  const { tradeStore } = useRootStore()
+  const { selectedTimeframe } = tradeStore
   const { color } = useTheme()
   const [view, setView] = useState<ChartView>(chartView[0])
   const selectedMarket = useSelectedMarket()
@@ -113,7 +116,7 @@ const MarketChart: React.FC = () => {
   const liquidityData = useTransformedTVLData(selectedMarket?.realTimeChartData)
   const valuationData = useTransformedValuationData(selectedMarket?.realTimeChartData)
   const volumeData = useTransformedVolumeData(selectedMarket?.realTimeChartData, {
-    timeframe: selectedMarket?.selectedTimeframe,
+    timeframe: selectedTimeframe,
     timestampInSeconds: true,
     baseColor: 'success',
     negativeColor: 'error',
@@ -142,7 +145,6 @@ const MarketChart: React.FC = () => {
         </Centered>
       )
 
-    const { selectedTimeframe } = selectedMarket
     const defaultChartProps = {
       chartOptions: {
         handleScroll: true,
@@ -189,7 +191,7 @@ const MarketChart: React.FC = () => {
           />
         )
     }
-  }, [layout, liquidityData, selectedMarket, valuationData, view, volumeData])
+  }, [layout, liquidityData, selectedMarket, selectedTimeframe, valuationData, view, volumeData])
 
   const renderChartTypes = useMemo(
     (): ReactElement => (
@@ -209,11 +211,11 @@ const MarketChart: React.FC = () => {
     () =>
       selectedMarket ? (
         <ChartTimeframes
-          onChange={selectedMarket.setSelectedTimeframe}
+          onChange={tradeStore.setSelectedTimeframe}
           timeFrames={defaultTimeFrames}
         />
       ) : null,
-    [selectedMarket]
+    [selectedMarket, tradeStore.setSelectedTimeframe]
   )
 
   return (

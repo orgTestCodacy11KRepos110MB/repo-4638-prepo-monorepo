@@ -25,7 +25,7 @@ export enum ChartTimeframe {
   WEEK = '7D',
   MONTH = '1M',
   YEAR = '1Y',
-  MAX = 'MAX',
+  ALL = 'ALL',
 }
 
 export type Range = [number, number]
@@ -57,7 +57,7 @@ export type Market = {
 export type MarketHistoryData = {
   timestamp: number
   volume: number
-  valuation?: number
+  valuation: number
   liquidity?: number
 }
 

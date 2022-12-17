@@ -76,8 +76,8 @@ export class RootStore extends PRootStore<SupportedContracts> {
     this.preCTTokenStore = new CollateralStore(this)
     this.depositStore = new DepositStore(this)
     this.withdrawStore = new WithdrawStore(this)
-    this.marketStore = new MarketStore(this)
     this.tradeStore = new TradeStore(this)
+    this.marketStore = new MarketStore(this)
     this.advancedSettingsStore = new AdvancedSettingsStore(this)
     this.baseTokenStore = new Erc20Store({
       root: this,

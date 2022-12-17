@@ -3,6 +3,7 @@ import styled from 'styled-components'
 import { centered, spacingIncrement } from 'prepo-ui'
 
 const Wrapper = styled.div`
+  width: 100%;
   &&& {
     ${centered}
     border-radius: ${({ theme }): string => theme.borderRadius.lg};
@@ -14,7 +15,7 @@ const Wrapper = styled.div`
     }
     .ant-card-body {
       border-radius: inherit;
-      padding: ${spacingIncrement(35)} ${spacingIncrement(30)};
+      padding: ${spacingIncrement(16)};
     }
   }
 `

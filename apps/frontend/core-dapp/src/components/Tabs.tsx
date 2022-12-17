@@ -24,6 +24,7 @@ type TabStyles = {
 
 export type TabsProps = {
   disableMore?: boolean
+  disabled?: boolean
   styles?: TabStyles
   tab: TabProps[]
 } & ATabsProps
@@ -93,12 +94,18 @@ export const secondaryTabsStyles: TabStyles = {
   height: 32,
 }
 
-const Tabs: React.FC<TabsProps> = ({ styles = {}, disableMore = false, tab: data, ...props }) => (
+const Tabs: React.FC<TabsProps> = ({
+  styles = {},
+  disableMore = false,
+  disabled,
+  tab: data,
+  ...props
+}) => (
   <Wrapper disableMore={disableMore} styles={styles}>
     {/* eslint-disable-next-line react/jsx-props-no-spreading */}
     <ATabs {...props}>
       {data.map(({ heading, content, value }, index) => (
-        <TabPane tab={heading} key={value || index.toString()}>
+        <TabPane disabled={disabled} tab={heading} key={value || index.toString()}>
           {content}
         </TabPane>
       ))}

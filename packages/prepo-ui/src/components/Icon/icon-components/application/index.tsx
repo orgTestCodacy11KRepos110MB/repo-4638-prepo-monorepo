@@ -62,6 +62,8 @@ import ChevronUpIcon from './ChevronUpIcon'
 import ChevronDownIcon from './ChevronDownIcon'
 import PowerIcon from './PowerIcon'
 import ArrowUpRightIcon from './ArrowUpRightIcon'
+import TradingVolumeIcon from './TradingVolume'
+import TradingLiquidityIcon from './TradingLiquidity'
 
 export const applicationIcons = {
   'arrow-down': ArrowDownIcon,
@@ -124,6 +126,8 @@ export const applicationIcons = {
   settings: SettingsIcon,
   'sort-down': SortDownIcon,
   stake: StakeIcon,
+  'trading-volume': TradingVolumeIcon,
+  'trading-liquidity': TradingLiquidityIcon,
   'water-drop': WaterDropIcon,
   reset: ResetIcon,
   'zoom-in-two': ZoomInIconTwo,

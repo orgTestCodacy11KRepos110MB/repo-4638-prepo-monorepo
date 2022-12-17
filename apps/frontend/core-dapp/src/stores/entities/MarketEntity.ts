@@ -72,7 +72,7 @@ const timeframeMap = {
   [ChartTimeframe.WEEK]: 168,
   [ChartTimeframe.MONTH]: 720,
   [ChartTimeframe.YEAR]: 8760,
-  [ChartTimeframe.MAX]: UNISWAP_MAX_DATAPOINTS * 24,
+  [ChartTimeframe.ALL]: UNISWAP_MAX_DATAPOINTS * 24,
 }
 export class MarketEntity
   extends ContractStore<RootStore, SupportedContracts>
@@ -99,7 +99,6 @@ export class MarketEntity
   shortPool: UniswapPoolEntity | undefined
   shortToken: Erc20Store | undefined
   selectedPool: UniswapPoolEntity | undefined
-  selectedTimeframe: ChartTimeframe
 
   constructor(root: RootStore, data: Market) {
     super(root, data.address, PrepoMarketAbi__factory as unknown as Factory)
@@ -112,12 +111,9 @@ export class MarketEntity
     this.long = data.long
     this.short = data.short
     this.type = data.type
-    this.selectedTimeframe = ChartTimeframe.DAY
 
     makeObservable(this, {
       cachedHistoricalData: observable,
-      selectedTimeframe: observable,
-      setSelectedTimeframe: action.bound,
       getLongTokenPayout: action.bound,
       getShortTokenPayout: action.bound,
       getProfitLossOnExit: action.bound,
@@ -135,7 +131,10 @@ export class MarketEntity
 
   cacheHistoricalData(): void {
     reaction(
-      () => ({ historicalData: this.historicalData, selectedTimeframe: this.selectedTimeframe }),
+      () => ({
+        historicalData: this.historicalData,
+        selectedTimeframe: this.root.tradeStore.selectedTimeframe,
+      }),
       ({ historicalData, selectedTimeframe }) => {
         runInAction(() => {
           // allow showing loading UI if timeframe is changed
@@ -147,7 +146,7 @@ export class MarketEntity
           if (selectedTimeframe === this.cachedTimeframe && historicalData !== undefined)
             this.cachedHistoricalData = historicalData
 
-          this.cachedTimeframe = this.selectedTimeframe
+          this.cachedTimeframe = selectedTimeframe
         })
       }
     )
@@ -264,10 +263,6 @@ export class MarketEntity
     this.selectedPool = this[`${direction}Pool`]
   }
 
-  setSelectedTimeframe(timeframe: ChartTimeframe): void {
-    this.selectedTimeframe = timeframe
-  }
-
   // contract calls
 
   getCeilingLongPrice(
@@ -350,7 +345,7 @@ export class MarketEntity
 
   get historicalDataDateRange(): DateRange {
     return getDateRangeFromHours(
-      Math.min(getProjectStartedHours(), timeframeMap[this.selectedTimeframe])
+      Math.min(getProjectStartedHours(), timeframeMap[this.root.tradeStore.selectedTimeframe])
     )
   }
 
