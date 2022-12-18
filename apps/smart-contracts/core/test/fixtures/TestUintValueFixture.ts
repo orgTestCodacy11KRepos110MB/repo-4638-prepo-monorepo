@@ -1,6 +1,6 @@
 import { ethers } from 'hardhat'
 import { FakeContract, MockContract, smock } from '@defi-wonderland/smock'
-import { TestUintValue } from '../../typechain/TestUintValue'
+import { TestUintValue } from '../../types/generated'
 
 export async function testUintValueFixture(): Promise<TestUintValue> {
   const factory = await ethers.getContractFactory('TestUintValue')

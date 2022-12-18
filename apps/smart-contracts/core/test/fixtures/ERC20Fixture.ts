@@ -1,5 +1,5 @@
 import { ethers } from 'hardhat'
-import { ERC20 } from '../../typechain/ERC20'
+import { ERC20 } from '../../types/generated'
 
 export async function ERC20AttachFixture(tokenAddress: string): Promise<ERC20> {
   const erc20 = await ethers.getContractFactory('ERC20')

@@ -7,7 +7,7 @@ import {
   MintHook,
   RedeemHook,
   AccountList,
-} from '../../typechain'
+} from '../../types/generated'
 
 export async function depositHookFixture(): Promise<DepositHook> {
   const depositHook = await ethers.getContractFactory('DepositHook')

@@ -22,7 +22,7 @@ import {
   PERCENT_DENOMINATOR,
   batchGrantAndAcceptRoles,
 } from './utils'
-import { AccountList, Collateral, TestERC20, TokenSender } from '../typechain'
+import { AccountList, Collateral, TestERC20, TokenSender } from '../types/generated'
 
 chai.use(smock.matchers)
 

@@ -8,7 +8,7 @@ import { FakeContract, MockContract } from '@defi-wonderland/smock'
 import { utils } from 'prepo-hardhat'
 import { expect } from 'chai'
 import { id } from 'ethers/lib/utils'
-import { PermitStruct } from '../typechain/DepositTradeHelper'
+import { IDepositTradeHelper } from '../types/generated'
 
 const { getPermitSignature } = utils
 
@@ -119,9 +119,9 @@ export async function getPermitFromSignature(
   spender: string,
   value: BigNumber,
   deadline: number
-): Promise<PermitStruct> {
+): Promise<IDepositTradeHelper.PermitStruct> {
   const signature = await getPermitSignature(token, signer, spender, value, deadline)
-  return <PermitStruct>{
+  return <IDepositTradeHelper.PermitStruct>{
     deadline,
     v: signature.v,
     r: signature.r,

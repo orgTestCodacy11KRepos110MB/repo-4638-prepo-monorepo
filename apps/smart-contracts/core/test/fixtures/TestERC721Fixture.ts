@@ -1,5 +1,5 @@
 import { ethers } from 'hardhat'
-import { TestERC721 } from '../../typechain/TestERC721'
+import { TestERC721 } from '../../types/generated'
 
 export async function testERC721Fixture(
   tokenName: string,

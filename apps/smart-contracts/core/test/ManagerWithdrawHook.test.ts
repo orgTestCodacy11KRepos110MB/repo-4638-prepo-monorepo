@@ -10,7 +10,7 @@ import { testERC20Fixture } from './fixtures/TestERC20Fixture'
 import { fakeDepositRecordFixture } from './fixtures/DepositRecordFixture'
 import { grantAndAcceptRole, PERCENT_DENOMINATOR } from './utils'
 import { fakeCollateralFixture } from './fixtures/CollateralFixture'
-import { Collateral, DepositRecord, ManagerWithdrawHook, TestERC20 } from '../typechain'
+import { Collateral, DepositRecord, ManagerWithdrawHook, TestERC20 } from '../types/generated'
 
 chai.use(smock.matchers)
 

@@ -12,7 +12,7 @@ import { grantAndAcceptRole, batchGrantAndAcceptRoles, setAccountBalance } from 
 import { smockTestERC20Fixture } from './fixtures/TestERC20Fixture'
 import { fakeCollateralFixture } from './fixtures/CollateralFixture'
 import { smockTokenSenderFixture } from './fixtures/TokenSenderFixture'
-import { Collateral, WithdrawHook } from '../typechain'
+import { Collateral, WithdrawHook } from '../types/generated'
 
 chai.use(smock.matchers)
 

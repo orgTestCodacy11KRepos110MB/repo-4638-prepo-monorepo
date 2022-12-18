@@ -1,6 +1,6 @@
 import { ethers } from 'hardhat'
 import { MockContract, smock } from '@defi-wonderland/smock'
-import { TestERC20 } from '../../typechain/TestERC20'
+import { TestERC20 } from '../../types/generated'
 
 export async function testERC20Fixture(
   tokenName: string,

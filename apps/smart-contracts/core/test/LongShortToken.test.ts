@@ -3,7 +3,7 @@ import { ethers } from 'hardhat'
 import { utils } from 'prepo-hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { LongShortTokenFixture } from './fixtures/LongShortTokenFixture'
-import { LongShortToken } from '../typechain/LongShortToken'
+import { LongShortToken } from '../types/generated'
 
 const { revertReason } = utils
 

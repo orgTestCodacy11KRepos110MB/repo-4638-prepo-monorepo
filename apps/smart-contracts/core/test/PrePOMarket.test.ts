@@ -26,10 +26,7 @@ import {
   revertsIfNotRoleHolder,
   testRoleConstants,
 } from './utils'
-import { PrePOMarketFactory } from '../typechain/PrePOMarketFactory'
-import { PrePOMarket } from '../typechain/PrePOMarket'
-import { LongShortToken } from '../typechain/LongShortToken'
-import { TestERC20 } from '../typechain/TestERC20'
+import { PrePOMarketFactory, PrePOMarket, LongShortToken, TestERC20 } from '../types/generated'
 
 chai.use(smock.matchers)
 

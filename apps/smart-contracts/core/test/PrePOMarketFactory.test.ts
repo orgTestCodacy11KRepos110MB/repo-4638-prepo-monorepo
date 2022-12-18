@@ -14,8 +14,7 @@ import {
   CreateMarketResult,
 } from './fixtures/PrePOMarketFactoryFixture'
 import { batchGrantAndAcceptRoles, revertsIfNotRoleHolder, testRoleConstants } from './utils'
-import { PrePOMarketFactory } from '../typechain/PrePOMarketFactory'
-import { TestERC20 } from '../typechain/TestERC20'
+import { PrePOMarketFactory, TestERC20 } from '../types/generated'
 
 const { nowPlusMonths, revertReason } = utils
 

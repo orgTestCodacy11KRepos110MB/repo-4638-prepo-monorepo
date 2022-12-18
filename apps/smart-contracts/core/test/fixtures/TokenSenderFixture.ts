@@ -1,6 +1,6 @@
 import { ethers } from 'hardhat'
 import { MockContract, FakeContract, smock } from '@defi-wonderland/smock'
-import { TokenSender } from '../../typechain'
+import { TokenSender } from '../../types/generated'
 
 export async function tokenSenderFixture(outputToken): Promise<TokenSender> {
   const factory = await ethers.getContractFactory('TokenSender')

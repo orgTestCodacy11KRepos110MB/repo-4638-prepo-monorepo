@@ -1,5 +1,5 @@
 import { ethers } from 'hardhat'
-import { DepositTradeHelper } from '../../typechain'
+import { DepositTradeHelper } from '../../types/generated'
 
 export async function depositTradeHelperFixture(
   collateral: string,

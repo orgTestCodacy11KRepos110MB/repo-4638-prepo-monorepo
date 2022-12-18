@@ -10,8 +10,7 @@ import { smockTestERC20Fixture } from './fixtures/TestERC20Fixture'
 import { grantAndAcceptRole } from './utils'
 import { fakeTestUintValueFixture } from './fixtures/TestUintValueFixture'
 import { fakeAccountListFixture } from './fixtures/HookFixture'
-import { TokenSender } from '../typechain/TokenSender'
-import { AccountList, TestUintValue } from '../typechain'
+import { AccountList, TestUintValue, TokenSender } from '../types/generated'
 
 chai.use(smock.matchers)
 

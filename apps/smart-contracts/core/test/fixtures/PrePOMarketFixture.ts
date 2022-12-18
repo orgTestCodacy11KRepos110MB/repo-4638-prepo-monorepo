@@ -4,7 +4,7 @@ import { FakeContract, MockContract, smock } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { smockLongShortTokenFixture } from './LongShortTokenFixture'
 import { CreateMarketResult } from './PrePOMarketFactoryFixture'
-import { PrePOMarket } from '../../typechain/PrePOMarket'
+import { PrePOMarket } from '../../types/generated'
 
 export type PrePOMarketParams = {
   governance: string

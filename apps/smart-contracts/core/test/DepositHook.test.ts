@@ -12,7 +12,7 @@ import { getSignerForContract, setAccountBalance, grantAndAcceptRole } from './u
 import { fakeTokenSenderFixture } from './fixtures/TokenSenderFixture'
 import { smockTestERC20Fixture } from './fixtures/TestERC20Fixture'
 import { fakeCollateralFixture } from './fixtures/CollateralFixture'
-import { AccountList, Collateral, DepositHook, TestERC721, TokenSender } from '../typechain'
+import { AccountList, Collateral, DepositHook, TestERC721, TokenSender } from '../types/generated'
 
 chai.use(smock.matchers)
 
