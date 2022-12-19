@@ -2,18 +2,18 @@
 pragma solidity =0.8.7;
 
 import "./interfaces/IWithdrawHook.sol";
-import "./interfaces/IDepositRecord.sol";
 import "./AllowedCollateralCaller.sol";
+import "./DepositRecordCaller.sol";
 import "prepo-shared-contracts/contracts/TokenSenderCaller.sol";
 import "prepo-shared-contracts/contracts/SafeAccessControlEnumerable.sol";
 
 contract WithdrawHook is
   IWithdrawHook,
+  DepositRecordCaller,
   TokenSenderCaller,
   AllowedCollateralCaller,
   SafeAccessControlEnumerable
 {
-  IDepositRecord private _depositRecord;
   bool public _withdrawalsAllowed;
   uint256 private _globalPeriodLength;
   uint256 private _userPeriodLength;
@@ -100,12 +100,11 @@ contract WithdrawHook is
   }
 
   function setDepositRecord(IDepositRecord depositRecord)
-    external
+    public
     override
     onlyRole(SET_DEPOSIT_RECORD_ROLE)
   {
-    _depositRecord = depositRecord;
-    emit DepositRecordChange(address(depositRecord));
+    super.setDepositRecord(depositRecord);
   }
 
   function setWithdrawalsAllowed(bool withdrawalsAllowed)
@@ -165,10 +164,6 @@ contract WithdrawHook is
     onlyRole(SET_TOKEN_SENDER_ROLE)
   {
     super.setTokenSender(tokenSender);
-  }
-
-  function getDepositRecord() external view override returns (IDepositRecord) {
-    return _depositRecord;
   }
 
   function withdrawalsAllowed() external view override returns (bool) {

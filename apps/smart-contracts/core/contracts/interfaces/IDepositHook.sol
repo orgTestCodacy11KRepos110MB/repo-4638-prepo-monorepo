@@ -2,9 +2,8 @@
 pragma solidity =0.8.7;
 
 import "./IHook.sol";
-import "./IDepositRecordHook.sol";
 
-interface IDepositHook is IHook, IDepositRecordHook {
+interface IDepositHook is IHook {
   event DepositsAllowedChange(bool allowed);
 
   function setDepositsAllowed(bool allowed) external;

@@ -128,12 +128,6 @@ describe('=> ManagerWithdrawHook', () => {
   describe('# setDepositRecord', () => {
     beforeEach(async () => {
       await getSignersAndDeployHook()
-      await grantAndAcceptRole(
-        managerWithdrawHook,
-        deployer,
-        deployer,
-        await managerWithdrawHook.SET_DEPOSIT_RECORD_ROLE()
-      )
     })
 
     it('reverts if not role holder', async () => {
@@ -149,43 +143,6 @@ describe('=> ManagerWithdrawHook', () => {
       ).revertedWith(
         `AccessControl: account ${user.address.toLowerCase()} is missing role ${await managerWithdrawHook.SET_DEPOSIT_RECORD_ROLE()}`
       )
-    })
-
-    it('sets to non-zero address', async () => {
-      await managerWithdrawHook.connect(deployer).setDepositRecord(ZERO_ADDRESS)
-      expect(depositRecord.address).to.not.eq(ZERO_ADDRESS)
-      expect(await managerWithdrawHook.getDepositRecord()).to.not.eq(depositRecord.address)
-
-      await managerWithdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
-
-      expect(await managerWithdrawHook.getDepositRecord()).to.eq(depositRecord.address)
-    })
-
-    it('sets to zero address', async () => {
-      await managerWithdrawHook.connect(deployer).setDepositRecord(ZERO_ADDRESS)
-
-      expect(await managerWithdrawHook.getDepositRecord()).to.eq(ZERO_ADDRESS)
-    })
-
-    it('is idempotent', async () => {
-      await managerWithdrawHook.connect(deployer).setDepositRecord(ZERO_ADDRESS)
-      expect(await managerWithdrawHook.getDepositRecord()).to.not.eq(depositRecord.address)
-
-      await managerWithdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
-
-      expect(await managerWithdrawHook.getDepositRecord()).to.eq(depositRecord.address)
-
-      await managerWithdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
-
-      expect(await managerWithdrawHook.getDepositRecord()).to.eq(depositRecord.address)
-    })
-
-    it('emits DepositRecordChange', async () => {
-      const tx = await managerWithdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
-
-      await expect(tx)
-        .to.emit(managerWithdrawHook, 'DepositRecordChange')
-        .withArgs(depositRecord.address)
     })
   })
 

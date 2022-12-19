@@ -588,41 +588,6 @@ describe('=> WithdrawHook', () => {
         `AccessControl: account ${user.address.toLowerCase()} is missing role ${await withdrawHook.SET_DEPOSIT_RECORD_ROLE()}`
       )
     })
-
-    it('sets to non-zero address', async () => {
-      await withdrawHook.connect(deployer).setDepositRecord(ZERO_ADDRESS)
-      expect(depositRecord.address).to.not.eq(ZERO_ADDRESS)
-      expect(await withdrawHook.getDepositRecord()).to.not.eq(depositRecord.address)
-
-      await withdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
-
-      expect(await withdrawHook.getDepositRecord()).to.eq(depositRecord.address)
-    })
-
-    it('sets to zero address', async () => {
-      await withdrawHook.connect(deployer).setDepositRecord(ZERO_ADDRESS)
-
-      expect(await withdrawHook.getDepositRecord()).to.eq(ZERO_ADDRESS)
-    })
-
-    it('is idempotent', async () => {
-      await withdrawHook.connect(deployer).setDepositRecord(ZERO_ADDRESS)
-      expect(await withdrawHook.getDepositRecord()).to.not.eq(depositRecord.address)
-
-      await withdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
-
-      expect(await withdrawHook.getDepositRecord()).to.eq(depositRecord.address)
-
-      await withdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
-
-      expect(await withdrawHook.getDepositRecord()).to.eq(depositRecord.address)
-    })
-
-    it('emits DepositRecordChange', async () => {
-      const tx = await withdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
-
-      await expect(tx).to.emit(withdrawHook, 'DepositRecordChange').withArgs(depositRecord.address)
-    })
   })
 
   describe('# setWithdrawalsAllowed', () => {

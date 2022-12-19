@@ -2,16 +2,16 @@
 pragma solidity =0.8.7;
 
 import "./interfaces/IManagerWithdrawHook.sol";
-import "./interfaces/IDepositRecord.sol";
 import "./AllowedCollateralCaller.sol";
+import "./DepositRecordCaller.sol";
 import "prepo-shared-contracts/contracts/SafeAccessControlEnumerable.sol";
 
 contract ManagerWithdrawHook is
   IManagerWithdrawHook,
   AllowedCollateralCaller,
+  DepositRecordCaller,
   SafeAccessControlEnumerable
 {
-  IDepositRecord private _depositRecord;
   uint256 private _minReservePercentage;
 
   uint256 public constant PERCENT_DENOMINATOR = 1000000;
@@ -42,12 +42,11 @@ contract ManagerWithdrawHook is
   }
 
   function setDepositRecord(IDepositRecord depositRecord)
-    external
+    public
     override
     onlyRole(SET_DEPOSIT_RECORD_ROLE)
   {
-    _depositRecord = depositRecord;
-    emit DepositRecordChange(address(depositRecord));
+    super.setDepositRecord(depositRecord);
   }
 
   function setMinReservePercentage(uint256 minReservePercentage)
@@ -58,10 +57,6 @@ contract ManagerWithdrawHook is
     require(minReservePercentage <= PERCENT_DENOMINATOR, ">100%");
     _minReservePercentage = minReservePercentage;
     emit MinReservePercentageChange(minReservePercentage);
-  }
-
-  function getDepositRecord() external view override returns (IDepositRecord) {
-    return _depositRecord;
   }
 
   function getMinReservePercentage() external view override returns (uint256) {

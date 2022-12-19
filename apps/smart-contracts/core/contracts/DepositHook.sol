@@ -2,8 +2,8 @@
 pragma solidity =0.8.7;
 
 import "./interfaces/IDepositHook.sol";
-import "./interfaces/IDepositRecord.sol";
 import "./AllowedCollateralCaller.sol";
+import "./DepositRecordCaller.sol";
 import "prepo-shared-contracts/contracts/AccountListCaller.sol";
 import "prepo-shared-contracts/contracts/NFTScoreRequirement.sol";
 import "prepo-shared-contracts/contracts/TokenSenderCaller.sol";
@@ -13,12 +13,12 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 contract DepositHook is
   IDepositHook,
   AccountListCaller,
+  AllowedCollateralCaller,
+  DepositRecordCaller,
   NFTScoreRequirement,
   TokenSenderCaller,
-  AllowedCollateralCaller,
   SafeAccessControlEnumerable
 {
-  IDepositRecord private _depositRecord;
   bool private _depositsAllowed;
 
   bytes32 public constant SET_COLLATERAL_ROLE =
@@ -70,12 +70,11 @@ contract DepositHook is
   }
 
   function setDepositRecord(IDepositRecord depositRecord)
-    external
+    public
     override
     onlyRole(SET_DEPOSIT_RECORD_ROLE)
   {
-    _depositRecord = depositRecord;
-    emit DepositRecordChange(address(depositRecord));
+    super.setDepositRecord(depositRecord);
   }
 
   function setDepositsAllowed(bool depositsAllowed)
@@ -132,10 +131,6 @@ contract DepositHook is
     onlyRole(SET_TOKEN_SENDER_ROLE)
   {
     super.setTokenSender(tokenSender);
-  }
-
-  function getDepositRecord() external view override returns (IDepositRecord) {
-    return _depositRecord;
   }
 
   function depositsAllowed() external view override returns (bool) {

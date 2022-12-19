@@ -3,8 +3,8 @@ pragma solidity =0.8.7;
 
 import "./IDepositRecord.sol";
 
-interface IDepositRecordHook {
-  event DepositRecordChange(address depositRecord);
+interface IDepositRecordCaller {
+  event DepositRecordChange(IDepositRecord depositRecord);
 
   function setDepositRecord(IDepositRecord depositRecord) external;
 

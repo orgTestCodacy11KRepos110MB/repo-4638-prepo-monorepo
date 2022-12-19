@@ -2,9 +2,8 @@
 pragma solidity =0.8.7;
 
 import "./IHook.sol";
-import "./IDepositRecordHook.sol";
 
-interface IWithdrawHook is IHook, IDepositRecordHook {
+interface IWithdrawHook is IHook {
   event WithdrawalsAllowedChange(bool allowed);
 
   event GlobalPeriodLengthChange(uint256 period);

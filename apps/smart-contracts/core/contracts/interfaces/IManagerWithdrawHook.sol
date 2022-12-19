@@ -2,9 +2,8 @@
 pragma solidity =0.8.7;
 
 import "./IHook.sol";
-import "./IDepositRecordHook.sol";
 
-interface IManagerWithdrawHook is IHook, IDepositRecordHook {
+interface IManagerWithdrawHook is IHook {
   event MinReservePercentageChange(uint256 percentage);
 
   function setMinReservePercentage(uint256 minReservePercentage) external;

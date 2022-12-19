@@ -367,41 +367,6 @@ describe('=> DepositHook', () => {
         `AccessControl: account ${user.address.toLowerCase()} is missing role ${await depositHook.SET_DEPOSIT_RECORD_ROLE()}`
       )
     })
-
-    it('sets to non-zero address', async () => {
-      await depositHook.connect(deployer).setDepositRecord(ZERO_ADDRESS)
-      expect(depositRecord.address).to.not.eq(ZERO_ADDRESS)
-      expect(await depositHook.getDepositRecord()).to.not.eq(depositRecord.address)
-
-      await depositHook.connect(deployer).setDepositRecord(depositRecord.address)
-
-      expect(await depositHook.getDepositRecord()).to.eq(depositRecord.address)
-    })
-
-    it('sets to zero address', async () => {
-      await depositHook.connect(deployer).setDepositRecord(ZERO_ADDRESS)
-
-      expect(await depositHook.getDepositRecord()).to.eq(ZERO_ADDRESS)
-    })
-
-    it('is idempotent', async () => {
-      await depositHook.connect(deployer).setDepositRecord(ZERO_ADDRESS)
-      expect(await depositHook.getDepositRecord()).to.not.eq(depositRecord.address)
-
-      await depositHook.connect(deployer).setDepositRecord(depositRecord.address)
-
-      expect(await depositHook.getDepositRecord()).to.eq(depositRecord.address)
-
-      await depositHook.connect(deployer).setDepositRecord(depositRecord.address)
-
-      expect(await depositHook.getDepositRecord()).to.eq(depositRecord.address)
-    })
-
-    it('emits DepositRecordChange', async () => {
-      const tx = await depositHook.connect(deployer).setDepositRecord(depositRecord.address)
-
-      await expect(tx).to.emit(depositHook, 'DepositRecordChange').withArgs(depositRecord.address)
-    })
   })
 
   describe('# setDepositsAllowed', () => {
