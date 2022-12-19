@@ -162,10 +162,6 @@ function mineBlock(provider: providers.Web3Provider, timestamp: number): Promise
   return provider.send('evm_mine', [timestamp])
 }
 
-function revertReason(reason: string): string {
-  return reason
-}
-
 export const utils = {
   expandToDecimals,
   expandTo6Decimals,
@@ -181,6 +177,5 @@ export const utils = {
   recordDeployment,
   mineBlocks,
   mineBlock,
-  revertReason,
   getPermitSignature,
 }

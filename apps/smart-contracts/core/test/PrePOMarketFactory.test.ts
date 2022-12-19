@@ -16,7 +16,7 @@ import {
 import { batchGrantAndAcceptRoles, revertsIfNotRoleHolder, testRoleConstants } from './utils'
 import { PrePOMarketFactory, TestERC20 } from '../types/generated'
 
-const { nowPlusMonths, revertReason } = utils
+const { nowPlusMonths } = utils
 
 describe('=> PrePOMarketFactory', () => {
   let prePOMarketFactory: PrePOMarketFactory
@@ -153,7 +153,7 @@ describe('=> PrePOMarketFactory', () => {
           ...defaultParams,
           collateral: invalidCollateral.address,
         })
-      ).revertedWith(revertReason('Invalid collateral'))
+      ).revertedWith('Invalid collateral')
     })
 
     it('should emit MarketAdded event on market creation', async () => {

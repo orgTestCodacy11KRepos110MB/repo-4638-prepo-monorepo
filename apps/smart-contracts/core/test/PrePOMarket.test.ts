@@ -30,7 +30,7 @@ import { PrePOMarketFactory, PrePOMarket, LongShortToken, TestERC20 } from '../t
 
 chai.use(smock.matchers)
 
-const { nowPlusMonths, revertReason } = utils
+const { nowPlusMonths } = utils
 
 describe('=> prePOMarket', () => {
   let collateralToken: TestERC20
@@ -148,7 +148,7 @@ describe('=> prePOMarket', () => {
           ...defaultParams,
           ceilingLongPayout: TEST_FLOOR_PAYOUT,
         })
-      ).revertedWith(revertReason('Ceiling must exceed floor'))
+      ).revertedWith('Ceiling must exceed floor')
     })
 
     it('should not allow floor > ceiling', async () => {
@@ -158,7 +158,7 @@ describe('=> prePOMarket', () => {
           floorLongPayout: TEST_CEILING_PAYOUT,
           ceilingLongPayout: TEST_FLOOR_PAYOUT,
         })
-      ).revertedWith(revertReason('Ceiling must exceed floor'))
+      ).revertedWith('Ceiling must exceed floor')
     })
 
     it('should not allow ceiling >  1', async () => {
@@ -167,7 +167,7 @@ describe('=> prePOMarket', () => {
           ...defaultParams,
           ceilingLongPayout: MAX_PAYOUT.add(1),
         })
-      ).revertedWith(revertReason('Ceiling cannot exceed 1'))
+      ).revertedWith('Ceiling cannot exceed 1')
     })
 
     it('should not allow expiry before current time', async () => {
@@ -178,7 +178,7 @@ describe('=> prePOMarket', () => {
           ...defaultParams,
           expiryTime: lastTimestamp - 1,
         })
-      ).revertedWith(revertReason('Invalid expiry'))
+      ).revertedWith('Invalid expiry')
     })
 
     it('should not allow expiry at current time', async () => {
@@ -189,7 +189,7 @@ describe('=> prePOMarket', () => {
           ...defaultParams,
           expiryTime: lastTimestamp,
         })
-      ).revertedWith(revertReason('Invalid expiry'))
+      ).revertedWith('Invalid expiry')
     })
 
     it('should emit MarketCreated event', async () => {
@@ -226,13 +226,13 @@ describe('=> prePOMarket', () => {
     it('should not be settable beyond ceiling', async () => {
       await expect(
         prePOMarket.connect(treasury).setFinalLongPayout(TEST_CEILING_PAYOUT.add(1))
-      ).to.revertedWith(revertReason('Payout cannot exceed ceiling'))
+      ).to.revertedWith('Payout cannot exceed ceiling')
     })
 
     it('should not be settable below floor', async () => {
       await expect(
         prePOMarket.connect(treasury).setFinalLongPayout(TEST_FLOOR_PAYOUT.sub(1))
-      ).to.revertedWith(revertReason('Payout cannot be below floor'))
+      ).to.revertedWith('Payout cannot be below floor')
     })
 
     it('should be settable to value between payout and ceiling', async () => {
@@ -373,7 +373,7 @@ describe('=> prePOMarket', () => {
     it('reverts if > FEE_LIMIT', async () => {
       await expect(
         prePOMarket.connect(treasury).setRedemptionFee(MARKET_FEE_LIMIT + 1)
-      ).to.revertedWith(revertReason('Exceeds fee limit'))
+      ).to.revertedWith('Exceeds fee limit')
     })
 
     it('sets to FEE_LIMIT', async () => {
@@ -421,9 +421,7 @@ describe('=> prePOMarket', () => {
       await collateralToken.connect(user).approve(prePOMarket.address, TEST_MINT_AMOUNT)
       await prePOMarket.connect(treasury).setFinalLongPayout(TEST_FINAL_LONG_PAYOUT)
 
-      await expect(prePOMarket.connect(user).mint(TEST_MINT_AMOUNT)).revertedWith(
-        revertReason('Market ended')
-      )
+      await expect(prePOMarket.connect(user).mint(TEST_MINT_AMOUNT)).revertedWith('Market ended')
     })
 
     it('should not allow minting an amount exceeding owned collateral', async () => {
@@ -431,7 +429,7 @@ describe('=> prePOMarket', () => {
       await collateralToken.connect(user).approve(prePOMarket.address, TEST_MINT_AMOUNT.sub(1))
 
       await expect(prePOMarket.connect(user).mint(TEST_MINT_AMOUNT)).revertedWith(
-        revertReason('Insufficient collateral')
+        'Insufficient collateral'
       )
     })
 
@@ -691,7 +689,7 @@ describe('=> prePOMarket', () => {
 
       await expect(
         prePOMarket.connect(user).redeem(amountMinted.add(1), amountMinted)
-      ).revertedWith(revertReason('Insufficient long tokens'))
+      ).revertedWith('Insufficient long tokens')
     })
 
     it('should not allow short token redemption exceeding short token balance', async () => {
@@ -700,7 +698,7 @@ describe('=> prePOMarket', () => {
 
       await expect(
         prePOMarket.connect(user).redeem(amountMinted, amountMinted.add(1))
-      ).revertedWith(revertReason('Insufficient short tokens'))
+      ).revertedWith('Insufficient short tokens')
     })
 
     it('should only allow token redemption in equal parts before expiry', async () => {
@@ -709,7 +707,7 @@ describe('=> prePOMarket', () => {
 
       await expect(
         prePOMarket.connect(user).redeem(amountMinted, amountMinted.sub(1))
-      ).revertedWith(revertReason('Long and Short must be equal'))
+      ).revertedWith('Long and Short must be equal')
     })
 
     it('should correctly settle equal non-zero redemption amounts before market end', async () => {

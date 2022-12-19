@@ -5,8 +5,6 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-wit
 import { LongShortTokenFixture } from './fixtures/LongShortTokenFixture'
 import { LongShortToken } from '../types/generated'
 
-const { revertReason } = utils
-
 describe('=> LongShortToken', () => {
   let longShort: LongShortToken
   let deployer: SignerWithAddress
@@ -35,7 +33,7 @@ describe('=> LongShortToken', () => {
   describe('# mint', () => {
     it('should only usable by the owner', async () => {
       await expect(longShort.connect(user).mint(user.address, 1)).to.revertedWith(
-        revertReason('Ownable: caller is not the owner')
+        'Ownable: caller is not the owner'
       )
     })
     it('should allow the owner to mint tokens for another user', async () => {
