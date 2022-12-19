@@ -38,30 +38,12 @@ describe('WithdrawERC20', () => {
     beforeEach(async () => {
       await setupWithdrawERC20()
     })
-
-    it('sets owner to deployer', async () => {
-      expect(await withdrawERC20.owner()).to.eq(deployer.address)
-    })
-
-    it('sets nominee to zero address', async () => {
-      expect(await withdrawERC20.getNominee()).to.eq(ZERO_ADDRESS)
-    })
   })
 
   describe('# withdrawERC20 (amounts)', async () => {
     beforeEach(async () => {
       await setupWithdrawERC20AndMockERC20()
       erc20ContractArray = [firstMockERC20.address, secondMockERC20.address]
-    })
-
-    it('reverts if not owner', async () => {
-      expect(await withdrawERC20.owner()).to.not.eq(user1.address)
-
-      await expect(
-        withdrawERC20
-          .connect(user1)
-          ['withdrawERC20(address[],uint256[])'](erc20ContractArray, erc20AmountArray)
-      ).revertedWith('Ownable: caller is not the owner')
     })
 
     it('reverts if array length mismatch', async () => {
@@ -220,14 +202,6 @@ describe('WithdrawERC20', () => {
     beforeEach(async () => {
       await setupWithdrawERC20AndMockERC20()
       erc20ContractArray = [firstMockERC20.address, secondMockERC20.address]
-    })
-
-    it('reverts if not owner', async () => {
-      expect(await withdrawERC20.owner()).to.not.eq(user1.address)
-
-      await expect(
-        withdrawERC20.connect(user1)['withdrawERC20(address[])'](erc20ContractArray)
-      ).revertedWith('Ownable: caller is not the owner')
     })
 
     it('succeeds if array is empty', async () => {

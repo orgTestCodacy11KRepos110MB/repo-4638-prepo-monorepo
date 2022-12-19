@@ -48,6 +48,12 @@ describe('=> TokenSender', () => {
       deployer,
       await tokenSender.SET_ALLOWED_MSG_SENDERS_ROLE()
     )
+    await grantAndAcceptRole(
+      tokenSender,
+      deployer,
+      deployer,
+      await tokenSender.WITHDRAW_ERC20_ROLE()
+    )
   })
 
   describe('# initialize', () => {
@@ -74,6 +80,7 @@ describe('=> TokenSender', () => {
       expect(await tokenSender.SET_ALLOWED_MSG_SENDERS_ROLE()).to.eq(
         id('TokenSender_setAllowedMsgSenders(IAccountList)')
       )
+      expect(await tokenSender.WITHDRAW_ERC20_ROLE()).eq(id('withdrawERC20'))
     })
   })
 
@@ -355,6 +362,26 @@ describe('=> TokenSender', () => {
 
       expect(outputToken.transfer).calledWith(user.address, outputAmount)
       expect(await outputToken.balanceOf(user.address)).to.be.eq(outputAmount)
+    })
+  })
+
+  describe('# withdrawERC20', () => {
+    it('reverts if not role holder', async () => {
+      expect(
+        await tokenSender.hasRole(await tokenSender.WITHDRAW_ERC20_ROLE(), user.address)
+      ).to.eq(false)
+
+      await expect(tokenSender.connect(user)['withdrawERC20(address[])']([])).revertedWith(
+        `AccessControl: account ${user.address.toLowerCase()} is missing role ${await tokenSender.WITHDRAW_ERC20_ROLE()}`
+      )
+    })
+
+    it('succeeds if role holder', async () => {
+      expect(
+        await tokenSender.hasRole(await tokenSender.WITHDRAW_ERC20_ROLE(), deployer.address)
+      ).to.eq(true)
+
+      await tokenSender.connect(deployer)['withdrawERC20(address[])']([])
     })
   })
 })

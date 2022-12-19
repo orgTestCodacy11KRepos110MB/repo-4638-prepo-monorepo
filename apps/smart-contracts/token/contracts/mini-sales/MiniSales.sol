@@ -2,9 +2,10 @@
 pragma solidity =0.8.7;
 
 import "./interfaces/IMiniSales.sol";
+import "prepo-shared-contracts/contracts/SafeOwnable.sol";
 import "prepo-shared-contracts/contracts/WithdrawERC20.sol";
 
-contract MiniSales is IMiniSales, WithdrawERC20 {
+contract MiniSales is IMiniSales, SafeOwnable, WithdrawERC20 {
   IERC20 private immutable _saleToken;
   IERC20 private immutable _paymentToken;
   uint256 private immutable _saleTokenDenominator;
@@ -85,5 +86,20 @@ contract MiniSales is IMiniSales, WithdrawERC20 {
     returns (uint256)
   {
     return (payment * _saleTokenDenominator) / _price;
+  }
+
+  function withdrawERC20(
+    address[] calldata erc20Tokens,
+    uint256[] calldata amounts
+  ) public override onlyOwner {
+    super.withdrawERC20(erc20Tokens, amounts);
+  }
+
+  function withdrawERC20(address[] calldata erc20Tokens)
+    public
+    override
+    onlyOwner
+  {
+    super.withdrawERC20(erc20Tokens);
   }
 }

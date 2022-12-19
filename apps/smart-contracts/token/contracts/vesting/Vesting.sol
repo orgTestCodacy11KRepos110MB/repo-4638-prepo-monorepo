@@ -158,4 +158,19 @@ contract Vesting is IVesting, Pausable, WithdrawERC20 {
   {
     return _recipientToClaimedAmount[recipient];
   }
+
+  function withdrawERC20(
+    address[] calldata erc20Tokens,
+    uint256[] calldata amounts
+  ) public override onlyOwner {
+    super.withdrawERC20(erc20Tokens, amounts);
+  }
+
+  function withdrawERC20(address[] calldata erc20Tokens)
+    public
+    override
+    onlyOwner
+  {
+    super.withdrawERC20(erc20Tokens);
+  }
 }
