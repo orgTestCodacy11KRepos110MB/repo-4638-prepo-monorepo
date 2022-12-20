@@ -35,3 +35,19 @@ figcaption {
   font-weight: bold;
   text-align: center;
 }
+
+.theme-doc-sidebar-item-category.rework {
+  margin-bottom: 16px !important;
+  margin-top: 16px !important;
+}
+.rework > * > .menu__link {
+  font-size: 12px;
+}
+
+.rework > .menu__list {
+  padding-left: 0 !important;
+}
+
+.rework > .menu__list-item-collapsible:hover {
+  background: unset !important;
+}

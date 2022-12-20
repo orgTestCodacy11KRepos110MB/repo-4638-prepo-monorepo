@@ -7,8 +7,10 @@
 
 const home = require('./home')
 const developer = require('./developer')
+const general = require('./general')
 
 module.exports = {
   home,
   developer,
+  general,
 }
