@@ -2,19 +2,21 @@ import chai, { expect } from 'chai'
 import { ethers, network } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { id, parseEther } from 'ethers/lib/utils'
-import { Contract } from 'ethers'
+import { Contract, Signer } from 'ethers'
 import { FakeContract, MockContract, smock } from '@defi-wonderland/smock'
 import { ZERO_ADDRESS } from 'prepo-constants'
 import { depositHookFixture, fakeAccountListFixture } from './fixtures/HookFixture'
 import { smockDepositRecordFixture } from './fixtures/DepositRecordFixture'
 import { testERC721Fixture } from './fixtures/TestERC721Fixture'
-import { getSignerForContract, setAccountBalance, grantAndAcceptRole } from './utils'
+import { grantAndAcceptRole, setAccountBalance } from './utils'
 import { fakeTokenSenderFixture } from './fixtures/TokenSenderFixture'
 import { smockTestERC20Fixture } from './fixtures/TestERC20Fixture'
 import { fakeCollateralFixture } from './fixtures/CollateralFixture'
+import { Snapshotter } from './snapshots'
 import { AccountList, Collateral, DepositHook, TestERC721, TokenSender } from '../types/generated'
 
 chai.use(smock.matchers)
+const snapshotter = new Snapshotter()
 
 describe('=> DepositHook', () => {
   let deployer: SignerWithAddress
@@ -33,7 +35,8 @@ describe('=> DepositHook', () => {
   const TEST_AMOUNT_BEFORE_FEE = parseEther('1.01')
   const TEST_AMOUNT_AFTER_FEE = parseEther('1')
 
-  beforeEach(async () => {
+  snapshotter.setupSnapshotContext('DepositHook')
+  before(async () => {
     ;[deployer, user, treasury] = await ethers.getSigners()
     testToken = await smockTestERC20Fixture('Test Token', 'TEST', 18)
     tokenSender = await fakeTokenSenderFixture()
@@ -104,6 +107,7 @@ describe('=> DepositHook', () => {
       await depositRecord.SET_ALLOWED_HOOK_ROLE()
     )
     await depositRecord.connect(deployer).setAllowedHook(depositHook.address, true)
+    await snapshotter.saveSnapshot()
   })
 
   describe('initial state', () => {
@@ -145,7 +149,8 @@ describe('=> DepositHook', () => {
      * Tests below use different values for TEST_AMOUNT_BEFORE_FEE and
      * TEST_AMOUNT_AFTER_FEE to ensure TEST_AMOUNT_BEFORE_FEE is ignored.
      */
-    beforeEach(async () => {
+    snapshotter.setupSnapshotContext('DepositHook-hook')
+    before(async () => {
       await depositHook.connect(deployer).setCollateral(collateral.address)
       await depositHook.connect(deployer).setDepositsAllowed(true)
       await depositHook.connect(deployer).setDepositRecord(depositRecord.address)
@@ -157,6 +162,7 @@ describe('=> DepositHook', () => {
       await testToken
         .connect(collateral.wallet)
         .approve(depositHook.address, ethers.constants.MaxUint256)
+      await snapshotter.saveSnapshot()
     })
 
     async function setupScoresForNFTAccess(
@@ -206,6 +212,7 @@ describe('=> DepositHook', () => {
 
     it('succeeds if account not on allowlist, and required score = 0', async () => {
       await setupScoresForNFTAccess(0, 0)
+      allowlist.isIncluded.whenCalledWith(user.address).returns(false)
       expect(await allowlist.isIncluded(user.address)).to.eq(false)
       expect(await depositHook.getRequiredScore()).to.eq(0)
 
@@ -216,6 +223,7 @@ describe('=> DepositHook', () => {
 
     it('reverts if account not on allowlist, required score > 0, and account score < required score', async () => {
       await setupScoresForNFTAccess(0, 1)
+      allowlist.isIncluded.whenCalledWith(user.address).returns(false)
       expect(await allowlist.isIncluded(user.address)).to.eq(false)
       expect(await depositHook.getRequiredScore()).to.be.gt(0)
       expect(await depositHook.getAccountScore(user.address)).to.be.lt(
@@ -306,18 +314,15 @@ describe('=> DepositHook', () => {
 
       expect(tokenSender.send).not.called
     })
+
+    afterEach(() => {
+      depositRecord.recordDeposit.reset()
+      testToken.transferFrom.reset()
+      tokenSender.send.reset()
+    })
   })
 
   describe('# setAccountList', () => {
-    beforeEach(async () => {
-      await grantAndAcceptRole(
-        depositHook,
-        deployer,
-        deployer,
-        await depositHook.SET_ACCOUNT_LIST_ROLE()
-      )
-    })
-
     it('reverts if not role holder', async () => {
       expect(
         await depositHook.hasRole(await depositHook.SET_ACCOUNT_LIST_ROLE(), user.address)
