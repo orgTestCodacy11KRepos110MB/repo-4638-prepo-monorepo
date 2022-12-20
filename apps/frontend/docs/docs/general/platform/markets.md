@@ -1,3 +1,3 @@
-# Markets 🏦
+# Markets
 
 Coming soon!

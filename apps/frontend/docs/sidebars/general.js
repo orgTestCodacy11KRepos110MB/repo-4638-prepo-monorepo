@@ -1,10 +1,18 @@
+function makeReworkItem(id) {
+  return {
+    type: 'doc',
+    id,
+    className: 'rework',
+  }
+}
+
 module.exports = [
-  'general/overview',
-  'general/use-cases',
-  'general/investors',
-  'general/partners',
-  'general/get-involved',
-  'general/official-links',
+  makeReworkItem('general/overview'),
+  makeReworkItem('general/use-cases'),
+  makeReworkItem('general/investors'),
+  makeReworkItem('general/partners'),
+  makeReworkItem('general/get-involved'),
+  makeReworkItem('general/official-links'),
   {
     type: 'category',
     label: '💻 Platform',
@@ -12,10 +20,10 @@ module.exports = [
     collapsible: false,
     className: 'rework',
     items: [
-      'general/platform/markets',
-      'general/platform/testnet',
-      'general/platform/roadmap',
-      'general/platform/faq',
+      makeReworkItem('general/platform/markets'),
+      makeReworkItem('general/platform/testnet'),
+      makeReworkItem('general/platform/roadmap'),
+      makeReworkItem('general/platform/faq'),
     ],
   },
 ]
