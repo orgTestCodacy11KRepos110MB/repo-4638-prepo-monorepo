@@ -1,6 +1,6 @@
 import { ethers } from 'hardhat'
 import { MockContract, smock } from '@defi-wonderland/smock'
-import { LongShortToken } from '../../typechain'
+import { LongShortToken } from '../../types/generated'
 
 export async function LongShortTokenFixture(
   tokenName: string,

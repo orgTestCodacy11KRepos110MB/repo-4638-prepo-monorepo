@@ -2,7 +2,7 @@ import { ethers, upgrades } from 'hardhat'
 import { BigNumber, ContractTransaction } from 'ethers'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { PrePOMarketParams } from './PrePOMarketFixture'
-import { PrePOMarketFactory } from '../../typechain/PrePOMarketFactory'
+import { PrePOMarketFactory } from '../../types/generated'
 import { getMarketAddedEvent } from '../events'
 
 export type CreateMarketParams = PrePOMarketParams & {

@@ -12,7 +12,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 contract TokenSender is
   ITokenSender,
   AllowedMsgSenders,
-  WithdrawERC20, // TODO: Access control when WithdrawERC20 updated
+  WithdrawERC20,
   SafeAccessControlEnumerable
 {
   IUintValue private _price;
@@ -31,6 +31,7 @@ contract TokenSender is
     keccak256("TokenSender_setScaledPriceLowerBound(uint256)");
   bytes32 public constant SET_ALLOWED_MSG_SENDERS_ROLE =
     keccak256("TokenSender_setAllowedMsgSenders(IAccountList)");
+  bytes32 public constant WITHDRAW_ERC20_ROLE = keccak256("withdrawERC20");
 
   constructor(IERC20Metadata outputToken) {
     _outputToken = outputToken;
@@ -106,5 +107,20 @@ contract TokenSender is
     returns (uint256)
   {
     return _scaledPriceLowerBound;
+  }
+
+  function withdrawERC20(
+    address[] calldata erc20Tokens,
+    uint256[] calldata amounts
+  ) public override onlyRole(WITHDRAW_ERC20_ROLE) {
+    super.withdrawERC20(erc20Tokens, amounts);
+  }
+
+  function withdrawERC20(address[] calldata erc20Tokens)
+    public
+    override
+    onlyRole(WITHDRAW_ERC20_ROLE)
+  {
+    super.withdrawERC20(erc20Tokens);
   }
 }

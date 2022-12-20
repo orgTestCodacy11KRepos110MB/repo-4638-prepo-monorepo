@@ -13,7 +13,7 @@ import { fakeTokenSenderFixture } from './fixtures/TokenSenderFixture'
 import { smockTestERC20Fixture } from './fixtures/TestERC20Fixture'
 import { fakeCollateralFixture } from './fixtures/CollateralFixture'
 import { Snapshotter } from './snapshots'
-import { AccountList, Collateral, DepositHook, TestERC721, TokenSender } from '../typechain'
+import { AccountList, Collateral, DepositHook, TestERC721, TokenSender } from '../types/generated'
 
 chai.use(smock.matchers)
 const snapshotter = new Snapshotter()
@@ -35,7 +35,7 @@ describe('=> DepositHook', () => {
   const TEST_AMOUNT_BEFORE_FEE = parseEther('1.01')
   const TEST_AMOUNT_AFTER_FEE = parseEther('1')
 
-  snapshotter.usesCustomSnapshot('outer')
+  snapshotter.setupSnapshotContext('DepositHook')
   before(async () => {
     ;[deployer, user, treasury] = await ethers.getSigners()
     testToken = await smockTestERC20Fixture('Test Token', 'TEST', 18)
@@ -149,7 +149,7 @@ describe('=> DepositHook', () => {
      * Tests below use different values for TEST_AMOUNT_BEFORE_FEE and
      * TEST_AMOUNT_AFTER_FEE to ensure TEST_AMOUNT_BEFORE_FEE is ignored.
      */
-    snapshotter.usesCustomSnapshot('hook')
+    snapshotter.setupSnapshotContext('DepositHook-hook')
     before(async () => {
       await depositHook.connect(deployer).setCollateral(collateral.address)
       await depositHook.connect(deployer).setDepositsAllowed(true)
@@ -262,7 +262,6 @@ describe('=> DepositHook', () => {
     })
 
     it('calls recordDeposit() if fee = 0', async () => {
-      depositRecord.recordDeposit.reset()
       await depositHook
         .connect(collateral.wallet)
         .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_BEFORE_FEE)
@@ -271,7 +270,6 @@ describe('=> DepositHook', () => {
     })
 
     it('calls recordDeposit() if fee > 0', async () => {
-      depositRecord.recordDeposit.reset()
       await depositHook
         .connect(collateral.wallet)
         .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
@@ -280,7 +278,6 @@ describe('=> DepositHook', () => {
     })
 
     it('transfers fee to treasury if fee > 0', async () => {
-      testToken.transferFrom.reset()
       expect(TEST_AMOUNT_BEFORE_FEE).to.not.eq(TEST_AMOUNT_AFTER_FEE)
 
       await depositHook
@@ -292,7 +289,6 @@ describe('=> DepositHook', () => {
     })
 
     it('calls tokenSender.send() if fee > 0', async () => {
-      tokenSender.send.reset()
       expect(TEST_AMOUNT_BEFORE_FEE).to.not.eq(TEST_AMOUNT_AFTER_FEE)
 
       await depositHook
@@ -304,7 +300,6 @@ describe('=> DepositHook', () => {
     })
 
     it("doesn't transfer fee to treasury if fee = 0", async () => {
-      testToken.transferFrom.reset()
       await depositHook
         .connect(collateral.wallet)
         .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_BEFORE_FEE)
@@ -313,27 +308,21 @@ describe('=> DepositHook', () => {
     })
 
     it("doesn't call tokenSender.send() if fee = 0", async () => {
-      tokenSender.send.reset()
       await depositHook
         .connect(collateral.wallet)
         .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_BEFORE_FEE)
 
       expect(tokenSender.send).not.called
     })
+
+    afterEach(() => {
+      depositRecord.recordDeposit.reset()
+      testToken.transferFrom.reset()
+      tokenSender.send.reset()
+    })
   })
 
   describe('# setAccountList', () => {
-    snapshotter.usesCustomSnapshot('setAccountList')
-    before(async () => {
-      await grantAndAcceptRole(
-        depositHook,
-        deployer,
-        deployer,
-        await depositHook.SET_ACCOUNT_LIST_ROLE()
-      )
-      await snapshotter.saveSnapshot()
-    })
-
     it('reverts if not role holder', async () => {
       expect(
         await depositHook.hasRole(await depositHook.SET_ACCOUNT_LIST_ROLE(), user.address)
@@ -382,41 +371,6 @@ describe('=> DepositHook', () => {
       await expect(depositHook.connect(user).setDepositRecord(depositRecord.address)).revertedWith(
         `AccessControl: account ${user.address.toLowerCase()} is missing role ${await depositHook.SET_DEPOSIT_RECORD_ROLE()}`
       )
-    })
-
-    it('sets to non-zero address', async () => {
-      await depositHook.connect(deployer).setDepositRecord(ZERO_ADDRESS)
-      expect(depositRecord.address).to.not.eq(ZERO_ADDRESS)
-      expect(await depositHook.getDepositRecord()).to.not.eq(depositRecord.address)
-
-      await depositHook.connect(deployer).setDepositRecord(depositRecord.address)
-
-      expect(await depositHook.getDepositRecord()).to.eq(depositRecord.address)
-    })
-
-    it('sets to zero address', async () => {
-      await depositHook.connect(deployer).setDepositRecord(ZERO_ADDRESS)
-
-      expect(await depositHook.getDepositRecord()).to.eq(ZERO_ADDRESS)
-    })
-
-    it('is idempotent', async () => {
-      await depositHook.connect(deployer).setDepositRecord(ZERO_ADDRESS)
-      expect(await depositHook.getDepositRecord()).to.not.eq(depositRecord.address)
-
-      await depositHook.connect(deployer).setDepositRecord(depositRecord.address)
-
-      expect(await depositHook.getDepositRecord()).to.eq(depositRecord.address)
-
-      await depositHook.connect(deployer).setDepositRecord(depositRecord.address)
-
-      expect(await depositHook.getDepositRecord()).to.eq(depositRecord.address)
-    })
-
-    it('emits DepositRecordChange', async () => {
-      const tx = await depositHook.connect(deployer).setDepositRecord(depositRecord.address)
-
-      await expect(tx).to.emit(depositHook, 'DepositRecordChange').withArgs(depositRecord.address)
     })
   })
 

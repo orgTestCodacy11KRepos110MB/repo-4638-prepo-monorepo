@@ -11,7 +11,7 @@ import {
   PrePOMarketFactory,
   TestERC20,
   WithdrawHook,
-} from '../../typechain'
+} from '../../types/generated'
 import { collateralFixture, smockCollateralFixture } from '../fixtures/CollateralFixture'
 import {
   depositHookFixture,

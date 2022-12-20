@@ -3,11 +3,7 @@ import { ethers } from 'hardhat'
 import { utils } from 'prepo-hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { LongShortTokenFixture } from './fixtures/LongShortTokenFixture'
-import { Snapshotter } from './snapshots'
-import { LongShortToken } from '../typechain/LongShortToken'
-
-const { revertReason } = utils
-const snapshotter = new Snapshotter()
+import { LongShortToken } from '../types/generated'
 
 describe('=> LongShortToken', () => {
   let longShort: LongShortToken
@@ -15,14 +11,12 @@ describe('=> LongShortToken', () => {
   let user: SignerWithAddress
   let user2: SignerWithAddress
 
-  snapshotter.usesCustomSnapshot()
-  before(async () => {
+  beforeEach(async () => {
     ;[deployer, user, user2] = await ethers.getSigners()
     longShort = await LongShortTokenFixture(
       'preSTRIPE LONG 100-200 30-September-2021',
       'preSTRP_L_100-200_30SEP21'
     )
-    await snapshotter.saveSnapshot()
   })
 
   describe('# initialize', () => {
@@ -39,7 +33,7 @@ describe('=> LongShortToken', () => {
   describe('# mint', () => {
     it('should only usable by the owner', async () => {
       await expect(longShort.connect(user).mint(user.address, 1)).to.revertedWith(
-        revertReason('Ownable: caller is not the owner')
+        'Ownable: caller is not the owner'
       )
     })
     it('should allow the owner to mint tokens for another user', async () => {

@@ -10,7 +10,7 @@ import {
   mintHookFixture,
   smockAccountListFixture,
 } from './fixtures/HookFixture'
-import { AccountList, MintHook } from '../typechain'
+import { AccountList, MintHook } from '../types/generated'
 
 chai.use(smock.matchers)
 

@@ -43,7 +43,7 @@ export class Snapshotter {
   }
 
   // This is the actual function which sets up snapshotting for a given block.
-  public usesCustomSnapshot(name: string | undefined = undefined): void {
+  public setupSnapshotContext(name: string | undefined = undefined): void {
     // Create our snapshot abstraction
     const snapshot: Snapshot = new Snapshot(name || '')
 

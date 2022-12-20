@@ -11,7 +11,7 @@ import { fakeCollateralFixture } from './fixtures/CollateralFixture'
 import { fakeAccountListFixture, redeemHookFixture } from './fixtures/HookFixture'
 import { fakeTokenSenderFixture } from './fixtures/TokenSenderFixture'
 import { fakePrePOMarketFixture } from './fixtures/PrePOMarketFixture'
-import { AccountList, Collateral, RedeemHook, TokenSender } from '../typechain'
+import { AccountList, Collateral, RedeemHook, TokenSender } from '../types/generated'
 
 chai.use(smock.matchers)
 

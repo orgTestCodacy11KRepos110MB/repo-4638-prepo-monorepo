@@ -1,6 +1,6 @@
 import { ethers, upgrades } from 'hardhat'
 import { MockContract, FakeContract, smock } from '@defi-wonderland/smock'
-import { Collateral } from '../../typechain'
+import { Collateral } from '../../types/generated'
 
 export async function collateralFixture(
   name: string,

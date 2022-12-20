@@ -23,13 +23,13 @@ import {
   batchGrantAndAcceptRoles,
 } from './utils'
 import { Snapshotter } from './snapshots'
-import { AccountList, Collateral, TestERC20, TokenSender } from '../typechain'
+import { AccountList, Collateral, TestERC20, TokenSender } from '../types/generated'
 
 chai.use(smock.matchers)
 const snapshotter = new Snapshotter()
 
 describe('=> Collateral', () => {
-  snapshotter.usesCustomSnapshot()
+  snapshotter.setupSnapshotContext('Collateral')
   let deployer: SignerWithAddress
   let user1: SignerWithAddress
   let user2: SignerWithAddress
@@ -188,7 +188,7 @@ describe('=> Collateral', () => {
   })
 
   describe('# setManager ', () => {
-    snapshotter.usesCustomSnapshot()
+    snapshotter.setupSnapshotContext('Collateral-setManager')
     before(async () => {
       await getSignersAndDeployContracts()
       await grantAndAcceptRole(collateral, deployer, deployer, await collateral.SET_MANAGER_ROLE())
@@ -241,7 +241,7 @@ describe('=> Collateral', () => {
   })
 
   describe('# setDepositFee', () => {
-    snapshotter.usesCustomSnapshot()
+    snapshotter.setupSnapshotContext('Collateral-setDepositFee')
     before(async () => {
       await getSignersAndDeployContracts()
       await grantAndAcceptRole(
@@ -313,7 +313,7 @@ describe('=> Collateral', () => {
   })
 
   describe('# setWithdrawFee', () => {
-    snapshotter.usesCustomSnapshot()
+    snapshotter.setupSnapshotContext('Collateral-setWithdrawFee')
     before(async () => {
       await getSignersAndDeployContracts()
       await grantAndAcceptRole(
@@ -385,7 +385,7 @@ describe('=> Collateral', () => {
   })
 
   describe('# setDepositHook', () => {
-    snapshotter.usesCustomSnapshot()
+    snapshotter.setupSnapshotContext('Collateral-setDepositHook')
     before(async () => {
       await getSignersAndDeployContracts()
       await grantAndAcceptRole(
@@ -443,7 +443,7 @@ describe('=> Collateral', () => {
   })
 
   describe('# setWithdrawHook', () => {
-    snapshotter.usesCustomSnapshot()
+    snapshotter.setupSnapshotContext('Collateral-setWithdrawHook')
     before(async () => {
       await getSignersAndDeployContracts()
       await grantAndAcceptRole(
@@ -501,7 +501,7 @@ describe('=> Collateral', () => {
   })
 
   describe('# setManagerWithdrawHook', () => {
-    snapshotter.usesCustomSnapshot()
+    snapshotter.setupSnapshotContext('Collateral-setManagerWithdrawHook')
     before(async () => {
       await getSignersAndDeployContracts()
       await grantAndAcceptRole(
@@ -573,7 +573,7 @@ describe('=> Collateral', () => {
   })
 
   describe('# managerWithdraw', () => {
-    snapshotter.usesCustomSnapshot()
+    snapshotter.setupSnapshotContext('Collateral-managerWithdraw')
     before(async () => {
       await getSignersAndDeployContracts()
       await setupCollateralRoles()
@@ -650,7 +650,7 @@ describe('=> Collateral', () => {
   })
 
   describe('# deposit', () => {
-    snapshotter.usesCustomSnapshot()
+    snapshotter.setupSnapshotContext('Collateral-deposit')
     let sender: SignerWithAddress
     let recipient: SignerWithAddress
 
@@ -978,7 +978,7 @@ describe('=> Collateral', () => {
   })
 
   describe('# withdraw', () => {
-    snapshotter.usesCustomSnapshot()
+    snapshotter.setupSnapshotContext('Collateral-withdraw')
 
     async function setupWithdraw(baseTokenDecimals?: number): Promise<void> {
       if (!baseTokenDecimals) {
@@ -1078,7 +1078,7 @@ describe('=> Collateral', () => {
     })
 
     describe('when decimals > base token decimals', () => {
-      snapshotter.usesCustomSnapshot()
+      snapshotter.setupSnapshotContext()
       before(async () => {
         await setupWithdraw()
       })
@@ -1115,7 +1115,7 @@ describe('=> Collateral', () => {
     })
 
     describe('when decimals = base token decimals', () => {
-      snapshotter.usesCustomSnapshot()
+      snapshotter.setupSnapshotContext()
       before(async () => {
         await setupWithdraw(18)
       })
@@ -1152,7 +1152,7 @@ describe('=> Collateral', () => {
     })
 
     describe('when decimals < base token decimals', () => {
-      snapshotter.usesCustomSnapshot()
+      snapshotter.setupSnapshotContext()
       before(async () => {
         await setupWithdraw(19)
       })

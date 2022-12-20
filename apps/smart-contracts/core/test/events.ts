@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // TODO: selectively remove/replace collateral related methods with preUSD
 import { ethers } from 'hardhat'
-import { PrePOMarket } from '../typechain/PrePOMarket'
-import { PrePOMarketFactory } from '../typechain/PrePOMarketFactory'
+import { PrePOMarket, PrePOMarketFactory } from '../types/generated'
 
 export async function getMarketAddedEvent(factory: PrePOMarketFactory): Promise<any> {
   const filter = {

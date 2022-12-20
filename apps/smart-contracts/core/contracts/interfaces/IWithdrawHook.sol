@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity =0.8.7;
 
-import "./IDepositRecordHook.sol";
+import "./IHook.sol";
 
-interface IWithdrawHook is IDepositRecordHook {
+interface IWithdrawHook is IHook {
   event WithdrawalsAllowedChange(bool allowed);
 
   event GlobalPeriodLengthChange(uint256 period);

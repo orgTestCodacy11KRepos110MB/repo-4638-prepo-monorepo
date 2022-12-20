@@ -6,6 +6,7 @@ import {
   SeriesType,
   Time,
 } from 'lightweight-charts'
+import { Color } from 'styled-components'
 import { DetailsProps } from './chart.types'
 import { ChartTimeframe } from '../../../types/market.types'
 
@@ -77,6 +78,7 @@ export type FormatPrice = (price: number) => string
 export type FormatTime = (time: Time, timeframe?: ChartTimeframe) => string
 
 export type ChartTooltipFormatter = {
+  valueColor?: keyof Color
   formatPrice?: FormatPrice
   formatTime?: FormatTime
 }
@@ -86,7 +88,8 @@ export type ChartTooltip = {
     ref: RefObject<HTMLDivElement>,
     details?: DetailsProps,
     formatPrice?: FormatPrice,
-    formatTime?: FormatTime
+    formatTime?: FormatTime,
+    valueColor?: keyof Color
   ) => ReactElement | null
   formatter?: ChartTooltipFormatter
 }

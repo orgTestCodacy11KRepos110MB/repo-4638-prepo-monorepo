@@ -7,6 +7,7 @@ import { Erc20Store } from '../../stores/entities/Erc20.entity'
 import { MarketEntity } from '../../stores/entities/MarketEntity'
 import { RootStore } from '../../stores/RootStore'
 import { TradeType } from '../../stores/SwapStore'
+import { ChartTimeframe } from '../../types/market.types'
 import { debounce } from '../../utils/debounce'
 import { makeQueryString } from '../../utils/makeQueryString'
 import { calculateValuation } from '../../utils/market-utils'
@@ -26,6 +27,9 @@ export class TradeStore {
   openTradeHash?: string
   selectedMarket?: MarketEntity
   slideUpContent?: SlideUpContent = undefined
+  // default to false when we add trade page settings to turn on chart, otherwise no way to review this now
+  showChart = true
+  selectedTimeframe: ChartTimeframe = ChartTimeframe.DAY
 
   constructor(public root: RootStore) {
     makeAutoObservable(this, {}, { autoBind: true })
@@ -75,6 +79,11 @@ export class TradeStore {
     this.closeTradeHash = hash
   }
 
+  setShowChart(showChart: boolean): void {
+    if (!showChart) this.setSelectedTimeframe(ChartTimeframe.DAY)
+    this.showChart = showChart
+  }
+
   setSlideUpContent(slideUpContent?: SlideUpContent): void {
     this.slideUpContent = slideUpContent
   }
@@ -93,6 +102,10 @@ export class TradeStore {
     const market = this.root.marketStore.markets[marketUrlId]
     this.selectedMarket = market
     return this.tradeUrl
+  }
+
+  setSelectedTimeframe(timeframe: ChartTimeframe): void {
+    this.selectedTimeframe = timeframe
   }
 
   setOpenTradeAmount(amount: string): void {

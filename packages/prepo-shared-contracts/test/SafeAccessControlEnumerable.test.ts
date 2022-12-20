@@ -162,9 +162,7 @@ describe('SafeAccessControlEnumerable', () => {
         false
       )
 
-      await expect(
-        safeAccessControlEnumerable.connect(user1).acceptRoleAdmin(roleB)
-      ).revertedWith(
+      await expect(safeAccessControlEnumerable.connect(user1).acceptRoleAdmin(roleB)).revertedWith(
         `AccessControl: account ${user1.address.toLowerCase()} is missing role ${roleBAdminNominee}`
       )
     })
@@ -180,9 +178,7 @@ describe('SafeAccessControlEnumerable', () => {
         true
       )
 
-      await expect(
-        safeAccessControlEnumerable.connect(owner).acceptRoleAdmin(roleB)
-      ).revertedWith(
+      await expect(safeAccessControlEnumerable.connect(owner).acceptRoleAdmin(roleB)).revertedWith(
         `AccessControl: account ${owner.address.toLowerCase()} is missing role ${roleBAdminNominee}`
       )
     })

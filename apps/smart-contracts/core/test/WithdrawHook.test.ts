@@ -12,7 +12,7 @@ import { grantAndAcceptRole, batchGrantAndAcceptRoles, setAccountBalance } from 
 import { smockTestERC20Fixture } from './fixtures/TestERC20Fixture'
 import { fakeCollateralFixture } from './fixtures/CollateralFixture'
 import { smockTokenSenderFixture } from './fixtures/TokenSenderFixture'
-import { Collateral, WithdrawHook } from '../typechain'
+import { Collateral, WithdrawHook } from '../types/generated'
 
 chai.use(smock.matchers)
 
@@ -587,41 +587,6 @@ describe('=> WithdrawHook', () => {
       await expect(withdrawHook.connect(user).setDepositRecord(depositRecord.address)).revertedWith(
         `AccessControl: account ${user.address.toLowerCase()} is missing role ${await withdrawHook.SET_DEPOSIT_RECORD_ROLE()}`
       )
-    })
-
-    it('sets to non-zero address', async () => {
-      await withdrawHook.connect(deployer).setDepositRecord(ZERO_ADDRESS)
-      expect(depositRecord.address).to.not.eq(ZERO_ADDRESS)
-      expect(await withdrawHook.getDepositRecord()).to.not.eq(depositRecord.address)
-
-      await withdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
-
-      expect(await withdrawHook.getDepositRecord()).to.eq(depositRecord.address)
-    })
-
-    it('sets to zero address', async () => {
-      await withdrawHook.connect(deployer).setDepositRecord(ZERO_ADDRESS)
-
-      expect(await withdrawHook.getDepositRecord()).to.eq(ZERO_ADDRESS)
-    })
-
-    it('is idempotent', async () => {
-      await withdrawHook.connect(deployer).setDepositRecord(ZERO_ADDRESS)
-      expect(await withdrawHook.getDepositRecord()).to.not.eq(depositRecord.address)
-
-      await withdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
-
-      expect(await withdrawHook.getDepositRecord()).to.eq(depositRecord.address)
-
-      await withdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
-
-      expect(await withdrawHook.getDepositRecord()).to.eq(depositRecord.address)
-    })
-
-    it('emits DepositRecordChange', async () => {
-      const tx = await withdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
-
-      await expect(tx).to.emit(withdrawHook, 'DepositRecordChange').withArgs(depositRecord.address)
     })
   })
 

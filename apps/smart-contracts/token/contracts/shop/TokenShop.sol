@@ -152,4 +152,19 @@ contract TokenShop is
   ) external pure returns (bytes4) {
     return this.onERC721Received.selector;
   }
+
+  function withdrawERC20(
+    address[] calldata erc20Tokens,
+    uint256[] calldata amounts
+  ) public override onlyOwner {
+    super.withdrawERC20(erc20Tokens, amounts);
+  }
+
+  function withdrawERC20(address[] calldata erc20Tokens)
+    public
+    override
+    onlyOwner
+  {
+    super.withdrawERC20(erc20Tokens);
+  }
 }

@@ -10,8 +10,7 @@ import { getPermitFromSignature } from './utils'
 import { Core } from './harness/core'
 import { depositTradeHelperFixture } from './fixtures/DepositTradeHelperFixture'
 import { fakeSwapRouterFixture } from './fixtures/UniswapFixtures'
-import { DepositTradeHelper } from '../typechain'
-import { OffChainTradeParamsStruct, PermitStruct } from '../typechain/DepositTradeHelper'
+import { DepositTradeHelper, IDepositTradeHelper } from '../types/generated'
 
 const { getLastTimestamp, setNextTimestamp } = utils
 
@@ -24,14 +23,14 @@ describe('=> DepositTradeHelper', () => {
   let deployer: SignerWithAddress
   let user: SignerWithAddress
 
-  const junkPermit = <PermitStruct>{
+  const junkPermit = <IDepositTradeHelper.PermitStruct>{
     deadline: 0,
     v: 0,
     r: formatBytes32String('JUNK_DATA'),
     s: formatBytes32String('JUNK_DATA'),
   }
 
-  const junkTradeParams = <OffChainTradeParamsStruct>{
+  const junkTradeParams = <IDepositTradeHelper.OffChainTradeParamsStruct>{
     tokenOut: JUNK_ADDRESS,
     deadline: 0,
     amountOutMinimum: 0,
@@ -254,8 +253,8 @@ describe('=> DepositTradeHelper', () => {
     })
 
     describe('if all permits provided', () => {
-      let baseTokenPermit: PermitStruct
-      let collateralPermit: PermitStruct
+      let baseTokenPermit: IDepositTradeHelper.PermitStruct
+      let collateralPermit: IDepositTradeHelper.PermitStruct
       let timestampToSignFor: number
       beforeEach(async () => {
         timestampToSignFor = (await getLastTimestamp(ethers.provider)) + 5
@@ -341,7 +340,7 @@ describe('=> DepositTradeHelper', () => {
         const expectedCT = await collateral
           .connect(user)
           .callStatic.deposit(user.address, baseTokenToDeposit)
-        const nonZeroTradeParams = <OffChainTradeParamsStruct>{
+        const nonZeroTradeParams = <IDepositTradeHelper.OffChainTradeParamsStruct>{
           tokenOut: baseToken.address,
           deadline: baseTokenPermit.deadline,
           amountOutMinimum: parseEther('1'),

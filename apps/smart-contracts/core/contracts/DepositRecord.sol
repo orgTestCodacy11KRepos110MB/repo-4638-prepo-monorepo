@@ -28,7 +28,7 @@ contract DepositRecord is IDepositRecord, SafeAccessControlEnumerable {
     _userDepositCap = userDepositCap;
   }
 
-  function recordDeposit(address sender, uint256 amount)
+  function recordDeposit(address user, uint256 amount)
     external
     override
     onlyAllowedHooks
@@ -38,11 +38,11 @@ contract DepositRecord is IDepositRecord, SafeAccessControlEnumerable {
       "Global deposit cap exceeded"
     );
     require(
-      amount + _userToDeposits[sender] <= _userDepositCap,
+      amount + _userToDeposits[user] <= _userDepositCap,
       "User deposit cap exceeded"
     );
     _globalNetDepositAmount += amount;
-    _userToDeposits[sender] += amount;
+    _userToDeposits[user] += amount;
   }
 
   function recordWithdrawal(uint256 amount)

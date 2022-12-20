@@ -5,20 +5,24 @@ import "./LongShortToken.sol";
 import "./PrePOMarket.sol";
 import "./interfaces/ILongShortToken.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "prepo-shared-contracts/contracts/SafeAccessControlEnumerableUpgradeable.sol";
 import "./interfaces/IPrePOMarketFactory.sol";
 
 contract PrePOMarketFactory is
   IPrePOMarketFactory,
-  OwnableUpgradeable,
-  ReentrancyGuardUpgradeable
+  ReentrancyGuardUpgradeable,
+  SafeAccessControlEnumerableUpgradeable
 {
   mapping(address => bool) private validCollateral;
   mapping(bytes32 => address) private deployedMarkets;
 
+  bytes32 public constant CREATE_MARKET_ROLE = keccak256("createMarket");
+  bytes32 public constant SET_COLLATERAL_VALIDITY_ROLE =
+    keccak256("setCollateralValidity");
+
   function initialize() public initializer {
-    OwnableUpgradeable.__Ownable_init();
+    __SafeAccessControlEnumerable_init();
   }
 
   function isValidCollateral(address _collateral)
@@ -51,7 +55,7 @@ contract PrePOMarketFactory is
     uint256 _floorValuation,
     uint256 _ceilingValuation,
     uint256 _expiryTime
-  ) external override onlyOwner nonReentrant {
+  ) external override onlyRole(CREATE_MARKET_ROLE) nonReentrant {
     require(validCollateral[_collateral], "Invalid collateral");
 
     (
@@ -86,7 +90,7 @@ contract PrePOMarketFactory is
   function setCollateralValidity(address _collateral, bool _validity)
     external
     override
-    onlyOwner
+    onlyRole(SET_COLLATERAL_VALIDITY_ROLE)
   {
     validCollateral[_collateral] = _validity;
     emit CollateralValidityChanged(_collateral, _validity);

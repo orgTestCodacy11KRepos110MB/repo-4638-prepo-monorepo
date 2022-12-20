@@ -3,6 +3,7 @@ import { ethers } from 'hardhat'
 import { utils } from 'prepo-hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { formatBytes32String } from 'ethers/lib/utils'
+import { DEFAULT_ADMIN_ROLE } from 'prepo-constants'
 import { testERC20Fixture } from './fixtures/TestERC20Fixture'
 import { LongShortTokenAttachFixture } from './fixtures/LongShortTokenFixture'
 import { prePOMarketAttachFixture } from './fixtures/PrePOMarketFixture'
@@ -12,46 +13,59 @@ import {
   createMarketFixture,
   CreateMarketResult,
 } from './fixtures/PrePOMarketFactoryFixture'
-import { PrePOMarketFactory } from '../typechain/PrePOMarketFactory'
-import { TestERC20 } from '../typechain/TestERC20'
+import { batchGrantAndAcceptRoles, revertsIfNotRoleHolder, testRoleConstants } from './utils'
+import { PrePOMarketFactory, TestERC20 } from '../types/generated'
 
-const { nowPlusMonths, revertReason } = utils
+const { nowPlusMonths } = utils
 
 describe('=> PrePOMarketFactory', () => {
   let prePOMarketFactory: PrePOMarketFactory
   let collateralToken: TestERC20
   let deployer: SignerWithAddress
   let user: SignerWithAddress
-  let user2: SignerWithAddress
   let treasury: SignerWithAddress
   const TEST_NAME_SUFFIX = 'preSTRIPE 100-200 30-September-2021'
   const TEST_SYMBOL_SUFFIX = 'preSTRIPE_100-200_30SEP21'
   const TEST_FLOOR_VAL = ethers.utils.parseEther('100')
   const TEST_CEILING_VAL = ethers.utils.parseEther('200')
-  const TEST_REDEMPTION_FEE = 20
   const TEST_EXPIRY = nowPlusMonths(2)
   const TEST_FLOOR_PRICE = ethers.utils.parseEther('0.2')
   const TEST_CEILING_PRICE = ethers.utils.parseEther('0.8')
   const MOCK_COLLATERAL_SUPPLY = ethers.utils.parseEther('1000000000')
 
   beforeEach(async () => {
-    ;[deployer, user, user2, treasury] = await ethers.getSigners()
+    ;[deployer, user, treasury] = await ethers.getSigners()
     collateralToken = await testERC20Fixture('prePO USDC Collateral', 'preUSD', 18)
     await collateralToken.mint(deployer.address, MOCK_COLLATERAL_SUPPLY)
     prePOMarketFactory = await prePOMarketFactoryFixture()
+
+    await batchGrantAndAcceptRoles(prePOMarketFactory, deployer, deployer, [
+      prePOMarketFactory.CREATE_MARKET_ROLE(),
+      prePOMarketFactory.SET_COLLATERAL_VALIDITY_ROLE(),
+    ])
   })
 
   describe('# initialize', () => {
-    it('owner should be set to deployer', async () => {
-      expect(await prePOMarketFactory.owner()).to.eq(deployer.address)
+    it('sets role constants to the correct hash', async () => {
+      await testRoleConstants([
+        prePOMarketFactory.CREATE_MARKET_ROLE(),
+        'createMarket',
+        prePOMarketFactory.SET_COLLATERAL_VALIDITY_ROLE(),
+        'setCollateralValidity',
+      ])
+    })
+
+    it('sets deployer as role admin', async () => {
+      expect(await prePOMarketFactory.hasRole(DEFAULT_ADMIN_ROLE, deployer.address)).eq(true)
     })
   })
 
   describe('# setCollateralValidity', () => {
-    it('should only be usable by the owner', async () => {
-      await expect(
-        prePOMarketFactory.connect(user).setCollateralValidity(collateralToken.address, true)
-      ).revertedWith(revertReason('Ownable: caller is not the owner'))
+    it('reverts if not role holder', async () => {
+      await revertsIfNotRoleHolder(
+        prePOMarketFactory.SET_COLLATERAL_VALIDITY_ROLE(),
+        prePOMarketFactory.populateTransaction.setCollateralValidity(collateralToken.address, true)
+      )
     })
 
     it('should correctly set validity of collateral to true', async () => {
@@ -113,13 +127,22 @@ describe('=> PrePOMarketFactory', () => {
       }
     })
 
-    it('should only be usable by the owner', async () => {
-      await expect(
-        createMarket({
-          ...defaultParams,
-          caller: user,
-        })
-      ).revertedWith(revertReason('Ownable: caller is not the owner'))
+    it('reverts if not role holder', async () => {
+      const createMarketTransaction = prePOMarketFactory.populateTransaction.createMarket(
+        defaultParams.tokenNameSuffix,
+        defaultParams.tokenSymbolSuffix,
+        defaultParams.longTokenSalt,
+        defaultParams.shortTokenSalt,
+        defaultParams.governance,
+        defaultParams.collateral,
+        defaultParams.floorLongPayout,
+        defaultParams.ceilingLongPayout,
+        defaultParams.floorValuation,
+        defaultParams.ceilingValuation,
+        defaultParams.expiryTime
+      )
+
+      await revertsIfNotRoleHolder(prePOMarketFactory.CREATE_MARKET_ROLE(), createMarketTransaction)
     })
 
     it('should not allow invalid collateral', async () => {
@@ -130,7 +153,7 @@ describe('=> PrePOMarketFactory', () => {
           ...defaultParams,
           collateral: invalidCollateral.address,
         })
-      ).revertedWith(revertReason('Invalid collateral'))
+      ).revertedWith('Invalid collateral')
     })
 
     it('should emit MarketAdded event on market creation', async () => {

@@ -13,6 +13,10 @@ declare module 'styled-components' {
     sm: string
     /** 12px */
     xs: string
+    /** 10px */
+    '2xs': string
+    /** 8px */
+    '3xs': string
   }
 
   export interface Shadow {

@@ -1,7 +1,7 @@
 import { BigNumber } from 'ethers'
 import { ethers } from 'hardhat'
 import { FakeContract, MockContract, smock } from '@defi-wonderland/smock'
-import { DepositRecord } from '../../typechain'
+import { DepositRecord } from '../../types/generated'
 
 export async function depositRecordFixture(
   globalDepositCap: BigNumber,

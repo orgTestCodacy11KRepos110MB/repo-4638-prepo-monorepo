@@ -83,7 +83,7 @@ packages/prepo-sdk/lib
 tmp
 
 # --------- smart-contracts ---------
-typechain/
+types/generated
 artifacts*
 cache*
 cache

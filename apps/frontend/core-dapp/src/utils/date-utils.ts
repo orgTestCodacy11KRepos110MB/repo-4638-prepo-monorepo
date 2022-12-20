@@ -62,9 +62,12 @@ export const getFullLiteralDateTimeFromSeconds = (seconds: number): string => {
   }
 }
 
-export const getFullStringFromMs = (ms: number | string): string => {
+export const getFullStringFromMs = (
+  ms: number | string,
+  { date = DATE_FORMAT, time = TIME_FORMAT_12 }: { date?: string; time?: string } = {}
+): string => {
   try {
-    return format(new Date(ms), `${DATE_FORMAT}, ${TIME_FORMAT_12}`)
+    return format(new Date(ms), `${date}, ${time}`)
   } catch (error) {
     return 'Invalid Date Time'
   }
