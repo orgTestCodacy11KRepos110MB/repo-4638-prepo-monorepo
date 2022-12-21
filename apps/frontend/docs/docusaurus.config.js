@@ -34,7 +34,6 @@ module.exports = {
         docs: {
           routeBasePath: '/',
           sidebarPath: require.resolve('./sidebars/index.js'),
-          editUrl: 'https://github.com/prepo-io/prepo-monorepo/tree/main/apps/frontend/docs',
           // KaTeX
           remarkPlugins: [math],
           rehypePlugins: [katex],
