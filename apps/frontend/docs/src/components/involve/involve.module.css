@@ -1,0 +1,48 @@
+.involveText {
+  align-items: center;
+  display: flex;
+  font-size: 14px;
+  font-weight: 600;
+  gap: 8px;
+  margin-bottom: 0 !important;
+  margin-top: 0 !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.involveCard {
+  border: solid 1px var(--ifm-color-primary-lightest);
+  border-radius: 8px;
+  color: unset;
+  padding: 8px;
+}
+
+.involveLink {
+  color: unset;
+}
+
+.involveCard:hover {
+  border-color: var(--ifm-color-primary);
+  color: var(--ifm-color-primary);
+}
+
+.involveWrapper {
+  margin-top: 0 !important;
+}
+
+.wrapper {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  list-style-type: none;
+  gap: 16px;
+  margin-bottom: 0;
+  padding-left: 0;
+}
+
+@media (min-width: 480px) {
+  .wrapper {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
