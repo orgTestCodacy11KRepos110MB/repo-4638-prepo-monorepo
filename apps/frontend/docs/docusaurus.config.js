@@ -57,7 +57,7 @@ module.exports = {
         content: '🚧 All information is a <b>work in progress</b> and <b>subject to change</b> 🚧',
         backgroundColor: '#adaeeb',
         textColor: '#091E42',
-        isCloseable: true,
+        isCloseable: false,
       },
       navbar: {
         title: 'prePO Docs',

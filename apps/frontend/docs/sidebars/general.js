@@ -50,7 +50,7 @@ module.exports = [
   makeSectionTitle('Overview', '👋'),
   makeReworkItem('overview'),
   makeReworkItem('use-cases'),
-  makeReworkItem('investors'),
+  // makeReworkItem('investors'),
   makeReworkItem('partners'),
   makeReworkItem('involve'),
   makeReworkItem('official-links'),
