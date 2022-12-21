@@ -79,6 +79,12 @@ module.exports = {
             position: 'left',
             label: 'Developer Docs',
           },
+          {
+            href: 'https://github.com/prepo-io',
+            position: 'right',
+            className: 'header-github-link',
+            'aria-label': 'GitHub repository',
+          },
         ],
       },
       prism: {
