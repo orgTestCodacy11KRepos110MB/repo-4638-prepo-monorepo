@@ -21,24 +21,20 @@ contract DepositHook is
 {
   bool private _depositsAllowed;
 
-  bytes32 public constant SET_COLLATERAL_ROLE =
-    keccak256("DepositHook_setCollateral(address)");
+  bytes32 public constant SET_COLLATERAL_ROLE = keccak256("setCollateral");
   bytes32 public constant SET_DEPOSIT_RECORD_ROLE =
-    keccak256("DepositHook_setDepositRecord(address)");
+    keccak256("setDepositRecord");
   bytes32 public constant SET_DEPOSITS_ALLOWED_ROLE =
-    keccak256("DepositHook_setDepositsAllowed(bool)");
-  bytes32 public constant SET_ACCOUNT_LIST_ROLE =
-    keccak256("DepositHook_setAccountList(IAccountList)");
+    keccak256("setDepositsAllowed");
+  bytes32 public constant SET_ACCOUNT_LIST_ROLE = keccak256("setAccountList");
   bytes32 public constant SET_REQUIRED_SCORE_ROLE =
-    keccak256("DepositHook_setRequiredScore(uint256)");
+    keccak256("setRequiredScore");
   bytes32 public constant SET_COLLECTION_SCORES_ROLE =
-    keccak256("DepositHook_setCollectionScores(IERC721[],uint256[])");
+    keccak256("setCollectionScores");
   bytes32 public constant REMOVE_COLLECTIONS_ROLE =
-    keccak256("DepositHook_removeCollections(IERC721[])");
-  bytes32 public constant SET_TREASURY_ROLE =
-    keccak256("DepositHook_setTreasury(address)");
-  bytes32 public constant SET_TOKEN_SENDER_ROLE =
-    keccak256("DepositHook_setTokenSender(ITokenSender)");
+    keccak256("removeCollections");
+  bytes32 public constant SET_TREASURY_ROLE = keccak256("setTreasury");
+  bytes32 public constant SET_TOKEN_SENDER_ROLE = keccak256("setTokenSender");
 
   function hook(
     address user,

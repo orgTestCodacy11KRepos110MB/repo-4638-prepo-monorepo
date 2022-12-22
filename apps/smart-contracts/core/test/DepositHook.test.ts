@@ -1,21 +1,17 @@
 import chai, { expect } from 'chai'
-import { ethers, network } from 'hardhat'
+import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
-import { id, parseEther } from 'ethers/lib/utils'
-import { Contract, Signer } from 'ethers'
+import { parseEther } from 'ethers/lib/utils'
 import { FakeContract, MockContract, smock } from '@defi-wonderland/smock'
 import { ZERO_ADDRESS } from 'prepo-constants'
 import { depositHookFixture, fakeAccountListFixture } from './fixtures/HookFixture'
-import {
-  fakeDepositRecordFixture,
-  smockDepositRecordFixture,
-} from './fixtures/DepositRecordFixture'
-import { testERC721Fixture } from './fixtures/TestERC721Fixture'
-import { grantAndAcceptRole, setAccountBalance } from './utils'
+import { setAccountBalance, grantAndAcceptRole, testRoleConstants } from './utils'
 import { fakeTokenSenderFixture } from './fixtures/TokenSenderFixture'
 import { smockTestERC20Fixture } from './fixtures/TestERC20Fixture'
 import { fakeCollateralFixture } from './fixtures/CollateralFixture'
 import { Snapshotter } from './snapshots'
+import { fakeDepositRecordFixture } from './fixtures/DepositRecordFixture'
+import { testERC721Fixture } from './fixtures/TestERC721Fixture'
 import {
   AccountList,
   Collateral,
@@ -115,31 +111,26 @@ describe('=> DepositHook', () => {
     })
 
     it('sets role constants to the correct hash', async () => {
-      expect(await depositHook.SET_ACCOUNT_LIST_ROLE()).to.eq(
-        id('DepositHook_setAccountList(IAccountList)')
-      )
-      expect(await depositHook.SET_TREASURY_ROLE()).to.eq(id('DepositHook_setTreasury(address)'))
-      expect(await depositHook.SET_TOKEN_SENDER_ROLE()).to.eq(
-        id('DepositHook_setTokenSender(ITokenSender)')
-      )
-      expect(await depositHook.SET_COLLATERAL_ROLE()).to.eq(
-        id('DepositHook_setCollateral(address)')
-      )
-      expect(await depositHook.SET_DEPOSIT_RECORD_ROLE()).to.eq(
-        id('DepositHook_setDepositRecord(address)')
-      )
-      expect(await depositHook.SET_DEPOSITS_ALLOWED_ROLE()).to.eq(
-        id('DepositHook_setDepositsAllowed(bool)')
-      )
-      expect(await depositHook.SET_REQUIRED_SCORE_ROLE()).to.eq(
-        id('DepositHook_setRequiredScore(uint256)')
-      )
-      expect(await depositHook.SET_COLLECTION_SCORES_ROLE()).to.eq(
-        id('DepositHook_setCollectionScores(IERC721[],uint256[])')
-      )
-      expect(await depositHook.REMOVE_COLLECTIONS_ROLE()).to.eq(
-        id('DepositHook_removeCollections(IERC721[])')
-      )
+      await testRoleConstants([
+        depositHook.SET_ACCOUNT_LIST_ROLE(),
+        'setAccountList',
+        depositHook.SET_TREASURY_ROLE(),
+        'setTreasury',
+        depositHook.SET_TOKEN_SENDER_ROLE(),
+        'setTokenSender',
+        depositHook.SET_COLLATERAL_ROLE(),
+        'setCollateral',
+        depositHook.SET_DEPOSIT_RECORD_ROLE(),
+        'setDepositRecord',
+        depositHook.SET_DEPOSITS_ALLOWED_ROLE(),
+        'setDepositsAllowed',
+        depositHook.SET_REQUIRED_SCORE_ROLE(),
+        'setRequiredScore',
+        depositHook.SET_COLLECTION_SCORES_ROLE(),
+        'setCollectionScores',
+        depositHook.REMOVE_COLLECTIONS_ROLE(),
+        'removeCollections',
+      ])
     })
   })
 

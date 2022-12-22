@@ -151,21 +151,13 @@ describe('=> Collateral', () => {
     })
 
     it('sets role constants to the correct hash', async () => {
-      expect(await collateral.MANAGER_WITHDRAW_ROLE()).to.eq(
-        id('Collateral_managerWithdraw(uint256)')
-      )
-      expect(await collateral.SET_MANAGER_ROLE()).to.eq(id('Collateral_setManager(address)'))
-      expect(await collateral.SET_DEPOSIT_FEE_ROLE()).to.eq(id('Collateral_setDepositFee(uint256)'))
-      expect(await collateral.SET_WITHDRAW_FEE_ROLE()).to.eq(
-        id('Collateral_setWithdrawFee(uint256)')
-      )
-      expect(await collateral.SET_DEPOSIT_HOOK_ROLE()).to.eq(id('Collateral_setDepositHook(IHook)'))
-      expect(await collateral.SET_WITHDRAW_HOOK_ROLE()).to.eq(
-        id('Collateral_setWithdrawHook(IHook)')
-      )
-      expect(await collateral.SET_MANAGER_WITHDRAW_HOOK_ROLE()).to.eq(
-        id('Collateral_setManagerWithdrawHook(IHook)')
-      )
+      expect(await collateral.MANAGER_WITHDRAW_ROLE()).to.eq(id('managerWithdraw'))
+      expect(await collateral.SET_MANAGER_ROLE()).to.eq(id('setManager'))
+      expect(await collateral.SET_DEPOSIT_FEE_ROLE()).to.eq(id('setDepositFee'))
+      expect(await collateral.SET_WITHDRAW_FEE_ROLE()).to.eq(id('setWithdrawFee'))
+      expect(await collateral.SET_DEPOSIT_HOOK_ROLE()).to.eq(id('setDepositHook'))
+      expect(await collateral.SET_WITHDRAW_HOOK_ROLE()).to.eq(id('setWithdrawHook'))
+      expect(await collateral.SET_MANAGER_WITHDRAW_HOOK_ROLE()).to.eq(id('setManagerWithdrawHook'))
     })
   })
 

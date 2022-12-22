@@ -70,16 +70,12 @@ describe('=> TokenSender', () => {
       expect(await tokenSender.getScaledPriceLowerBound()).to.eq(0)
     })
     it('sets role constants', async () => {
-      expect(await tokenSender.SET_PRICE_ROLE()).to.eq(id('TokenSender_setPrice(IUintValue)'))
-      expect(await tokenSender.SET_PRICE_MULTIPLIER_ROLE()).to.eq(
-        id('TokenSender_setPriceMultiplier(uint256)')
-      )
+      expect(await tokenSender.SET_PRICE_ROLE()).to.eq(id('setPrice'))
+      expect(await tokenSender.SET_PRICE_MULTIPLIER_ROLE()).to.eq(id('setPriceMultiplier'))
       expect(await tokenSender.SET_SCALED_PRICE_LOWER_BOUND_ROLE()).to.eq(
-        id('TokenSender_setScaledPriceLowerBound(uint256)')
+        id('setScaledPriceLowerBound')
       )
-      expect(await tokenSender.SET_ALLOWED_MSG_SENDERS_ROLE()).to.eq(
-        id('TokenSender_setAllowedMsgSenders(IAccountList)')
-      )
+      expect(await tokenSender.SET_ALLOWED_MSG_SENDERS_ROLE()).to.eq(id('setAllowedMsgSenders'))
       expect(await tokenSender.WITHDRAW_ERC20_ROLE()).eq(id('withdrawERC20'))
     })
   })

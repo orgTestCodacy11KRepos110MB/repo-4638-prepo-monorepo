@@ -24,24 +24,21 @@ contract WithdrawHook is
   uint256 private _globalAmountWithdrawnThisPeriod;
   mapping(address => uint256) private _userToAmountWithdrawnThisPeriod;
 
-  bytes32 public constant SET_COLLATERAL_ROLE =
-    keccak256("WithdrawHook_setCollateral(address)");
+  bytes32 public constant SET_COLLATERAL_ROLE = keccak256("setCollateral");
   bytes32 public constant SET_DEPOSIT_RECORD_ROLE =
-    keccak256("WithdrawHook_setDepositRecord(address)");
+    keccak256("setDepositRecord");
   bytes32 public constant SET_WITHDRAWALS_ALLOWED_ROLE =
-    keccak256("WithdrawHook_setWithdrawalsAllowed(bool)");
+    keccak256("setWithdrawalsAllowed");
   bytes32 public constant SET_GLOBAL_PERIOD_LENGTH_ROLE =
-    keccak256("WithdrawHook_setGlobalPeriodLength(uint256)");
+    keccak256("setGlobalPeriodLength");
   bytes32 public constant SET_USER_PERIOD_LENGTH_ROLE =
-    keccak256("WithdrawHook_setUserPeriodLength(uint256)");
+    keccak256("setUserPeriodLength");
   bytes32 public constant SET_GLOBAL_WITHDRAW_LIMIT_PER_PERIOD_ROLE =
-    keccak256("WithdrawHook_setGlobalWithdrawLimitPerPeriod(uint256)");
+    keccak256("setGlobalWithdrawLimitPerPeriod");
   bytes32 public constant SET_USER_WITHDRAW_LIMIT_PER_PERIOD_ROLE =
-    keccak256("WithdrawHook_setUserWithdrawLimitPerPeriod(uint256)");
-  bytes32 public constant SET_TREASURY_ROLE =
-    keccak256("WithdrawHook_setTreasury(address)");
-  bytes32 public constant SET_TOKEN_SENDER_ROLE =
-    keccak256("WithdrawHook_setTokenSender(ITokenSender)");
+    keccak256("setUserWithdrawLimitPerPeriod");
+  bytes32 public constant SET_TREASURY_ROLE = keccak256("setTreasury");
+  bytes32 public constant SET_TOKEN_SENDER_ROLE = keccak256("setTokenSender");
 
   /*
    * @dev While we could include the period length in the last reset

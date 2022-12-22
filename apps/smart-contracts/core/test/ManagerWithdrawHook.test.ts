@@ -75,14 +75,10 @@ describe('=> ManagerWithdrawHook', () => {
     })
 
     it('sets role constants to the correct hash', async () => {
-      expect(await managerWithdrawHook.SET_COLLATERAL_ROLE()).to.eq(
-        id('ManagerWithdrawHook_setCollateral(address)')
-      )
-      expect(await managerWithdrawHook.SET_DEPOSIT_RECORD_ROLE()).to.eq(
-        id('ManagerWithdrawHook_setDepositRecord(address)')
-      )
+      expect(await managerWithdrawHook.SET_COLLATERAL_ROLE()).to.eq(id('setCollateral'))
+      expect(await managerWithdrawHook.SET_DEPOSIT_RECORD_ROLE()).to.eq(id('setDepositRecord'))
       expect(await managerWithdrawHook.SET_MIN_RESERVE_PERCENTAGE_ROLE()).to.eq(
-        id('ManagerWithdrawHook_setMinReservePercentage(uint256)')
+        id('setMinReservePercentage')
       )
     })
   })

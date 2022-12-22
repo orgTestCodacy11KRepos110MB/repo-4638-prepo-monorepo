@@ -15,12 +15,11 @@ contract ManagerWithdrawHook is
   uint256 private _minReservePercentage;
 
   uint256 public constant PERCENT_DENOMINATOR = 1000000;
-  bytes32 public constant SET_COLLATERAL_ROLE =
-    keccak256("ManagerWithdrawHook_setCollateral(address)");
+  bytes32 public constant SET_COLLATERAL_ROLE = keccak256("setCollateral");
   bytes32 public constant SET_DEPOSIT_RECORD_ROLE =
-    keccak256("ManagerWithdrawHook_setDepositRecord(address)");
+    keccak256("setDepositRecord");
   bytes32 public constant SET_MIN_RESERVE_PERCENTAGE_ROLE =
-    keccak256("ManagerWithdrawHook_setMinReservePercentage(uint256)");
+    keccak256("setMinReservePercentage");
 
   function hook(
     address,

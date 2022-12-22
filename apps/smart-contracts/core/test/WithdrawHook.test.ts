@@ -82,30 +82,18 @@ describe('=> WithdrawHook', () => {
     })
 
     it('sets role constants to the correct hash', async () => {
-      expect(await withdrawHook.SET_TREASURY_ROLE()).to.eq(id('WithdrawHook_setTreasury(address)'))
-      expect(await withdrawHook.SET_TOKEN_SENDER_ROLE()).to.eq(
-        id('WithdrawHook_setTokenSender(ITokenSender)')
-      )
-      expect(await withdrawHook.SET_COLLATERAL_ROLE()).to.eq(
-        id('WithdrawHook_setCollateral(address)')
-      )
-      expect(await withdrawHook.SET_DEPOSIT_RECORD_ROLE()).to.eq(
-        id('WithdrawHook_setDepositRecord(address)')
-      )
-      expect(await withdrawHook.SET_WITHDRAWALS_ALLOWED_ROLE()).to.eq(
-        id('WithdrawHook_setWithdrawalsAllowed(bool)')
-      )
-      expect(await withdrawHook.SET_GLOBAL_PERIOD_LENGTH_ROLE()).to.eq(
-        id('WithdrawHook_setGlobalPeriodLength(uint256)')
-      )
-      expect(await withdrawHook.SET_USER_PERIOD_LENGTH_ROLE()).to.eq(
-        id('WithdrawHook_setUserPeriodLength(uint256)')
-      )
+      expect(await withdrawHook.SET_TREASURY_ROLE()).to.eq(id('setTreasury'))
+      expect(await withdrawHook.SET_TOKEN_SENDER_ROLE()).to.eq(id('setTokenSender'))
+      expect(await withdrawHook.SET_COLLATERAL_ROLE()).to.eq(id('setCollateral'))
+      expect(await withdrawHook.SET_DEPOSIT_RECORD_ROLE()).to.eq(id('setDepositRecord'))
+      expect(await withdrawHook.SET_WITHDRAWALS_ALLOWED_ROLE()).to.eq(id('setWithdrawalsAllowed'))
+      expect(await withdrawHook.SET_GLOBAL_PERIOD_LENGTH_ROLE()).to.eq(id('setGlobalPeriodLength'))
+      expect(await withdrawHook.SET_USER_PERIOD_LENGTH_ROLE()).to.eq(id('setUserPeriodLength'))
       expect(await withdrawHook.SET_GLOBAL_WITHDRAW_LIMIT_PER_PERIOD_ROLE()).to.eq(
-        id('WithdrawHook_setGlobalWithdrawLimitPerPeriod(uint256)')
+        id('setGlobalWithdrawLimitPerPeriod')
       )
       expect(await withdrawHook.SET_USER_WITHDRAW_LIMIT_PER_PERIOD_ROLE()).to.eq(
-        id('WithdrawHook_setUserWithdrawLimitPerPeriod(uint256)')
+        id('setUserWithdrawLimitPerPeriod')
       )
     })
   })

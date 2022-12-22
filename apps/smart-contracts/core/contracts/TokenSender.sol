@@ -23,14 +23,13 @@ contract TokenSender is
   uint256 private immutable _outputTokenDecimalsFactor;
 
   uint256 public constant MULTIPLIER_DENOMINATOR = 10000;
-  bytes32 public constant SET_PRICE_ROLE =
-    keccak256("TokenSender_setPrice(IUintValue)");
+  bytes32 public constant SET_PRICE_ROLE = keccak256("setPrice");
   bytes32 public constant SET_PRICE_MULTIPLIER_ROLE =
-    keccak256("TokenSender_setPriceMultiplier(uint256)");
+    keccak256("setPriceMultiplier");
   bytes32 public constant SET_SCALED_PRICE_LOWER_BOUND_ROLE =
-    keccak256("TokenSender_setScaledPriceLowerBound(uint256)");
+    keccak256("setScaledPriceLowerBound");
   bytes32 public constant SET_ALLOWED_MSG_SENDERS_ROLE =
-    keccak256("TokenSender_setAllowedMsgSenders(IAccountList)");
+    keccak256("setAllowedMsgSenders");
   bytes32 public constant WITHDRAW_ERC20_ROLE = keccak256("withdrawERC20");
 
   constructor(IERC20Metadata outputToken) {

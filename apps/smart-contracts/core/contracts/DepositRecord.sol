@@ -12,11 +12,10 @@ contract DepositRecord is IDepositRecord, SafeAccessControlEnumerable {
   mapping(address => bool) private _allowedHooks;
 
   bytes32 public constant SET_GLOBAL_NET_DEPOSIT_CAP_ROLE =
-    keccak256("DepositRecord_setGlobalNetDepositCap(uint256)");
+    keccak256("setGlobalNetDepositCap");
   bytes32 public constant SET_USER_DEPOSIT_CAP_ROLE =
-    keccak256("DepositRecord_setUserDepositCap(uint256)");
-  bytes32 public constant SET_ALLOWED_HOOK_ROLE =
-    keccak256("DepositRecord_setAllowedHook(address)");
+    keccak256("setUserDepositCap");
+  bytes32 public constant SET_ALLOWED_HOOK_ROLE = keccak256("setAllowedHook");
 
   modifier onlyAllowedHooks() {
     require(_allowedHooks[msg.sender], "msg.sender != allowed hook");

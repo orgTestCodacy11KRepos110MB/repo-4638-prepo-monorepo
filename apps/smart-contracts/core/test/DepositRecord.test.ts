@@ -64,14 +64,10 @@ describe('=> DepositRecord', () => {
 
     it('sets role constants to the correct hash', async () => {
       expect(await depositRecord.SET_GLOBAL_NET_DEPOSIT_CAP_ROLE()).to.eq(
-        id('DepositRecord_setGlobalNetDepositCap(uint256)')
+        id('setGlobalNetDepositCap')
       )
-      expect(await depositRecord.SET_USER_DEPOSIT_CAP_ROLE()).to.eq(
-        id('DepositRecord_setUserDepositCap(uint256)')
-      )
-      expect(await depositRecord.SET_ALLOWED_HOOK_ROLE()).to.eq(
-        id('DepositRecord_setAllowedHook(address)')
-      )
+      expect(await depositRecord.SET_USER_DEPOSIT_CAP_ROLE()).to.eq(id('setUserDepositCap'))
+      expect(await depositRecord.SET_ALLOWED_HOOK_ROLE()).to.eq(id('setAllowedHook'))
     })
   })
 

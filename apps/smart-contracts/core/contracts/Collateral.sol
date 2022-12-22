@@ -24,20 +24,15 @@ contract Collateral is
 
   uint256 public constant FEE_DENOMINATOR = 1000000;
   uint256 public constant FEE_LIMIT = 100000;
-  bytes32 public constant MANAGER_WITHDRAW_ROLE =
-    keccak256("Collateral_managerWithdraw(uint256)");
-  bytes32 public constant SET_MANAGER_ROLE =
-    keccak256("Collateral_setManager(address)");
-  bytes32 public constant SET_DEPOSIT_FEE_ROLE =
-    keccak256("Collateral_setDepositFee(uint256)");
-  bytes32 public constant SET_WITHDRAW_FEE_ROLE =
-    keccak256("Collateral_setWithdrawFee(uint256)");
-  bytes32 public constant SET_DEPOSIT_HOOK_ROLE =
-    keccak256("Collateral_setDepositHook(IHook)");
+  bytes32 public constant MANAGER_WITHDRAW_ROLE = keccak256("managerWithdraw");
+  bytes32 public constant SET_MANAGER_ROLE = keccak256("setManager");
+  bytes32 public constant SET_DEPOSIT_FEE_ROLE = keccak256("setDepositFee");
+  bytes32 public constant SET_WITHDRAW_FEE_ROLE = keccak256("setWithdrawFee");
+  bytes32 public constant SET_DEPOSIT_HOOK_ROLE = keccak256("setDepositHook");
   bytes32 public constant SET_WITHDRAW_HOOK_ROLE =
-    keccak256("Collateral_setWithdrawHook(IHook)");
+    keccak256("setWithdrawHook");
   bytes32 public constant SET_MANAGER_WITHDRAW_HOOK_ROLE =
-    keccak256("Collateral_setManagerWithdrawHook(IHook)");
+    keccak256("setManagerWithdrawHook");
 
   constructor(IERC20 baseToken, uint256 baseTokenDecimals) {
     _baseToken = baseToken;
