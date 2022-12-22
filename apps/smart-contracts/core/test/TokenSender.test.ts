@@ -3,14 +3,14 @@ import chai, { expect } from 'chai'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { id } from 'ethers/lib/utils'
 import { ZERO_ADDRESS } from 'prepo-constants'
-import { BigNumber, Contract } from 'ethers'
+import { BigNumber } from 'ethers'
 import { FakeContract, smock } from '@defi-wonderland/smock'
 import { tokenSenderFixture } from './fixtures/TokenSenderFixture'
 import { smockTestERC20Fixture } from './fixtures/TestERC20Fixture'
 import { grantAndAcceptRole } from './utils'
 import { fakeTestUintValueFixture } from './fixtures/TestUintValueFixture'
 import { fakeAccountListFixture } from './fixtures/HookFixture'
-import { AccountList, TestUintValue, TokenSender } from '../types/generated'
+import { AccountList, TestERC20, TestUintValue, TokenSender } from '../types/generated'
 
 chai.use(smock.matchers)
 
@@ -20,7 +20,7 @@ describe('=> TokenSender', () => {
   let tokenSender: TokenSender
   let deployer: SignerWithAddress
   let user: SignerWithAddress
-  let outputToken: FakeContract<Contract>
+  let outputToken: FakeContract<TestERC20>
   let priceOracle: FakeContract<TestUintValue>
   let allowlist: FakeContract<AccountList>
   beforeEach(async () => {

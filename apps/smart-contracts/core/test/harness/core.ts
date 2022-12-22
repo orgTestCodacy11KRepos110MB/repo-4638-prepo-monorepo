@@ -24,19 +24,19 @@ import {
 import { smockTestERC20Fixture, testERC20Fixture } from '../fixtures/TestERC20Fixture'
 import { prePOMarketFactoryFixture } from '../fixtures/PrePOMarketFactoryFixture'
 
-type CollateralWithHooks = (Collateral | MockContract) & {
-  depositHook?: DepositHook | MockContract
-  withdrawHook?: WithdrawHook | MockContract
-  managerWithdrawHook?: ManagerWithdrawHook | MockContract
+type CollateralWithHooks = (Collateral | MockContract<Collateral>) & {
+  depositHook?: DepositHook | MockContract<DepositHook>
+  withdrawHook?: WithdrawHook | MockContract<WithdrawHook>
+  managerWithdrawHook?: ManagerWithdrawHook | MockContract<ManagerWithdrawHook>
 }
 
 export class Core {
   private static _instance: Core
   public ethers!: HardhatEthersHelpers
   public accounts!: SignerWithAddress[]
-  public baseToken: ERC20 | TestERC20 | MockContract
-  public collateral: CollateralWithHooks | MockContract
-  public depositRecord: DepositRecord | MockContract
+  public baseToken: TestERC20 | MockContract<TestERC20>
+  public collateral: CollateralWithHooks
+  public depositRecord: DepositRecord | MockContract<DepositRecord>
   public marketFactory: PrePOMarketFactory
   public markets!: {
     [suffix: string]: {

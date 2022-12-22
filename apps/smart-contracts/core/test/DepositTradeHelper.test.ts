@@ -1,7 +1,7 @@
 import chai, { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
-import { formatBytes32String, id, parseEther, parseUnits } from 'ethers/lib/utils'
+import { formatBytes32String, parseEther } from 'ethers/lib/utils'
 import { BigNumber, Contract } from 'ethers'
 import { FakeContract, MockContract, smock } from '@defi-wonderland/smock'
 import { utils } from 'prepo-hardhat'
@@ -10,7 +10,13 @@ import { getPermitFromSignature } from './utils'
 import { Core } from './harness/core'
 import { depositTradeHelperFixture } from './fixtures/DepositTradeHelperFixture'
 import { fakeSwapRouterFixture } from './fixtures/UniswapFixtures'
-import { DepositTradeHelper, IDepositTradeHelper } from '../types/generated'
+import {
+  Collateral,
+  DepositHook,
+  DepositTradeHelper,
+  TestERC20,
+  IDepositTradeHelper,
+} from '../types/generated'
 
 const { getLastTimestamp, setNextTimestamp } = utils
 
@@ -74,14 +80,14 @@ describe('=> DepositTradeHelper', () => {
   })
 
   describe('# depositAndTrade', () => {
-    let baseToken: MockContract
-    let collateral: MockContract
-    let depositHook: MockContract
+    let baseToken: MockContract<TestERC20>
+    let collateral: MockContract<Collateral>
+    let depositHook: MockContract<DepositHook>
     const baseTokenToDeposit = parseEther('1')
     beforeEach(async () => {
-      baseToken = core.baseToken as MockContract
-      collateral = core.collateral as MockContract
-      depositHook = core.collateral.depositHook as MockContract
+      baseToken = core.baseToken as MockContract<TestERC20>
+      collateral = core.collateral as MockContract<Collateral>
+      depositHook = core.collateral.depositHook as MockContract<DepositHook>
       await baseToken.mint(user.address, baseTokenToDeposit)
       depositHook.hook.returns()
     })

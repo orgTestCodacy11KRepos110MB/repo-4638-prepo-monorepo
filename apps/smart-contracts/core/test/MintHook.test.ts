@@ -1,15 +1,9 @@
 import chai, { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
-import { id, parseEther } from 'ethers/lib/utils'
-import { Contract } from 'ethers'
-import { FakeContract, MockContract, smock } from '@defi-wonderland/smock'
+import { FakeContract, smock } from '@defi-wonderland/smock'
 import { ZERO_ADDRESS } from 'prepo-constants'
-import {
-  fakeAccountListFixture,
-  mintHookFixture,
-  smockAccountListFixture,
-} from './fixtures/HookFixture'
+import { fakeAccountListFixture, mintHookFixture } from './fixtures/HookFixture'
 import { AccountList, MintHook } from '../types/generated'
 
 chai.use(smock.matchers)
@@ -19,13 +13,13 @@ describe('=> MintHook', () => {
   let user: SignerWithAddress
   let market: SignerWithAddress
   let mintHook: MintHook
-  let allowlist: MockContract<Contract>
+  let allowlist: FakeContract<AccountList>
   let msgSendersAllowlist: FakeContract<AccountList>
 
   beforeEach(async () => {
     ;[deployer, user, market] = await ethers.getSigners()
     mintHook = await mintHookFixture()
-    allowlist = await smockAccountListFixture()
+    allowlist = await fakeAccountListFixture()
     msgSendersAllowlist = await fakeAccountListFixture()
     await mintHook.connect(deployer).setAccountList(allowlist.address)
     await mintHook.connect(deployer).setAllowedMsgSenders(msgSendersAllowlist.address)
@@ -97,7 +91,7 @@ describe('=> MintHook', () => {
 
     it('succeeds if sender allowed', async () => {
       expect(await msgSendersAllowlist.isIncluded(market.address)).to.eq(true)
-      await allowlist.connect(deployer).set([user.address], [true])
+      allowlist.isIncluded.whenCalledWith(user.address).returns(true)
       expect(await allowlist.isIncluded(user.address)).to.eq(true)
 
       await mintHook.connect(market).hook(user.address, 2, 1)

@@ -1,6 +1,6 @@
 import { ethers, upgrades } from 'hardhat'
 import { MockContract, FakeContract, smock } from '@defi-wonderland/smock'
-import { Collateral } from '../../types/generated'
+import { Collateral, Collateral__factory } from '../../types/generated'
 
 export async function collateralFixture(
   name: string,
@@ -20,11 +20,11 @@ export async function smockCollateralFixture(
   symbol: string,
   baseToken: string,
   baseTokenDecimals: number
-): Promise<MockContract> {
-  const mockFactory = await smock.mock('Collateral')
-  const smockCollateral = await mockFactory.deploy(baseToken, baseTokenDecimals)
-  await smockCollateral.initialize(name, symbol)
-  return smockCollateral
+): Promise<MockContract<Collateral>> {
+  const factory = await smock.mock<Collateral__factory>('Collateral')
+  const contract = await factory.deploy(baseToken, baseTokenDecimals)
+  await contract.initialize(name, symbol)
+  return contract
 }
 
 export async function fakeCollateralFixture(): Promise<FakeContract<Collateral>> {

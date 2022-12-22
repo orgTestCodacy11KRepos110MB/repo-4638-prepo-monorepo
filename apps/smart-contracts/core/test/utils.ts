@@ -1,10 +1,10 @@
 import { parseEther } from '@ethersproject/units'
-import { BigNumber, Contract, PopulatedTransaction } from 'ethers'
+import { BaseContract, BigNumber, Contract, PopulatedTransaction } from 'ethers'
 import { ethers, network } from 'hardhat'
 import { MerkleTree } from 'merkletreejs'
 import keccak256 from 'keccak256'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
-import { FakeContract, MockContract } from '@defi-wonderland/smock'
+import { FakeContract, MockContract, SmockContractBase } from '@defi-wonderland/smock'
 import { utils } from 'prepo-hardhat'
 import { expect } from 'chai'
 import { id } from 'ethers/lib/utils'
@@ -63,7 +63,7 @@ export function generateMerkleTree(addresses: string[]): MerkleTree {
 }
 
 export async function grantAndAcceptRole(
-  contract: Contract | MockContract,
+  contract: Contract | SmockContractBase<Contract>,
   admin: SignerWithAddress,
   nominee: SignerWithAddress,
   role: string
@@ -73,7 +73,7 @@ export async function grantAndAcceptRole(
 }
 
 export async function batchGrantAndAcceptRoles(
-  contract: Contract | MockContract,
+  contract: Contract | SmockContractBase<Contract>,
   admin: SignerWithAddress,
   nominee: SignerWithAddress,
   roleGetters: Promise<string>[]
@@ -114,7 +114,7 @@ export async function setAccountBalance(address: string, eth: string): Promise<v
 }
 
 export async function getPermitFromSignature(
-  token: Contract | MockContract,
+  token: Contract | SmockContractBase<Contract>,
   signer: SignerWithAddress,
   spender: string,
   value: BigNumber,

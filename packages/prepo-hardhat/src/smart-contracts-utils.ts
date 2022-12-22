@@ -1,9 +1,9 @@
-import { BigNumber, providers, Contract, ContractTransaction, Signature } from 'ethers'
+import { BigNumber, providers, Contract, ContractTransaction, Signature, BaseContract } from 'ethers'
 import { parse, stringify } from 'envfile'
 import { ChainId, NETWORKS } from 'prepo-constants'
 import { hexZeroPad, splitSignature } from 'ethers/lib/utils'
 import { AdminClient } from 'defender-admin-client'
-import { MockContract } from '@defi-wonderland/smock'
+import { MockContract, SmockContractBase } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { readFileSync, writeFileSync } from 'fs'
 
@@ -102,8 +102,9 @@ async function mineBlocks(provider: providers.Web3Provider, blocks: number): Pro
   }
 }
 
+// todo: Add type safety for token
 async function getPermitSignature(
-  token: Contract | MockContract,
+  token: Contract | SmockContractBase<Contract>,
   signer: SignerWithAddress,
   spender: string,
   value: BigNumber,

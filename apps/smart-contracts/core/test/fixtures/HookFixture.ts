@@ -7,6 +7,12 @@ import {
   MintHook,
   RedeemHook,
   AccountList,
+  DepositHook__factory,
+  WithdrawHook__factory,
+  ManagerWithdrawHook__factory,
+  MintHook__factory,
+  RedeemHook__factory,
+  AccountList__factory,
 } from '../../types/generated'
 
 export async function depositHookFixture(): Promise<DepositHook> {
@@ -34,38 +40,52 @@ export async function redeemHookFixture(): Promise<RedeemHook> {
   return (await factory.deploy()) as RedeemHook
 }
 
-export async function smockDepositHookFixture(): Promise<MockContract> {
-  const smockDepositHookFactory = await smock.mock('DepositHook')
+export async function smockDepositHookFixture(): Promise<MockContract<DepositHook>> {
+  const smockDepositHookFactory = await smock.mock<DepositHook__factory>('DepositHook')
   return smockDepositHookFactory.deploy()
 }
 
-export async function smockWithdrawHookFixture(): Promise<MockContract> {
-  const smockWithdrawHookFactory = await smock.mock('WithdrawHook')
+export async function smockWithdrawHookFixture(): Promise<MockContract<WithdrawHook>> {
+  const smockWithdrawHookFactory = await smock.mock<WithdrawHook__factory>('WithdrawHook')
   return smockWithdrawHookFactory.deploy()
 }
 
-export async function smockManagerWithdrawHookFixture(): Promise<MockContract> {
-  const smockManagerWithdrawHookFactory = await smock.mock('ManagerWithdrawHook')
+export async function smockManagerWithdrawHookFixture(): Promise<
+  MockContract<ManagerWithdrawHook>
+> {
+  const smockManagerWithdrawHookFactory = await smock.mock<ManagerWithdrawHook__factory>(
+    'ManagerWithdrawHook'
+  )
   return smockManagerWithdrawHookFactory.deploy()
 }
 
-export async function smockMintHookFixture(): Promise<MockContract> {
-  const smockFactory = await smock.mock('MintHook')
+export async function smockMintHookFixture(): Promise<MockContract<MintHook>> {
+  const smockFactory = await smock.mock<MintHook__factory>('MintHook')
   return smockFactory.deploy()
 }
 
-export async function smockRedeemHookFixture(): Promise<MockContract> {
-  const smockFactory = await smock.mock('RedeemHook')
+export async function smockRedeemHookFixture(): Promise<MockContract<RedeemHook>> {
+  const smockFactory = await smock.mock<RedeemHook__factory>('RedeemHook')
   return smockFactory.deploy()
 }
 
-export async function smockAccountListFixture(): Promise<MockContract> {
-  const smockAccountListFactory = await smock.mock('AccountList')
+export async function smockAccountListFixture(): Promise<MockContract<AccountList>> {
+  const smockAccountListFactory = await smock.mock<AccountList__factory>('AccountList')
   return smockAccountListFactory.deploy()
 }
 
 export async function fakeAccountListFixture(): Promise<FakeContract<AccountList>> {
   const fakeContract = await smock.fake<AccountList>('AccountList')
+  return fakeContract
+}
+
+export async function fakeDepositHookFixture(): Promise<FakeContract<DepositHook>> {
+  const fakeContract = await smock.fake<DepositHook>('DepositHook')
+  return fakeContract
+}
+
+export async function fakeManagerWithdrawHookFixture(): Promise<FakeContract<ManagerWithdrawHook>> {
+  const fakeContract = await smock.fake<ManagerWithdrawHook>('ManagerWithdrawHook')
   return fakeContract
 }
 
@@ -76,5 +96,10 @@ export async function fakeMintHookFixture(): Promise<FakeContract> {
 
 export async function fakeRedeemHookFixture(): Promise<FakeContract> {
   const fakeContract = await smock.fake('RedeemHook')
+  return fakeContract
+}
+
+export async function fakeWithdrawHookFixture(): Promise<FakeContract<WithdrawHook>> {
+  const fakeContract = await smock.fake<WithdrawHook>('WithdrawHook')
   return fakeContract
 }

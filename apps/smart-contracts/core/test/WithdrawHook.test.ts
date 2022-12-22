@@ -4,7 +4,6 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-wit
 import { id, parseEther } from 'ethers/lib/utils'
 import { ZERO_ADDRESS } from 'prepo-constants'
 import { utils } from 'prepo-hardhat'
-import { Contract } from 'ethers'
 import { FakeContract, MockContract, smock } from '@defi-wonderland/smock'
 import { withdrawHookFixture } from './fixtures/HookFixture'
 import { smockDepositRecordFixture } from './fixtures/DepositRecordFixture'
@@ -12,7 +11,7 @@ import { grantAndAcceptRole, batchGrantAndAcceptRoles, setAccountBalance } from 
 import { smockTestERC20Fixture } from './fixtures/TestERC20Fixture'
 import { fakeCollateralFixture } from './fixtures/CollateralFixture'
 import { smockTokenSenderFixture } from './fixtures/TokenSenderFixture'
-import { Collateral, WithdrawHook } from '../types/generated'
+import { Collateral, DepositRecord, TestERC20, TokenSender, WithdrawHook } from '../types/generated'
 
 chai.use(smock.matchers)
 
@@ -22,11 +21,11 @@ describe('=> WithdrawHook', () => {
   let withdrawHook: WithdrawHook
   let deployer: SignerWithAddress
   let user: SignerWithAddress
-  let collateral: FakeContract<Collateral>
-  let depositRecord: MockContract<Contract>
   let treasury: SignerWithAddress
-  let testToken: MockContract<Contract>
-  let tokenSender: FakeContract<Contract>
+  let mockTestToken: MockContract<TestERC20>
+  let fakeCollateral: FakeContract<Collateral>
+  let mockDepositRecord: MockContract<DepositRecord>
+  let fakeTokenSender: FakeContract<TokenSender>
   const TEST_GLOBAL_DEPOSIT_CAP = parseEther('50000')
   const TEST_ACCOUNT_DEPOSIT_CAP = parseEther('50')
   const TEST_AMOUNT_BEFORE_FEE = parseEther('1.01')
@@ -38,16 +37,16 @@ describe('=> WithdrawHook', () => {
 
   beforeEach(async () => {
     ;[deployer, user, treasury] = await ethers.getSigners()
-    depositRecord = await smockDepositRecordFixture(
+    withdrawHook = await withdrawHookFixture()
+    mockTestToken = await smockTestERC20Fixture('Test Token', 'TEST', 18)
+    fakeCollateral = await fakeCollateralFixture()
+    fakeCollateral.getBaseToken.returns(mockTestToken.address)
+    await setAccountBalance(fakeCollateral.address, '0.1')
+    mockDepositRecord = await smockDepositRecordFixture(
       TEST_GLOBAL_DEPOSIT_CAP,
       TEST_ACCOUNT_DEPOSIT_CAP
     )
-    withdrawHook = await withdrawHookFixture()
-    testToken = await smockTestERC20Fixture('Test Token', 'TEST', 18)
-    collateral = await fakeCollateralFixture()
-    collateral.getBaseToken.returns(testToken.address)
-    await setAccountBalance(collateral.address, '0.1')
-    tokenSender = await smockTokenSenderFixture(testToken.address)
+    fakeTokenSender = await smockTokenSenderFixture(mockTestToken.address)
     await batchGrantAndAcceptRoles(withdrawHook, deployer, deployer, [
       withdrawHook.SET_COLLATERAL_ROLE(),
       withdrawHook.SET_DEPOSIT_RECORD_ROLE(),
@@ -60,13 +59,13 @@ describe('=> WithdrawHook', () => {
       withdrawHook.SET_TOKEN_SENDER_ROLE(),
     ])
     await grantAndAcceptRole(
-      depositRecord,
+      mockDepositRecord,
       deployer,
       deployer,
-      await depositRecord.SET_ALLOWED_HOOK_ROLE()
+      await mockDepositRecord.SET_ALLOWED_HOOK_ROLE()
     )
-    await depositRecord.connect(deployer).setAllowedHook(user.address, true)
-    await depositRecord.connect(deployer).setAllowedHook(withdrawHook.address, true)
+    await mockDepositRecord.connect(deployer).setAllowedHook(user.address, true)
+    await mockDepositRecord.connect(deployer).setAllowedHook(withdrawHook.address, true)
   })
 
   describe('initial state', () => {
@@ -117,7 +116,7 @@ describe('=> WithdrawHook', () => {
      * TEST_AMOUNT_AFTER_FEE to ensure TEST_AMOUNT_AFTER_FEE is ignored.
      */
     beforeEach(async () => {
-      await withdrawHook.setCollateral(collateral.address)
+      await withdrawHook.setCollateral(fakeCollateral.address)
       await withdrawHook.connect(deployer).setWithdrawalsAllowed(true)
       await withdrawHook.connect(deployer).setGlobalPeriodLength(TEST_GLOBAL_PERIOD_LENGTH)
       await withdrawHook.connect(deployer).setUserPeriodLength(TEST_USER_PERIOD_LENGTH)
@@ -125,15 +124,16 @@ describe('=> WithdrawHook', () => {
         .connect(deployer)
         .setGlobalWithdrawLimitPerPeriod(TEST_GLOBAL_WITHDRAW_LIMIT)
       await withdrawHook.connect(deployer).setUserWithdrawLimitPerPeriod(TEST_USER_WITHDRAW_LIMIT)
-      await withdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
+      await withdrawHook.connect(deployer).setDepositRecord(mockDepositRecord.address)
       await withdrawHook.connect(deployer).setTreasury(treasury.address)
-      await withdrawHook.connect(deployer).setTokenSender(tokenSender.address)
-      await testToken.connect(deployer).mint(collateral.address, TEST_GLOBAL_DEPOSIT_CAP)
-      await testToken.connect(deployer).mint(user.address, TEST_GLOBAL_DEPOSIT_CAP)
-      await testToken
-        .connect(collateral.wallet)
+      await withdrawHook.connect(deployer).setTokenSender(fakeTokenSender.address)
+      await mockTestToken.connect(deployer).mint(fakeCollateral.address, TEST_GLOBAL_DEPOSIT_CAP)
+      await mockTestToken.connect(deployer).mint(user.address, TEST_GLOBAL_DEPOSIT_CAP)
+      await mockTestToken
+        .connect(fakeCollateral.wallet)
         .approve(withdrawHook.address, ethers.constants.MaxUint256)
-      tokenSender.send.returns()
+      fakeTokenSender.send.returns()
+      fakeCollateral.getBaseToken.returns(mockTestToken.address)
     })
 
     it('only callable by collateral', async () => {
@@ -146,53 +146,54 @@ describe('=> WithdrawHook', () => {
 
     it('calls recordWithdrawal() with correct parameters', async () => {
       await withdrawHook
-        .connect(collateral.wallet)
+        .connect(fakeCollateral.wallet)
         .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
 
-      expect(depositRecord.recordWithdrawal).calledWith(TEST_AMOUNT_BEFORE_FEE)
+      expect(mockDepositRecord.recordWithdrawal).calledWith(TEST_AMOUNT_BEFORE_FEE)
     })
 
     it("doesn't revert if withdrawing 0", async () => {
-      await withdrawHook.connect(collateral.wallet).hook(user.address, 0, 0)
+      await withdrawHook.connect(fakeCollateral.wallet).hook(user.address, 0, 0)
     })
 
     describe('fee reimbursement', () => {
       it('transfers fee to treasury if fee > 0', async () => {
+        mockTestToken.transferFrom.reset()
         expect(TEST_AMOUNT_BEFORE_FEE).to.not.eq(TEST_AMOUNT_AFTER_FEE)
 
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
 
         const fee = TEST_AMOUNT_BEFORE_FEE.sub(TEST_AMOUNT_AFTER_FEE)
-        expect(testToken.transferFrom).calledWith(collateral.address, treasury.address, fee)
+        expect(mockTestToken.transferFrom).calledWith(fakeCollateral.address, treasury.address, fee)
       })
 
       it('calls tokenSender.send() if fee > 0', async () => {
         expect(TEST_AMOUNT_BEFORE_FEE).to.not.eq(TEST_AMOUNT_AFTER_FEE)
 
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
 
         const fee = TEST_AMOUNT_BEFORE_FEE.sub(TEST_AMOUNT_AFTER_FEE)
-        expect(tokenSender.send).calledWith(user.address, fee)
+        expect(fakeTokenSender.send).calledWith(user.address, fee)
       })
 
       it("doesn't transfer fee to treasury if fee = 0", async () => {
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_BEFORE_FEE)
 
-        expect(testToken.transferFrom).not.called
+        expect(mockTestToken.transferFrom).not.called
       })
 
       it("doesn't call tokenSender.send() if fee = 0", async () => {
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_BEFORE_FEE)
 
-        expect(tokenSender.send).not.called
+        expect(fakeTokenSender.send).not.called
       })
     })
 
@@ -201,7 +202,7 @@ describe('=> WithdrawHook', () => {
         expect(await withdrawHook.getLastGlobalPeriodReset()).to.eq(0)
 
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
 
         expect(await withdrawHook.getLastGlobalPeriodReset()).to.eq(
@@ -211,7 +212,7 @@ describe('=> WithdrawHook', () => {
 
       it('sets last global reset to current time if global period passed', async () => {
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
         const previousResetTimestamp = await getLastTimestamp(ethers.provider)
         expect(await withdrawHook.getLastGlobalPeriodReset()).to.eq(previousResetTimestamp)
@@ -221,7 +222,7 @@ describe('=> WithdrawHook', () => {
         )
 
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
 
         const currentResetTimestamp = await getLastTimestamp(ethers.provider)
@@ -231,7 +232,7 @@ describe('=> WithdrawHook', () => {
 
       it('sets global amount withdrawn to current amount being withdrawn if global period passed', async () => {
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
         const differentAmountToWithdraw = 1
         expect(await withdrawHook.getGlobalAmountWithdrawnThisPeriod()).to.not.eq(
@@ -244,7 +245,7 @@ describe('=> WithdrawHook', () => {
         )
 
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, differentAmountToWithdraw, differentAmountToWithdraw)
 
         expect(await withdrawHook.getGlobalAmountWithdrawnThisPeriod()).to.eq(
@@ -254,14 +255,14 @@ describe('=> WithdrawHook', () => {
 
       it("doesn't update last global reset if global period exactly reached", async () => {
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
         const previousResetTimestamp = await getLastTimestamp(ethers.provider)
         expect(await withdrawHook.getLastGlobalPeriodReset()).to.eq(previousResetTimestamp)
         await setNextTimestamp(ethers.provider, previousResetTimestamp + TEST_GLOBAL_PERIOD_LENGTH)
 
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
 
         expect(await withdrawHook.getLastGlobalPeriodReset()).to.eq(previousResetTimestamp)
@@ -269,7 +270,7 @@ describe('=> WithdrawHook', () => {
 
       it('adds to amount withdrawn if global period exactly reached', async () => {
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
         const previousGlobalAmountWithdrawn =
           await withdrawHook.getGlobalAmountWithdrawnThisPeriod()
@@ -277,7 +278,7 @@ describe('=> WithdrawHook', () => {
         await setNextTimestamp(ethers.provider, previousResetTimestamp + TEST_GLOBAL_PERIOD_LENGTH)
 
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
 
         expect(await withdrawHook.getGlobalAmountWithdrawnThisPeriod()).to.eq(
@@ -287,7 +288,7 @@ describe('=> WithdrawHook', () => {
 
       it("doesn't update last global reset if global period not reached", async () => {
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
         const previousResetTimestamp = await getLastTimestamp(ethers.provider)
         expect(await withdrawHook.getLastGlobalPeriodReset()).to.eq(previousResetTimestamp)
@@ -297,7 +298,7 @@ describe('=> WithdrawHook', () => {
         )
 
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
 
         expect(await withdrawHook.getLastGlobalPeriodReset()).to.eq(previousResetTimestamp)
@@ -305,7 +306,7 @@ describe('=> WithdrawHook', () => {
 
       it('adds to global amount withdrawn if global period not reached', async () => {
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
         const previousGlobalAmountWithdrawn =
           await withdrawHook.getGlobalAmountWithdrawnThisPeriod()
@@ -316,7 +317,7 @@ describe('=> WithdrawHook', () => {
         )
 
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
 
         expect(await withdrawHook.getGlobalAmountWithdrawnThisPeriod()).to.eq(
@@ -327,7 +328,7 @@ describe('=> WithdrawHook', () => {
       it('adds to global amount withdrawn if global withdraw limit exactly reached for period', async () => {
         // Using deployer and user since we need 2 users to meet global cap
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(deployer.address, TEST_USER_WITHDRAW_LIMIT, TEST_USER_WITHDRAW_LIMIT)
         const globalWithdrawnBefore = await withdrawHook.getGlobalAmountWithdrawnThisPeriod()
         const previousResetTimestamp = await getLastTimestamp(ethers.provider)
@@ -339,7 +340,7 @@ describe('=> WithdrawHook', () => {
 
         await expect(
           withdrawHook
-            .connect(collateral.wallet)
+            .connect(fakeCollateral.wallet)
             .hook(user.address, amountToReachGlobalLimit, amountToReachGlobalLimit)
         ).to.not.reverted
       })
@@ -347,12 +348,12 @@ describe('=> WithdrawHook', () => {
       it('reverts if global withdraw limit exceeded for period', async () => {
         // Using deployer and user since we need 2 users to exceed global cap
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(deployer.address, TEST_USER_WITHDRAW_LIMIT, TEST_USER_WITHDRAW_LIMIT)
         const previousResetTimestamp = await getLastTimestamp(ethers.provider)
         const amountToReachGlobalLimit = TEST_GLOBAL_WITHDRAW_LIMIT.sub(TEST_USER_WITHDRAW_LIMIT)
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, amountToReachGlobalLimit, amountToReachGlobalLimit)
         expect(await withdrawHook.getGlobalAmountWithdrawnThisPeriod()).to.eq(
           TEST_GLOBAL_WITHDRAW_LIMIT
@@ -362,9 +363,9 @@ describe('=> WithdrawHook', () => {
           previousResetTimestamp + TEST_GLOBAL_PERIOD_LENGTH - 1
         )
 
-        await expect(withdrawHook.connect(collateral.wallet).hook(user.address, 1, 1)).revertedWith(
-          'Global withdraw limit exceeded'
-        )
+        await expect(
+          withdrawHook.connect(fakeCollateral.wallet).hook(user.address, 1, 1)
+        ).revertedWith('Global withdraw limit exceeded')
       })
     })
 
@@ -373,7 +374,7 @@ describe('=> WithdrawHook', () => {
         expect(await withdrawHook.getLastUserPeriodReset()).to.eq(0)
 
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
 
         expect(await withdrawHook.getLastUserPeriodReset()).to.eq(
@@ -383,7 +384,7 @@ describe('=> WithdrawHook', () => {
 
       it('sets last user reset to current time if user period passed', async () => {
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
         const previousResetTimestamp = await getLastTimestamp(ethers.provider)
         expect(await withdrawHook.getLastUserPeriodReset()).to.eq(previousResetTimestamp)
@@ -393,7 +394,7 @@ describe('=> WithdrawHook', () => {
         )
 
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
 
         const currentResetTimestamp = await getLastTimestamp(ethers.provider)
@@ -402,7 +403,7 @@ describe('=> WithdrawHook', () => {
 
       it('sets user amount withdrawn to current amount being withdrawn if user period passed', async () => {
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
         /**
          * Using a different withdrawal amount to prevent a false positive if
@@ -421,7 +422,7 @@ describe('=> WithdrawHook', () => {
         )
 
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, differentAmountToWithdraw, differentAmountToWithdraw - 1)
 
         expect(await withdrawHook.getAmountWithdrawnThisPeriod(user.address)).to.eq(
@@ -431,14 +432,14 @@ describe('=> WithdrawHook', () => {
 
       it("doesn't update last user reset if user period exactly reached", async () => {
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
         const previousResetTimestamp = await getLastTimestamp(ethers.provider)
         expect(await withdrawHook.getLastUserPeriodReset()).to.eq(previousResetTimestamp)
         await setNextTimestamp(ethers.provider, previousResetTimestamp + TEST_USER_PERIOD_LENGTH)
 
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
 
         expect(await withdrawHook.getLastUserPeriodReset()).to.eq(previousResetTimestamp)
@@ -446,7 +447,7 @@ describe('=> WithdrawHook', () => {
 
       it('adds to amount withdrawn if user period exactly reached', async () => {
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
         const previousUserAmountWithdrawn = await withdrawHook.getAmountWithdrawnThisPeriod(
           user.address
@@ -455,7 +456,7 @@ describe('=> WithdrawHook', () => {
         await setNextTimestamp(ethers.provider, previousResetTimestamp + TEST_USER_PERIOD_LENGTH)
 
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
 
         expect(await withdrawHook.getAmountWithdrawnThisPeriod(user.address)).to.eq(
@@ -465,7 +466,7 @@ describe('=> WithdrawHook', () => {
 
       it("doesn't update last user reset if user period not reached", async () => {
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
         const previousResetTimestamp = await getLastTimestamp(ethers.provider)
         expect(await withdrawHook.getLastUserPeriodReset()).to.eq(previousResetTimestamp)
@@ -475,7 +476,7 @@ describe('=> WithdrawHook', () => {
         )
 
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
 
         expect(await withdrawHook.getLastUserPeriodReset()).to.eq(previousResetTimestamp)
@@ -483,7 +484,7 @@ describe('=> WithdrawHook', () => {
 
       it('adds to user amount withdrawn if user period not reached', async () => {
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
         const previousUserAmountWithdrawn = await withdrawHook.getAmountWithdrawnThisPeriod(
           user.address
@@ -495,7 +496,7 @@ describe('=> WithdrawHook', () => {
         )
 
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, TEST_AMOUNT_BEFORE_FEE, TEST_AMOUNT_AFTER_FEE)
 
         expect(await withdrawHook.getAmountWithdrawnThisPeriod(user.address)).to.eq(
@@ -505,7 +506,7 @@ describe('=> WithdrawHook', () => {
 
       it('reverts if user withdraw limit exceeded for period', async () => {
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, TEST_USER_WITHDRAW_LIMIT, TEST_USER_WITHDRAW_LIMIT)
         expect(await withdrawHook.getAmountWithdrawnThisPeriod(user.address)).to.eq(
           TEST_USER_WITHDRAW_LIMIT
@@ -516,9 +517,9 @@ describe('=> WithdrawHook', () => {
           previousResetTimestamp + TEST_USER_PERIOD_LENGTH - 1
         )
 
-        await expect(withdrawHook.connect(collateral.wallet).hook(user.address, 1, 1)).revertedWith(
-          'User withdraw limit exceeded'
-        )
+        await expect(
+          withdrawHook.connect(fakeCollateral.wallet).hook(user.address, 1, 1)
+        ).revertedWith('User withdraw limit exceeded')
       })
 
       it('adds to user amount withdrawn if user withdraw limit exactly reached for period', async () => {
@@ -528,10 +529,10 @@ describe('=> WithdrawHook', () => {
           previousResetTimestamp + TEST_GLOBAL_PERIOD_LENGTH - 1
         )
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, TEST_USER_WITHDRAW_LIMIT.sub(1), TEST_USER_WITHDRAW_LIMIT.sub(1))
 
-        await expect(withdrawHook.connect(collateral.wallet).hook(user.address, 1, 1)).to.not
+        await expect(withdrawHook.connect(fakeCollateral.wallet).hook(user.address, 1, 1)).to.not
           .reverted
         expect(await withdrawHook.getAmountWithdrawnThisPeriod(user.address)).to.eq(
           TEST_USER_WITHDRAW_LIMIT
@@ -540,7 +541,7 @@ describe('=> WithdrawHook', () => {
 
       it('reverts if user withdraw limit exceeded for period', async () => {
         await withdrawHook
-          .connect(collateral.wallet)
+          .connect(fakeCollateral.wallet)
           .hook(user.address, TEST_USER_WITHDRAW_LIMIT, TEST_USER_WITHDRAW_LIMIT)
         expect(await withdrawHook.getAmountWithdrawnThisPeriod(user.address)).to.eq(
           TEST_USER_WITHDRAW_LIMIT
@@ -551,9 +552,9 @@ describe('=> WithdrawHook', () => {
           previousResetTimestamp + TEST_USER_PERIOD_LENGTH - 1
         )
 
-        await expect(withdrawHook.connect(collateral.wallet).hook(user.address, 1, 1)).revertedWith(
-          'User withdraw limit exceeded'
-        )
+        await expect(
+          withdrawHook.connect(fakeCollateral.wallet).hook(user.address, 1, 1)
+        ).revertedWith('User withdraw limit exceeded')
       })
     })
   })
@@ -564,7 +565,7 @@ describe('=> WithdrawHook', () => {
         await withdrawHook.hasRole(await withdrawHook.SET_COLLATERAL_ROLE(), user.address)
       ).to.eq(false)
 
-      await expect(withdrawHook.connect(user).setCollateral(collateral.address)).revertedWith(
+      await expect(withdrawHook.connect(user).setCollateral(fakeCollateral.address)).revertedWith(
         `AccessControl: account ${user.address.toLowerCase()} is missing role ${await withdrawHook.SET_COLLATERAL_ROLE()}`
       )
     })
@@ -574,7 +575,7 @@ describe('=> WithdrawHook', () => {
         await withdrawHook.hasRole(await withdrawHook.SET_COLLATERAL_ROLE(), deployer.address)
       ).to.eq(true)
 
-      await withdrawHook.connect(deployer).setCollateral(collateral.address)
+      await withdrawHook.connect(deployer).setCollateral(fakeCollateral.address)
     })
   })
 
@@ -584,7 +585,9 @@ describe('=> WithdrawHook', () => {
         await withdrawHook.hasRole(await withdrawHook.SET_DEPOSIT_RECORD_ROLE(), user.address)
       ).to.eq(false)
 
-      await expect(withdrawHook.connect(user).setDepositRecord(depositRecord.address)).revertedWith(
+      await expect(
+        withdrawHook.connect(user).setDepositRecord(mockDepositRecord.address)
+      ).revertedWith(
         `AccessControl: account ${user.address.toLowerCase()} is missing role ${await withdrawHook.SET_DEPOSIT_RECORD_ROLE()}`
       )
     })
@@ -891,7 +894,7 @@ describe('=> WithdrawHook', () => {
         await withdrawHook.hasRole(await withdrawHook.SET_TOKEN_SENDER_ROLE(), user.address)
       ).to.eq(false)
 
-      await expect(withdrawHook.connect(user).setTokenSender(tokenSender.address)).revertedWith(
+      await expect(withdrawHook.connect(user).setTokenSender(fakeTokenSender.address)).revertedWith(
         `AccessControl: account ${user.address.toLowerCase()} is missing role ${await withdrawHook.SET_TOKEN_SENDER_ROLE()}`
       )
     })
@@ -901,7 +904,7 @@ describe('=> WithdrawHook', () => {
         await withdrawHook.hasRole(await withdrawHook.SET_TOKEN_SENDER_ROLE(), deployer.address)
       ).to.eq(true)
 
-      await withdrawHook.connect(deployer).setTokenSender(tokenSender.address)
+      await withdrawHook.connect(deployer).setTokenSender(fakeTokenSender.address)
     })
   })
 })

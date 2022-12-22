@@ -1,6 +1,6 @@
 import { ethers } from 'hardhat'
 import { MockContract, smock } from '@defi-wonderland/smock'
-import { TestERC20 } from '../../types/generated'
+import { TestERC20, TestERC20__factory } from '../../types/generated'
 
 export async function testERC20Fixture(
   tokenName: string,
@@ -15,7 +15,7 @@ export async function smockTestERC20Fixture(
   tokenName: string,
   tokenSymbol: string,
   decimals: number
-): Promise<MockContract> {
-  const smockFactory = await smock.mock('TestERC20')
-  return (await smockFactory.deploy(tokenName, tokenSymbol, decimals)) as MockContract
+): Promise<MockContract<TestERC20>> {
+  const smockFactory = await smock.mock<TestERC20__factory>('TestERC20')
+  return smockFactory.deploy(tokenName, tokenSymbol, decimals)
 }

@@ -2,17 +2,16 @@ import chai, { expect } from 'chai'
 import { ethers, network, upgrades } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { id, parseEther, parseUnits } from 'ethers/lib/utils'
-import { BigNumber, Contract } from 'ethers'
-import { MockContract, FakeContract, smock } from '@defi-wonderland/smock'
+import { BigNumber } from 'ethers'
+import { FakeContract, smock } from '@defi-wonderland/smock'
 import { DEFAULT_ADMIN_ROLE, ZERO_ADDRESS } from 'prepo-constants'
 import {
-  smockDepositHookFixture,
-  smockWithdrawHookFixture,
-  smockManagerWithdrawHookFixture,
   fakeAccountListFixture,
+  fakeDepositHookFixture,
+  fakeWithdrawHookFixture,
+  fakeManagerWithdrawHookFixture,
 } from './fixtures/HookFixture'
 import { collateralFixture } from './fixtures/CollateralFixture'
-import { smockDepositRecordFixture } from './fixtures/DepositRecordFixture'
 import { testERC20Fixture } from './fixtures/TestERC20Fixture'
 import { fakeTokenSenderFixture } from './fixtures/TokenSenderFixture'
 import {
@@ -22,7 +21,15 @@ import {
   PERCENT_DENOMINATOR,
   batchGrantAndAcceptRoles,
 } from './utils'
-import { AccountList, Collateral, TestERC20, TokenSender } from '../types/generated'
+import {
+  AccountList,
+  Collateral,
+  DepositHook,
+  ManagerWithdrawHook,
+  TestERC20,
+  TokenSender,
+  WithdrawHook,
+} from '../types/generated'
 
 chai.use(smock.matchers)
 
@@ -33,18 +40,15 @@ describe('=> Collateral', () => {
   let manager: SignerWithAddress
   let baseToken: TestERC20
   let collateral: Collateral
-  let depositRecord: MockContract<Contract>
-  let depositHook: MockContract<Contract>
-  let withdrawHook: MockContract<Contract>
-  let managerWithdrawHook: MockContract<Contract>
+  let depositHook: FakeContract<DepositHook>
+  let withdrawHook: FakeContract<WithdrawHook>
+  let managerWithdrawHook: FakeContract<ManagerWithdrawHook>
   let allowlist: FakeContract<AccountList>
   let tokenSender: FakeContract<TokenSender>
   let snapshotBeforeAllTests: string
   let snapshotBeforeEachTest: string
   const TEST_DEPOSIT_FEE = 1000 // 0.1%
   const TEST_WITHDRAW_FEE = 2000 // 0.2%
-  const TEST_GLOBAL_DEPOSIT_CAP = parseEther('50000')
-  const TEST_USER_DEPOSIT_CAP = parseEther('50')
   const TEST_MIN_RESERVE_PERCENTAGE = 250000 // 25%
   const USDC_DECIMALS = 6
   const USDC_DENOMINATOR = 10 ** USDC_DECIMALS
@@ -60,63 +64,31 @@ describe('=> Collateral', () => {
       baseToken.address,
       baseTokenDecimals
     )
-    depositRecord = await smockDepositRecordFixture(TEST_GLOBAL_DEPOSIT_CAP, TEST_USER_DEPOSIT_CAP)
-    depositHook = await smockDepositHookFixture()
-    withdrawHook = await smockWithdrawHookFixture()
-    managerWithdrawHook = await smockManagerWithdrawHookFixture()
+    depositHook = await fakeDepositHookFixture()
+    withdrawHook = await fakeWithdrawHookFixture()
+    managerWithdrawHook = await fakeManagerWithdrawHookFixture()
     allowlist = await fakeAccountListFixture()
     tokenSender = await fakeTokenSenderFixture()
-    await grantAndAcceptRole(
-      depositRecord,
-      deployer,
-      deployer,
-      await depositRecord.SET_ALLOWED_HOOK_ROLE()
-    )
   }
 
-  const setupDepositHook = async (): Promise<void> => {
-    await depositRecord.connect(deployer).setAllowedHook(depositHook.address, true)
-    await batchGrantAndAcceptRoles(depositHook, deployer, deployer, [
-      depositHook.SET_COLLATERAL_ROLE(),
-      depositHook.SET_DEPOSIT_RECORD_ROLE(),
-      depositHook.SET_DEPOSITS_ALLOWED_ROLE(),
-      depositHook.SET_ACCOUNT_LIST_ROLE(),
-      depositHook.SET_TREASURY_ROLE(),
-      depositHook.SET_TOKEN_SENDER_ROLE(),
-    ])
-    await depositHook.connect(deployer).setCollateral(collateral.address)
-    await depositHook.connect(deployer).setDepositRecord(depositRecord.address)
-    await depositHook.connect(deployer).setDepositsAllowed(true)
-    await depositHook.connect(deployer).setAccountList(allowlist.address)
-    await depositHook.connect(deployer).setTreasury(manager.address)
-    await depositHook.connect(deployer).setTokenSender(tokenSender.address)
+  const setupDepositHook = (): void => {
+    depositHook.getCollateral.returns(collateral.address)
+    depositHook.depositsAllowed.returns(true)
+    depositHook.getAccountList.returns(allowlist.address)
+    depositHook.getTreasury.returns(manager.address)
+    depositHook.getTokenSender.returns(tokenSender.address)
   }
 
-  const setupWithdrawHook = async (): Promise<void> => {
-    await depositRecord.connect(deployer).setAllowedHook(withdrawHook.address, true)
-    await batchGrantAndAcceptRoles(withdrawHook, deployer, deployer, [
-      withdrawHook.SET_TREASURY_ROLE(),
-      withdrawHook.SET_TOKEN_SENDER_ROLE(),
-      withdrawHook.SET_COLLATERAL_ROLE(),
-      withdrawHook.SET_DEPOSIT_RECORD_ROLE(),
-      withdrawHook.SET_WITHDRAWALS_ALLOWED_ROLE(),
-    ])
-    await withdrawHook.connect(deployer).setCollateral(collateral.address)
-    await withdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
-    await withdrawHook.connect(deployer).setWithdrawalsAllowed(true)
-    await withdrawHook.connect(deployer).setTreasury(manager.address)
-    await withdrawHook.connect(deployer).setTokenSender(tokenSender.address)
+  const setupWithdrawHook = (): void => {
+    withdrawHook.getCollateral.returns(collateral.address)
+    withdrawHook.withdrawalsAllowed.returns(true)
+    withdrawHook.getTreasury.returns(manager.address)
+    withdrawHook.getTokenSender.returns(tokenSender.address)
   }
 
-  const setupManagerWithdrawHook = async (): Promise<void> => {
-    await batchGrantAndAcceptRoles(managerWithdrawHook, deployer, deployer, [
-      managerWithdrawHook.SET_COLLATERAL_ROLE(),
-      managerWithdrawHook.SET_DEPOSIT_RECORD_ROLE(),
-      managerWithdrawHook.SET_MIN_RESERVE_PERCENTAGE_ROLE(),
-    ])
-    await managerWithdrawHook.connect(deployer).setCollateral(collateral.address)
-    await managerWithdrawHook.connect(deployer).setDepositRecord(depositRecord.address)
-    await managerWithdrawHook.connect(deployer).setMinReservePercentage(TEST_MIN_RESERVE_PERCENTAGE)
+  const setupManagerWithdrawHook = (): void => {
+    managerWithdrawHook.getCollateral.returns(collateral.address)
+    managerWithdrawHook.getMinReservePercentage.returns(TEST_MIN_RESERVE_PERCENTAGE)
   }
 
   const setupCollateralRoles = async (): Promise<void> => {
@@ -604,10 +576,6 @@ describe('=> Collateral', () => {
     })
 
     it('reverts if hook reverts', async () => {
-      /**
-       * Still providing valid inputs to ensure withdrawals are only reverting due to smock
-       * since we cannot verify revert by message.
-       */
       const contractBT = await baseToken.balanceOf(collateral.address)
       const baseTokenManagerCanWithdraw = contractBT
         .mul(TEST_MIN_RESERVE_PERCENTAGE)
@@ -638,10 +606,10 @@ describe('=> Collateral', () => {
 
     it('transfers base tokens to manager', async () => {
       const contractBTBefore = await baseToken.balanceOf(collateral.address)
+      const managerBTBefore = await baseToken.balanceOf(manager.address)
       const baseTokenManagerCanWithdraw = contractBTBefore
         .mul(TEST_MIN_RESERVE_PERCENTAGE)
         .div(PERCENT_DENOMINATOR)
-      const managerBTBefore = await baseToken.balanceOf(manager.address)
       const amountToWithdraw = baseTokenManagerCanWithdraw
       expect(amountToWithdraw).to.be.gt(0)
 
@@ -750,10 +718,9 @@ describe('=> Collateral', () => {
       expect(await baseToken.allowance(sender.address, collateral.address)).to.be.eq(
         amountToDeposit
       )
-      await depositHook.connect(deployer).setDepositsAllowed(false)
+      depositHook.hook.reverts()
 
-      await expect(collateral.connect(sender).deposit(recipient.address, amountToDeposit)).to.be
-        .reverted
+      await expect(collateral.connect(sender).deposit(recipient.address, amountToDeposit)).reverted
     })
 
     it('transfers amount from sender to contract', async () => {

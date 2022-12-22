@@ -6,14 +6,25 @@ import { Contract, Signer } from 'ethers'
 import { FakeContract, MockContract, smock } from '@defi-wonderland/smock'
 import { ZERO_ADDRESS } from 'prepo-constants'
 import { depositHookFixture, fakeAccountListFixture } from './fixtures/HookFixture'
-import { smockDepositRecordFixture } from './fixtures/DepositRecordFixture'
+import {
+  fakeDepositRecordFixture,
+  smockDepositRecordFixture,
+} from './fixtures/DepositRecordFixture'
 import { testERC721Fixture } from './fixtures/TestERC721Fixture'
 import { grantAndAcceptRole, setAccountBalance } from './utils'
 import { fakeTokenSenderFixture } from './fixtures/TokenSenderFixture'
 import { smockTestERC20Fixture } from './fixtures/TestERC20Fixture'
 import { fakeCollateralFixture } from './fixtures/CollateralFixture'
 import { Snapshotter } from './snapshots'
-import { AccountList, Collateral, DepositHook, TestERC721, TokenSender } from '../types/generated'
+import {
+  AccountList,
+  Collateral,
+  DepositHook,
+  DepositRecord,
+  TestERC20,
+  TestERC721,
+  TokenSender,
+} from '../types/generated'
 
 chai.use(smock.matchers)
 const snapshotter = new Snapshotter()
@@ -23,15 +34,14 @@ describe('=> DepositHook', () => {
   let user: SignerWithAddress
   let treasury: SignerWithAddress
   let depositHook: DepositHook
-  let testToken: MockContract<Contract>
+  let testToken: MockContract<TestERC20>
   let tokenSender: FakeContract<TokenSender>
   let allowlist: FakeContract<AccountList>
-  let depositRecord: MockContract<Contract>
+  let depositRecord: FakeContract<DepositRecord>
   let collateral: FakeContract<Collateral>
   let firstERC721: TestERC721
   let secondERC721: TestERC721
   const TEST_GLOBAL_DEPOSIT_CAP = parseEther('50000')
-  const TEST_ACCOUNT_DEPOSIT_CAP = parseEther('50')
   const TEST_AMOUNT_BEFORE_FEE = parseEther('1.01')
   const TEST_AMOUNT_AFTER_FEE = parseEther('1')
 
@@ -41,10 +51,7 @@ describe('=> DepositHook', () => {
     testToken = await smockTestERC20Fixture('Test Token', 'TEST', 18)
     tokenSender = await fakeTokenSenderFixture()
     allowlist = await fakeAccountListFixture()
-    depositRecord = await smockDepositRecordFixture(
-      TEST_GLOBAL_DEPOSIT_CAP,
-      TEST_ACCOUNT_DEPOSIT_CAP
-    )
+    depositRecord = await fakeDepositRecordFixture()
     depositHook = await depositHookFixture()
     firstERC721 = await testERC721Fixture('NFT Collection 1', 'NFT1')
     secondERC721 = await testERC721Fixture('NFT Collection 2', 'NFT2')
@@ -100,14 +107,6 @@ describe('=> DepositHook', () => {
       deployer,
       await depositHook.REMOVE_COLLECTIONS_ROLE()
     )
-    await grantAndAcceptRole(
-      depositRecord,
-      deployer,
-      deployer,
-      await depositRecord.SET_ALLOWED_HOOK_ROLE()
-    )
-    await depositRecord.connect(deployer).setAllowedHook(depositHook.address, true)
-    await snapshotter.saveSnapshot()
   })
 
   describe('initial state', () => {
