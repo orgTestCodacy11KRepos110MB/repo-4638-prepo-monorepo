@@ -54,8 +54,8 @@ module.exports = {
       announcementBar: {
         id: 'announcement',
         content: '🚧 All information is a <b>work in progress</b> and <b>subject to change</b> 🚧',
-        backgroundColor: '#adaeeb',
-        textColor: '#091E42',
+        backgroundColor: '#6264D9',
+        textColor: 'white',
         isCloseable: false,
       },
       navbar: {
