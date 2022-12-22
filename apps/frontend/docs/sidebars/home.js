@@ -28,5 +28,6 @@ module.exports = [
   'simulator',
   'demo',
   'get-involved',
+  'official-links',
   'faq',
 ]

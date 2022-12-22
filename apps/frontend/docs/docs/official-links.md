@@ -1,3 +1,5 @@
-# Official Links
+import OfficialLinks from '../src/components/official-links'
 
-Coming soon!
+# Official Links 🔗
+
+<OfficialLinks />

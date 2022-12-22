@@ -53,7 +53,7 @@ module.exports = [
   // makeReworkItem('investors'),
   makeReworkItem('partners'),
   makeReworkItem('involve'),
-  makeReworkItem('official-links'),
+  // makeReworkItem('official-links'),
   makeSectionTitle('Platform', '💻'),
   makeReworkItem('platform/markets'),
   makeReworkItem('platform/testnet'),
