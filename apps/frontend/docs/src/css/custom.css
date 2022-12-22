@@ -88,6 +88,16 @@ html[data-theme='dark'] .docusaurus-highlight-code-line {
   background-color: rgba(0, 0, 0, 0.3);
 }
 
+html[data-theme='dark'] .menu__link--active,
+html[data-theme='dark'] .breadcrumbs__link,
+html[data-theme='dark'] .pagination-nav__label,
+html[data-theme='dark'] .navbar__link--active:not(.header-social-divider),
+html[data-theme='dark'] .pagination-nav__link:hover,
+html[data-theme='dark'] p > a {
+  color: #9b9dff;
+  border-color: #9b9dff;
+}
+
 .react-toggle {
   margin-right: 1rem;
 }
