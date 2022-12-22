@@ -62,6 +62,18 @@ module.exports = [
   makeSectionTitle('PPO Token', makePPOLogoString()),
   makeReworkItem('ppo/index'),
   makeReworkItem('ppo/tokenomics'),
+  {
+    type: 'category',
+    label: 'How to Buy PPO',
+    className: 'rework',
+    items: [makeReworkItem('ppo/public-sale'), makeReworkItem('ppo/bonding')],
+  },
+  {
+    type: 'category',
+    label: 'How to Earn PPO',
+    className: 'rework',
+    items: [makeReworkItem('ppo/community-participation'), makeReworkItem('ppo/fee-rebates')],
+  },
   makeReworkItem('ppo/staking'),
   makeReworkItem('ppo/roadmap'),
   makeReworkItem('ppo/faq'),
