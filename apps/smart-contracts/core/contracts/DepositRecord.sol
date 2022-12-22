@@ -22,11 +22,6 @@ contract DepositRecord is IDepositRecord, SafeAccessControlEnumerable {
     _;
   }
 
-  constructor(uint256 globalNetDepositCap, uint256 userDepositCap) {
-    _globalNetDepositCap = globalNetDepositCap;
-    _userDepositCap = userDepositCap;
-  }
-
   function recordDeposit(address user, uint256 amount)
     external
     override

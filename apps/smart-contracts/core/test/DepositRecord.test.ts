@@ -19,7 +19,7 @@ describe('=> DepositRecord', () => {
 
   const getSignersAndDeployRecord = async (): Promise<void> => {
     ;[deployer, user, user2] = await ethers.getSigners()
-    depositRecord = await depositRecordFixture(TEST_GLOBAL_DEPOSIT_CAP, TEST_USER_DEPOSIT_CAP)
+    depositRecord = await depositRecordFixture()
   }
 
   const setupDepositRecord = async (): Promise<void> => {
@@ -43,6 +43,8 @@ describe('=> DepositRecord', () => {
       await depositRecord.SET_ALLOWED_HOOK_ROLE()
     )
     await depositRecord.connect(deployer).setAllowedHook(user.address, true)
+    await depositRecord.connect(deployer).setGlobalNetDepositCap(TEST_GLOBAL_DEPOSIT_CAP)
+    await depositRecord.connect(deployer).setUserDepositCap(TEST_USER_DEPOSIT_CAP)
   }
 
   describe('initial state', () => {
@@ -50,12 +52,12 @@ describe('=> DepositRecord', () => {
       await getSignersAndDeployRecord()
     })
 
-    it('sets global deposit cap from constructor', async () => {
-      expect(await depositRecord.getGlobalNetDepositCap()).to.eq(TEST_GLOBAL_DEPOSIT_CAP)
+    it('sets global deposit cap to 0', async () => {
+      expect(await depositRecord.getGlobalNetDepositCap()).eq(0)
     })
 
-    it('sets user deposit cap from constructor', async () => {
-      expect(await depositRecord.getUserDepositCap()).to.eq(TEST_USER_DEPOSIT_CAP)
+    it('sets user deposit cap to 0', async () => {
+      expect(await depositRecord.getUserDepositCap()).eq(0)
     })
 
     it('sets DEFAULT_ADMIN_ROLE holder to deployer', async () => {

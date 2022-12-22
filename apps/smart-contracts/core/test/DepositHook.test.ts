@@ -103,6 +103,7 @@ describe('=> DepositHook', () => {
       deployer,
       await depositHook.REMOVE_COLLECTIONS_ROLE()
     )
+    await snapshotter.saveSnapshot()
   })
 
   describe('initial state', () => {
@@ -141,6 +142,7 @@ describe('=> DepositHook', () => {
      */
     snapshotter.setupSnapshotContext('DepositHook-hook')
     before(async () => {
+      depositRecord.recordDeposit.returns()
       await depositHook.connect(deployer).setCollateral(collateral.address)
       await depositHook.connect(deployer).setDepositsAllowed(true)
       await depositHook.connect(deployer).setDepositRecord(depositRecord.address)

@@ -27,7 +27,6 @@ describe('=> WithdrawHook', () => {
   let mockDepositRecord: MockContract<DepositRecord>
   let fakeTokenSender: FakeContract<TokenSender>
   const TEST_GLOBAL_DEPOSIT_CAP = parseEther('50000')
-  const TEST_ACCOUNT_DEPOSIT_CAP = parseEther('50')
   const TEST_AMOUNT_BEFORE_FEE = parseEther('1.01')
   const TEST_AMOUNT_AFTER_FEE = parseEther('1')
   const TEST_GLOBAL_PERIOD_LENGTH = 20
@@ -42,10 +41,7 @@ describe('=> WithdrawHook', () => {
     fakeCollateral = await fakeCollateralFixture()
     fakeCollateral.getBaseToken.returns(mockTestToken.address)
     await setAccountBalance(fakeCollateral.address, '0.1')
-    mockDepositRecord = await smockDepositRecordFixture(
-      TEST_GLOBAL_DEPOSIT_CAP,
-      TEST_ACCOUNT_DEPOSIT_CAP
-    )
+    mockDepositRecord = await smockDepositRecordFixture()
     fakeTokenSender = await smockTokenSenderFixture(mockTestToken.address)
     await batchGrantAndAcceptRoles(withdrawHook, deployer, deployer, [
       withdrawHook.SET_COLLATERAL_ROLE(),
