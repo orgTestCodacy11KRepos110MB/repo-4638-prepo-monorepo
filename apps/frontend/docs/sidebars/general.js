@@ -52,7 +52,7 @@ module.exports = [
   makeReworkItem('use-cases'),
   // makeReworkItem('investors'),
   // makeReworkItem('partners'),
-  makeReworkItem('involve'),
+  // makeReworkItem('get-involved'),
   // makeReworkItem('official-links'),
   makeSectionTitle('Platform', '💻'),
   makeReworkItem('platform/markets'),
