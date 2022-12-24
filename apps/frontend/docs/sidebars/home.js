@@ -24,6 +24,11 @@ module.exports = [
     id: 'investors',
     label: 'Investors 💸',
   },
+  {
+    type: 'doc',
+    label: 'Partners 🤝',
+    id: 'partners',
+  },
   'roadmap',
   'simulator',
   'demo',

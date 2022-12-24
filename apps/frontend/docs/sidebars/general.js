@@ -51,7 +51,7 @@ module.exports = [
   makeReworkItem('overview'),
   makeReworkItem('use-cases'),
   // makeReworkItem('investors'),
-  makeReworkItem('partners'),
+  // makeReworkItem('partners'),
   makeReworkItem('involve'),
   // makeReworkItem('official-links'),
   makeSectionTitle('Platform', '💻'),

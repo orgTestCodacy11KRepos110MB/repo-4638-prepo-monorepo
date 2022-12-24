@@ -1,3 +1,5 @@
+import Partners from '../src/components/partners'
+
 # Partners
 
-Coming soon!
+<Partners />
