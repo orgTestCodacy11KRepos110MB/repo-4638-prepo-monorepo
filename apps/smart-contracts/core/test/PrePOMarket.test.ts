@@ -9,12 +9,7 @@ import { utils } from 'prepo-hardhat'
 import { testERC20Fixture } from './fixtures/TestERC20Fixture'
 import { LongShortTokenAttachFixture } from './fixtures/LongShortTokenFixture'
 import { prePOMarketAttachFixture } from './fixtures/PrePOMarketFixture'
-import {
-  CreateMarketParams,
-  prePOMarketFactoryFixture,
-  createMarketFixture,
-  CreateMarketResult,
-} from './fixtures/PrePOMarketFactoryFixture'
+import { prePOMarketFactoryFixture } from './fixtures/PrePOMarketFactoryFixture'
 import { fakeMintHookFixture } from './fixtures/HookFixture'
 import {
   MAX_PAYOUT,
@@ -26,6 +21,8 @@ import {
   revertsIfNotRoleHolder,
   testRoleConstants,
 } from './utils'
+import { createMarket } from '../helpers'
+import { CreateMarketParams } from '../types'
 import { PrePOMarketFactory, PrePOMarket, LongShortToken, TestERC20 } from '../types/generated'
 
 chai.use(smock.matchers)
@@ -51,11 +48,6 @@ describe('=> prePOMarket', () => {
   const TEST_MINT_AMOUNT = ethers.utils.parseEther('1000')
   const TEST_FINAL_LONG_PAYOUT = TEST_FLOOR_PAYOUT.add(TEST_CEILING_PAYOUT).div(2)
   const MOCK_COLLATERAL_SUPPLY = ethers.utils.parseEther('1000000000')
-
-  const createMarket = async (marketParams): Promise<CreateMarketResult> => {
-    const createMarketResult = await createMarketFixture(marketParams)
-    return createMarketResult
-  }
 
   async function grantAllRoles(account: SignerWithAddress): Promise<void> {
     await batchGrantAndAcceptRoles(prePOMarket, treasury, account, [

@@ -1,45 +1,28 @@
-import { HardhatEthersHelpers } from '@nomiclabs/hardhat-ethers/types'
-import { Contract, ContractTransaction } from 'ethers'
-import { getAddress } from 'ethers/lib/utils'
-import { PrePOMarketFactory, Collateral } from '../typechain'
+import { findMarketAddedEvent } from './events'
+import { CreateMarketParams, CreateMarketResult } from '../types'
 
-/**
- * Check if deployment for the specified network exists. Need to do this
- * for PrePOMarketFactory and Collateral contracts since they are
- * upgradeable and deployed via OpenZeppelin's hardhat-upgrades rather
- * than hardhat-deploy.
- */
-async function fetchExistingDeploymentFromEnvironment(
-  envVarName: string,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  contractFactory: any
-): Promise<Contract> {
-  const valueFromEnvVar = process.env[envVarName]
-  if (!valueFromEnvVar) {
-    throw new Error(`environment variable ${envVarName} does not exist`)
+export * from './events'
+
+export async function createMarket(marketParams: CreateMarketParams): Promise<CreateMarketResult> {
+  const tx = await marketParams.factory
+    .connect(marketParams.caller)
+    .createMarket(
+      marketParams.tokenNameSuffix,
+      marketParams.tokenSymbolSuffix,
+      marketParams.longTokenSalt,
+      marketParams.shortTokenSalt,
+      marketParams.governance,
+      marketParams.collateral,
+      marketParams.floorLongPayout,
+      marketParams.ceilingLongPayout,
+      marketParams.floorValuation,
+      marketParams.ceilingValuation,
+      marketParams.expiryTime
+    )
+  const events = await findMarketAddedEvent(marketParams.factory)
+  return {
+    tx,
+    market: events[0].args.market,
+    hash: events[0].args.longShortHash,
   }
-  const existingAddress = getAddress(valueFromEnvVar as string)
-  return (await contractFactory.attach(existingAddress)) as Contract
-}
-// TODO: replace collateral with preUSD
-// eslint-disable-next-line require-await
-export async function fetchExistingCollateral(
-  chainId: string,
-  ethers: HardhatEthersHelpers
-): Promise<Collateral> {
-  throw new Error('not implemented')
-}
-
-export async function fetchExistingPrePOMarketFactory(
-  chainId: string,
-  ethers: HardhatEthersHelpers
-): Promise<PrePOMarketFactory> {
-  return (await fetchExistingDeploymentFromEnvironment(
-    `PREPO_MARKET_FACTORY_${chainId}`,
-    await ethers.getContractFactory('PrePOMarketFactory')
-  )) as PrePOMarketFactory
-}
-
-export async function sendTxAndWait(transaction: ContractTransaction): Promise<void> {
-  await transaction.wait()
 }

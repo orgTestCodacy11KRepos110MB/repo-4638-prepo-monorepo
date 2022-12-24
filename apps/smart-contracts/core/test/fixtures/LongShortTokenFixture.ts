@@ -1,6 +1,6 @@
 import { ethers } from 'hardhat'
 import { MockContract, smock } from '@defi-wonderland/smock'
-import { LongShortToken } from '../../types/generated'
+import { LongShortToken, LongShortToken__factory } from '../../types/generated'
 
 export async function LongShortTokenFixture(
   tokenName: string,
@@ -18,7 +18,7 @@ export async function LongShortTokenAttachFixture(tokenAddress: string): Promise
 export async function smockLongShortTokenFixture(
   tokenName: string,
   tokenSymbol: string
-): Promise<MockContract> {
-  const smockFactory = await smock.mock('LongShortToken')
-  return (await smockFactory.deploy(tokenName, tokenSymbol)) as MockContract
+): Promise<MockContract<LongShortToken>> {
+  const smockFactory = await smock.mock<LongShortToken__factory>('LongShortToken')
+  return smockFactory.deploy(tokenName, tokenSymbol)
 }

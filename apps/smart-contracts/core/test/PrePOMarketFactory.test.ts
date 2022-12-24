@@ -7,13 +7,10 @@ import { DEFAULT_ADMIN_ROLE } from 'prepo-constants'
 import { testERC20Fixture } from './fixtures/TestERC20Fixture'
 import { LongShortTokenAttachFixture } from './fixtures/LongShortTokenFixture'
 import { prePOMarketAttachFixture } from './fixtures/PrePOMarketFixture'
-import {
-  CreateMarketParams,
-  prePOMarketFactoryFixture,
-  createMarketFixture,
-  CreateMarketResult,
-} from './fixtures/PrePOMarketFactoryFixture'
+import { prePOMarketFactoryFixture } from './fixtures/PrePOMarketFactoryFixture'
 import { batchGrantAndAcceptRoles, revertsIfNotRoleHolder, testRoleConstants } from './utils'
+import { createMarket } from '../helpers'
+import { CreateMarketParams } from '../types'
 import { PrePOMarketFactory, TestERC20 } from '../types/generated'
 
 const { nowPlusMonths } = utils
@@ -101,7 +98,6 @@ describe('=> PrePOMarketFactory', () => {
 
   describe('# createMarket', () => {
     let defaultParams: CreateMarketParams
-    let createMarket: (marketParams: CreateMarketParams) => Promise<CreateMarketResult>
 
     beforeEach(async () => {
       await prePOMarketFactory.setCollateralValidity(collateralToken.address, true)
@@ -119,11 +115,6 @@ describe('=> PrePOMarketFactory', () => {
         floorValuation: TEST_FLOOR_VAL,
         ceilingValuation: TEST_CEILING_VAL,
         expiryTime: TEST_EXPIRY,
-      }
-
-      createMarket = async (marketParams): Promise<CreateMarketResult> => {
-        const result = await createMarketFixture(marketParams)
-        return result
       }
     })
 

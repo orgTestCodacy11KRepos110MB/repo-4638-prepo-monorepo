@@ -7,23 +7,17 @@ import { FakeContract, MockContract, smock } from '@defi-wonderland/smock'
 import { utils } from 'prepo-hardhat'
 import { JUNK_ADDRESS } from 'prepo-constants'
 import { getPermitFromSignature } from './utils'
-import { Core } from './harness/core'
 import { depositTradeHelperFixture } from './fixtures/DepositTradeHelperFixture'
 import { fakeSwapRouterFixture } from './fixtures/UniswapFixtures'
-import {
-  Collateral,
-  DepositHook,
-  DepositTradeHelper,
-  TestERC20,
-  IDepositTradeHelper,
-} from '../types/generated'
+import { MockCore } from '../harnesses/mock'
+import { DepositTradeHelper, IDepositTradeHelper } from '../types/generated'
 
 const { getLastTimestamp, setNextTimestamp } = utils
 
 chai.use(smock.matchers)
 
 describe('=> DepositTradeHelper', () => {
-  let core: Core
+  let core: MockCore
   let swapRouter: FakeContract<Contract>
   let depositTradeHelper: DepositTradeHelper
   let deployer: SignerWithAddress
@@ -44,7 +38,7 @@ describe('=> DepositTradeHelper', () => {
   }
 
   beforeEach(async () => {
-    core = await Core.Instance.init(ethers, true)
+    core = await MockCore.Instance.init(ethers, parseEther('100000'), parseEther('1000'))
     ;[deployer, user] = core.accounts
     swapRouter = await fakeSwapRouterFixture()
     depositTradeHelper = await depositTradeHelperFixture(
@@ -80,20 +74,14 @@ describe('=> DepositTradeHelper', () => {
   })
 
   describe('# depositAndTrade', () => {
-    let baseToken: MockContract<TestERC20>
-    let collateral: MockContract<Collateral>
-    let depositHook: MockContract<DepositHook>
     const baseTokenToDeposit = parseEther('1')
     beforeEach(async () => {
-      baseToken = core.baseToken as MockContract<TestERC20>
-      collateral = core.collateral as MockContract<Collateral>
-      depositHook = core.collateral.depositHook as MockContract<DepositHook>
-      await baseToken.mint(user.address, baseTokenToDeposit)
-      depositHook.hook.returns()
+      await core.baseToken.mint(user.address, baseTokenToDeposit)
+      core.collateral.depositHook.hook.returns()
     })
 
     it('reverts if insufficient base token approval', async () => {
-      expect(await baseToken.allowance(user.address, depositTradeHelper.address)).to.be.lt(
+      expect(await core.baseToken.allowance(user.address, depositTradeHelper.address)).to.be.lt(
         baseTokenToDeposit
       )
 
@@ -106,13 +94,13 @@ describe('=> DepositTradeHelper', () => {
 
     it('reverts if insufficient collateral approval', async () => {
       // Can just statically call for expected amount instead of rewriting calculation logic
-      await baseToken.connect(user).approve(collateral.address, baseTokenToDeposit)
-      const expectedCT = await collateral
+      await core.baseToken.connect(user).approve(core.collateral.address, baseTokenToDeposit)
+      const expectedCT = await core.collateral
         .connect(user)
         .callStatic.deposit(user.address, baseTokenToDeposit)
-      await baseToken.connect(user).approve(collateral.address, 0)
-      await baseToken.connect(user).approve(depositTradeHelper.address, baseTokenToDeposit)
-      expect(await collateral.allowance(user.address, depositTradeHelper.address)).to.be.lt(
+      await core.baseToken.connect(user).approve(core.collateral.address, 0)
+      await core.baseToken.connect(user).approve(depositTradeHelper.address, baseTokenToDeposit)
+      expect(await core.collateral.allowance(user.address, depositTradeHelper.address)).to.be.lt(
         expectedCT
       )
 
@@ -125,11 +113,11 @@ describe('=> DepositTradeHelper', () => {
 
     describe('permit testing', () => {
       it('ignores base token approval if deadline = 0', async () => {
-        await baseToken.connect(user).approve(depositTradeHelper.address, baseTokenToDeposit)
+        await core.baseToken.connect(user).approve(depositTradeHelper.address, baseTokenToDeposit)
         expect(junkPermit.deadline).to.eq(0)
         const timestampToSignFor = (await getLastTimestamp(ethers.provider)) + 5
         const collateralPermit = await getPermitFromSignature(
-          collateral,
+          core.collateral,
           user,
           depositTradeHelper.address,
           ethers.constants.MaxUint256,
@@ -146,11 +134,11 @@ describe('=> DepositTradeHelper', () => {
       })
 
       it('ignores collateral approval if deadline = 0', async () => {
-        await collateral.connect(user).approve(depositTradeHelper.address, baseTokenToDeposit)
+        await core.collateral.connect(user).approve(depositTradeHelper.address, baseTokenToDeposit)
         expect(junkPermit.deadline).to.eq(0)
         const timestampToSignFor = (await getLastTimestamp(ethers.provider)) + 5
         const baseTokenPermit = await getPermitFromSignature(
-          baseToken,
+          core.baseToken,
           user,
           depositTradeHelper.address,
           ethers.constants.MaxUint256,
@@ -167,8 +155,8 @@ describe('=> DepositTradeHelper', () => {
       })
 
       it('ignores both permits if deadlines = 0', async () => {
-        await baseToken.connect(user).approve(depositTradeHelper.address, baseTokenToDeposit)
-        await collateral.connect(user).approve(depositTradeHelper.address, baseTokenToDeposit)
+        await core.baseToken.connect(user).approve(depositTradeHelper.address, baseTokenToDeposit)
+        await core.collateral.connect(user).approve(depositTradeHelper.address, baseTokenToDeposit)
         expect(junkPermit.deadline).to.eq(0)
 
         const tx = await depositTradeHelper
@@ -182,11 +170,11 @@ describe('=> DepositTradeHelper', () => {
       })
 
       it('processes base token approval permit from user', async () => {
-        await collateral.connect(user).approve(depositTradeHelper.address, baseTokenToDeposit)
+        await core.collateral.connect(user).approve(depositTradeHelper.address, baseTokenToDeposit)
         expect(await core.baseToken.allowance(user.address, depositTradeHelper.address)).to.eq(0)
         const timestampToSignFor = (await getLastTimestamp(ethers.provider)) + 5
         const baseTokenPermit = await getPermitFromSignature(
-          baseToken,
+          core.baseToken,
           user,
           depositTradeHelper.address,
           ethers.constants.MaxUint256,
@@ -204,11 +192,11 @@ describe('=> DepositTradeHelper', () => {
       })
 
       it('processes collateral approval permit from user', async () => {
-        await baseToken.connect(user).approve(depositTradeHelper.address, baseTokenToDeposit)
+        await core.baseToken.connect(user).approve(depositTradeHelper.address, baseTokenToDeposit)
         expect(await core.collateral.allowance(user.address, depositTradeHelper.address)).to.eq(0)
         const timestampToSignFor = (await getLastTimestamp(ethers.provider)) + 5
         const collateralPermit = await getPermitFromSignature(
-          collateral,
+          core.collateral,
           user,
           depositTradeHelper.address,
           ethers.constants.MaxUint256,
@@ -230,14 +218,14 @@ describe('=> DepositTradeHelper', () => {
         expect(await core.collateral.allowance(user.address, depositTradeHelper.address)).to.eq(0)
         const timestampToSignFor = (await getLastTimestamp(ethers.provider)) + 5
         const baseTokenPermit = await getPermitFromSignature(
-          baseToken,
+          core.baseToken,
           user,
           depositTradeHelper.address,
           ethers.constants.MaxUint256,
           timestampToSignFor
         )
         const collateralPermit = await getPermitFromSignature(
-          collateral,
+          core.collateral,
           user,
           depositTradeHelper.address,
           ethers.constants.MaxUint256,
@@ -265,14 +253,14 @@ describe('=> DepositTradeHelper', () => {
       beforeEach(async () => {
         timestampToSignFor = (await getLastTimestamp(ethers.provider)) + 5
         baseTokenPermit = await getPermitFromSignature(
-          baseToken,
+          core.baseToken,
           user,
           depositTradeHelper.address,
           ethers.constants.MaxUint256,
           timestampToSignFor
         )
         collateralPermit = await getPermitFromSignature(
-          collateral,
+          core.collateral,
           user,
           depositTradeHelper.address,
           ethers.constants.MaxUint256,
@@ -281,7 +269,7 @@ describe('=> DepositTradeHelper', () => {
       })
 
       it('reverts if insufficient base token', async () => {
-        const userBTBalanceBefore = await baseToken.balanceOf(user.address)
+        const userBTBalanceBefore = await core.baseToken.balanceOf(user.address)
         await setNextTimestamp(ethers.provider, timestampToSignFor)
 
         await expect(
@@ -297,22 +285,22 @@ describe('=> DepositTradeHelper', () => {
       })
 
       it('takes `baseTokenAmount` from user prior to minting Collateral', async () => {
-        const userBTBalanceBefore = await baseToken.balanceOf(user.address)
+        const userBTBalanceBefore = await core.baseToken.balanceOf(user.address)
         await setNextTimestamp(ethers.provider, timestampToSignFor)
 
         await depositTradeHelper
           .connect(user)
           .depositAndTrade(baseTokenToDeposit, baseTokenPermit, collateralPermit, junkTradeParams)
 
-        expect(await baseToken.balanceOf(user.address)).to.be.eq(
+        expect(await core.baseToken.balanceOf(user.address)).to.be.eq(
           userBTBalanceBefore.sub(baseTokenToDeposit)
         )
-        expect(baseToken.transferFrom.atCall(0)).calledWith(
+        expect(core.baseToken.transferFrom.atCall(0)).calledWith(
           user.address,
           depositTradeHelper.address,
           baseTokenToDeposit
         )
-        expect(baseToken.transferFrom).calledBefore(collateral.deposit)
+        expect(core.baseToken.transferFrom).calledBefore(core.collateral.deposit)
       })
 
       it('mints Collateral to user prior to transferring back', async () => {
@@ -322,8 +310,8 @@ describe('=> DepositTradeHelper', () => {
           .connect(user)
           .depositAndTrade(baseTokenToDeposit, baseTokenPermit, collateralPermit, junkTradeParams)
 
-        expect(collateral.deposit.atCall(0)).calledWith(user.address, baseTokenToDeposit)
-        expect(collateral.deposit).calledBefore(collateral.transferFrom)
+        expect(core.collateral.deposit.atCall(0)).calledWith(user.address, baseTokenToDeposit)
+        expect(core.collateral.deposit).calledBefore(core.collateral.transferFrom)
       })
 
       it('transfers newly minted Collateral back prior to calling swap', async () => {
@@ -333,21 +321,21 @@ describe('=> DepositTradeHelper', () => {
           .connect(user)
           .depositAndTrade(baseTokenToDeposit, baseTokenPermit, collateralPermit, junkTradeParams)
 
-        expect(collateral.transferFrom.atCall(0)).calledWith(
+        expect(core.collateral.transferFrom.atCall(0)).calledWith(
           user.address,
           depositTradeHelper.address,
           baseTokenToDeposit
         )
-        expect(collateral.transferFrom).calledBefore(swapRouter.exactInputSingle)
+        expect(core.collateral.transferFrom).calledBefore(swapRouter.exactInputSingle)
       })
 
       it('calls swap router with correct parameters', async () => {
-        await baseToken.connect(user).approve(collateral.address, baseTokenToDeposit)
-        const expectedCT = await collateral
+        await core.baseToken.connect(user).approve(core.collateral.address, baseTokenToDeposit)
+        const expectedCT = await core.collateral
           .connect(user)
           .callStatic.deposit(user.address, baseTokenToDeposit)
         const nonZeroTradeParams = <IDepositTradeHelper.OffChainTradeParamsStruct>{
-          tokenOut: baseToken.address,
+          tokenOut: core.baseToken.address,
           deadline: baseTokenPermit.deadline,
           amountOutMinimum: parseEther('1'),
           sqrtPriceLimitX96: parseEther('2'),
@@ -367,8 +355,8 @@ describe('=> DepositTradeHelper', () => {
           .atCall(0)
           .callHistory[0].args[0].slice(0, 8)
         const correctSwapArgs = [
-          collateral.address,
-          baseToken.address,
+          core.collateral.address,
+          core.baseToken.address,
           await depositTradeHelper.POOL_FEE_TIER(),
           user.address,
           BigNumber.from(baseTokenPermit.deadline),
@@ -383,10 +371,10 @@ describe('=> DepositTradeHelper', () => {
     })
 
     afterEach(() => {
-      depositHook.hook.reset()
-      baseToken.transferFrom.reset()
-      collateral.deposit.reset()
-      collateral.transferFrom.reset()
+      core.collateral.depositHook.hook.reset()
+      core.baseToken.transferFrom.reset()
+      core.collateral.deposit.reset()
+      core.collateral.transferFrom.reset()
       swapRouter.exactInputSingle.reset()
     })
   })
