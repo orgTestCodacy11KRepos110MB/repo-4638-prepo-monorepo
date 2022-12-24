@@ -32,7 +32,7 @@
     "devDependencies": {
         "@commitlint/cli": "16.2.3",
         "@commitlint/config-conventional": "16.2.1",
-        "@defi-wonderland/smock": "2.0.7",
+        "@defi-wonderland/smock": "2.3.4",
         "@semantic-release/changelog": "6.0.1",
         "@semantic-release/commit-analyzer": "9.0.2",
         "@semantic-release/git": "10.0.1",
@@ -72,7 +72,7 @@
         "@openzeppelin/hardhat-upgrades": "1.19.0",
         "defender-admin-client": "1.29.1",
         "defender-relay-client": "1.27.1",
-        "hardhat": "2.10.1",
+        "hardhat": "2.12.4",
         "hardhat-deploy": "0.11.10"
     },
     "config": {
