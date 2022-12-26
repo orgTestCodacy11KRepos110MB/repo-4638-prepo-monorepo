@@ -7,12 +7,14 @@
 
 const home = require('./home')
 const developer = require('./developer')
+const governance = require('./governance')
 const general = require('./general')
 const technical = require('./technical')
 
 module.exports = {
   home,
   developer,
+  governance,
   general,
   technical,
 }
