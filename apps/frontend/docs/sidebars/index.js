@@ -8,9 +8,11 @@
 const home = require('./home')
 const developer = require('./developer')
 const general = require('./general')
+const technical = require('./technical')
 
 module.exports = {
   home,
   developer,
   general,
+  technical,
 }
