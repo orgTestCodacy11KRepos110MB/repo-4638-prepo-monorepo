@@ -82,4 +82,8 @@ module.exports = [
   makeReworkItem('community/earn-soulbound-nfts'),
   makeReworkItem('community/prepo-universe'),
   makeReworkItem('community/preacher-program'),
+  makeSectionTitle('Security', '🛡️'),
+  makeReworkItem('security/risks'),
+  makeReworkItem('security/audits'),
+  makeReworkItem('security/bug-bounties'),
 ]
