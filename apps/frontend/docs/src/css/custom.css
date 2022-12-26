@@ -102,11 +102,31 @@ figcaption {
   text-align: center;
 }
 
+.col:has(.table-of-contents) {
+  padding: 0;
+}
+
+.table-of-contents {
+  margin-right: 0;
+}
+
 .container {
-  max-width: 90% !important;
+  max-width: 98% !important;
   padding: 0 !important;
   padding-bottom: 2rem !important;
   padding-top: 2rem !important;
+}
+
+@media (min-width: 997px) {
+  .container {
+    margin-left: auto;
+    margin-right: 0;
+  }
+}
+
+.container > .row {
+  margin: 0;
+  width: 100%;
 }
 
 .navbar {
@@ -115,7 +135,7 @@ figcaption {
 
 .main-wrapper,
 .navbar__inner {
-  max-width: 1280px;
+  max-width: 1480px;
   margin: 0 auto;
   width: 100%;
 }
