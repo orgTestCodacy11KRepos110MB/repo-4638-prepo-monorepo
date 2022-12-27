@@ -27,9 +27,9 @@ export class TradeStore {
   openTradeHash?: string
   selectedMarket?: MarketEntity
   slideUpContent?: SlideUpContent = undefined
-  // default to false when we add trade page settings to turn on chart, otherwise no way to review this now
-  showChart = true
+  showChart = false
   selectedTimeframe: ChartTimeframe = ChartTimeframe.DAY
+  showSettings = false
 
   constructor(public root: RootStore) {
     makeAutoObservable(this, {}, { autoBind: true })
@@ -106,6 +106,10 @@ export class TradeStore {
 
   setSelectedTimeframe(timeframe: ChartTimeframe): void {
     this.selectedTimeframe = timeframe
+  }
+
+  setShowSettings(show: boolean): void {
+    this.showSettings = show
   }
 
   setOpenTradeAmount(amount: string): void {

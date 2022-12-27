@@ -30,7 +30,7 @@ const InnerWrapper = styled.div`
   flex: 1;
   flex-direction: column;
   height: 100%;
-  padding: ${spacingIncrement(16)} ${spacingIncrement(24)};
+  padding: ${spacingIncrement(24)};
   padding-bottom: 0;
 `
 

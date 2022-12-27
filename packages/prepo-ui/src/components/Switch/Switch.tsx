@@ -9,29 +9,36 @@ type Props = {
 const Wrapper = styled.div<Required<Props>>`
   &&& {
     .ant-switch {
-      height: ${spacingIncrement(14)};
-      min-width: ${spacingIncrement(30)};
+      align-items: flex-start;
       background-color: ${({ theme }): string => theme.color.neutral5};
+      box-shadow: none;
+      display: flex;
+      height: ${spacingIncrement(20)};
+      min-width: ${spacingIncrement(30)};
+      outline: none;
+      width: ${spacingIncrement(30)};
+      padding: ${spacingIncrement(2)};
     }
     .ant-switch-handle {
-      height: ${spacingIncrement(20)};
-      width: ${spacingIncrement(20)};
-      top: -${spacingIncrement(3)};
-      left: -${spacingIncrement(3)};
+      background-color: ${({ theme }): string => theme.color.switchHandler};
+      border-radius: 100%;
+      height: ${spacingIncrement(16)};
+      min-width: ${spacingIncrement(16)};
+      position: static;
       transition: all 0.2s ease-in-out;
+      width: ${spacingIncrement(16)};
       z-index: 1;
-      :after,
       :before {
-        border-radius: 100%;
-        background-color: ${({ theme }): string => theme.color.switchHandler};
+        display: none;
       }
+    }
+    .ant-click-animating-node,
+    .ant-switch-inner {
+      display: none;
     }
     .ant-switch-checked {
       background-color: ${({ theme, color }): string => theme.color[color]};
-      .ant-switch-handle {
-        left: unset;
-        right: -${spacingIncrement(3)};
-      }
+      justify-content: flex-end;
     }
   }
 `

@@ -7,6 +7,7 @@ type Props = TabsProps
 const StyledTabs = styled(Tabs)`
   &&& {
     .ant-tabs-nav {
+      align-items: flex-start;
       padding: ${spacingIncrement(24)};
       padding-bottom: ${spacingIncrement(8)};
       margin-bottom: 0;

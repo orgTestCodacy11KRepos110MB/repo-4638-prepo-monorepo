@@ -5,6 +5,7 @@ import OpenTrade from './open-trade'
 import useTradePage from './useTradePage'
 import TradePageTab from './TradePageTab'
 import MarketChart from './market-chart'
+import TradeSettings from './TradeSettings'
 import Card from '../../components/Card'
 import { isProduction } from '../../utils/isProduction'
 import { useRootStore } from '../../context/RootStoreProvider'
@@ -23,6 +24,7 @@ const TradeCard = styled(Card)`
   width: 100%;
   &&& {
     .ant-card-body {
+      min-height: ${spacingIncrement(240)};
       padding: 0;
     }
   }
@@ -40,6 +42,7 @@ const TradePage: React.FC = () => {
         {!hideTabs && <TradePageTab />}
         {/** only show close trade flow if open/close tabs are shown */}
         {!hideTabs && action === 'close' ? 'CloseTrade' : <OpenTrade />}
+        <TradeSettings />
       </TradeCard>
       <MarketChart />
     </Wrapper>
