@@ -6,6 +6,9 @@
 
 /* You can override the default Infima variables here. */
 :root {
+  --ifm-link-color: #6264d8;
+  --ifm-breadcrumb-color: #525252;
+  --ifm-breadcrumb-color-active: #525252;
   --ifm-color-primary: #6264d8;
   --ifm-color-primary-dark: #494bd2;
   --ifm-color-primary-darker: #3c3fcf;
@@ -13,6 +16,31 @@
   --ifm-color-primary-light: #7b7dde;
   --ifm-color-primary-lighter: #8889e1;
   --ifm-color-primary-lightest: #adaeeb;
+  --ifm-menu-color-background-active: #eff2f5;
+  --ifm-menu-color-background-hover: unset;
+  --ifm-menu-caret-color-background-hover: #eff2f5;
+  --ifm-navbar-background-color-active: #eff2f5;
+  --ifm-navbar-color-active: #525252;
+  --ifm-navbar-item-color: #525252;
+  --ifm-toc-border-color: #eff2f5;
+  --ifm-toc-link-color: #525252;
+}
+
+html[data-theme='dark'] {
+  --ifm-link-color: #9b9dff;
+  --ifm-background-color: #191b1f;
+  --ifm-breadcrumb-color: #ffffff;
+  --ifm-breadcrumb-color-active: #ffffff;
+  --ifm-breadcrumb-item-background-active: #40444f;
+  --ifm-menu-color-background-active: #40444f;
+  --ifm-menu-color-background-hover: unset;
+  --ifm-menu-caret-color-background-hover: #212429;
+  --ifm-navbar-background-color-active: #40444f;
+  --ifm-navbar-color-active: #ffffff;
+  --ifm-navbar-item-color: #ffffff;
+  --ifm-pagination-nav-color-hover: #9b9dff;
+  --ifm-toc-border-color: #40444f;
+  --ifm-toc-link-color: #ffffff;
 }
 
 a {
@@ -21,6 +49,66 @@ a {
 
 .navbar__items--right > :last-child {
   padding-left: 0;
+}
+
+.menu__link,
+.menu__caret {
+  border-radius: 14px;
+}
+
+.menu__caret:hover {
+  background-color: var(--ifm-menu-caret-color-background-hover);
+}
+
+.navbar-item,
+.menu__link,
+.breadcrumbs__link {
+  color: var(--ifm-navbar-item-color);
+  font-weight: 600;
+  opacity: 0.7;
+  margin-bottom: 0;
+}
+
+.table-of-contents__link {
+  opacity: 0.7;
+}
+
+.navbar__link--active,
+.navbar-item:hover,
+.menu__link:hover,
+.menu__link--active,
+a.breadcrumbs__link:hover,
+.breadcrumbs__item--active > .breadcrumbs__link,
+.table-of-contents__link--active,
+.table-of-contents__link:hover {
+  opacity: 1;
+}
+
+a.breadcrumbs__link:hover,
+.menu__link--active,
+.navbar__link:hover,
+.menu__link--active:hover,
+.menu__link:hover {
+  color: var(--ifm-navbar-item-color);
+}
+
+.breadcrumbs__link:any-link:hover {
+  background-color: unset;
+}
+
+.table-of-contents__link--active,
+.table-of-contents__link:hover {
+  color: var(--ifm-toc-link-color);
+}
+
+.pagination-nav__link {
+  border: 1px solid var(--ifm-toc-border-color);
+}
+
+.navbar__link--active {
+  background-color: var(--ifm-navbar-background-color-active);
+  border-radius: 14px;
+  color: var(--ifm-navbar-color-active);
 }
 
 .navbar__item > svg[class*='iconExternalLink_'] {
@@ -130,6 +218,7 @@ figcaption {
 }
 
 .navbar {
+  box-shadow: rgb(98 100 216 / 11%) 0px 4px 22px;
   padding: 0 !important;
 }
 
