@@ -113,7 +113,7 @@ const Home: React.FC = () => (
             title="🏛 Governance"
             description={
               <>
-                Learn about prePO’s governance system - <span>the structure</span>, processes, and
+                Learn about prePO’s governance system <span>- the structure</span>, processes, and
                 more.
               </>
             }
