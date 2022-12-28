@@ -20,22 +20,57 @@ contract ArbitrageBroker is IArbitrageBroker, SafeAccessControlEnumerable {
   constructor(ICollateral collateral, ISwapRouter swapRouter) {
     _collateral = collateral;
     _swapRouter = swapRouter;
+    collateral.approve(address(swapRouter), type(uint256).max);
+  }
+
+  modifier onlyValidMarkets(IPrePOMarket market) {
+    if (!_marketToValidity[address(market)]) {
+      revert InvalidMarket(address(market));
+    }
+    _;
   }
 
   function buyAndRedeem(
     IPrePOMarket market,
     OffChainTradeParams calldata tradeParams
-  ) external override onlyRole(BUY_AND_REDEEM_ROLE) returns (uint256) {}
+  )
+    external
+    override
+    onlyRole(BUY_AND_REDEEM_ROLE)
+    onlyValidMarkets(market)
+    returns (uint256)
+  {
+    uint256 collateralBefore = _collateral.balanceOf(address(this));
+    _buyLongOrShort(tradeParams, market.getLongToken(), true);
+    _buyLongOrShort(tradeParams, market.getShortToken(), false);
+    market.redeem(tradeParams.longShortAmount, tradeParams.longShortAmount);
+    uint256 collateralAfter = _collateral.balanceOf(address(this));
+    if (collateralBefore >= collateralAfter) {
+      revert UnprofitableTrade(collateralBefore, collateralAfter);
+    }
+    return collateralAfter - collateralBefore;
+  }
 
   function mintAndSell(
     IPrePOMarket market,
     OffChainTradeParams calldata tradeParams
-  ) external override onlyRole(MINT_AND_SELL_ROLE) returns (uint256) {
-    if (!_marketToValidity[address(market)]) {
-      revert InvalidMarket(address(market));
-    }
+  )
+    external
+    override
+    onlyRole(MINT_AND_SELL_ROLE)
+    onlyValidMarkets(market)
+    returns (uint256)
+  {
+    uint256 collateralBefore = _collateral.balanceOf(address(this));
     _collateral.approve(address(market), tradeParams.longShortAmount);
     market.mint(tradeParams.longShortAmount);
+    _sellLongOrShort(tradeParams, market.getLongToken(), true);
+    _sellLongOrShort(tradeParams, market.getShortToken(), false);
+    uint256 collateralAfter = _collateral.balanceOf(address(this));
+    if (collateralBefore >= collateralAfter) {
+      revert UnprofitableTrade(collateralBefore, collateralAfter);
+    }
+    return collateralAfter - collateralBefore;
   }
 
   function setMarketValidity(address market, bool validity)
@@ -62,5 +97,50 @@ contract ArbitrageBroker is IArbitrageBroker, SafeAccessControlEnumerable {
     returns (bool)
   {
     return _marketToValidity[market];
+  }
+
+  function _buyLongOrShort(
+    OffChainTradeParams calldata tradeParams,
+    ILongShortToken longShortToken,
+    bool long
+  ) private {
+    uint256 amountInMaximum = long
+      ? tradeParams.collateralLimitForLong
+      : tradeParams.collateralLimitForShort;
+    ISwapRouter.ExactOutputSingleParams memory exactOutputSingleParams = ISwapRouter
+      .ExactOutputSingleParams(
+        address(_collateral), // tokenIn
+        address(longShortToken), // tokenOut
+        POOL_FEE_TIER,
+        address(this), // recipient
+        tradeParams.deadline,
+        tradeParams.longShortAmount, // amountOut
+        amountInMaximum,
+        0 // sqrtPriceLimitX96
+      );
+    _swapRouter.exactOutputSingle(exactOutputSingleParams);
+  }
+
+  function _sellLongOrShort(
+    OffChainTradeParams calldata tradeParams,
+    ILongShortToken longShortToken,
+    bool long
+  ) private {
+    longShortToken.approve(address(_swapRouter), tradeParams.longShortAmount);
+    uint256 amountOutMinimum = long
+      ? tradeParams.collateralLimitForLong
+      : tradeParams.collateralLimitForShort;
+    ISwapRouter.ExactInputSingleParams memory exactInputSingleParams = ISwapRouter
+      .ExactInputSingleParams(
+        address(longShortToken), // tokenIn
+        address(_collateral), // tokenOut
+        POOL_FEE_TIER,
+        address(this), // recipient
+        tradeParams.deadline,
+        tradeParams.longShortAmount, // amountIn
+        amountOutMinimum,
+        0 // sqrtPriceLimitX96
+      );
+    _swapRouter.exactInputSingle(exactInputSingleParams);
   }
 }

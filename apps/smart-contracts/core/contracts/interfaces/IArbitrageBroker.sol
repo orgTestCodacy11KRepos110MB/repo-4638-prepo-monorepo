@@ -21,6 +21,8 @@ interface IArbitrageBroker {
 
   event MarketValidityChange(address market, bool validity);
 
+  error UnprofitableTrade(uint256 balanceBefore, uint256 balanceAfter);
+
   error InvalidMarket(address market);
 
   /// @dev Assumes contract already has collateral needed for a trade.
