@@ -62,7 +62,6 @@ contract ArbitrageBroker is IArbitrageBroker, SafeAccessControlEnumerable {
     returns (uint256)
   {
     uint256 collateralBefore = _collateral.balanceOf(address(this));
-    _collateral.approve(address(market), tradeParams.longShortAmount);
     market.mint(tradeParams.longShortAmount);
     _sellLongOrShort(tradeParams, market.getLongToken(), true);
     _sellLongOrShort(tradeParams, market.getShortToken(), false);
@@ -79,6 +78,18 @@ contract ArbitrageBroker is IArbitrageBroker, SafeAccessControlEnumerable {
     onlyRole(SET_MARKET_VALIDITY_ROLE)
   {
     _marketToValidity[market] = validity;
+    address swapRouter = address(_swapRouter);
+    ILongShortToken longToken = IPrePOMarket(market).getLongToken();
+    ILongShortToken shortToken = IPrePOMarket(market).getShortToken();
+    if (validity) {
+      _collateral.approve(market, type(uint256).max);
+      longToken.approve(swapRouter, type(uint256).max);
+      shortToken.approve(swapRouter, type(uint256).max);
+    } else {
+      _collateral.approve(market, 0);
+      longToken.approve(swapRouter, 0);
+      shortToken.approve(swapRouter, 0);
+    }
     emit MarketValidityChange(market, validity);
   }
 
@@ -126,7 +137,6 @@ contract ArbitrageBroker is IArbitrageBroker, SafeAccessControlEnumerable {
     ILongShortToken longShortToken,
     bool long
   ) private {
-    longShortToken.approve(address(_swapRouter), tradeParams.longShortAmount);
     uint256 amountOutMinimum = long
       ? tradeParams.collateralLimitForLong
       : tradeParams.collateralLimitForShort;

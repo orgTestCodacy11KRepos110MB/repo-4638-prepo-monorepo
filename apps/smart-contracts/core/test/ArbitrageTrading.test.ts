@@ -72,16 +72,4 @@ describe('=> Functional Testing with Arbitrage Trades', () => {
     )
     await snapshotter.saveSnapshot()
   })
-
-  describe('fdsfd', () => {
-    it('sfd', async () => {
-      console.log(
-        await univ3Factory.getPool(
-          core.markets[TEST_NAME_SUFFIX].address,
-          core.collateral.address,
-          POOL_FEE_TIER
-        )
-      )
-    })
-  })
 })

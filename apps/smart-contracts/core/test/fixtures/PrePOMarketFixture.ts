@@ -28,8 +28,8 @@ export async function smockPrePOMarketFixture(
   longTokenAddress: string,
   shortTokenAddress: string
 ): Promise<MockContract<PrePOMarket>> {
-  const smockFactory = await smock.mock<PrePOMarket__factory>('PrePOMarket')
-  return smockFactory.deploy(
+  const mockFactory = await smock.mock<PrePOMarket__factory>('PrePOMarket')
+  return mockFactory.deploy(
     marketParams.governance,
     marketParams.collateral,
     longTokenAddress,

@@ -92,23 +92,23 @@ describe('=> ArbitrageBroker', () => {
 
   describe('initial state', () => {
     it('sets collateral from constructor', async () => {
-      expect(await arbitrageBroker.getCollateral()).to.eq(core.collateral.address)
+      expect(await arbitrageBroker.getCollateral()).eq(core.collateral.address)
     })
 
     it('sets swap router from constructor', async () => {
-      expect(await arbitrageBroker.getSwapRouter()).to.eq(swapRouter.address)
+      expect(await arbitrageBroker.getSwapRouter()).eq(swapRouter.address)
     })
 
     it('gives swap router unlimited collateral approval', async () => {
-      expect(await core.collateral.allowance(arbitrageBroker.address, swapRouter.address)).to.eq(
+      expect(await core.collateral.allowance(arbitrageBroker.address, swapRouter.address)).eq(
         ethers.constants.MaxUint256
       )
     })
 
     it('sets role constants', async () => {
-      expect(await arbitrageBroker.BUY_AND_REDEEM_ROLE()).to.eq(id('buyAndRedeem'))
-      expect(await arbitrageBroker.MINT_AND_SELL_ROLE()).to.eq(id('mintAndSell'))
-      expect(await arbitrageBroker.SET_MARKET_VALIDITY_ROLE()).to.eq(id('setMarketValidity'))
+      expect(await arbitrageBroker.BUY_AND_REDEEM_ROLE()).eq(id('buyAndRedeem'))
+      expect(await arbitrageBroker.MINT_AND_SELL_ROLE()).eq(id('mintAndSell'))
+      expect(await arbitrageBroker.SET_MARKET_VALIDITY_ROLE()).eq(id('setMarketValidity'))
     })
   })
 
@@ -116,43 +116,83 @@ describe('=> ArbitrageBroker', () => {
     it('reverts if not role holder', async () => {
       await revertsIfNotRoleHolder(
         arbitrageBroker.SET_MARKET_VALIDITY_ROLE(),
-        arbitrageBroker.populateTransaction.setMarketValidity(user.address, true)
+        arbitrageBroker.populateTransaction.setMarketValidity(market.address, true)
       )
     })
 
     it('sets to true', async () => {
-      expect(await arbitrageBroker.isMarketValid(user.address)).to.not.eq(true)
+      expect(await arbitrageBroker.isMarketValid(market.address)).not.eq(true)
 
-      await arbitrageBroker.connect(governance).setMarketValidity(user.address, true)
+      await arbitrageBroker.connect(governance).setMarketValidity(market.address, true)
 
-      expect(await arbitrageBroker.isMarketValid(user.address)).to.eq(true)
+      expect(await arbitrageBroker.isMarketValid(market.address)).eq(true)
+    })
+
+    it('gives unlimited collateral and L/S token approvals if setting to true', async () => {
+      await arbitrageBroker.connect(governance).setMarketValidity(market.address, true)
+
+      expect(core.collateral.approve).calledWith(market.address, ethers.constants.MaxUint256)
+      expect(longToken.approve).calledWith(swapRouter.address, ethers.constants.MaxUint256)
+      expect(shortToken.approve).calledWith(swapRouter.address, ethers.constants.MaxUint256)
     })
 
     it('sets to false', async () => {
-      await arbitrageBroker.connect(governance).setMarketValidity(user.address, true)
-      expect(await arbitrageBroker.isMarketValid(user.address)).to.not.eq(false)
+      await arbitrageBroker.connect(governance).setMarketValidity(market.address, true)
+      expect(await arbitrageBroker.isMarketValid(market.address)).not.eq(false)
 
-      await arbitrageBroker.connect(governance).setMarketValidity(user.address, false)
+      await arbitrageBroker.connect(governance).setMarketValidity(market.address, false)
 
-      expect(await arbitrageBroker.isMarketValid(user.address)).to.eq(false)
+      expect(await arbitrageBroker.isMarketValid(market.address)).eq(false)
     })
 
-    it('is idempotent', async () => {
-      expect(await arbitrageBroker.isMarketValid(user.address)).to.not.eq(true)
+    it('removes collateral and L/S token approvals if setting to false', async () => {
+      await arbitrageBroker.connect(governance).setMarketValidity(market.address, false)
 
-      await arbitrageBroker.connect(governance).setMarketValidity(user.address, true)
+      expect(core.collateral.approve).calledWith(market.address, 0)
+      expect(longToken.approve).calledWith(swapRouter.address, 0)
+      expect(shortToken.approve).calledWith(swapRouter.address, 0)
+    })
 
-      expect(await arbitrageBroker.isMarketValid(user.address)).to.eq(true)
+    it('is idempotent setting to true', async () => {
+      expect(await arbitrageBroker.isMarketValid(market.address)).not.eq(true)
 
-      await arbitrageBroker.connect(governance).setMarketValidity(user.address, true)
+      await arbitrageBroker.connect(governance).setMarketValidity(market.address, true)
 
-      expect(await arbitrageBroker.isMarketValid(user.address)).to.eq(true)
+      expect(await arbitrageBroker.isMarketValid(market.address)).eq(true)
+      expect(core.collateral.approve).calledWith(market.address, ethers.constants.MaxUint256)
+      expect(longToken.approve).calledWith(swapRouter.address, ethers.constants.MaxUint256)
+      expect(shortToken.approve).calledWith(swapRouter.address, ethers.constants.MaxUint256)
+
+      await arbitrageBroker.connect(governance).setMarketValidity(market.address, true)
+
+      expect(await arbitrageBroker.isMarketValid(market.address)).eq(true)
+      expect(core.collateral.approve).calledWith(market.address, ethers.constants.MaxUint256)
+      expect(longToken.approve).calledWith(swapRouter.address, ethers.constants.MaxUint256)
+      expect(shortToken.approve).calledWith(swapRouter.address, ethers.constants.MaxUint256)
+    })
+
+    it('is idempotent setting to false', async () => {
+      expect(await arbitrageBroker.isMarketValid(market.address)).not.eq(true)
+
+      await arbitrageBroker.connect(governance).setMarketValidity(market.address, true)
+
+      expect(await arbitrageBroker.isMarketValid(market.address)).eq(true)
+      expect(core.collateral.approve).calledWith(market.address, 0)
+      expect(longToken.approve).calledWith(swapRouter.address, 0)
+      expect(shortToken.approve).calledWith(swapRouter.address, 0)
+
+      await arbitrageBroker.connect(governance).setMarketValidity(market.address, true)
+
+      expect(await arbitrageBroker.isMarketValid(market.address)).eq(true)
+      expect(core.collateral.approve).calledWith(market.address, 0)
+      expect(longToken.approve).calledWith(swapRouter.address, 0)
+      expect(shortToken.approve).calledWith(swapRouter.address, 0)
     })
 
     it('emits MarketValidityChanged', async () => {
-      const tx = await arbitrageBroker.connect(governance).setMarketValidity(user.address, true)
+      const tx = await arbitrageBroker.connect(governance).setMarketValidity(market.address, true)
 
-      expect(tx).to.emit(arbitrageBroker, 'MarketValidityChange').withArgs(user.address, true)
+      expect(tx).to.emit(arbitrageBroker, 'MarketValidityChange').withArgs(market.address, true)
     })
   })
 
@@ -173,7 +213,7 @@ describe('=> ArbitrageBroker', () => {
 
     it('reverts if market not valid', async () => {
       const invalidMarket = await fakePrePOMarketFixture()
-      expect(await arbitrageBroker.isMarketValid(invalidMarket.address)).to.eq(false)
+      expect(await arbitrageBroker.isMarketValid(invalidMarket.address)).eq(false)
 
       await expect(
         arbitrageBroker.connect(governance).buyAndRedeem(invalidMarket.address, tradeParams)
@@ -281,7 +321,7 @@ describe('=> ArbitrageBroker', () => {
 
     it('reverts if market not valid', async () => {
       const invalidMarket = await fakePrePOMarketFixture()
-      expect(await arbitrageBroker.isMarketValid(invalidMarket.address)).to.eq(false)
+      expect(await arbitrageBroker.isMarketValid(invalidMarket.address)).eq(false)
 
       await expect(
         arbitrageBroker.connect(governance).mintAndSell(invalidMarket.address, tradeParams)
@@ -328,30 +368,16 @@ describe('=> ArbitrageBroker', () => {
       ).reverted
     })
 
-    it('gives collateral approval to market', async () => {
+    it('mints positions before selling long', async () => {
       await arbitrageBroker.connect(governance).callStatic.mintAndSell(market.address, tradeParams)
 
-      expect(core.collateral.approve).calledWith(market.address, tradeParams.longShortAmount)
-    })
-
-    it('mints positions after collateral approval', async () => {
-      await arbitrageBroker.connect(governance).callStatic.mintAndSell(market.address, tradeParams)
-
-      expect(market.mint).calledImmediatelyAfter(core.collateral.approve)
+      expect(swapRouter.exactInputSingle.atCall(0)).calledAfter(market.mint)
       expect(market.mint).calledWith(tradeParams.longShortAmount)
     })
 
-    it('approves long token after minting', async () => {
+    it('sells long token after minting', async () => {
       await arbitrageBroker.connect(governance).callStatic.mintAndSell(market.address, tradeParams)
 
-      expect(longToken.approve).calledAfter(market.mint)
-      expect(longToken.approve).calledWith(swapRouter.address, tradeParams.longShortAmount)
-    })
-
-    it('sells long token after approval', async () => {
-      await arbitrageBroker.connect(governance).callStatic.mintAndSell(market.address, tradeParams)
-
-      expect(swapRouter.exactInputSingle).calledAfter(longToken.approve)
       const swapRouterCallArgs = swapRouter.exactInputSingle
         .atCall(0)
         .callHistory[0].args[0].slice(0, SWAP_ARG_COUNT)
@@ -360,17 +386,9 @@ describe('=> ArbitrageBroker', () => {
       })
     })
 
-    it('approves short token after selling long', async () => {
+    it('sells short token after selling long', async () => {
       await arbitrageBroker.connect(governance).callStatic.mintAndSell(market.address, tradeParams)
 
-      expect(shortToken.approve).calledAfter(swapRouter.exactInputSingle)
-      expect(shortToken.approve).calledWith(swapRouter.address, tradeParams.longShortAmount)
-    })
-
-    it('sells short token after approval', async () => {
-      await arbitrageBroker.connect(governance).callStatic.mintAndSell(market.address, tradeParams)
-
-      expect(swapRouter.exactInputSingle).calledAfter(shortToken.approve)
       const swapRouterCallArgs = swapRouter.exactInputSingle
         .atCall(1)
         .callHistory[0].args[0].slice(0, SWAP_ARG_COUNT)
