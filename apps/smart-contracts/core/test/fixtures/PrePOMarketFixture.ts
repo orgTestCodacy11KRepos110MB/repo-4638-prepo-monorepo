@@ -42,17 +42,14 @@ export async function smockPrePOMarketFixture(
   )
 }
 
-export async function fakePrePOMarketFixture(): Promise<FakeContract> {
-  const fakeContract = await smock.fake('PrePOMarket')
-  return fakeContract
-}
-
 export async function prePOMarketAttachFixture(
   market: string | CreateMarketResult
 ): Promise<PrePOMarket> {
   const marketAddress: string = typeof market !== 'string' ? market.market : market
+  const factory = await ethers.getContractFactory('PrePOMarket')
+  return factory.attach(marketAddress) as PrePOMarket
+}
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const prePOMarket: any = await ethers.getContractFactory('PrePOMarket')
-  return prePOMarket.attach(marketAddress) as PrePOMarket
+export function fakePrePOMarketFixture(): Promise<FakeContract> {
+  return smock.fake('PrePOMarket')
 }

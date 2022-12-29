@@ -3,5 +3,5 @@ import { AllowedCollateralCaller } from '../../types/generated'
 
 export async function allowedCollateralCallerFixture(): Promise<AllowedCollateralCaller> {
   const factory = await ethers.getContractFactory('AllowedCollateralCaller')
-  return (await factory.deploy()) as unknown as AllowedCollateralCaller
+  return (await factory.deploy()) as AllowedCollateralCaller
 }

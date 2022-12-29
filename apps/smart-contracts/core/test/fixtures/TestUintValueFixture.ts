@@ -8,11 +8,10 @@ export async function testUintValueFixture(): Promise<TestUintValue> {
 }
 
 export async function smockTestUintValueFixture(): Promise<MockContract> {
-  const smockFactory = await smock.mock('TestUintValue')
-  return (await smockFactory.deploy()) as MockContract
+  const mockFactory = await smock.mock('TestUintValue')
+  return (await mockFactory.deploy()) as MockContract
 }
 
-export async function fakeTestUintValueFixture(): Promise<FakeContract<TestUintValue>> {
-  const fakeContract = await smock.fake<TestUintValue>('TestUintValue')
-  return fakeContract
+export function fakeTestUintValueFixture(): Promise<FakeContract<TestUintValue>> {
+  return smock.fake<TestUintValue>('TestUintValue')
 }

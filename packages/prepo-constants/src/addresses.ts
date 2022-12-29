@@ -5,7 +5,7 @@ export type ImportantAddress = {
   [key in SupportedNetworks]?: string
 }
 
-export type ImportantKeywords = 'GOVERNANCE' | 'USDC'
+export type ImportantKeywords = 'GOVERNANCE' | 'USDC' | 'UNIV3_FACTORY'
 
 export type ImportantAddresses = {
   [key in ImportantKeywords]?: ImportantAddress
@@ -20,6 +20,10 @@ export const PREPO_ADDRESSES: ImportantAddresses = {
     // This is not an actual USDC contract, but an instance of MockBaseToken
     arbitrumTestnet: '0xD0778E8A78E95f612A95A3636141435253131103',
     arbitrumOne: '0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8',
+  },
+  UNIV3_FACTORY: {
+    arbitrumTestnet: '0x1F98431c8aD98523631AE4a59f267346ea31F984',
+    arbitrumOne: '0x1F98431c8aD98523631AE4a59f267346ea31F984',
   },
 }
 

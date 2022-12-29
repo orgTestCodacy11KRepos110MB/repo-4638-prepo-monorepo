@@ -30,3 +30,5 @@ export const FALLBACK_PROVIDER_CONFIG = {
   STALL_TIMEOUT: SEC_IN_MS,
   QUORUM: 1,
 }
+
+export const POOL_FEE_TIER = 10000

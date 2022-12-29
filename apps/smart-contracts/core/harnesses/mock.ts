@@ -38,11 +38,7 @@ export class MockCore extends Base {
     return this._instance
   }
 
-  public async init(
-    ethers: HardhatEthersHelpers,
-    globalDepositCap: BigNumber,
-    userDepositCap: BigNumber
-  ): Promise<MockCore> {
+  public async init(ethers: HardhatEthersHelpers): Promise<MockCore> {
     this.ethers = ethers
     this.accounts = await ethers.getSigners()
     this.baseToken = await smockTestERC20Fixture('Test USDC', 'TUSDC', 6)
@@ -57,7 +53,7 @@ export class MockCore extends Base {
     this.collateral.depositHook.allowlist = await smockAccountListFixture()
     this.collateral.withdrawHook = await smockWithdrawHookFixture()
     this.collateral.managerWithdrawHook = await smockManagerWithdrawHookFixture()
-    this.depositRecord = await smockDepositRecordFixture(globalDepositCap, userDepositCap)
+    this.depositRecord = await smockDepositRecordFixture()
     this.tokenSender = await smockTokenSenderFixture(this.rewardToken.address)
     this.markets = {}
     return this

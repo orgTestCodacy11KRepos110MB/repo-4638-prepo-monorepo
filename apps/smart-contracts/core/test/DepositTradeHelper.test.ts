@@ -38,7 +38,7 @@ describe('=> DepositTradeHelper', () => {
   }
 
   beforeEach(async () => {
-    core = await MockCore.Instance.init(ethers, parseEther('100000'), parseEther('1000'))
+    core = await MockCore.Instance.init(ethers)
     ;[deployer, user] = core.accounts
     swapRouter = await fakeSwapRouterFixture()
     depositTradeHelper = await depositTradeHelperFixture(

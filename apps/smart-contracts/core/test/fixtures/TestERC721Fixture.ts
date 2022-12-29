@@ -5,6 +5,6 @@ export async function testERC721Fixture(
   tokenName: string,
   tokenSymbol: string
 ): Promise<TestERC721> {
-  const testERC721 = await ethers.getContractFactory('TestERC721')
-  return (await testERC721.deploy(tokenName, tokenSymbol)) as TestERC721
+  const factory = await ethers.getContractFactory('TestERC721')
+  return (await factory.deploy(tokenName, tokenSymbol)) as TestERC721
 }

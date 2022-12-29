@@ -7,8 +7,8 @@ export async function testERC20Fixture(
   tokenSymbol: string,
   decimals: number
 ): Promise<TestERC20> {
-  const testERC20 = await ethers.getContractFactory('TestERC20')
-  return (await testERC20.deploy(tokenName, tokenSymbol, decimals)) as TestERC20
+  const factory = await ethers.getContractFactory('TestERC20')
+  return (await factory.deploy(tokenName, tokenSymbol, decimals)) as TestERC20
 }
 
 export async function smockTestERC20Fixture(
@@ -16,6 +16,6 @@ export async function smockTestERC20Fixture(
   tokenSymbol: string,
   decimals: number
 ): Promise<MockContract<TestERC20>> {
-  const smockFactory = await smock.mock<TestERC20__factory>('TestERC20')
-  return smockFactory.deploy(tokenName, tokenSymbol, decimals)
+  const mockFactory = await smock.mock<TestERC20__factory>('TestERC20')
+  return mockFactory.deploy(tokenName, tokenSymbol, decimals)
 }

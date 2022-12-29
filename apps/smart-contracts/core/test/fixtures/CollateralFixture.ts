@@ -21,13 +21,12 @@ export async function smockCollateralFixture(
   baseToken: string,
   baseTokenDecimals: number
 ): Promise<MockContract<Collateral>> {
-  const factory = await smock.mock<Collateral__factory>('Collateral')
-  const contract = await factory.deploy(baseToken, baseTokenDecimals)
-  await contract.initialize(name, symbol)
-  return contract
+  const mockFactory = await smock.mock<Collateral__factory>('Collateral')
+  const mockContract = await mockFactory.deploy(baseToken, baseTokenDecimals)
+  await mockContract.initialize(name, symbol)
+  return mockContract
 }
 
-export async function fakeCollateralFixture(): Promise<FakeContract<Collateral>> {
-  const fakeContract = await smock.fake<Collateral>('Collateral')
-  return fakeContract
+export function fakeCollateralFixture(): Promise<FakeContract<Collateral>> {
+  return smock.fake<Collateral>('Collateral')
 }
