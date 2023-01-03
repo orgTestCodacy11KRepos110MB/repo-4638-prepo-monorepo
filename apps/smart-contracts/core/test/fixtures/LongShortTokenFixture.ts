@@ -1,6 +1,8 @@
 import { ethers } from 'hardhat'
 import { FakeContract, MockContract, smock } from '@defi-wonderland/smock'
-import { LongShortToken, LongShortToken__factory } from '../../types/generated'
+import { Create2Address } from 'prepo-hardhat'
+import { Create2Deployer, LongShortToken, LongShortToken__factory } from '../../types/generated'
+import { findDeployEvent } from '../../helpers'
 
 export async function LongShortTokenFixture(
   tokenName: string,
@@ -13,6 +15,19 @@ export async function LongShortTokenFixture(
 export async function LongShortTokenAttachFixture(tokenAddress: string): Promise<LongShortToken> {
   const factory = await ethers.getContractFactory('LongShortToken')
   return factory.attach(tokenAddress) as LongShortToken
+}
+
+export async function create2LongShortTokenFixture(
+  tokenName: string,
+  tokenSymbol: string,
+  deployerFactory: Create2Deployer,
+  create2Address: Create2Address
+): Promise<LongShortToken> {
+  const factory = await ethers.getContractFactory('LongShortToken')
+  const deployTx = factory.getDeployTransaction(tokenName, tokenSymbol)
+  const initCode = deployTx.data
+  await deployerFactory.deploy(initCode, create2Address.salt)
+  return LongShortTokenAttachFixture(create2Address.address)
 }
 
 export async function smockLongShortTokenFixture(

@@ -2,14 +2,25 @@ import chai, { expect } from 'chai'
 import { ethers, network } from 'hardhat'
 import { smock } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
-import { BigNumber, Contract } from 'ethers'
+import { BigNumber } from 'ethers'
 import { POOL_FEE_TIER, getPrePOAddressForNetwork } from 'prepo-constants'
 import { utils } from 'prepo-hardhat'
 import { parseEther } from '@ethersproject/units'
-import { attachUniV3Factory } from './fixtures/UniswapFixtures'
+import { create2DeployerFixture } from './fixtures/Create2DeployerFixtures'
+import {
+  attachUniV3Factory,
+  attachUniV3Pool,
+  attachNonfungiblePositionManager,
+} from './fixtures/UniswapFixtures'
 import { Snapshotter } from './snapshots'
 import { MockCore } from '../harnesses/mock'
 import { PrePOMarketParams } from '../types'
+import {
+  Create2Deployer,
+  UniswapV3Pool,
+  UniswapV3Factory,
+  NonfungiblePositionManager,
+} from '../types/generated'
 
 const { nowPlusMonths } = utils
 
@@ -22,7 +33,10 @@ describe('=> Functional Testing with Arbitrage Trades', () => {
   let governance: SignerWithAddress
   let user: SignerWithAddress
   let defaultMarketParams: PrePOMarketParams
-  let univ3Factory: Contract
+  let create2Deployer: Create2Deployer
+  let univ3Factory: UniswapV3Factory
+  let longPool: UniswapV3Pool
+  let positionManager: NonfungiblePositionManager
   const TEST_NAME_SUFFIX = 'preSPACEX 2000-10000 31-December 2022'
   const TEST_SYMBOL_SUFFIX = 'preSPACEX_2000_10000_31_DEC_22'
   const TEST_FLOOR_PAYOUT = ethers.utils.parseEther('0.2')
@@ -56,19 +70,30 @@ describe('=> Functional Testing with Arbitrage Trades', () => {
       ceilingValuation: TEST_CEILING_VAL,
       expiryTime: TEST_EXPIRY,
     }
+    create2Deployer = await create2DeployerFixture()
     await core.createAndAddMockMarket(
-      deployer,
       TEST_NAME_SUFFIX,
       TEST_SYMBOL_SUFFIX,
-      defaultMarketParams
+      defaultMarketParams,
+      create2Deployer
     )
     univ3Factory = await attachUniV3Factory(
       getPrePOAddressForNetwork('UNIV3_FACTORY', 'arbitrumOne')
     )
     await univ3Factory.createPool(
-      core.markets[TEST_NAME_SUFFIX].address,
+      core.markets[TEST_NAME_SUFFIX].longToken.address,
       core.collateral.address,
       POOL_FEE_TIER
+    )
+    longPool = await attachUniV3Pool(
+      await univ3Factory.getPool(
+        core.markets[TEST_NAME_SUFFIX].longToken.address,
+        core.collateral.address,
+        POOL_FEE_TIER
+      )
+    )
+    positionManager = await attachNonfungiblePositionManager(
+      getPrePOAddressForNetwork('UNIV3_POSITION_MANAGER', 'arbitrumOne')
     )
     await snapshotter.saveSnapshot()
   })

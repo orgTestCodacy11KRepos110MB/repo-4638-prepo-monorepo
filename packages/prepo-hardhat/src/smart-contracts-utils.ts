@@ -1,7 +1,14 @@
-import { BigNumber, providers, Contract, ContractTransaction, Signature, BaseContract } from 'ethers'
+import { BigNumber, providers, Contract, ContractTransaction, Signature } from 'ethers'
 import { parse, stringify } from 'envfile'
 import { ChainId, NETWORKS } from 'prepo-constants'
-import { hexZeroPad, splitSignature } from 'ethers/lib/utils'
+import {
+  BytesLike,
+  formatBytes32String,
+  getCreate2Address,
+  hexZeroPad,
+  keccak256,
+  splitSignature,
+} from 'ethers/lib/utils'
 import { AdminClient } from 'defender-admin-client'
 import { MockContract, SmockContractBase } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
@@ -163,6 +170,48 @@ function mineBlock(provider: providers.Web3Provider, timestamp: number): Promise
   return provider.send('evm_mine', [timestamp])
 }
 
+export type Create2Address = {
+  salt: string
+  address: string
+}
+
+/**
+ * Finds a create2 address less than `upperBoundAddress` for a specific
+ * contract and deployer.
+ * @param deployer Address of contract deployer
+ * @param initCode Contract's bytecode w/ initialization parameters
+ * @param upperBoundAddress The address to compare against
+ * @returns Address and salt below `upperBoundAddress`
+ */
+function generateAddressLessThan(
+  deployer: string,
+  initCode: BytesLike,
+  upperBoundAddress: string
+): Create2Address {
+  const hashedInitCode = keccak256(initCode)
+  const upperBoundAddressBN = BigNumber.from(upperBoundAddress)
+  let randomString: string
+  let currSalt: string
+  let currAddress: string
+  do {
+    /**
+     * Generates a random string using only the built-in Math library.
+     * Takes a random number and converts it to a string, using radix
+     * 36, encompassing 0-9 + 26 letters A-Z. Adds 1 to ensure an empty
+     * string is never generated.
+     * Substring is optional, used here to limit the size/complexity of
+     * the string generated for test purposes.
+     */
+    randomString = (Math.random() + 1).toString(36).substring(7)
+    currSalt = formatBytes32String(randomString)
+    currAddress = getCreate2Address(deployer, currSalt, hashedInitCode)
+  } while (BigNumber.from(currAddress).gt(upperBoundAddressBN))
+  return {
+    salt: currSalt,
+    address: currAddress,
+  }
+}
+
 export const utils = {
   expandToDecimals,
   expandTo6Decimals,
@@ -179,4 +228,5 @@ export const utils = {
   mineBlocks,
   mineBlock,
   getPermitSignature,
+  generateAddressLessThan,
 }

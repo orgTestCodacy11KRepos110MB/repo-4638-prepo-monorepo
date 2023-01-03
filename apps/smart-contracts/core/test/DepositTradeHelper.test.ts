@@ -1,16 +1,17 @@
 import chai, { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
-import { formatBytes32String, parseEther } from 'ethers/lib/utils'
-import { BigNumber, Contract } from 'ethers'
-import { FakeContract, MockContract, smock } from '@defi-wonderland/smock'
+import { formatBytes32String, parseUnits, parseEther } from 'ethers/lib/utils'
+import { BigNumber } from 'ethers'
+import { FakeContract, smock } from '@defi-wonderland/smock'
 import { utils } from 'prepo-hardhat'
 import { JUNK_ADDRESS } from 'prepo-constants'
 import { getPermitFromSignature } from './utils'
 import { depositTradeHelperFixture } from './fixtures/DepositTradeHelperFixture'
 import { fakeSwapRouterFixture } from './fixtures/UniswapFixtures'
 import { MockCore } from '../harnesses/mock'
-import { DepositTradeHelper, IDepositTradeHelper } from '../types/generated'
+import { DepositTradeHelper, IDepositTradeHelper, SwapRouter } from '../types/generated'
+import { getCollateralAmount } from '../helpers'
 
 const { getLastTimestamp, setNextTimestamp } = utils
 
@@ -18,7 +19,7 @@ chai.use(smock.matchers)
 
 describe('=> DepositTradeHelper', () => {
   let core: MockCore
-  let swapRouter: FakeContract<Contract>
+  let swapRouter: FakeContract<SwapRouter>
   let depositTradeHelper: DepositTradeHelper
   let deployer: SignerWithAddress
   let user: SignerWithAddress
@@ -74,10 +75,12 @@ describe('=> DepositTradeHelper', () => {
   })
 
   describe('# depositAndTrade', () => {
-    const baseTokenToDeposit = parseEther('1')
+    const baseTokenToDeposit = parseUnits('1', 6)
+    let expectedCollateralMinted: BigNumber
     beforeEach(async () => {
       await core.baseToken.mint(user.address, baseTokenToDeposit)
       core.collateral.depositHook.hook.returns()
+      expectedCollateralMinted = await getCollateralAmount(core.collateral, baseTokenToDeposit)
     })
 
     it('reverts if insufficient base token approval', async () => {
@@ -134,7 +137,9 @@ describe('=> DepositTradeHelper', () => {
       })
 
       it('ignores collateral approval if deadline = 0', async () => {
-        await core.collateral.connect(user).approve(depositTradeHelper.address, baseTokenToDeposit)
+        await core.collateral
+          .connect(user)
+          .approve(depositTradeHelper.address, expectedCollateralMinted)
         expect(junkPermit.deadline).to.eq(0)
         const timestampToSignFor = (await getLastTimestamp(ethers.provider)) + 5
         const baseTokenPermit = await getPermitFromSignature(
@@ -156,7 +161,9 @@ describe('=> DepositTradeHelper', () => {
 
       it('ignores both permits if deadlines = 0', async () => {
         await core.baseToken.connect(user).approve(depositTradeHelper.address, baseTokenToDeposit)
-        await core.collateral.connect(user).approve(depositTradeHelper.address, baseTokenToDeposit)
+        await core.collateral
+          .connect(user)
+          .approve(depositTradeHelper.address, expectedCollateralMinted)
         expect(junkPermit.deadline).to.eq(0)
 
         const tx = await depositTradeHelper
@@ -170,7 +177,9 @@ describe('=> DepositTradeHelper', () => {
       })
 
       it('processes base token approval permit from user', async () => {
-        await core.collateral.connect(user).approve(depositTradeHelper.address, baseTokenToDeposit)
+        await core.collateral
+          .connect(user)
+          .approve(depositTradeHelper.address, expectedCollateralMinted)
         expect(await core.baseToken.allowance(user.address, depositTradeHelper.address)).to.eq(0)
         const timestampToSignFor = (await getLastTimestamp(ethers.provider)) + 5
         const baseTokenPermit = await getPermitFromSignature(
@@ -324,7 +333,7 @@ describe('=> DepositTradeHelper', () => {
         expect(core.collateral.transferFrom.atCall(0)).calledWith(
           user.address,
           depositTradeHelper.address,
-          baseTokenToDeposit
+          expectedCollateralMinted
         )
         expect(core.collateral.transferFrom).calledBefore(swapRouter.exactInputSingle)
       })

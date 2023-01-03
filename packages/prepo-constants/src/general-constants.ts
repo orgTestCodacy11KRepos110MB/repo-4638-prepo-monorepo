@@ -32,3 +32,5 @@ export const FALLBACK_PROVIDER_CONFIG = {
 }
 
 export const POOL_FEE_TIER = 10000
+
+export const USDC_DENOMINATOR = 1000000

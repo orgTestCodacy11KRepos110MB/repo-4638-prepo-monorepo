@@ -42,8 +42,8 @@ export type MarketWithHooks = PrePOMarket & {
 
 // No hash because smock PrePOMarkets are not created using factories
 export type MockMarketWithHooks = MockContract<PrePOMarket> & {
-  longToken?: MockContract<LongShortToken>
-  shortToken?: MockContract<LongShortToken>
+  longToken?: LongShortToken
+  shortToken?: LongShortToken
   mintHook?: MockContract<MintHook>
   redeemHook?: MockContract<RedeemHook>
 }

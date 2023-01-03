@@ -4,7 +4,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { MockContract } from '@defi-wonderland/smock'
 import { Base } from './base'
 import { MockCollateralWithHooks, MockMarketWithHooks, PrePOMarketParams } from '../types'
-import { DepositRecord, TestERC20, TokenSender } from '../types/generated'
+import { Create2Deployer, DepositRecord, TestERC20, TokenSender } from '../types/generated'
 import { smockCollateralFixture } from '../test/fixtures/CollateralFixture'
 import {
   smockAccountListFixture,
@@ -15,7 +15,7 @@ import {
 import { smockTestERC20Fixture } from '../test/fixtures/TestERC20Fixture'
 import { smockDepositRecordFixture } from '../test/fixtures/DepositRecordFixture'
 import { smockTokenSenderFixture } from '../test/fixtures/TokenSenderFixture'
-import { smockLongShortTokenFixture } from '../test/fixtures/LongShortTokenFixture'
+import { create2LongShortTokenFixture } from '../test/fixtures/LongShortTokenFixture'
 import { smockPrePOMarketFixture } from '../test/fixtures/PrePOMarketFixture'
 
 export class MockCore extends Base {
@@ -47,7 +47,7 @@ export class MockCore extends Base {
       'prePO USDC Collateral',
       'preUSDC',
       this.baseToken.address,
-      18
+      6
     )
     this.collateral.depositHook = await smockDepositHookFixture()
     this.collateral.depositHook.allowlist = await smockAccountListFixture()
@@ -60,26 +60,35 @@ export class MockCore extends Base {
   }
 
   public async createAndAddMockMarket(
-    deployer: SignerWithAddress,
     tokenNameSuffix: string,
     tokenSymbolSuffix: string,
-    marketParams: PrePOMarketParams
+    marketParams: PrePOMarketParams,
+    deployerFactory: Create2Deployer
   ): Promise<void> {
-    const longToken = await smockLongShortTokenFixture(
-      `LONG ${tokenNameSuffix}`,
-      `L_${tokenSymbolSuffix}`
+    const tokenSalts = await this.generateLongShortSalts(
+      deployerFactory.address,
+      tokenNameSuffix,
+      tokenSymbolSuffix
     )
-    const shortToken = await smockLongShortTokenFixture(
+    const longToken = await create2LongShortTokenFixture(
+      `LONG ${tokenNameSuffix}`,
+      `L_${tokenSymbolSuffix}`,
+      deployerFactory,
+      tokenSalts[0]
+    )
+    const shortToken = await create2LongShortTokenFixture(
       `SHORT ${tokenNameSuffix}`,
-      `S_${tokenSymbolSuffix}`
+      `S_${tokenSymbolSuffix}`,
+      deployerFactory,
+      tokenSalts[1]
     )
     const market = await smockPrePOMarketFixture(
       marketParams,
       longToken.address,
       shortToken.address
     )
-    await longToken.connect(deployer).transferOwnership(market.address)
-    await shortToken.connect(deployer).transferOwnership(market.address)
+    await deployerFactory.transferOwnership(longToken.address, market.address)
+    await deployerFactory.transferOwnership(shortToken.address, market.address)
     this.markets[tokenNameSuffix] = market
     this.markets[tokenNameSuffix].longToken = longToken
     this.markets[tokenNameSuffix].shortToken = shortToken

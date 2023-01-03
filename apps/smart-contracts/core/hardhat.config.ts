@@ -56,6 +56,7 @@ const config: HardhatUserConfig = {
   typechain: {
     outDir: 'types/generated',
     target: 'ethers-v5',
+    externalArtifacts: ['./externalArtifacts/**/*.json'],
   },
   /**
    * This can't be put in the shared local config since the `etherscan` field
