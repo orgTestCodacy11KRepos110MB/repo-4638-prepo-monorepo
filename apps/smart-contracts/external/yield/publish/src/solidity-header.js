@@ -1,37 +1,37 @@
-'use strict';
+'use strict'
 
 module.exports = {
-	addSolidityHeader({ content, contract }) {
-		const deps = Array.from(
-			// remove dupes via a set
-			new Set(
-				// get all potential extensions
-				(content.match(/\ncontract [\w]+ is ([\w,\s]+) {/g) || [])
-					.map(text => text.match(/is ([\w\s,]+) {/)[1].split(','))
-					// flatten
-					.reduce((a, b) => a.concat(b), [])
-					// and trim spaces
-					.map(x => x.trim())
-					// sorting alphabetically
-					.sort()
-			)
-		);
+  addSolidityHeader({ content, contract }) {
+    const deps = Array.from(
+      // remove dupes via a set
+      new Set(
+        // get all potential extensions
+        (content.match(/\ncontract [\w]+ is ([\w,\s]+) {/g) || [])
+          .map((text) => text.match(/is ([\w\s,]+) {/)[1].split(','))
+          // flatten
+          .reduce((a, b) => a.concat(b), [])
+          // and trim spaces
+          .map((x) => x.trim())
+          // sorting alphabetically
+          .sort()
+      )
+    )
 
-		const libraries = Array.from(
-			new Set(
-				// get all potential extensions
-				(content.match(/\nlibrary [\w]+ {/g) || [])
-					.map(text =>
-						text
-							.match(/([\w]+) {/)[1]
-							// and trim spaces
-							.trim()
-					)
-					.sort()
-			)
-		);
+    const libraries = Array.from(
+      new Set(
+        // get all potential extensions
+        (content.match(/\nlibrary [\w]+ {/g) || [])
+          .map((text) =>
+            text
+              .match(/([\w]+) {/)[1]
+              // and trim spaces
+              .trim()
+          )
+          .sort()
+      )
+    )
 
-		return `/*
+    return `/*
    ____            __   __        __   _
   / __/__ __ ___  / /_ / /  ___  / /_ (_)__ __
  _\\ \\ / // // _ \\/ __// _ \\/ -_)/ __// / \\ \\ /
@@ -70,6 +70,6 @@ module.exports = {
 */
 
 ${content}
-    `;
-	},
-};
+    `
+  },
+}
