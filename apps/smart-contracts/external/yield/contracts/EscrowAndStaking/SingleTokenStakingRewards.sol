@@ -155,7 +155,7 @@ contract SingleTokenStakingRewards is
     // This keeps the reward rate in the right range, preventing overflows due to
     // very high values of rewardRate in the earned and rewardsPerToken functions;
     // Reward + leftover must be less than 2^256 / 10^18 to avoid overflow.
-    uint256 balance = rewardsToken.balanceOf(address(this));
+    uint256 balance = rewardsToken.balanceOf(address(this)).sub(_totalSupply);
     require(
       rewardRate <= balance.div(rewardsDuration),
       "Provided reward too high"

@@ -5,9 +5,16 @@ const { toBN } = require('web3-utils')
 
 const { assert } = require('./utils/common')
 
-const { fastForward, toUnit, currentTime } = require('./utils')()
+const { fastForward, toUnit, currentTime, setNextTimestamp } = require('./utils')()
 
-const { onlyGivenAddressCanInvoke, encodeCall } = require('./utils/helpers')
+const {
+  onlyGivenAddressCanInvoke,
+  encodeCall,
+  getLeftoverRewards,
+  getExpectedRewardForDuration,
+  getNearestLowerMultiple,
+  getNearestGreaterMultiple,
+} = require('./utils/helpers')
 
 contract('SingleTokenStakingRewards', (accounts) => {
   const [owner, initialCreator, mockRewardsDistributionAddress] = accounts
@@ -514,31 +521,152 @@ contract('SingleTokenStakingRewards', (accounts) => {
   })
 
   describe('notifyRewardAmount()', () => {
-    it('Reverts if the provided reward is greater than the balance.', async () => {
-      const rewardValue = toUnit(1000)
-      await rewardsToken.transfer(StakingRewardsDeployed.address, rewardValue, { from: owner })
-      await assert.revert(
-        StakingRewardsDeployed.notifyRewardAmount(rewardValue.add(toUnit(0.1)), {
-          from: owner,
-        }),
-        'Provided reward too high'
-      )
-    })
-
-    it('Reverts if the provided reward is greater than the balance, plus rolled-over balance.', async () => {
-      const rewardValue = toUnit(1000)
-      await rewardsToken.transfer(StakingRewardsDeployed.address, rewardValue, { from: owner })
-      await StakingRewardsDeployed.notifyRewardAmount(rewardValue, {
+    let rewardValue
+    let rewardsDuration
+    beforeEach(async () => {
+      /**
+       * toUnit is a web3.js method for converting amounts to token amounts,
+       * comparable to ether's parseEther().
+       */
+      rewardValue = toUnit(1000)
+      await rewardsToken.transfer(StakingRewardsDeployed.address, rewardValue, {
         from: owner,
       })
-      await rewardsToken.transfer(StakingRewardsDeployed.address, rewardValue, { from: owner })
-      // Now take into account any leftover quantity.
-      await assert.revert(
-        StakingRewardsDeployed.notifyRewardAmount(rewardValue.add(toUnit(0.1)), {
-          from: owner,
-        }),
-        'Provided reward too high'
-      )
+      rewardsDuration = await StakingRewardsDeployed.rewardsDuration()
+    })
+
+    /**
+     * reward rate * reward duration cannot exceed balance for rewards.
+     * The contract does not directly compare the balance and the amount
+     * needed for reward, but calculates the maximum reward rate based
+     * on the balance available for rewards.
+     *
+     * Because this calculation involves integer division and results in
+     * some precision loss, we cannot just add 1 to the balance reserved
+     * for rewards as a test input. We need to find the nearest reward amount
+     * that will result in a calculated reward rate that exceeds the max
+     * reward rate.
+     */
+    describe('if no stakers', () => {
+      /**
+       * These existing testcases from Thales have been modified and moved
+       * under `if no stakers`, since Thales's existing tests only tested
+       * situations with no existing stakers.
+       *
+       * The testcases have been heavily modified to use calculated balances
+       * that account for integer division loss explained above. Thales's
+       * testcases simply used magic amounts that were high enough in
+       * precision so that it didn't matter and because they didn't need to verify
+       * amounts were calculated correctly (understandably because they didn't
+       * modify the logic like we are).
+       */
+      let stakingContractBalance
+      beforeEach(async () => {
+        stakingContractBalance = await rewardsToken.balanceOf(StakingRewardsDeployed.address)
+      })
+
+      describe('if period finished', () => {
+        it('reverts if reward > balance', async () => {
+          assert.bnEqual(await StakingRewardsDeployed.totalSupply(), toBN(0))
+          /**
+           * Find next greater multiple of rewardsDuration to account for integer
+           * division loss (because it divides by rewardsDuration).
+           */
+          const newRewardValue = getNearestGreaterMultiple(stakingContractBalance, rewardsDuration)
+
+          await assert.revert(
+            StakingRewardsDeployed.notifyRewardAmount(newRewardValue, {
+              from: owner,
+            }),
+            'Provided reward too high'
+          )
+        })
+
+        it('starts new reward if reward > balance but rounds down to balance', async () => {
+          assert.bnEqual(await StakingRewardsDeployed.totalSupply(), toBN(0))
+          /**
+           * Find next greater multiple of rewardsDuration to account for integer
+           * division loss (because it divides by rewardsDuration).
+           */
+          const newRewardValue = getNearestGreaterMultiple(
+            stakingContractBalance,
+            rewardsDuration
+          ).sub(toBN(1))
+
+          await StakingRewardsDeployed.notifyRewardAmount(newRewardValue, {
+            from: owner,
+          })
+
+          const expectedRewardForDuration = await getExpectedRewardForDuration(
+            newRewardValue,
+            await StakingRewardsDeployed.periodFinish(),
+            StakingRewardsDeployed
+          )
+          assert.bnEqual(
+            await StakingRewardsDeployed.getRewardForDuration(),
+            expectedRewardForDuration
+          )
+          const lastTimestamp = toBN(await currentTime())
+          assert.bnEqual(await StakingRewardsDeployed.lastUpdateTime(), lastTimestamp)
+          assert.bnEqual(
+            await StakingRewardsDeployed.periodFinish(),
+            lastTimestamp.add(rewardsDuration)
+          )
+        })
+
+        it('starts new reward if reward = balance', async () => {
+          assert.bnEqual(await StakingRewardsDeployed.totalSupply(), toBN(0))
+          const newRewardValue = stakingContractBalance
+
+          await StakingRewardsDeployed.notifyRewardAmount(newRewardValue, {
+            from: owner,
+          })
+
+          const expectedRewardForDuration = await getExpectedRewardForDuration(
+            newRewardValue,
+            await StakingRewardsDeployed.periodFinish(),
+            StakingRewardsDeployed
+          )
+          assert.bnEqual(
+            await StakingRewardsDeployed.getRewardForDuration(),
+            expectedRewardForDuration
+          )
+          const lastTimestamp = toBN(await currentTime())
+          assert.bnEqual(await StakingRewardsDeployed.lastUpdateTime(), lastTimestamp)
+          assert.bnEqual(
+            await StakingRewardsDeployed.periodFinish(),
+            lastTimestamp.add(rewardsDuration)
+          )
+        })
+
+        it('starts new reward if reward < balance', async () => {
+          /**
+           * Find next lower multiple of rewardsDuration to account for integer
+           * division loss (because it divides by rewardsDuration).
+           */
+          const newRewardValue = getNearestLowerMultiple(stakingContractBalance, rewardsDuration)
+
+          await StakingRewardsDeployed.notifyRewardAmount(newRewardValue, {
+            from: owner,
+          })
+
+          const expectedRewardForDuration = await getExpectedRewardForDuration(
+            newRewardValue,
+            await StakingRewardsDeployed.periodFinish(),
+            StakingRewardsDeployed
+          )
+          assert.bnEqual(
+            await StakingRewardsDeployed.getRewardForDuration(),
+            expectedRewardForDuration
+          )
+          const lastTimestamp = toBN(await currentTime())
+          assert.bnEqual(await StakingRewardsDeployed.lastUpdateTime(), lastTimestamp)
+          assert.bnEqual(
+            await StakingRewardsDeployed.periodFinish(),
+            lastTimestamp.add(rewardsDuration)
+          )
+        })
+      })
     })
   })
 })

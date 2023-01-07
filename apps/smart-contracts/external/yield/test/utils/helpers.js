@@ -300,4 +300,54 @@ module.exports = {
       Big(reserve1).div(reserve0).sqrt().mul(Big(2).pow(96)).round().toString()
     )
   },
+
+  async getLeftoverRewards(timeRewardsNotified, stakingContract) {
+    const periodFinish = await stakingContract.periodFinish()
+    const remainingTime = periodFinish.sub(web3.utils.toBN(timeRewardsNotified))
+    const rewardRate = await stakingContract.rewardRate()
+    return rewardRate.mul(remainingTime)
+  },
+
+  async getNewRewardRate(newReward, timeRewardsNotified, stakingContract) {
+    const rewardTotal = newReward.add(
+      await module.exports.getLeftoverRewards(timeRewardsNotified, stakingContract)
+    )
+    const rewardsDuration = await stakingContract.rewardsDuration()
+    return rewardTotal.div(rewardsDuration)
+  },
+
+  /**
+   * For testing, we want to verify the total amount to be rewarded
+   * over the new period after `notifyRewardAmount()` is called.
+   *
+   * The time when `notifyRewardAmount` is called is needed to determine
+   * if there is a leftover amount to include. If calling for a testcase
+   * where there is no ongoing period, can just pass in periodFinish,
+   * indicating there is no leftover amount.
+   */
+  async getExpectedRewardForDuration(newReward, timeRewardsNotified, stakingContract) {
+    const newRewardRate = await module.exports.getNewRewardRate(
+      newReward,
+      timeRewardsNotified,
+      stakingContract
+    )
+    const rewardsDuration = await stakingContract.rewardsDuration()
+    return newRewardRate.mul(rewardsDuration)
+  },
+
+  /**
+   * Defining these since can't use JS Math on
+   * BigNumber values.
+   */
+  getNearestGreaterMultiple(number, divisor) {
+    const remainder = number.mod(divisor)
+    if (remainder.eq(0)) return number.add(divisor)
+    return number.sub(remainder).add(divisor)
+  },
+
+  getNearestLowerMultiple(number, divisor) {
+    const remainder = number.mod(divisor)
+    if (remainder.eq(0)) return number.sub(divisor)
+    return number.sub(remainder).sub(divisor)
+  },
 }

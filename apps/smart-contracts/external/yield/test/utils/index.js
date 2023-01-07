@@ -553,6 +553,14 @@ module.exports = ({ web3 } = {}) => {
     return new ethers.Contract(target.address, sourceData.abi, wallet || provider)
   }
 
+  const setNextTimestamp = async (timestamp) => {
+    const params = {
+      method: 'evm_setNextBlockTimestamp',
+      params: [timestamp],
+    }
+    await send(params)
+  }
+
   return {
     mineBlock,
     fastForward,
@@ -593,5 +601,7 @@ module.exports = ({ web3 } = {}) => {
     loadLocalUsers,
 
     setupProvider,
+
+    setNextTimestamp,
   }
 }
