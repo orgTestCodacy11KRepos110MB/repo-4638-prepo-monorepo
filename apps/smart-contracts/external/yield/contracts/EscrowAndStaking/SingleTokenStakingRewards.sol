@@ -26,7 +26,6 @@ contract SingleTokenStakingRewards is
   uint256 public periodFinish;
   uint256 public rewardRate;
   uint256 public rewardsDuration;
-  uint256 public totalRewards;
   uint256 public lastUpdateTime;
   uint256 public rewardPerTokenStored;
 
