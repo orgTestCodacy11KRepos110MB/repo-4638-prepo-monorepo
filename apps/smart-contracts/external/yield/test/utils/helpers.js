@@ -350,4 +350,10 @@ module.exports = {
     if (remainder.eq(0)) return number.sub(divisor)
     return number.sub(remainder).sub(divisor)
   },
+
+  async getRewardsBalance(rewardsToken, stakingContract) {
+    const stakingContractBalance = await rewardsToken.balanceOf(stakingContract.address)
+    const totalSupply = await stakingContract.totalSupply()
+    return stakingContractBalance.sub(totalSupply)
+  },
 }

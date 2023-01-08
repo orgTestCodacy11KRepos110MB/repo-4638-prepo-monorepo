@@ -14,6 +14,7 @@ const {
   getExpectedRewardForDuration,
   getNearestLowerMultiple,
   getNearestGreaterMultiple,
+  getRewardsBalance,
 } = require('./utils/helpers')
 
 contract('SingleTokenStakingRewards', (accounts) => {
@@ -25,6 +26,12 @@ contract('SingleTokenStakingRewards', (accounts) => {
 
   const WEEK = 604800
   const DAY = 86400
+
+  /**
+   * toUnit is web3-utils version of parseEther, 100 is the default amount
+   * staked in the Thales test suite.
+   */
+  const initialAmountToStake = toUnit(100)
 
   beforeEach(async () => {
     let Thales = artifacts.require('Thales')
@@ -54,7 +61,9 @@ contract('SingleTokenStakingRewards', (accounts) => {
       }
     )
 
-    await stakingToken.transfer(mockRewardsDistributionAddress, toUnit(100), { from: owner })
+    await stakingToken.transfer(mockRewardsDistributionAddress, initialAmountToStake, {
+      from: owner,
+    })
   })
 
   describe('Constructor & Settings', () => {
@@ -561,11 +570,20 @@ contract('SingleTokenStakingRewards', (accounts) => {
        * modify the logic like we are).
        */
       let stakingContractBalance
-      beforeEach(async () => {
-        stakingContractBalance = await rewardsToken.balanceOf(StakingRewardsDeployed.address)
-      })
-
       describe('if period finished', () => {
+        beforeEach(async () => {
+          await StakingRewardsDeployed.notifyRewardAmount(rewardValue, {
+            from: owner,
+          })
+          await fastForward(WEEK)
+          // transfer rewards for new period
+          await rewardsToken.transfer(StakingRewardsDeployed.address, rewardValue, {
+            from: owner,
+          })
+          // refetch balance after new rewards are transferred
+          stakingContractBalance = await rewardsToken.balanceOf(StakingRewardsDeployed.address)
+        })
+
         it('reverts if reward > balance', async () => {
           assert.bnEqual(await StakingRewardsDeployed.totalSupply(), toBN(0))
           /**
@@ -655,6 +673,406 @@ contract('SingleTokenStakingRewards', (accounts) => {
             await StakingRewardsDeployed.periodFinish(),
             StakingRewardsDeployed
           )
+          assert.bnEqual(
+            await StakingRewardsDeployed.getRewardForDuration(),
+            expectedRewardForDuration
+          )
+          const lastTimestamp = toBN(await currentTime())
+          assert.bnEqual(await StakingRewardsDeployed.lastUpdateTime(), lastTimestamp)
+          assert.bnEqual(
+            await StakingRewardsDeployed.periodFinish(),
+            lastTimestamp.add(rewardsDuration)
+          )
+        })
+      })
+
+      describe('if period not finished', () => {
+        let timeToNotifyRewards
+        beforeEach(async () => {
+          await StakingRewardsDeployed.notifyRewardAmount(rewardValue, {
+            from: owner,
+          })
+          // transfer rewards for new period
+          await rewardsToken.transfer(StakingRewardsDeployed.address, rewardValue, {
+            from: owner,
+          })
+          // refetch balance after new rewards are transferred
+          stakingContractBalance = await rewardsToken.balanceOf(StakingRewardsDeployed.address)
+          timeToNotifyRewards = (await currentTime()) + 10
+        })
+
+        it('reverts if reward after rollover > balance', async () => {
+          assert.bnEqual(await StakingRewardsDeployed.totalSupply(), toBN(0))
+          /**
+           * Find the exact amount that will result in a reward rate above
+           * the maximum.
+           */
+          const balanceForHigherRate = getNearestGreaterMultiple(
+            stakingContractBalance,
+            rewardsDuration
+          )
+          const leftoverRewards = await getLeftoverRewards(
+            timeToNotifyRewards,
+            StakingRewardsDeployed
+          )
+          assert.bnGt(leftoverRewards, toBN(0))
+          const newRewardValue = balanceForHigherRate.sub(leftoverRewards)
+          await setNextTimestamp(timeToNotifyRewards)
+
+          await assert.revert(
+            StakingRewardsDeployed.notifyRewardAmount(newRewardValue, {
+              from: owner,
+            }),
+            'Provided reward too high'
+          )
+        })
+
+        it('starts new reward if reward after rollover > balance but rounds down to balance', async () => {
+          assert.bnEqual(await StakingRewardsDeployed.totalSupply(), toBN(0))
+          /**
+           * Find the exact amount that will result in a reward rate above
+           * the maximum.
+           */
+          const balanceForHigherRate = getNearestGreaterMultiple(
+            stakingContractBalance,
+            rewardsDuration
+          )
+          const leftoverRewards = await getLeftoverRewards(
+            timeToNotifyRewards,
+            StakingRewardsDeployed
+          )
+          assert.bnGt(leftoverRewards, toBN(0))
+          // Subtract 1 so that reward rate calculation rounds down
+          const newRewardValue = balanceForHigherRate.sub(leftoverRewards).sub(toBN(1))
+          const expectedRewardForDuration = await getExpectedRewardForDuration(
+            newRewardValue,
+            timeToNotifyRewards,
+            StakingRewardsDeployed
+          )
+          await setNextTimestamp(timeToNotifyRewards)
+
+          await StakingRewardsDeployed.notifyRewardAmount(newRewardValue, {
+            from: owner,
+          })
+
+          assert.bnEqual(
+            await StakingRewardsDeployed.getRewardForDuration(),
+            expectedRewardForDuration
+          )
+          const lastTimestamp = toBN(await currentTime())
+          assert.bnEqual(await StakingRewardsDeployed.lastUpdateTime(), lastTimestamp)
+          assert.bnEqual(
+            await StakingRewardsDeployed.periodFinish(),
+            lastTimestamp.add(rewardsDuration)
+          )
+        })
+
+        it('starts new reward if reward after rollover = balance', async () => {
+          assert.bnEqual(await StakingRewardsDeployed.totalSupply(), toBN(0))
+          const leftoverRewards = await getLeftoverRewards(
+            timeToNotifyRewards,
+            StakingRewardsDeployed
+          )
+          assert.bnGt(leftoverRewards, toBN(0))
+          const newRewardValue = stakingContractBalance.sub(leftoverRewards)
+          const expectedRewardForDuration = await getExpectedRewardForDuration(
+            newRewardValue,
+            timeToNotifyRewards,
+            StakingRewardsDeployed
+          )
+          await setNextTimestamp(timeToNotifyRewards)
+
+          await StakingRewardsDeployed.notifyRewardAmount(newRewardValue, {
+            from: owner,
+          })
+
+          assert.bnEqual(
+            await StakingRewardsDeployed.getRewardForDuration(),
+            expectedRewardForDuration
+          )
+          const lastTimestamp = toBN(await currentTime())
+          assert.bnEqual(await StakingRewardsDeployed.lastUpdateTime(), lastTimestamp)
+          assert.bnEqual(
+            await StakingRewardsDeployed.periodFinish(),
+            lastTimestamp.add(rewardsDuration)
+          )
+        })
+
+        it('starts new reward if reward after rollover < balance', async () => {
+          assert.bnEqual(await StakingRewardsDeployed.totalSupply(), toBN(0))
+          const leftoverRewards = await getLeftoverRewards(
+            timeToNotifyRewards,
+            StakingRewardsDeployed
+          )
+          assert.bnGt(leftoverRewards, toBN(0))
+          const balanceForLowerRate = getNearestLowerMultiple(
+            stakingContractBalance,
+            rewardsDuration
+          )
+          const newRewardValue = balanceForLowerRate.sub(leftoverRewards)
+          const expectedRewardForDuration = await getExpectedRewardForDuration(
+            newRewardValue,
+            timeToNotifyRewards,
+            StakingRewardsDeployed
+          )
+          await setNextTimestamp(timeToNotifyRewards)
+
+          await StakingRewardsDeployed.notifyRewardAmount(newRewardValue, {
+            from: owner,
+          })
+
+          assert.bnEqual(
+            await StakingRewardsDeployed.getRewardForDuration(),
+            expectedRewardForDuration
+          )
+          const lastTimestamp = toBN(await currentTime())
+          assert.bnEqual(await StakingRewardsDeployed.lastUpdateTime(), lastTimestamp)
+          assert.bnEqual(
+            await StakingRewardsDeployed.periodFinish(),
+            lastTimestamp.add(rewardsDuration)
+          )
+        })
+      })
+    })
+
+    describe('if existing stakers', () => {
+      let balanceForRewards
+      let rewardsDuration
+      beforeEach(async () => {
+        await rewardsToken.approve(StakingRewardsDeployed.address, initialAmountToStake, {
+          from: mockRewardsDistributionAddress,
+        })
+        await StakingRewardsDeployed.stake(initialAmountToStake, {
+          from: mockRewardsDistributionAddress,
+        })
+        rewardsDuration = await StakingRewardsDeployed.rewardsDuration()
+      })
+
+      describe('if period finished', () => {
+        beforeEach(async () => {
+          await StakingRewardsDeployed.notifyRewardAmount(rewardValue, {
+            from: owner,
+          })
+          await fastForward(WEEK)
+          // transfer rewards for new period
+          await rewardsToken.transfer(StakingRewardsDeployed.address, rewardValue, {
+            from: owner,
+          })
+          // getRewardsBalance returns contract balance excluding staked assets
+          balanceForRewards = await getRewardsBalance(rewardsToken, StakingRewardsDeployed)
+        })
+
+        it('reverts if new reward > balance', async () => {
+          assert.bnGt(await StakingRewardsDeployed.totalSupply(), toBN(0))
+          const newRewardValue = getNearestGreaterMultiple(balanceForRewards, rewardsDuration)
+
+          await assert.revert(
+            StakingRewardsDeployed.notifyRewardAmount(newRewardValue, {
+              from: owner,
+            }),
+            'Provided reward too high'
+          )
+        })
+
+        it('starts new reward if reward > balance but rounds down to balance', async () => {
+          assert.bnGt(await StakingRewardsDeployed.totalSupply(), toBN(0))
+          const newRewardValue = getNearestGreaterMultiple(balanceForRewards, rewardsDuration).sub(
+            toBN(1)
+          )
+          const expectedRewardForDuration = await getExpectedRewardForDuration(
+            newRewardValue,
+            await StakingRewardsDeployed.periodFinish(),
+            StakingRewardsDeployed
+          )
+
+          await StakingRewardsDeployed.notifyRewardAmount(newRewardValue, {
+            from: owner,
+          })
+
+          assert.bnEqual(
+            await StakingRewardsDeployed.getRewardForDuration(),
+            expectedRewardForDuration
+          )
+          const lastTimestamp = toBN(await currentTime())
+          assert.bnEqual(await StakingRewardsDeployed.lastUpdateTime(), lastTimestamp)
+          assert.bnEqual(
+            await StakingRewardsDeployed.periodFinish(),
+            lastTimestamp.add(await StakingRewardsDeployed.rewardsDuration())
+          )
+        })
+
+        it('starts new reward if reward = balance', async () => {
+          assert.bnGt(await StakingRewardsDeployed.totalSupply(), toBN(0))
+          const newRewardValue = await getRewardsBalance(rewardsToken, StakingRewardsDeployed)
+          const expectedRewardForDuration = await getExpectedRewardForDuration(
+            newRewardValue,
+            await StakingRewardsDeployed.periodFinish(),
+            StakingRewardsDeployed
+          )
+
+          await StakingRewardsDeployed.notifyRewardAmount(newRewardValue, {
+            from: owner,
+          })
+
+          assert.bnEqual(
+            await StakingRewardsDeployed.getRewardForDuration(),
+            expectedRewardForDuration
+          )
+          const lastTimestamp = toBN(await currentTime())
+          assert.bnEqual(await StakingRewardsDeployed.lastUpdateTime(), lastTimestamp)
+          assert.bnEqual(
+            await StakingRewardsDeployed.periodFinish(),
+            lastTimestamp.add(rewardsDuration)
+          )
+        })
+
+        it('starts new reward if reward < balance', async () => {
+          assert.bnGt(await StakingRewardsDeployed.totalSupply(), toBN(0))
+          const newRewardValue = getNearestLowerMultiple(balanceForRewards, rewardsDuration)
+          const expectedRewardForDuration = await getExpectedRewardForDuration(
+            newRewardValue,
+            await StakingRewardsDeployed.periodFinish(),
+            StakingRewardsDeployed
+          )
+
+          await StakingRewardsDeployed.notifyRewardAmount(newRewardValue, {
+            from: owner,
+          })
+
+          assert.bnEqual(
+            await StakingRewardsDeployed.getRewardForDuration(),
+            expectedRewardForDuration
+          )
+          const lastTimestamp = toBN(await currentTime())
+          assert.bnEqual(await StakingRewardsDeployed.lastUpdateTime(), lastTimestamp)
+          assert.bnEqual(
+            await StakingRewardsDeployed.periodFinish(),
+            lastTimestamp.add(rewardsDuration)
+          )
+        })
+      })
+
+      describe('if period not finished', () => {
+        let timeToNotifyRewards
+        beforeEach(async () => {
+          await StakingRewardsDeployed.notifyRewardAmount(rewardValue, {
+            from: owner,
+          })
+          // transfer rewards for new period
+          await rewardsToken.transfer(StakingRewardsDeployed.address, rewardValue, {
+            from: owner,
+          })
+          // refetch reward balance after new rewards are transferred
+          balanceForRewards = await getRewardsBalance(rewardsToken, StakingRewardsDeployed)
+          timeToNotifyRewards = (await currentTime()) + 10
+        })
+
+        it('reverts if new reward after rollover > balance', async () => {
+          assert.bnGt(await StakingRewardsDeployed.totalSupply(), toBN(0))
+          /**
+           * Find the exact amount that will result in a reward rate above
+           * the maximum.
+           */
+          const balanceForHigherRate = getNearestGreaterMultiple(balanceForRewards, rewardsDuration)
+          const leftoverRewards = await getLeftoverRewards(
+            timeToNotifyRewards,
+            StakingRewardsDeployed
+          )
+          assert.bnGt(leftoverRewards, toBN(0))
+          const newRewardValue = balanceForHigherRate.sub(leftoverRewards)
+          await setNextTimestamp(timeToNotifyRewards)
+
+          await assert.revert(
+            StakingRewardsDeployed.notifyRewardAmount(newRewardValue, {
+              from: owner,
+            }),
+            'Provided reward too high'
+          )
+        })
+
+        it('starts new reward if reward after rollover > balance but rounds down to balance', async () => {
+          assert.bnGt(await StakingRewardsDeployed.totalSupply(), toBN(0))
+          const balanceForHigherRate = getNearestGreaterMultiple(balanceForRewards, rewardsDuration)
+          const leftoverRewards = await getLeftoverRewards(
+            timeToNotifyRewards,
+            StakingRewardsDeployed
+          )
+          assert.bnGt(leftoverRewards, toBN(0))
+          const newRewardValue = balanceForHigherRate.sub(leftoverRewards).sub(toBN(1))
+          const expectedRewardForDuration = await getExpectedRewardForDuration(
+            newRewardValue,
+            timeToNotifyRewards,
+            StakingRewardsDeployed
+          )
+          await setNextTimestamp(timeToNotifyRewards)
+
+          await StakingRewardsDeployed.notifyRewardAmount(newRewardValue, {
+            from: owner,
+          })
+
+          assert.bnEqual(
+            await StakingRewardsDeployed.getRewardForDuration(),
+            expectedRewardForDuration
+          )
+          const lastTimestamp = toBN(await currentTime())
+          assert.bnEqual(await StakingRewardsDeployed.lastUpdateTime(), lastTimestamp)
+          assert.bnEqual(
+            await StakingRewardsDeployed.periodFinish(),
+            lastTimestamp.add(rewardsDuration)
+          )
+        })
+
+        it('starts new reward if reward after rollover = balance', async () => {
+          assert.bnGt(await StakingRewardsDeployed.totalSupply(), toBN(0))
+          const leftoverRewards = await getLeftoverRewards(
+            timeToNotifyRewards,
+            StakingRewardsDeployed
+          )
+          assert.bnGt(leftoverRewards, toBN(0))
+          const newRewardValue = balanceForRewards.sub(leftoverRewards)
+          const expectedRewardForDuration = await getExpectedRewardForDuration(
+            newRewardValue,
+            timeToNotifyRewards,
+            StakingRewardsDeployed
+          )
+          await setNextTimestamp(timeToNotifyRewards)
+
+          await StakingRewardsDeployed.notifyRewardAmount(newRewardValue, {
+            from: owner,
+          })
+
+          assert.bnEqual(
+            await StakingRewardsDeployed.getRewardForDuration(),
+            expectedRewardForDuration
+          )
+          const lastTimestamp = toBN(await currentTime())
+          assert.bnEqual(await StakingRewardsDeployed.lastUpdateTime(), lastTimestamp)
+          assert.bnEqual(
+            await StakingRewardsDeployed.periodFinish(),
+            lastTimestamp.add(rewardsDuration)
+          )
+        })
+
+        it('starts new reward if reward after rollover < balance', async () => {
+          assert.bnGt(await StakingRewardsDeployed.totalSupply(), toBN(0))
+          const balanceForLowerRate = getNearestLowerMultiple(balanceForRewards, rewardsDuration)
+          const leftoverRewards = await getLeftoverRewards(
+            timeToNotifyRewards,
+            StakingRewardsDeployed
+          )
+          assert.bnGt(leftoverRewards, toBN(0))
+          const newRewardValue = balanceForLowerRate.sub(leftoverRewards)
+          const expectedRewardForDuration = await getExpectedRewardForDuration(
+            newRewardValue,
+            timeToNotifyRewards,
+            StakingRewardsDeployed
+          )
+          await setNextTimestamp(timeToNotifyRewards)
+
+          await StakingRewardsDeployed.notifyRewardAmount(newRewardValue, {
+            from: owner,
+          })
+
           assert.bnEqual(
             await StakingRewardsDeployed.getRewardForDuration(),
             expectedRewardForDuration
