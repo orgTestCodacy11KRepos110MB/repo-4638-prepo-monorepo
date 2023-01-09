@@ -27,7 +27,17 @@ export const partners = [
   {
     name: 'tip.cc',
     image: 'TipCC.png',
-    website: 'https://tip.cc/',
+    website: 'https://tip.cc/currencies/prepo-token',
+  },
+  {
+    name: 'Smoothie',
+    image: 'Smoothie.png',
+    website: 'https://smoothie.so/users/@prePO',
+  },
+  {
+    name: 'Cryptocurrency Jobs',
+    image: 'cryptocurrency_jobs.png',
+    website: 'https://cryptocurrencyjobs.co/partners/',
   },
   {
     name: 'CryptoTesters',
