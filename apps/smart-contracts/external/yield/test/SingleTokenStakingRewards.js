@@ -109,15 +109,6 @@ contract('SingleTokenStakingRewards', (accounts) => {
         REVERT
       )
     })
-
-    it('only owner address can call setPaused', async () => {
-      await onlyGivenAddressCanInvoke({
-        fnc: StakingRewardsDeployed.setPaused,
-        args: [true],
-        address: owner,
-        accounts,
-      })
-    })
   })
 
   describe('lastTimeRewardApplicable()', () => {

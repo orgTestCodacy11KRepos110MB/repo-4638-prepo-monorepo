@@ -8,13 +8,11 @@ import "@openzeppelin/upgrades-core/contracts/Initializable.sol";
 
 import "../utils/proxy/ProxyReentrancyGuard.sol";
 import "../utils/proxy/ProxyOwned.sol";
-import "../utils/proxy/ProxyPausable.sol";
 
 contract SingleTokenStakingRewards is
   Initializable,
   ProxyOwned,
-  ProxyReentrancyGuard,
-  ProxyPausable
+  ProxyReentrancyGuard
 {
   using SafeMath for uint256;
   using SafeERC20 for IERC20;
@@ -91,12 +89,7 @@ contract SingleTokenStakingRewards is
 
   /* ========== MUTATIVE FUNCTIONS ========== */
 
-  function stake(uint256 amount)
-    public
-    nonReentrant
-    notPaused
-    updateReward(msg.sender)
-  {
+  function stake(uint256 amount) public nonReentrant updateReward(msg.sender) {
     require(amount > 0, "Cannot stake 0");
     _totalSupply = _totalSupply.add(amount);
     _balances[msg.sender] = _balances[msg.sender].add(amount);
