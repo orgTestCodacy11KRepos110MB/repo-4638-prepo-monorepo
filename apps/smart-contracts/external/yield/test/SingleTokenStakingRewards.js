@@ -684,6 +684,23 @@ contract('SingleTokenStakingRewards', (accounts) => {
             lastTimestamp.add(rewardsDuration)
           )
         })
+
+        it('starts new reward of 0 if reward = 0', async () => {
+          assert.bnEqual(await StakingRewardsDeployed.totalSupply(), toBN(0))
+          const newRewardValue = toBN(0)
+
+          await StakingRewardsDeployed.notifyRewardAmount(newRewardValue, {
+            from: owner,
+          })
+
+          assert.bnEqual(await StakingRewardsDeployed.getRewardForDuration(), toBN(0))
+          const lastTimestamp = toBN(await currentTime())
+          assert.bnEqual(await StakingRewardsDeployed.lastUpdateTime(), lastTimestamp)
+          assert.bnEqual(
+            await StakingRewardsDeployed.periodFinish(),
+            lastTimestamp.add(rewardsDuration)
+          )
+        })
       })
 
       describe('if period not finished', () => {
@@ -832,6 +849,38 @@ contract('SingleTokenStakingRewards', (accounts) => {
             lastTimestamp.add(rewardsDuration)
           )
         })
+
+        it('resets period with leftover rewards if reward = 0', async () => {
+          assert.bnEqual(await StakingRewardsDeployed.totalSupply(), toBN(0))
+          const leftoverRewards = await getLeftoverRewards(
+            timeToNotifyRewards,
+            StakingRewardsDeployed
+          )
+          assert.bnGt(leftoverRewards, toBN(0))
+          const newRewardValue = toBN(0)
+          const expectedRewardForDuration = await getExpectedRewardForDuration(
+            newRewardValue,
+            timeToNotifyRewards,
+            StakingRewardsDeployed
+          )
+          assert.bnGt(expectedRewardForDuration, toBN(0))
+          await setNextTimestamp(timeToNotifyRewards)
+
+          await StakingRewardsDeployed.notifyRewardAmount(newRewardValue, {
+            from: owner,
+          })
+
+          assert.bnEqual(
+            await StakingRewardsDeployed.getRewardForDuration(),
+            expectedRewardForDuration
+          )
+          const lastTimestamp = toBN(await currentTime())
+          assert.bnEqual(await StakingRewardsDeployed.lastUpdateTime(), lastTimestamp)
+          assert.bnEqual(
+            await StakingRewardsDeployed.periodFinish(),
+            lastTimestamp.add(rewardsDuration)
+          )
+        })
       })
     })
 
@@ -943,6 +992,23 @@ contract('SingleTokenStakingRewards', (accounts) => {
             await StakingRewardsDeployed.getRewardForDuration(),
             expectedRewardForDuration
           )
+          const lastTimestamp = toBN(await currentTime())
+          assert.bnEqual(await StakingRewardsDeployed.lastUpdateTime(), lastTimestamp)
+          assert.bnEqual(
+            await StakingRewardsDeployed.periodFinish(),
+            lastTimestamp.add(rewardsDuration)
+          )
+        })
+
+        it('starts new reward of 0 if reward = 0', async () => {
+          assert.bnGt(await StakingRewardsDeployed.totalSupply(), toBN(0))
+          const newRewardValue = toBN(0)
+
+          await StakingRewardsDeployed.notifyRewardAmount(newRewardValue, {
+            from: owner,
+          })
+
+          assert.bnEqual(await StakingRewardsDeployed.getRewardForDuration(), toBN(0))
           const lastTimestamp = toBN(await currentTime())
           assert.bnEqual(await StakingRewardsDeployed.lastUpdateTime(), lastTimestamp)
           assert.bnEqual(
@@ -1067,6 +1133,38 @@ contract('SingleTokenStakingRewards', (accounts) => {
             timeToNotifyRewards,
             StakingRewardsDeployed
           )
+          await setNextTimestamp(timeToNotifyRewards)
+
+          await StakingRewardsDeployed.notifyRewardAmount(newRewardValue, {
+            from: owner,
+          })
+
+          assert.bnEqual(
+            await StakingRewardsDeployed.getRewardForDuration(),
+            expectedRewardForDuration
+          )
+          const lastTimestamp = toBN(await currentTime())
+          assert.bnEqual(await StakingRewardsDeployed.lastUpdateTime(), lastTimestamp)
+          assert.bnEqual(
+            await StakingRewardsDeployed.periodFinish(),
+            lastTimestamp.add(rewardsDuration)
+          )
+        })
+
+        it('resets period with leftover rewards if reward = 0', async () => {
+          assert.bnGt(await StakingRewardsDeployed.totalSupply(), toBN(0))
+          const leftoverRewards = await getLeftoverRewards(
+            timeToNotifyRewards,
+            StakingRewardsDeployed
+          )
+          assert.bnGt(leftoverRewards, toBN(0))
+          const newRewardValue = toBN(0)
+          const expectedRewardForDuration = await getExpectedRewardForDuration(
+            newRewardValue,
+            timeToNotifyRewards,
+            StakingRewardsDeployed
+          )
+          assert.bnGt(expectedRewardForDuration, toBN(0))
           await setNextTimestamp(timeToNotifyRewards)
 
           await StakingRewardsDeployed.notifyRewardAmount(newRewardValue, {
