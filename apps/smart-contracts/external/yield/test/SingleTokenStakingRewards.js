@@ -15,6 +15,7 @@ const {
   getNearestLowerMultiple,
   getNearestGreaterMultiple,
   getRewardsBalance,
+  getRewardsEarned,
 } = require('./utils/helpers')
 
 contract('SingleTokenStakingRewards', (accounts) => {
@@ -280,42 +281,236 @@ contract('SingleTokenStakingRewards', (accounts) => {
   })
 
   describe('compound()', () => {
-    it('should compound', async () => {
-      const totalToDistribute = toUnit('5000')
-
-      await stakingToken.approve(StakingRewardsDeployed.address, toUnit(100), {
+    let timeToClaimRewards
+    const rewardValue = toUnit(1000)
+    beforeEach(async () => {
+      await rewardsToken.transfer(StakingRewardsDeployed.address, rewardValue, {
+        from: owner,
+      })
+      await StakingRewardsDeployed.notifyRewardAmount(rewardValue, {
+        from: owner,
+      })
+      await rewardsToken.approve(StakingRewardsDeployed.address, initialAmountToStake, {
         from: mockRewardsDistributionAddress,
       })
-      await StakingRewardsDeployed.stake(toUnit(100), { from: mockRewardsDistributionAddress })
+    })
 
-      await rewardsToken.transfer(StakingRewardsDeployed.address, totalToDistribute, {
-        from: owner,
+    it('reverts if unstaked balance = 0 and unclaimed = 0', async () => {
+      /**
+       * Since we need the user's unstaked balance to be zero, and thales test suite
+       * sends the user tokens before all tests, its easiest to just fast forward
+       * a week and then stake the initial amount. By staking after the period, there
+       * will be no rewards to claim and no unstaked balance.
+       */
+      await fastForward(WEEK)
+      await StakingRewardsDeployed.stake(initialAmountToStake, {
+        from: mockRewardsDistributionAddress,
       })
-      await StakingRewardsDeployed.notifyRewardAmount(toUnit(5), {
-        from: owner,
-      })
-      await StakingRewardsDeployed.addReward(toUnit(5), { from: owner })
-
-      await fastForward(DAY)
-
-      const initialRewardBal = await rewardsToken.balanceOf(mockRewardsDistributionAddress)
-      const initialEarnedBal = await StakingRewardsDeployed.earned(mockRewardsDistributionAddress)
-      const initialStakingBal = await StakingRewardsDeployed.balanceOf(
-        mockRewardsDistributionAddress
+      assert.bnEqual(await rewardsToken.balanceOf(mockRewardsDistributionAddress), toBN(0))
+      // estimate reward amount and ensure it is = 0
+      timeToClaimRewards = (await currentTime()) + 10
+      const userEarnedRewards = await getRewardsEarned(
+        StakingRewardsDeployed,
+        mockRewardsDistributionAddress,
+        timeToClaimRewards
       )
-      console.log('Calling Address', mockRewardsDistributionAddress)
-      await rewardsToken.approve(StakingRewardsDeployed.address, toUnit(5), {
+      assert.bnEqual(userEarnedRewards, toBN(0))
+      await setNextTimestamp(timeToClaimRewards)
+
+      await assert.revert(
+        StakingRewardsDeployed.compound({ from: mockRewardsDistributionAddress }),
+        'Cannot stake 0'
+      )
+    })
+
+    it('reverts if unstaked balance > 0 and unclaimed = 0 but insufficient approval', async () => {
+      const userTokenBalanceBefore = await rewardsToken.balanceOf(mockRewardsDistributionAddress)
+      assert.bnGt(userTokenBalanceBefore, toBN(0))
+      // estimate reward amount and ensure it is = 0
+      timeToClaimRewards = (await currentTime()) + 10
+      const userEarnedRewards = await getRewardsEarned(
+        StakingRewardsDeployed,
+        mockRewardsDistributionAddress,
+        timeToClaimRewards
+      )
+      assert.bnEqual(userEarnedRewards, toBN(0))
+      await rewardsToken.approve(StakingRewardsDeployed.address, 0, {
         from: mockRewardsDistributionAddress,
       })
+      await setNextTimestamp(timeToClaimRewards)
+
+      await assert.revert(
+        StakingRewardsDeployed.compound({ from: mockRewardsDistributionAddress }),
+        'SafeERC20: low-level call failed'
+      )
+    })
+
+    it('reverts if unstaked balance = 0 and unclaimed > 0 but insufficient approval', async () => {
+      // stake tokens to get rewards and ensure unstaked balance is 0
+      await StakingRewardsDeployed.stake(initialAmountToStake, {
+        from: mockRewardsDistributionAddress,
+      })
+      assert.bnEqual(await rewardsToken.balanceOf(mockRewardsDistributionAddress), toBN(0))
+      // estimate reward amount and ensure it is > 0
+      timeToClaimRewards = (await currentTime()) + 10
+      const userEarnedRewards = await getRewardsEarned(
+        StakingRewardsDeployed,
+        mockRewardsDistributionAddress,
+        timeToClaimRewards
+      )
+      assert.bnGt(userEarnedRewards, toBN(0))
+      assert.bnEqual(
+        await rewardsToken.allowance(
+          mockRewardsDistributionAddress,
+          StakingRewardsDeployed.address
+        ),
+        toBN(0)
+      )
+      await setNextTimestamp(timeToClaimRewards)
+
+      await assert.revert(
+        StakingRewardsDeployed.compound({ from: mockRewardsDistributionAddress }),
+        'SafeERC20: low-level call failed'
+      )
+    })
+
+    it('reverts if unstaked balance > 0 and unclaimed > 0 but insufficient approval', async () => {
+      // stake tokens to get rewards and ensure unstaked balance is 0
+      await StakingRewardsDeployed.stake(initialAmountToStake, {
+        from: mockRewardsDistributionAddress,
+      })
+      assert.bnEqual(await rewardsToken.balanceOf(mockRewardsDistributionAddress), toBN(0))
+      // estimate reward amount and ensure it is > 0
+      timeToClaimRewards = (await currentTime()) + 10
+      const userEarnedRewards = await getRewardsEarned(
+        StakingRewardsDeployed,
+        mockRewardsDistributionAddress,
+        timeToClaimRewards
+      )
+      assert.bnGt(userEarnedRewards, toBN(0))
+      // Send additional tokens to the user for compound to stake
+      const secondAmountToStake = initialAmountToStake.add(toUnit(1))
+      await rewardsToken.transfer(mockRewardsDistributionAddress, secondAmountToStake, {
+        from: owner,
+      })
+      const userTokenBalanceBefore = await rewardsToken.balanceOf(mockRewardsDistributionAddress)
+      assert.bnLt(
+        await rewardsToken.allowance(
+          mockRewardsDistributionAddress,
+          StakingRewardsDeployed.address
+        ),
+        userTokenBalanceBefore.add(userEarnedRewards)
+      )
+      await setNextTimestamp(timeToClaimRewards)
+
+      await assert.revert(
+        StakingRewardsDeployed.compound({ from: mockRewardsDistributionAddress }),
+        'SafeERC20: low-level call failed'
+      )
+    })
+
+    it('stakes balance if unstaked balance > 0 and unclaimed = 0', async () => {
+      /**
+       * Since this testcase is for when there are no unclaimed rewards,
+       * we do not initially stake for the user to simplify the test.
+       *
+       * The approval in the beforeEach hook meant for an initial stake
+       * position is used for the compound call.
+       */
+      const userTokenBalanceBefore = await rewardsToken.balanceOf(mockRewardsDistributionAddress)
+      assert.bnGt(userTokenBalanceBefore, toBN(0))
+      // estimate reward amount and ensure it is = 0
+      timeToClaimRewards = (await currentTime()) + 10
+      const userEarnedRewards = await getRewardsEarned(
+        StakingRewardsDeployed,
+        mockRewardsDistributionAddress,
+        timeToClaimRewards
+      )
+      assert.bnEqual(userEarnedRewards, toBN(0))
+      await setNextTimestamp(timeToClaimRewards)
+
       await StakingRewardsDeployed.compound({ from: mockRewardsDistributionAddress })
 
-      const postRewardBal = await rewardsToken.balanceOf(mockRewardsDistributionAddress)
-      const postEarnedBal = await StakingRewardsDeployed.earned(mockRewardsDistributionAddress)
-      const postStakingBal = await StakingRewardsDeployed.balanceOf(mockRewardsDistributionAddress)
+      assert.bnEqual(await rewardsToken.balanceOf(mockRewardsDistributionAddress), toBN(0))
+      assert.bnEqual(
+        await StakingRewardsDeployed.balanceOf(mockRewardsDistributionAddress),
+        userTokenBalanceBefore
+      )
+      assert.bnEqual(await StakingRewardsDeployed.earned(mockRewardsDistributionAddress), toBN(0))
+    })
 
-      assert.ok(postEarnedBal < initialEarnedBal)
-      assert.ok(postStakingBal > initialStakingBal)
-      assert.bnEqual(postRewardBal, initialRewardBal)
+    it('stakes unclaimed rewards if balance = 0 and unclaimed > 0', async () => {
+      // stake tokens to get rewards and ensure unstaked balance is 0
+      await StakingRewardsDeployed.stake(initialAmountToStake, {
+        from: mockRewardsDistributionAddress,
+      })
+      assert.bnEqual(await rewardsToken.balanceOf(mockRewardsDistributionAddress), toBN(0))
+      // estimate reward amount and ensure it is > 0
+      timeToClaimRewards = (await currentTime()) + 10
+      const userEarnedRewards = await getRewardsEarned(
+        StakingRewardsDeployed,
+        mockRewardsDistributionAddress,
+        timeToClaimRewards
+      )
+      assert.bnGt(userEarnedRewards, toBN(0))
+      // only need to approve estimated rewards and user should have no unstaked balance
+      await rewardsToken.approve(StakingRewardsDeployed.address, userEarnedRewards, {
+        from: mockRewardsDistributionAddress,
+      })
+      const userStakedTokenBalanceBefore = await StakingRewardsDeployed.balanceOf(
+        mockRewardsDistributionAddress
+      )
+      await setNextTimestamp(timeToClaimRewards)
+
+      await StakingRewardsDeployed.compound({ from: mockRewardsDistributionAddress })
+
+      assert.bnEqual(await rewardsToken.balanceOf(mockRewardsDistributionAddress), toBN(0))
+      assert.bnEqual(
+        await StakingRewardsDeployed.balanceOf(mockRewardsDistributionAddress),
+        userStakedTokenBalanceBefore.add(userEarnedRewards)
+      )
+      assert.bnEqual(await StakingRewardsDeployed.earned(mockRewardsDistributionAddress), toBN(0))
+    })
+
+    it('stakes both unstaked balance and unclaimed rewards if balance > 0 and unclaimed > 0', async () => {
+      await StakingRewardsDeployed.stake(initialAmountToStake, {
+        from: mockRewardsDistributionAddress,
+      })
+      // Send additional tokens to the user for compound to stake
+      const secondAmountToStake = initialAmountToStake.add(toUnit(1))
+      await rewardsToken.transfer(mockRewardsDistributionAddress, secondAmountToStake, {
+        from: owner,
+      })
+      const userTokenBalanceBefore = await rewardsToken.balanceOf(mockRewardsDistributionAddress)
+      assert.bnGt(userTokenBalanceBefore, toBN(0))
+      timeToClaimRewards = (await currentTime()) + 10
+      const userEarnedRewards = await getRewardsEarned(
+        StakingRewardsDeployed,
+        mockRewardsDistributionAddress,
+        timeToClaimRewards
+      )
+      assert.bnGt(userEarnedRewards, toBN(0))
+      // approve estimated rewards and unstaked balance
+      await rewardsToken.approve(
+        StakingRewardsDeployed.address,
+        userTokenBalanceBefore.add(userEarnedRewards),
+        {
+          from: mockRewardsDistributionAddress,
+        }
+      )
+      const userStakedTokenBalanceBefore = await StakingRewardsDeployed.balanceOf(
+        mockRewardsDistributionAddress
+      )
+      await setNextTimestamp(timeToClaimRewards)
+
+      await StakingRewardsDeployed.compound({ from: mockRewardsDistributionAddress })
+
+      assert.bnEqual(await rewardsToken.balanceOf(mockRewardsDistributionAddress), toBN(0))
+      assert.bnEqual(
+        await StakingRewardsDeployed.balanceOf(mockRewardsDistributionAddress),
+        userStakedTokenBalanceBefore.add(userTokenBalanceBefore.add(userEarnedRewards))
+      )
+      assert.bnEqual(await StakingRewardsDeployed.earned(mockRewardsDistributionAddress), toBN(0))
     })
   })
 

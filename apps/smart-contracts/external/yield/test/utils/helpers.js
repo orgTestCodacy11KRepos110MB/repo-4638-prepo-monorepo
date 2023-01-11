@@ -356,4 +356,47 @@ module.exports = {
     const totalSupply = await stakingContract.totalSupply()
     return stakingContractBalance.sub(totalSupply)
   },
+
+  /**
+   * For test accuracy, we want to verify the exact reward amount owed to
+   * a user. We cannot rely on `earned()` since it is a view function and
+   * does not take into account the block timestamp when rewards are claimed.
+   *
+   * This function performs the exact calculations that `earned()` does given
+   * a specific timestamp.
+   */
+  async getRewardPerToken(stakingContract, timeRewardsClaimed) {
+    const rewardPerTokenStored = await stakingContract.rewardPerTokenStored()
+    const totalSupply = await stakingContract.totalSupply()
+    if (totalSupply.eq(web3.utils.toBN(0))) return rewardPerTokenStored
+    /**
+     * Convert to BN since timestamp will be a number and it is easier
+     * to keep everything in BN since all on-chain values are returned as BN.
+     *
+     * Unlike ethers BigNumber, web3 BN's arithmetic operations do not
+     * automatically convert to BN, so need to explicitly convert to BN.
+     */
+    const timeRewardsClaimedBN = web3.utils.toBN(timeRewardsClaimed)
+    const periodFinish = await stakingContract.periodFinish()
+    const lastTimeRewardApplicable = timeRewardsClaimedBN.lt(periodFinish)
+      ? timeRewardsClaimedBN
+      : periodFinish
+    const lastUpdateTime = await stakingContract.lastUpdateTime()
+    const timeSinceLastUpdate = lastTimeRewardApplicable.sub(lastUpdateTime)
+    const rewardRate = await stakingContract.rewardRate()
+    const rewardPerTokenToAdd = timeSinceLastUpdate.mul(rewardRate).mul(toUnit(1)).div(totalSupply)
+    return rewardPerTokenStored.add(rewardPerTokenToAdd)
+  },
+
+  async getRewardsEarned(stakingContract, account, timeRewardsClaimed) {
+    const rewardPerToken = await module.exports.getRewardPerToken(
+      stakingContract,
+      timeRewardsClaimed
+    )
+    const balance = await stakingContract.balanceOf(account)
+    const userRewardPerTokenPaid = await stakingContract.userRewardPerTokenPaid(account)
+    const newRewards = balance.mul(rewardPerToken.sub(userRewardPerTokenPaid)).div(toUnit(1))
+    const unclaimedRewards = await stakingContract.rewards(account)
+    return newRewards.add(unclaimedRewards)
+  },
 }
