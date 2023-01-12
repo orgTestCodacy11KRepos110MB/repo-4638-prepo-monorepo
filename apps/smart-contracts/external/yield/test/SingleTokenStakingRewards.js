@@ -1371,4 +1371,201 @@ contract('SingleTokenStakingRewards', (accounts) => {
       })
     })
   })
+
+  describe('emergencyWithdraw()', () => {
+    let balanceForRewards
+    const rewardValue = toUnit(1000)
+    beforeEach(async () => {
+      // setup an existing staker
+      await rewardsToken.approve(StakingRewardsDeployed.address, initialAmountToStake, {
+        from: mockRewardsDistributionAddress,
+      })
+      await StakingRewardsDeployed.stake(initialAmountToStake, {
+        from: mockRewardsDistributionAddress,
+      })
+      // setup an existing reward period
+      await rewardsToken.transfer(StakingRewardsDeployed.address, rewardValue, {
+        from: owner,
+      })
+      await StakingRewardsDeployed.notifyRewardAmount(rewardValue, {
+        from: owner,
+      })
+      // refetch reward balance after new rewards are transferred
+      balanceForRewards = await getRewardsBalance(rewardsToken, StakingRewardsDeployed)
+    })
+
+    it('reverts if not called by owner', async () => {
+      assert.notEqual(await StakingRewardsDeployed.owner(), mockRewardsDistributionAddress)
+
+      await assert.revert(
+        StakingRewardsDeployed.emergencyWithdraw({
+          from: mockRewardsDistributionAddress,
+        }),
+        'Only the contract owner may perform this action'
+      )
+    })
+
+    it('reverts if staking ended', async () => {
+      await StakingRewardsDeployed.emergencyWithdraw({
+        from: owner,
+      })
+
+      await assert.revert(
+        StakingRewardsDeployed.emergencyWithdraw({
+          from: owner,
+        }),
+        'Staking has ended'
+      )
+    })
+
+    it('withdraws all rewards', async () => {
+      const contractBalanceBefore = await rewardsToken.balanceOf(StakingRewardsDeployed.address)
+      // Verify that the contract has staked tokens
+      assert.bnGt(contractBalanceBefore, balanceForRewards)
+      // Verify that the contract has rewards to withdraw
+      assert.bnGt(balanceForRewards, toBN(0))
+      const ownerBalanceBefore = await rewardsToken.balanceOf(owner)
+
+      await StakingRewardsDeployed.emergencyWithdraw({
+        from: owner,
+      })
+
+      assert.bnEqual(await rewardsToken.balanceOf(owner), ownerBalanceBefore.add(balanceForRewards))
+      assert.bnEqual(
+        await rewardsToken.balanceOf(StakingRewardsDeployed.address),
+        contractBalanceBefore.sub(balanceForRewards)
+      )
+      assert.bnEqual(
+        await rewardsToken.balanceOf(StakingRewardsDeployed.address),
+        await StakingRewardsDeployed.totalSupply()
+      )
+    })
+
+    it('stops users from claiming', async () => {
+      await StakingRewardsDeployed.emergencyWithdraw({
+        from: owner,
+      })
+
+      await assert.revert(
+        StakingRewardsDeployed.getReward({
+          from: mockRewardsDistributionAddress,
+        }),
+        'Staking has ended'
+      )
+    })
+
+    it('stops users from staking', async () => {
+      // Give more tokens to stake again
+      await rewardsToken.transfer(mockRewardsDistributionAddress, initialAmountToStake, {
+        from: owner,
+      })
+
+      await StakingRewardsDeployed.emergencyWithdraw({
+        from: owner,
+      })
+
+      await assert.revert(
+        StakingRewardsDeployed.stake(initialAmountToStake, {
+          from: mockRewardsDistributionAddress,
+        }),
+        'Staking has ended'
+      )
+    })
+
+    it('stops users from compounding', async () => {
+      // Ensure user has rewards to compound
+      await fastForward(DAY)
+      assert.bnGt(await StakingRewardsDeployed.earned(mockRewardsDistributionAddress), toBN(0))
+
+      await StakingRewardsDeployed.emergencyWithdraw({
+        from: owner,
+      })
+
+      await assert.revert(
+        StakingRewardsDeployed.compound({
+          from: mockRewardsDistributionAddress,
+        }),
+        'Staking has ended'
+      )
+    })
+
+    it('stops owner from adding rewards', async () => {
+      // Give more tokens to add rewards again
+      await rewardsToken.transfer(StakingRewardsDeployed.address, rewardValue, {
+        from: owner,
+      })
+
+      await StakingRewardsDeployed.emergencyWithdraw({
+        from: owner,
+      })
+
+      await assert.revert(
+        StakingRewardsDeployed.notifyRewardAmount(rewardValue, {
+          from: owner,
+        }),
+        'Staking has ended'
+      )
+    })
+
+    it('stops users from calling exit if unclaimed > 0', async () => {
+      // Ensure user has rewards to claim
+      await fastForward(DAY)
+      assert.bnGt(await StakingRewardsDeployed.earned(mockRewardsDistributionAddress), toBN(0))
+
+      await StakingRewardsDeployed.emergencyWithdraw({
+        from: owner,
+      })
+
+      await assert.revert(
+        StakingRewardsDeployed.exit({
+          from: mockRewardsDistributionAddress,
+        }),
+        'Staking has ended'
+      )
+    })
+
+    it('stops users from calling exit if unclaimed = 0', async () => {
+      // Fast forward to end of period and claim all rewards to zero out unclaimed
+      await fastForward(WEEK)
+      await StakingRewardsDeployed.getReward({
+        from: mockRewardsDistributionAddress,
+      })
+      assert.bnEqual(await StakingRewardsDeployed.earned(mockRewardsDistributionAddress), toBN(0))
+
+      await StakingRewardsDeployed.emergencyWithdraw({
+        from: owner,
+      })
+
+      await assert.revert(
+        StakingRewardsDeployed.exit({
+          from: mockRewardsDistributionAddress,
+        }),
+        'Staking has ended'
+      )
+    })
+
+    it('allows users to withdraw', async () => {
+      const userBalanceBefore = await rewardsToken.balanceOf(mockRewardsDistributionAddress)
+      const userStakedBalanceBefore = await StakingRewardsDeployed.balanceOf(
+        mockRewardsDistributionAddress
+      )
+      assert.bnGt(userStakedBalanceBefore, toBN(0))
+
+      await StakingRewardsDeployed.emergencyWithdraw({
+        from: owner,
+      })
+
+      await StakingRewardsDeployed.withdraw(userStakedBalanceBefore, {
+        from: mockRewardsDistributionAddress,
+      })
+      assert.bnEqual(
+        await rewardsToken.balanceOf(mockRewardsDistributionAddress),
+        userBalanceBefore.add(userStakedBalanceBefore)
+      )
+      assert.bnEqual(
+        await StakingRewardsDeployed.balanceOf(mockRewardsDistributionAddress),
+        toBN(0)
+      )
+    })
+  })
 })

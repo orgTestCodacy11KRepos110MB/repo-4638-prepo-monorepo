@@ -33,6 +33,8 @@ contract SingleTokenStakingRewards is
   uint256 private _totalSupply;
   mapping(address => uint256) private _balances;
 
+  bool private _stakingEnded;
+
   /* ========== CONSTRUCTOR ========== */
 
   function initialize(
@@ -55,6 +57,10 @@ contract SingleTokenStakingRewards is
 
   function balanceOf(address account) external view returns (uint256) {
     return _balances[account];
+  }
+
+  function stakingEnded() external view returns (bool) {
+    return _stakingEnded;
   }
 
   function lastTimeRewardApplicable() public view returns (uint256) {
@@ -89,7 +95,12 @@ contract SingleTokenStakingRewards is
 
   /* ========== MUTATIVE FUNCTIONS ========== */
 
-  function stake(uint256 amount) public nonReentrant updateReward(msg.sender) {
+  function stake(uint256 amount)
+    public
+    nonReentrant
+    whileStakingNotEnded
+    updateReward(msg.sender)
+  {
     require(amount > 0, "Cannot stake 0");
     _totalSupply = _totalSupply.add(amount);
     _balances[msg.sender] = _balances[msg.sender].add(amount);
@@ -109,7 +120,12 @@ contract SingleTokenStakingRewards is
     emit Withdrawn(msg.sender, amount);
   }
 
-  function getReward() public nonReentrant updateReward(msg.sender) {
+  function getReward()
+    public
+    nonReentrant
+    whileStakingNotEnded
+    updateReward(msg.sender)
+  {
     uint256 reward = rewards[msg.sender];
     if (reward > 0) {
       rewards[msg.sender] = 0;
@@ -133,6 +149,7 @@ contract SingleTokenStakingRewards is
   function notifyRewardAmount(uint256 reward)
     external
     onlyOwner
+    whileStakingNotEnded
     updateReward(address(0))
   {
     if (block.timestamp >= periodFinish) {
@@ -200,6 +217,22 @@ contract SingleTokenStakingRewards is
     emit RewardsDurationUpdated(rewardsDuration);
   }
 
+  /**
+   * @dev This function is meant to be called prior to migration to a new
+   * staking contract and is a permanent operation.
+   *
+   * Afterwards, stakers can still withdraw their tokens, but the contract
+   * can no longer be used to issue new rewards to stakers, and any existing
+   * unclaimed rewards will be forfeited.
+   */
+  function emergencyWithdraw() external onlyOwner whileStakingNotEnded {
+    _stakingEnded = true;
+    uint256 nonStakedBalance = rewardsToken.balanceOf(address(this)).sub(
+      _totalSupply
+    );
+    rewardsToken.safeTransfer(msg.sender, nonStakedBalance);
+  }
+
   /* ========== MODIFIERS ========== */
 
   modifier updateReward(address account) {
@@ -209,6 +242,11 @@ contract SingleTokenStakingRewards is
       rewards[account] = earned(account);
       userRewardPerTokenPaid[account] = rewardPerTokenStored;
     }
+    _;
+  }
+
+  modifier whileStakingNotEnded() {
+    require(!_stakingEnded, "Staking has ended");
     _;
   }
 
