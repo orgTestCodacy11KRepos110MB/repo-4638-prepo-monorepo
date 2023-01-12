@@ -154,11 +154,9 @@ contract('SingleTokenStakingRewards', (accounts) => {
 
       const rewardValue = toUnit(5000)
       await rewardsToken.transfer(StakingRewardsDeployed.address, rewardValue, { from: owner })
-      await StakingRewardsDeployed.notifyRewardAmount(toUnit(5), {
+      await StakingRewardsDeployed.notifyRewardAmount(toUnit(10), {
         from: owner,
       })
-
-      await StakingRewardsDeployed.addReward(toUnit(5), { from: owner })
 
       await fastForward(DAY)
 
@@ -204,11 +202,9 @@ contract('SingleTokenStakingRewards', (accounts) => {
 
       const rewardValue = toUnit(5000)
       await rewardsToken.transfer(StakingRewardsDeployed.address, rewardValue, { from: owner })
-      await StakingRewardsDeployed.notifyRewardAmount(toUnit(5), {
+      await StakingRewardsDeployed.notifyRewardAmount(toUnit(10), {
         from: owner,
       })
-
-      await StakingRewardsDeployed.addReward(toUnit(5), { from: owner })
 
       await fastForward(DAY)
 
@@ -223,11 +219,9 @@ contract('SingleTokenStakingRewards', (accounts) => {
       await rewardsToken.transfer(StakingRewardsDeployed.address, totalToDistribute, {
         from: owner,
       })
-      await StakingRewardsDeployed.notifyRewardAmount(toUnit(5), {
+      await StakingRewardsDeployed.notifyRewardAmount(toUnit(10), {
         from: owner,
       })
-
-      await StakingRewardsDeployed.addReward(toUnit(5), { from: owner })
 
       const rewardRateInitial = await StakingRewardsDeployed.rewardRate()
 
@@ -235,11 +229,9 @@ contract('SingleTokenStakingRewards', (accounts) => {
         from: owner,
       })
 
-      await StakingRewardsDeployed.notifyRewardAmount(toUnit(5), {
+      await StakingRewardsDeployed.notifyRewardAmount(toUnit(10), {
         from: owner,
       })
-
-      await StakingRewardsDeployed.addReward(toUnit(5), { from: owner })
 
       const rewardRateLater = await StakingRewardsDeployed.rewardRate()
 
@@ -260,10 +252,9 @@ contract('SingleTokenStakingRewards', (accounts) => {
       await rewardsToken.transfer(StakingRewardsDeployed.address, totalToDistribute, {
         from: owner,
       })
-      await StakingRewardsDeployed.notifyRewardAmount(toUnit(5), {
+      await StakingRewardsDeployed.notifyRewardAmount(toUnit(10), {
         from: owner,
       })
-      await StakingRewardsDeployed.addReward(toUnit(5), { from: owner })
 
       await fastForward(DAY)
 
@@ -538,10 +529,9 @@ contract('SingleTokenStakingRewards', (accounts) => {
       await rewardsToken.transfer(StakingRewardsDeployed.address, totalToDistribute, {
         from: owner,
       })
-      await StakingRewardsDeployed.notifyRewardAmount(toUnit(5), {
+      await StakingRewardsDeployed.notifyRewardAmount(toUnit(10), {
         from: owner,
       })
-      await StakingRewardsDeployed.addReward(toUnit(5), { from: owner })
 
       await fastForward(DAY)
 
@@ -553,7 +543,6 @@ contract('SingleTokenStakingRewards', (accounts) => {
 
     it('should update when setting setRewardsDuration after the period has finished', async () => {
       const totalToDistribute = toUnit('5000')
-      const totalToDistributeSecond = toUnit('1000')
       await stakingToken.approve(StakingRewardsDeployed.address, toUnit(100), {
         from: mockRewardsDistributionAddress,
       })
@@ -562,18 +551,9 @@ contract('SingleTokenStakingRewards', (accounts) => {
       await rewardsToken.transfer(StakingRewardsDeployed.address, totalToDistribute, {
         from: owner,
       })
-      await StakingRewardsDeployed.notifyRewardAmount(toUnit(5), {
+      await StakingRewardsDeployed.notifyRewardAmount(toUnit(20), {
         from: owner,
       })
-      await StakingRewardsDeployed.addReward(toUnit(5), { from: owner })
-
-      await rewardsToken.transfer(StakingRewardsDeployed.address, totalToDistribute, {
-        from: owner,
-      })
-      await StakingRewardsDeployed.notifyRewardAmount(toUnit(5), {
-        from: owner,
-      })
-      await StakingRewardsDeployed.addReward(toUnit(5), { from: owner })
 
       await fastForward(DAY * 8)
 
@@ -590,10 +570,9 @@ contract('SingleTokenStakingRewards', (accounts) => {
       await rewardsToken.transfer(StakingRewardsDeployed.address, totalToDistribute, {
         from: owner,
       })
-      await StakingRewardsDeployed.notifyRewardAmount(toUnit(5), {
+      await StakingRewardsDeployed.notifyRewardAmount(toUnit(10), {
         from: owner,
       })
-      await StakingRewardsDeployed.addReward(toUnit(5), { from: owner })
     })
 
     it('should update when setting setRewardsDuration after the period has finished', async () => {
@@ -606,10 +585,9 @@ contract('SingleTokenStakingRewards', (accounts) => {
       await rewardsToken.transfer(StakingRewardsDeployed.address, totalToDistribute, {
         from: owner,
       })
-      await StakingRewardsDeployed.notifyRewardAmount(toUnit(5), {
+      await StakingRewardsDeployed.notifyRewardAmount(toUnit(10), {
         from: owner,
       })
-      await StakingRewardsDeployed.addReward(toUnit(5), { from: owner })
 
       await fastForward(DAY * 4)
       await StakingRewardsDeployed.getReward({ from: mockRewardsDistributionAddress })
@@ -629,10 +607,9 @@ contract('SingleTokenStakingRewards', (accounts) => {
       const newDuration = await StakingRewardsDeployed.rewardsDuration()
       assert.bnEqual(newDuration, seventyDays)
 
-      await StakingRewardsDeployed.notifyRewardAmount(toUnit(1), {
+      await StakingRewardsDeployed.notifyRewardAmount(toUnit(6), {
         from: owner,
       })
-      await StakingRewardsDeployed.addReward(toUnit(5), { from: owner })
 
       await fastForward(DAY * 71)
       await StakingRewardsDeployed.getReward({ from: mockRewardsDistributionAddress })
@@ -645,10 +622,9 @@ contract('SingleTokenStakingRewards', (accounts) => {
       await rewardsToken.transfer(StakingRewardsDeployed.address, totalToDistribute, {
         from: owner,
       })
-      await StakingRewardsDeployed.notifyRewardAmount(toUnit(5), {
+      await StakingRewardsDeployed.notifyRewardAmount(toUnit(10), {
         from: owner,
       })
-      await StakingRewardsDeployed.addReward(toUnit(5), { from: owner })
 
       const rewardForDuration = await StakingRewardsDeployed.getRewardForDuration()
 
@@ -694,10 +670,9 @@ contract('SingleTokenStakingRewards', (accounts) => {
       await rewardsToken.transfer(StakingRewardsDeployed.address, totalToDistribute, {
         from: owner,
       })
-      await StakingRewardsDeployed.notifyRewardAmount(toUnit(5), {
+      await StakingRewardsDeployed.notifyRewardAmount(toUnit(10), {
         from: owner,
       })
-      await StakingRewardsDeployed.addReward(toUnit(5), { from: owner })
 
       await fastForward(DAY)
 
