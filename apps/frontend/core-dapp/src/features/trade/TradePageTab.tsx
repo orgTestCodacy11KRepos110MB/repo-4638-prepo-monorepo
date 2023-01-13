@@ -34,6 +34,7 @@ const TradePageTab: React.FC = () => {
 
   return (
     <PageTabs
+      activeKey={action === 'close' ? 'close' : 'open'}
       onChange={handleClick}
       tab={tabs}
       tabBarExtraContent={

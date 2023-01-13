@@ -1,6 +1,7 @@
 import styled from 'styled-components'
 import { observer } from 'mobx-react-lite'
 import { spacingIncrement } from 'prepo-ui'
+import CloseTrade from './close-trade'
 import OpenTrade from './open-trade'
 import useTradePage from './useTradePage'
 import TradePageTab from './TradePageTab'
@@ -41,7 +42,7 @@ const TradePage: React.FC = () => {
       <TradeCard>
         {!hideTabs && <TradePageTab />}
         {/** only show close trade flow if open/close tabs are shown */}
-        {!hideTabs && action === 'close' ? 'CloseTrade' : <OpenTrade />}
+        {!hideTabs && action === 'close' ? <CloseTrade /> : <OpenTrade />}
         <TradeSettings />
       </TradeCard>
       <MarketChart />
