@@ -19,7 +19,7 @@ const Wrapper = styled.button<{ showShadow?: boolean }>`
   cursor: pointer;
   display: flex;
   justify-content: space-between;
-  min-height: ${spacingIncrement(58)};
+  min-height: ${spacingIncrement(60)};
   padding: ${spacingIncrement(10)} ${spacingIncrement(16)};
   :hover {
     border-color: ${({ theme }): string => theme.color.neutral5};
