@@ -1,11 +1,12 @@
 import { Layout } from 'antd'
 import styled from 'styled-components'
-import { coreDappTheme, Flex, Icon, media, spacingIncrement } from 'prepo-ui'
+import { coreDappTheme, Flex, media, spacingIncrement } from 'prepo-ui'
 import Navigation from '../Navigation'
 import ConnectButton from '../../features/connect/ConnectButton'
 import TestnetBanner from '../../features/testnet-onboarding/TestnetBanner'
 import DynamicBanner from '../../features/testnet-onboarding/DynamicBanner'
 import SettingsMenu from '../SettingsMenu'
+import PrePOLogo from '../PrePOLogo'
 
 const { Z_INDEX } = coreDappTheme
 
@@ -36,7 +37,7 @@ const Header: React.FC = () => (
     <Wrapper>
       <AHeader>
         <Flex justifyContent="flex-start" gap={8}>
-          <Icon name="brand-logo" color="primaryWhite" height="38" width="115" />
+          <PrePOLogo />
           <Navigation />
         </Flex>
         <Flex gap={8}>

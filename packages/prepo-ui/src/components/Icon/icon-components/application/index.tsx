@@ -48,6 +48,7 @@ import ColoredLiquiditity from './ColoredLiquiditity'
 import ColoredStake from './ColoredStake'
 import ColoredTrade from './ColoredTrade'
 import BrandLogoIcon from './BrandLogo'
+import BrandLogomark from './BrandLogomark'
 import DotsIcon from './DotsIcon'
 import DarkThemeIcon from './DarkThemeIcon'
 import LightThemeIcon from './LightThemeIcon'
@@ -73,6 +74,7 @@ export const applicationIcons = {
   'arrow-right-3': ArrowRightIcon3,
   'arrow-up-right': ArrowUpRightIcon,
   'brand-logo': BrandLogoIcon,
+  'brand-logomark': BrandLogomark,
   calendar: CalendarIcon,
   'charts-line': ChartsLineIcon,
   check: CheckIcon,

@@ -18,7 +18,8 @@ const RightNetwork = styled.div`
 `
 
 const NetworkStatus: React.FC = () => {
-  const { web3Store } = useRootStore()
+  const { config, web3Store } = useRootStore()
+  const { defaultNetwork } = config
   const { connected, isNetworkSupported, network } = web3Store
 
   const handleSwitchNetwork = (): void => {
@@ -26,6 +27,7 @@ const NetworkStatus: React.FC = () => {
   }
 
   if (!connected) return null
+
   if (!isNetworkSupported)
     return (
       <SettingsMenuItem
@@ -34,12 +36,12 @@ const NetworkStatus: React.FC = () => {
         hoverColor="error"
         iconName="exclamation-triangle"
       >
-        Switch to Arbitrum
+        Switch to {defaultNetwork.displayName ?? defaultNetwork.chainName}
       </SettingsMenuItem>
     )
   return (
     <Wrapper>
-      <RightNetwork>Connected to {network.displayName ?? network.name}</RightNetwork>
+      <RightNetwork>Connected to {network.displayName ?? network.chainName}</RightNetwork>
     </Wrapper>
   )
 }
