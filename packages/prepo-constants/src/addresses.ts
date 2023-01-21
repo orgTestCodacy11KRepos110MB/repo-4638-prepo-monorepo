@@ -5,7 +5,12 @@ export type ImportantAddress = {
   [key in SupportedNetworks]?: string
 }
 
-export type ImportantKeywords = 'GOVERNANCE' | 'USDC' | 'UNIV3_FACTORY' | 'UNIV3_POSITION_MANAGER'
+export type ImportantKeywords =
+  | 'GOVERNANCE'
+  | 'USDC'
+  | 'UNIV3_FACTORY'
+  | 'UNIV3_POSITION_MANAGER'
+  | 'UNIV3_SWAP_ROUTER'
 
 export type ImportantAddresses = {
   [key in ImportantKeywords]?: ImportantAddress
@@ -28,6 +33,10 @@ export const PREPO_ADDRESSES: ImportantAddresses = {
   UNIV3_POSITION_MANAGER: {
     arbitrumTestnet: '0xC36442b4a4522E871399CD717aBDD847Ab11FE88',
     arbitrumOne: '0xC36442b4a4522E871399CD717aBDD847Ab11FE88',
+  },
+  UNIV3_SWAP_ROUTER: {
+    arbitrumTestnet: '0xE592427A0AEce92De3Edee1F18E0157C05861564',
+    arbitrumOne: '0xE592427A0AEce92De3Edee1F18E0157C05861564',
   },
 }
 

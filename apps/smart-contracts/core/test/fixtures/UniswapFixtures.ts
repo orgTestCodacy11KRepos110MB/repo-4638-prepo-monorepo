@@ -28,3 +28,7 @@ export function attachNonfungiblePositionManager(
 ): Promise<NonfungiblePositionManager> {
   return ethers.getContractAt(POSITION_MANAGER_ABI, address)
 }
+
+export function attachSwapRouter(address: string): Promise<SwapRouter> {
+  return ethers.getContractAt(SWAP_ROUTER_ABI, address)
+}

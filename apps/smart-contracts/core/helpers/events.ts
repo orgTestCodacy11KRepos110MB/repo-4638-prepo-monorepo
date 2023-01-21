@@ -1,8 +1,14 @@
 import { MockContract } from '@defi-wonderland/smock'
-import { ERC20, PrePOMarket, PrePOMarketFactory } from '../types/generated'
-import { TransferEvent } from '../types/generated/@openzeppelin/artifacts/contracts/token/ERC20/ERC20'
+import {
+  ERC20,
+  NonfungiblePositionManager,
+  PrePOMarket,
+  PrePOMarketFactory,
+} from '../types/generated'
 import { MarketCreatedEvent } from '../types/generated/artifacts/contracts/PrePOMarket'
 import { MarketAddedEvent } from '../types/generated/artifacts/contracts/PrePOMarketFactory'
+import { TransferEvent } from '../types/generated/artifacts/@openzeppelin/contracts/token/ERC20/ERC20'
+import { IncreaseLiquidityEvent } from '../types/generated/externalArtifacts/INonfungiblePositionManager'
 
 export async function findMarketAddedEvent(
   factory: PrePOMarketFactory | MockContract<PrePOMarket>,
@@ -34,4 +40,14 @@ export async function findTransferEvent(
   const filter = erc20.filters.Transfer(source, destination)
   const events = await erc20.queryFilter(filter, startBlock, endBlock)
   return events as TransferEvent[]
+}
+
+export function findIncreaseLiquidityEvent(
+  positionManager: NonfungiblePositionManager,
+  tokenId?: number,
+  startBlock = 'latest',
+  endBlock = 'latest'
+): Promise<IncreaseLiquidityEvent[]> {
+  const filter = positionManager.filters.IncreaseLiquidity(tokenId)
+  return positionManager.queryFilter(filter, startBlock, endBlock)
 }

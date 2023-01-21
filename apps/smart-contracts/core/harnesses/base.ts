@@ -2,8 +2,11 @@ import { MockContract } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 import { HardhatEthersHelpers } from '@nomiclabs/hardhat-ethers/types'
 import { BigNumber } from 'ethers'
+import { POOL_FEE_TIER } from 'prepo-constants'
 import { Create2Address, utils } from 'prepo-hardhat'
 import { mintCollateralFromBaseToken, mintLSFromCollateral, mintLSFromBaseToken } from '../helpers'
+import { getNearestSqrtX96FromWei } from '../helpers/uniswap'
+import { attachUniV3Pool } from '../test/fixtures/UniswapFixtures'
 import {
   CollateralWithHooks,
   MockCollateralWithHooks,
@@ -16,6 +19,7 @@ import {
   PrePOMarketFactory,
   TestERC20,
   TokenSender,
+  UniswapV3Factory,
 } from '../types/generated'
 
 const { generateAddressLessThan } = utils
@@ -83,5 +87,37 @@ export abstract class Base {
       this.collateral.address
     )
     return [longTokenSalt, shortTokenSalt]
+  }
+
+  public async deployPoolsForMarket(
+    tokenNameSuffix: string,
+    univ3Factory: UniswapV3Factory,
+    approxLongPoolWeiPrice: BigNumber,
+    approxShortPoolWeiPrice: BigNumber
+  ): Promise<void> {
+    await univ3Factory.createPool(
+      this.markets[tokenNameSuffix].longToken.address,
+      this.collateral.address,
+      POOL_FEE_TIER
+    )
+    const longPoolAddress = await univ3Factory.getPool(
+      this.markets[tokenNameSuffix].longToken.address,
+      this.collateral.address,
+      POOL_FEE_TIER
+    )
+    const longPool = await attachUniV3Pool(longPoolAddress)
+    await longPool.initialize(getNearestSqrtX96FromWei(approxLongPoolWeiPrice))
+    await univ3Factory.createPool(
+      this.markets[tokenNameSuffix].shortToken.address,
+      this.collateral.address,
+      POOL_FEE_TIER
+    )
+    const shortPoolAddress = await univ3Factory.getPool(
+      this.markets[tokenNameSuffix].shortToken.address,
+      this.collateral.address,
+      POOL_FEE_TIER
+    )
+    const shortPool = await attachUniV3Pool(shortPoolAddress)
+    await shortPool.initialize(getNearestSqrtX96FromWei(approxShortPoolWeiPrice))
   }
 }
