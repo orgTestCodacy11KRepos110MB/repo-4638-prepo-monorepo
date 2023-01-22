@@ -789,7 +789,7 @@ describe('TokenShop', () => {
         tokenShop
           .connect(owner)
           .withdrawERC721([mockERC721.address], [owner.address], [idNotOwnedByTokenShop])
-      ).revertedWith('ERC721: caller is not token owner nor approved')
+      ).revertedWith('ERC721: caller is not token owner or approved')
     })
 
     it('transfers if token id owned by token shop', async () => {

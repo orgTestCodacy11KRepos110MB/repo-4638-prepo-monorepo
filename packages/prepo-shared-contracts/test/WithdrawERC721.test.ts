@@ -84,7 +84,7 @@ describe('WithdrawERC721', () => {
         withdrawERC721
           .connect(owner)
           .withdrawERC721([firstMockERC721.address], [owner.address], [idNotOwnedByContract])
-      ).revertedWith('ERC721: caller is not token owner nor approved')
+      ).revertedWith('ERC721: caller is not token owner or approved')
     })
 
     it('withdraws single ERC721 token', async () => {
