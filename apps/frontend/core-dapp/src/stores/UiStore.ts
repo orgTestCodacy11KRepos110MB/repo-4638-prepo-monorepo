@@ -40,21 +40,6 @@ export class UiStore {
     this.root.localStorageStore.storage.language = lang
   }
 
-  successToast(description: string): void {
-    this.message.success(description)
-  }
-
-  warningToast(description: string): void {
-    this.message.warning(description)
-  }
-
-  errorToast(title: string, error: unknown): void {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error type'
-    // eslint-disable-next-line no-console
-    console.error(error)
-    this.message.error(errorMessage)
-  }
-
   setAccountModalOpen(value: boolean): void {
     this.accountModalOpen = value
   }
