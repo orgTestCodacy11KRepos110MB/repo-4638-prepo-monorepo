@@ -15,7 +15,7 @@ import Slider from './Slider'
 import Subtitle from './Subtitle'
 import Switch from './Switch'
 import TokenInput from './TokenInput'
-import Tooltip from './Tooltip'
+import Tooltip, { tooltipStyles } from './Tooltip'
 import Typography from './Typography'
 
 // Keep the imports/exports alphabetical sorted
@@ -41,6 +41,7 @@ export {
   TokenInput,
   Tooltip,
   Typography,
+  tooltipStyles,
 }
 
 // Export types

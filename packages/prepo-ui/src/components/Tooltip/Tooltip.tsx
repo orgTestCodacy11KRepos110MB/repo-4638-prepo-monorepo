@@ -3,16 +3,26 @@ import { css } from 'styled-components'
 import { centered } from '../../common-utils'
 
 export const tooltipStyles = css`
-  .ant-tooltip-inner,
-  .ant-tooltip-arrow-content {
-    background-color: ${({ theme }): string => theme.color.secondary};
-    color: ${({ theme }): string => theme.color.white};
+  .ant-tooltip-arrow {
+    display: none;
+  }
+
+  .ant-tooltip-arrow-content::before {
+    display: none;
   }
 
   .ant-tooltip-inner {
     ${centered}
+    background: ${({ theme }): string => theme.color.neutral10};
+    background-color: ${({ theme }): string => theme.color.neutral10};
+    border: solid 1px ${({ theme }): string => theme.color.neutral7};
     border-radius: 5px;
-    font-weight: bold;
+    box-shadow: ${({ theme }): string => theme.shadow.prepo};
+    color: ${({ theme }): string => theme.color.neutral1};
+    font-size: ${({ theme }): string => theme.fontSize.sm};
+    font-weight: ${({ theme }): number => theme.fontWeight.regular};
+    text-align: center;
+    z-index: 0;
   }
 
   .ant-tooltip-arrow-content {

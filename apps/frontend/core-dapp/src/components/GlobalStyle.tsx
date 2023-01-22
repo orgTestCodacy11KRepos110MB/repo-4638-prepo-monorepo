@@ -1,7 +1,6 @@
 import { createGlobalStyle } from 'styled-components'
-import { coreDappTheme } from 'prepo-ui'
+import { coreDappTheme, tooltipStyles } from 'prepo-ui'
 import { dropdownStyles } from './Search'
-import { tooltipStyles } from './Tooltip'
 import blocknativeStyles from '../utils/blocknative-modal-styles'
 import userBackWidgetStyles from '../utils/userback-widget-styles'
 
