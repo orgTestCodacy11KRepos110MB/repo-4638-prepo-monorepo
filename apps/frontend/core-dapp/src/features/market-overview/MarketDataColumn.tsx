@@ -42,8 +42,7 @@ const MarketDataColumn: React.FC = () => {
   }, [container])
 
   if (selectedMarket === undefined) return null
-  const { name, estimatedValuation, liquidity, expiryTime, payoutRange, tradingVolume } =
-    selectedMarket
+  const { estimatedValuation, liquidity, expiryTime, payoutRange, tradingVolume } = selectedMarket
 
   const renderPayoutRange = (): React.ReactNode => {
     if (!payoutRange) return null
@@ -66,7 +65,7 @@ const MarketDataColumn: React.FC = () => {
         <Col xs={24}>
           <FinancialInfoCard
             title={t`Estimated Valuation`}
-            tooltip={<EstimatedValuation marketName={name} />}
+            tooltip={<EstimatedValuation />}
             value={`$${significantDigits(estimatedValuation.value)}`}
           />
         </Col>
