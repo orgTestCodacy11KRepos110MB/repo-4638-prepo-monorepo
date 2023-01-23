@@ -30,9 +30,13 @@ export const EstimatedWithdrawAmount: React.FC = () => (
   </Paragraph>
 )
 
-export const EstimatedValuation: React.FC<{ marketName: string }> = ({ marketName }) => (
+export const EstimatedValuation: React.FC = () => (
   <Paragraph>
-    <Trans>The estimated fully-diluted valuation of {marketName}.</Trans>
+    <Trans>
+      Your expected valuation price for this trade, after accounting for any fees and price impact.
+      You may receive a better or worse price if the market price changes before your transaction is
+      confirmed.
+    </Trans>
   </Paragraph>
 )
 

@@ -3,6 +3,7 @@ import styled from 'styled-components'
 import { observer } from 'mobx-react-lite'
 import DirectionRadio from './DirectionRadio'
 import MarketSlideUp from './MarketSlideUp'
+import OpenTradeSummary from './OpenTradeSummary'
 import TradeTransactionSummary from '../TradeTransactionSummary'
 import Link from '../../../components/Link'
 import { useRootStore } from '../../../context/RootStoreProvider'
@@ -37,7 +38,7 @@ const OpenTrade: React.FC = () => {
   const { tradeStore, web3Store, preCTTokenStore } = useRootStore()
   const { openTradeAmount, openTradeAmountBN, setOpenTradeAmount, selectedMarket } = tradeStore
   const { balanceOfSigner, tokenBalanceFormat } = preCTTokenStore
-  const { connected, isNetworkSupported } = web3Store
+  const { isNetworkSupported } = web3Store
 
   return (
     <Wrapper>
@@ -46,13 +47,14 @@ const OpenTrade: React.FC = () => {
       <CurrencyInput
         balance={tokenBalanceFormat}
         isBalanceZero={balanceOfSigner?.eq(0)}
-        disabled={!connected || !isNetworkSupported || !selectedMarket}
+        disabled={!isNetworkSupported || !selectedMarket}
         currency={{ icon: 'cash', text: 'USD' }}
         onChange={setOpenTradeAmount}
         value={openTradeAmount}
         placeholder="0"
         showBalance
       />
+      <OpenTradeSummary />
       <TradeTransactionSummary />
       {openTradeAmountBN !== undefined &&
         (balanceOfSigner?.lt(openTradeAmountBN) || balanceOfSigner?.eq(0)) && (

@@ -42,6 +42,7 @@ export class TradeStore {
         selectedMarket: this.selectedMarket,
         openTradeAmountBN: this.openTradeAmountBN,
         direction: this.direction,
+        marketValuation: this.selectedMarket?.estimatedValuation,
       }),
       async ({ openTradeAmountBN, selectedMarket }) => {
         if (!selectedMarket || openTradeAmountBN === undefined) {
@@ -139,13 +140,53 @@ export class TradeStore {
     })
   }
 
-  get valuation(): { raw?: number | undefined; afterSlippage?: number | undefined } {
+  get tradingLongPriceAfterSlippage(): number | undefined {
+    if (this.openTradeAmountOut === undefined) return undefined
+
+    const { slippage } = this.root.advancedSettingsStore
+    const amountOutAfterSlippage = +this.openTradeAmountOut * (1 - slippage)
+    const priceAfterSlippage = +this.openTradeAmount / amountOutAfterSlippage
+
+    const longTokenPriceAfterSlippage =
+      this.direction === 'long' ? priceAfterSlippage : 1 - priceAfterSlippage
+    return longTokenPriceAfterSlippage
+  }
+
+  get tradingValuation(): number | undefined {
+    if (this.selectedMarket === undefined || this.tradingLongPriceAfterSlippage === undefined)
+      return undefined
+    const { payoutRange, valuationRange } = this.selectedMarket
+    if (!valuationRange || !payoutRange) return undefined
+
+    return calculateValuation({
+      longTokenPrice: this.tradingLongPriceAfterSlippage,
+      payoutRange,
+      valuationRange,
+    })
+  }
+
+  get withinBounds(): boolean | undefined {
     if (
-      !this.selectedMarket ||
-      this.openTradeAmountOut === undefined ||
-      this.openTradeAmountOut === undefined
+      this.selectedMarket === undefined ||
+      this.tradingLongPriceAfterSlippage === undefined ||
+      this.openTradeAmountBN === undefined ||
+      this.selectedMarket.payoutRange === undefined
     )
-      return {}
+      return undefined
+
+    const { payoutRange } = this.selectedMarket
+    const [lowerBound, upperBound] = payoutRange
+
+    const inRange =
+      this.tradingLongPriceAfterSlippage > lowerBound &&
+      this.tradingLongPriceAfterSlippage < upperBound
+
+    return inRange || this.openTradeAmountBN.eq(0)
+  }
+  // TODO: this is only used in trade summary modal which will be deleted soon
+  // delete this when we delete trade summary modal
+  get valuation(): { raw?: number | undefined; afterSlippage?: number | undefined } {
+    if (!this.selectedMarket || this.openTradeAmountOut === undefined) return {}
     const { payoutRange, valuationRange } = this.selectedMarket
     if (!valuationRange || !payoutRange) return {}
 

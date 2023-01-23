@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useRouter } from 'next/router'
 import { observer } from 'mobx-react-lite'
 import EstimateProfitLoss from './EstimateProfitLoss'
@@ -28,6 +29,7 @@ const TradeTransactionSummary: React.FC = () => {
     selectedMarket,
     valuation: { raw, afterSlippage },
     direction,
+    withinBounds,
   } = tradeStore
 
   const valuationDirection = direction === 'long' ? 'Maximum' : 'Minimum'
@@ -91,12 +93,22 @@ const TradeTransactionSummary: React.FC = () => {
     },
   ]
 
+  const overrideButtonText = useMemo(() => {
+    if (selectedMarket === undefined) return 'Select a Market'
+    if (withinBounds === false) return 'Unprofitable Trade'
+    return undefined
+  }, [selectedMarket, withinBounds])
+
   return (
     <TransactionSummary
-      overrideText={selectedMarket === undefined ? 'Select a Market' : undefined}
-      loading={openTradeUILoading(selectedMarket) || openTradeAmountBN === undefined}
+      overrideText={overrideButtonText}
+      loading={
+        openTradeUILoading(selectedMarket) ||
+        openTradeAmountBN === undefined ||
+        withinBounds === undefined
+      }
       data={tradeTransactionSummary}
-      disabled={tradeDisabled || raw === undefined || selectedMarket === undefined}
+      disabled={tradeDisabled || raw === undefined || selectedMarket === undefined || !withinBounds}
       onComplete={onComplete}
       onConfirm={handlePlaceTrade}
       onRetry={handlePlaceTrade}
