@@ -74,7 +74,7 @@ const TradeTransactionSummary: React.FC = () => {
     },
     {
       label: 'Expected Valuation',
-      tooltip: <EstimatedValuation marketName={selectedMarket?.name ?? ''} />,
+      tooltip: <EstimatedValuation />,
       amount: `$${significantDigits(estimatedValuation)}`,
       ignoreFormatAmount: true,
     },
