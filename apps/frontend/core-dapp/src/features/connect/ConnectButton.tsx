@@ -1,36 +1,38 @@
 import { observer } from 'mobx-react-lite'
-import styled from 'styled-components'
-import { Button } from 'prepo-ui'
-import { Trans } from '@lingui/macro'
+import { Button, ButtonProps } from 'prepo-ui'
 import { useRootStore } from '../../context/RootStoreProvider'
 
-const Wrapper = styled.div`
-  border-radius: ${({ theme }): string => theme.borderRadius.md};
-  display: inline-flex;
-`
+type Props = {
+  hideWhenConnected?: boolean
+} & ButtonProps
 
-const Flex = styled.div`
-  display: flex;
-`
+const ConnectButton: React.FC<Props> = ({ hideWhenConnected, ...buttonProps }) => {
+  const { config, web3Store } = useRootStore()
+  const { defaultNetwork } = config
+  const { connecting, connected, isNetworkSupported } = web3Store
 
-const ConnectButton: React.FC = () => {
-  const { web3Store } = useRootStore()
-  const { signerState } = web3Store
-  const account = signerState.address
+  if (connected && isNetworkSupported) return null
 
-  const onClickLogin = (): void => {
+  // ignore whether network is supported (e.g. header connect button)
+  if (connected && hideWhenConnected) return null
+
+  const handleSwitchNetwork = (): void => {
+    if (!isNetworkSupported) {
+      web3Store.setNetwork(defaultNetwork)
+      return
+    }
     web3Store.connect()
   }
 
-  if (account) return null
+  const buttonText = isNetworkSupported
+    ? 'Connect Wallet'
+    : `Switch to ${defaultNetwork.displayName ?? defaultNetwork.chainName}`
+
   return (
-    <Wrapper>
-      <Flex>
-        <Button type="primary" onClick={onClickLogin} size="sm">
-          <Trans>Connect Wallet</Trans>
-        </Button>
-      </Flex>
-    </Wrapper>
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    <Button block disabled={connecting} onClick={handleSwitchNetwork} {...buttonProps}>
+      {buttonText}
+    </Button>
   )
 }
 

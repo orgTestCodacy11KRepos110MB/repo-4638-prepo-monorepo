@@ -41,7 +41,7 @@ const Header: React.FC = () => (
           <Navigation />
         </Flex>
         <Flex gap={8}>
-          <ConnectButton />
+          <ConnectButton size="sm" hideWhenConnected />
           <SettingsMenu />
         </Flex>
       </AHeader>
