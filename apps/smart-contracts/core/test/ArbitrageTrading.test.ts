@@ -17,12 +17,20 @@ import { Snapshotter } from './snapshots'
 import { batchGrantAndAcceptRoles } from './utils'
 import { MockCore } from '../harnesses/mock'
 import { assignCollateralRoles } from '../helpers/roles'
+import {
+  mintLiquidityForLongShort,
+  getAmountInForExactOutputSingle,
+  getAmountOutForExactInputSingle,
+  getNearestSqrtX96FromWei,
+} from '../helpers/uniswap'
 import { PrePOMarketParams } from '../types'
 import {
   Create2Deployer,
   UniswapV3Factory,
   NonfungiblePositionManager,
   ArbitrageBroker,
+  IArbitrageBroker,
+  ERC20,
   SwapRouter,
 } from '../types/generated'
 
@@ -50,6 +58,13 @@ describe('=> Arbitrage Trading', () => {
   const TEST_CEILING_VAL = BigNumber.from(10000)
   const TEST_EXPIRY = nowPlusMonths(2)
   const TEST_POSITION_SIZE = parseEther('1')
+  /**
+   * Default deadline just uses our existing `nowPlusMonth()` function
+   * for simplicity. If we were to use a much closer deadline, perhaps
+   * now + some seconds, we would need to poll the current block time
+   * for every testcase to ensure the deadline stays valid.
+   */
+  const TEST_DEADLINE = nowPlusMonths(1)
   const GOVERNANCE_COLLATERAL_SUPPLY = parseEther('10000')
   const GOVERNANCE_LSTOKEN_SUPPLY = parseEther('10000')
   /**
@@ -144,5 +159,333 @@ describe('=> Arbitrage Trading', () => {
       .setMarketValidity(core.markets[TEST_NAME_SUFFIX].address, true)
     await core.collateral.connect(governance).transfer(arbitrageBroker.address, TEST_BROKER_CAPITAL)
     await snapshotter.saveSnapshot()
+  })
+
+  describe('# ArbitrageBroker Functional Testing', () => {
+    describe('# buyAndRedeem', () => {
+      it('reverts if profit < 0', async () => {
+        // initialize pools at 0.5 so buying will occur at a loss
+        await core.deployPoolsForMarket(
+          TEST_NAME_SUFFIX,
+          univ3Factory,
+          parseEther('0.5'),
+          parseEther('0.5')
+        )
+        /**
+         * Since we must provide liquidity across a range, we can just
+         * supply L/S liquidity at 0.5-0.51 to both, ensuring that
+         * L + S will exceed 1. Note that these ether values are
+         * approximate and helpers convert this to an actual tick
+         * price, so in reality 0.5-0.51 is 0.496-0.506. However, this
+         * will still result in a loss since overall L + S > 1.
+         *
+         * The price curve is not linear and will lean heavily towards the upper
+         * end of the range if we only provide just enough or a little over the
+         * amount we plan to buy. We supply twice the amount we plan to buy to
+         * ensure the average purchase price is closer to the middle of the range.
+         *
+         * We provide a Collateral amount of 0 since the range of 0.496-0.506 is
+         * above the current price 0.496 and therefore only uses L/S tokens;
+         * i.e. buying L/S tokens will be facilitated but not selling into Collateral.
+         */
+        await mintLiquidityForLongShort(
+          core.markets[TEST_NAME_SUFFIX].longToken,
+          core.collateral,
+          positionManager,
+          parseEther('0.5'),
+          parseEther('0.51'),
+          TEST_POSITION_SIZE.mul(2),
+          BigNumber.from(0),
+          governance.address,
+          governance
+        )
+        await mintLiquidityForLongShort(
+          core.markets[TEST_NAME_SUFFIX].shortToken,
+          core.collateral,
+          positionManager,
+          parseEther('0.5'),
+          parseEther('0.51'),
+          TEST_POSITION_SIZE.mul(2),
+          BigNumber.from(0),
+          governance.address,
+          governance
+        )
+        /**
+         * Simulate the swap to determine how much it will cost to purchase
+         * each. This is for verifying the expected profit/loss and the script
+         * won't need to do this.
+         */
+        const expectedCollateralToBuyLong = await getAmountInForExactOutputSingle(
+          core.collateral as unknown as ERC20,
+          core.markets[TEST_NAME_SUFFIX].longToken.address,
+          TEST_POSITION_SIZE,
+          governance,
+          governance.address,
+          swapRouter
+        )
+        const expectedCollateralToBuyShort = await getAmountInForExactOutputSingle(
+          core.collateral as unknown as ERC20,
+          core.markets[TEST_NAME_SUFFIX].shortToken.address,
+          TEST_POSITION_SIZE,
+          governance,
+          governance.address,
+          swapRouter
+        )
+        /**
+         * Expected profit is the combined redemption value of the L/S tokens,
+         * minus the cost of buying them.
+         */
+        const expectedProfit = TEST_POSITION_SIZE.sub(
+          expectedCollateralToBuyLong.add(expectedCollateralToBuyShort)
+        )
+        expect(expectedProfit).lt(0)
+        const brokerBalanceBefore = await core.collateral.balanceOf(arbitrageBroker.address)
+        const tradeParams = <IArbitrageBroker.OffChainTradeParamsStruct>{
+          deadline: TEST_DEADLINE,
+          longShortAmount: TEST_POSITION_SIZE,
+          collateralLimitForLong: ethers.constants.MaxUint256,
+          collateralLimitForShort: ethers.constants.MaxUint256,
+        }
+
+        await expect(
+          arbitrageBroker
+            .connect(governance)
+            .buyAndRedeem(core.markets[TEST_NAME_SUFFIX].address, tradeParams)
+        )
+          .revertedWithCustomError(arbitrageBroker, 'UnprofitableTrade')
+          .withArgs(brokerBalanceBefore, brokerBalanceBefore.add(expectedProfit))
+      })
+
+      it('succeeds if profit > 0', async () => {
+        // initialize pools at 0.49 so buying will occur at a profit
+        await core.deployPoolsForMarket(
+          TEST_NAME_SUFFIX,
+          univ3Factory,
+          parseEther('0.49'),
+          parseEther('0.49')
+        )
+        /**
+         * 0.49-0.5 will actually be ~0.486-0.496. However, this
+         * will still result in a profit since overall L + S < 1.
+         */
+        await mintLiquidityForLongShort(
+          core.markets[TEST_NAME_SUFFIX].longToken,
+          core.collateral,
+          positionManager,
+          parseEther('0.49'),
+          parseEther('0.5'),
+          TEST_POSITION_SIZE.mul(2),
+          BigNumber.from(0),
+          governance.address,
+          governance
+        )
+        await mintLiquidityForLongShort(
+          core.markets[TEST_NAME_SUFFIX].shortToken,
+          core.collateral,
+          positionManager,
+          parseEther('0.49'),
+          parseEther('0.5'),
+          TEST_POSITION_SIZE.mul(2),
+          BigNumber.from(0),
+          governance.address,
+          governance
+        )
+        const expectedCollateralToBuyLong = await getAmountInForExactOutputSingle(
+          core.collateral as unknown as ERC20,
+          core.markets[TEST_NAME_SUFFIX].longToken.address,
+          TEST_POSITION_SIZE,
+          governance,
+          governance.address,
+          swapRouter
+        )
+        const expectedCollateralToBuyShort = await getAmountInForExactOutputSingle(
+          core.collateral as unknown as ERC20,
+          core.markets[TEST_NAME_SUFFIX].shortToken.address,
+          TEST_POSITION_SIZE,
+          governance,
+          governance.address,
+          swapRouter
+        )
+        const expectedProfit = TEST_POSITION_SIZE.sub(
+          expectedCollateralToBuyLong.add(expectedCollateralToBuyShort)
+        )
+        expect(expectedProfit).gt(0)
+        const brokerBalanceBefore = await core.collateral.balanceOf(arbitrageBroker.address)
+        const tradeParams = <IArbitrageBroker.OffChainTradeParamsStruct>{
+          deadline: TEST_DEADLINE,
+          longShortAmount: TEST_POSITION_SIZE,
+          collateralLimitForLong: ethers.constants.MaxUint256,
+          collateralLimitForShort: ethers.constants.MaxUint256,
+        }
+
+        await arbitrageBroker
+          .connect(governance)
+          .buyAndRedeem(core.markets[TEST_NAME_SUFFIX].address, tradeParams)
+
+        expect(await core.collateral.balanceOf(arbitrageBroker.address)).eq(
+          brokerBalanceBefore.add(expectedProfit)
+        )
+      })
+    })
+
+    describe('# mintAndSell', () => {
+      it('reverts if profit < 0', async () => {
+        /**
+         * Initialize pools at 0.5 so selling begins at a loss.
+         * Liquidity will be provided down to 0.49 to ensure overall
+         * L + S < 1. Conversely from `buyAndRedeem()` cases, we only
+         * provide Collateral rather than L/S.
+         */
+        await core.deployPoolsForMarket(
+          TEST_NAME_SUFFIX,
+          univ3Factory,
+          parseEther('0.5'),
+          parseEther('0.5')
+        )
+        /**
+         * The price curve is not linear and will lean heavily towards the lower
+         * end of the range if we only provide just enough or a little over the
+         * amount we plan to sell. We supply twice the amount we plan to sell to
+         * ensure the average sale price is closer to the middle of the range.
+         */
+        await mintLiquidityForLongShort(
+          core.markets[TEST_NAME_SUFFIX].longToken,
+          core.collateral,
+          positionManager,
+          parseEther('0.49'),
+          parseEther('0.5'),
+          BigNumber.from(0),
+          TEST_POSITION_SIZE.mul(2),
+          governance.address,
+          governance
+        )
+        await mintLiquidityForLongShort(
+          core.markets[TEST_NAME_SUFFIX].shortToken,
+          core.collateral,
+          positionManager,
+          parseEther('0.49'),
+          parseEther('0.5'),
+          BigNumber.from(0),
+          TEST_POSITION_SIZE.mul(2),
+          governance.address,
+          governance
+        )
+        /**
+         * Simulate the swap to determine how much each sale would return.
+         * This is for verifying the expected profit/loss and the script
+         * won't need to do this.
+         */
+        const expectedCollateralFromSellingLong = await getAmountOutForExactInputSingle(
+          core.markets[TEST_NAME_SUFFIX].longToken,
+          core.collateral.address,
+          TEST_POSITION_SIZE,
+          governance,
+          governance.address,
+          swapRouter
+        )
+        const expectedCollateralFromSellingShort = await getAmountOutForExactInputSingle(
+          core.markets[TEST_NAME_SUFFIX].shortToken,
+          core.collateral.address,
+          TEST_POSITION_SIZE,
+          governance,
+          governance.address,
+          swapRouter
+        )
+        /**
+         * Expected profit is the amount the L/S tokens sold for minus the cost
+         * of minting them.
+         */
+        const expectedProfit = expectedCollateralFromSellingLong
+          .add(expectedCollateralFromSellingShort)
+          .sub(TEST_POSITION_SIZE)
+        expect(expectedProfit).lt(0)
+        const brokerBalanceBefore = await core.collateral.balanceOf(arbitrageBroker.address)
+        const tradeParams = <IArbitrageBroker.OffChainTradeParamsStruct>{
+          deadline: TEST_DEADLINE,
+          longShortAmount: TEST_POSITION_SIZE,
+          collateralLimitForLong: 0,
+          collateralLimitForShort: 0,
+        }
+
+        await expect(
+          arbitrageBroker
+            .connect(governance)
+            .mintAndSell(core.markets[TEST_NAME_SUFFIX].address, tradeParams)
+        )
+          .revertedWithCustomError(arbitrageBroker, 'UnprofitableTrade')
+          .withArgs(brokerBalanceBefore, brokerBalanceBefore.add(expectedProfit))
+      })
+
+      it('succeeds if profit > 0', async () => {
+        /**
+         * Initialize pools at 0.51 so selling begins at a
+         * profit. Liquidity will be provided down to 0.5 to
+         * ensure overall L + S > 1.
+         */
+        await core.deployPoolsForMarket(
+          TEST_NAME_SUFFIX,
+          univ3Factory,
+          parseEther('0.51'),
+          parseEther('0.51')
+        )
+        await mintLiquidityForLongShort(
+          core.markets[TEST_NAME_SUFFIX].longToken,
+          core.collateral,
+          positionManager,
+          parseEther('0.5'),
+          parseEther('0.51'),
+          BigNumber.from(0),
+          TEST_POSITION_SIZE.mul(2),
+          governance.address,
+          governance
+        )
+        await mintLiquidityForLongShort(
+          core.markets[TEST_NAME_SUFFIX].shortToken,
+          core.collateral,
+          positionManager,
+          parseEther('0.5'),
+          parseEther('0.51'),
+          BigNumber.from(0),
+          TEST_POSITION_SIZE.mul(2),
+          governance.address,
+          governance
+        )
+        const expectedCollateralFromSellingLong = await getAmountOutForExactInputSingle(
+          core.markets[TEST_NAME_SUFFIX].longToken,
+          core.collateral.address,
+          TEST_POSITION_SIZE,
+          governance,
+          governance.address,
+          swapRouter
+        )
+        const expectedCollateralFromSellingShort = await getAmountOutForExactInputSingle(
+          core.markets[TEST_NAME_SUFFIX].shortToken,
+          core.collateral.address,
+          TEST_POSITION_SIZE,
+          governance,
+          governance.address,
+          swapRouter
+        )
+        const expectedProfit = expectedCollateralFromSellingLong
+          .add(expectedCollateralFromSellingShort)
+          .sub(TEST_POSITION_SIZE)
+        expect(expectedProfit).gt(0)
+        const brokerBalanceBefore = await core.collateral.balanceOf(arbitrageBroker.address)
+        const tradeParams = <IArbitrageBroker.OffChainTradeParamsStruct>{
+          deadline: TEST_DEADLINE,
+          longShortAmount: TEST_POSITION_SIZE,
+          collateralLimitForLong: 0,
+          collateralLimitForShort: 0,
+        }
+
+        await arbitrageBroker
+          .connect(governance)
+          .mintAndSell(core.markets[TEST_NAME_SUFFIX].address, tradeParams)
+
+        expect(await core.collateral.balanceOf(arbitrageBroker.address)).eq(
+          brokerBalanceBefore.add(expectedProfit)
+        )
+      })
+    })
   })
 })
