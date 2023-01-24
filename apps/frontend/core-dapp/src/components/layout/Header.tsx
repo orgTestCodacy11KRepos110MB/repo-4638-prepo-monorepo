@@ -24,7 +24,7 @@ const Wrapper = styled.div`
     justify-content: space-between;
     padding: ${spacingIncrement(16)};
     position: relative;
-    ${media.tablet`
+    ${media.desktop`
       padding: ${spacingIncrement(32)};
   `};
   }

@@ -10,11 +10,10 @@ const Wrapper = styled.div`
       min-height: 100vh;
       .ant-layout-content {
         flex: 1;
-        padding: ${spacingIncrement(32)};
-        padding-bottom: ${spacingIncrement(96)};
+        padding: ${spacingIncrement(20)} ${spacingIncrement(8)};
+        padding-bottom: ${spacingIncrement(80)};
         ${media.desktop`
-          padding: ${spacingIncrement(64)};
-          padding-top: ${spacingIncrement(22)};
+          padding-top: ${spacingIncrement(68)};
         `}
       }
     }
