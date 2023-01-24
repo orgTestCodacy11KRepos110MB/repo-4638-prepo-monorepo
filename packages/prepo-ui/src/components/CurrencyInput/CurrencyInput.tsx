@@ -12,6 +12,7 @@ export type CurrencyType = { icon: IconName; text: string }
 
 type Props = {
   balance?: string
+  balanceNotVisible?: boolean
   isBalanceZero?: boolean
   disabled?: boolean
   onChange?: (e: string) => void
@@ -91,6 +92,7 @@ const CurrencyInput: React.FC<
     }
 > = ({
   balance,
+  balanceNotVisible,
   disabled,
   isBalanceZero,
   onFocus,
@@ -160,7 +162,7 @@ const CurrencyInput: React.FC<
       </Flex>
       {showBalance && (
         <Balance alignSelf="flex-end" height={16}>
-          {balance !== undefined && !disabled && (
+          {balance !== undefined && !balanceNotVisible && (
             <>
               {`Balance: ${displayDecimals(balance)}`}
               {inputValue !== balance && !isBalanceZero && (
