@@ -5,13 +5,19 @@ import { id, parseEther } from 'ethers/lib/utils'
 import { ZERO_ADDRESS } from 'prepo-constants'
 import { utils } from 'prepo-hardhat'
 import { FakeContract, MockContract, smock } from '@defi-wonderland/smock'
-import { withdrawHookFixture } from './fixtures/HookFixture'
-import { smockDepositRecordFixture } from './fixtures/DepositRecordFixture'
-import { grantAndAcceptRole, batchGrantAndAcceptRoles, setAccountBalance } from './utils'
-import { smockTestERC20Fixture } from './fixtures/TestERC20Fixture'
-import { fakeCollateralFixture } from './fixtures/CollateralFixture'
-import { smockTokenSenderFixture } from './fixtures/TokenSenderFixture'
-import { Collateral, DepositRecord, TestERC20, TokenSender, WithdrawHook } from '../types/generated'
+import { withdrawHookFixture } from '../fixtures/HookFixture'
+import { smockDepositRecordFixture } from '../fixtures/DepositRecordFixture'
+import { grantAndAcceptRole, batchGrantAndAcceptRoles, setAccountBalance } from '../utils'
+import { smockTestERC20Fixture } from '../fixtures/TestERC20Fixture'
+import { fakeCollateralFixture } from '../fixtures/CollateralFixture'
+import { smockTokenSenderFixture } from '../fixtures/TokenSenderFixture'
+import {
+  Collateral,
+  DepositRecord,
+  TestERC20,
+  TokenSender,
+  WithdrawHook,
+} from '../../types/generated'
 
 chai.use(smock.matchers)
 

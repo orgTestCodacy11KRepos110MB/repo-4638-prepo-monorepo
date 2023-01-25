@@ -3,8 +3,8 @@ import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { FakeContract, smock } from '@defi-wonderland/smock'
 import { ZERO_ADDRESS } from 'prepo-constants'
-import { fakeAccountListFixture, mintHookFixture } from './fixtures/HookFixture'
-import { AccountList, MintHook } from '../types/generated'
+import { fakeAccountListFixture, mintHookFixture } from '../fixtures/HookFixture'
+import { AccountList, MintHook } from '../../types/generated'
 
 chai.use(smock.matchers)
 

@@ -6,12 +6,12 @@ import { BigNumber, Contract } from 'ethers'
 import { FakeContract, smock } from '@defi-wonderland/smock'
 import { ZERO_ADDRESS } from 'prepo-constants'
 import { utils } from 'prepo-hardhat'
-import { getSignerForContract } from './utils'
-import { fakeCollateralFixture } from './fixtures/CollateralFixture'
-import { fakeAccountListFixture, redeemHookFixture } from './fixtures/HookFixture'
-import { fakeTokenSenderFixture } from './fixtures/TokenSenderFixture'
-import { fakePrePOMarketFixture } from './fixtures/PrePOMarketFixture'
-import { AccountList, Collateral, RedeemHook, TokenSender } from '../types/generated'
+import { getSignerForContract } from '../utils'
+import { fakeCollateralFixture } from '../fixtures/CollateralFixture'
+import { fakeAccountListFixture, redeemHookFixture } from '../fixtures/HookFixture'
+import { fakeTokenSenderFixture } from '../fixtures/TokenSenderFixture'
+import { fakePrePOMarketFixture } from '../fixtures/PrePOMarketFixture'
+import { AccountList, Collateral, RedeemHook, TokenSender } from '../../types/generated'
 
 chai.use(smock.matchers)
 

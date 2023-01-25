@@ -2,8 +2,8 @@ import { ethers } from 'hardhat'
 import { expect } from 'chai'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { ZERO_ADDRESS } from 'prepo-constants'
-import { allowedCollateralCallerFixture } from './fixtures/AllowedCollateralCallerFixture'
-import { AllowedCollateralCaller } from '../types/generated'
+import { allowedCollateralCallerFixture } from '../fixtures/AllowedCollateralCallerFixture'
+import { AllowedCollateralCaller } from '../../types/generated'
 
 describe('=> AllowedCollateralCaller', () => {
   let allowedCollateralCaller: AllowedCollateralCaller

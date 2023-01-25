@@ -5,12 +5,12 @@ import { id } from 'ethers/lib/utils'
 import { ZERO_ADDRESS } from 'prepo-constants'
 import { BigNumber } from 'ethers'
 import { FakeContract, smock } from '@defi-wonderland/smock'
-import { tokenSenderFixture } from './fixtures/TokenSenderFixture'
-import { smockTestERC20Fixture } from './fixtures/TestERC20Fixture'
-import { grantAndAcceptRole } from './utils'
-import { fakeTestUintValueFixture } from './fixtures/TestUintValueFixture'
-import { fakeAccountListFixture } from './fixtures/HookFixture'
-import { AccountList, TestERC20, TestUintValue, TokenSender } from '../types/generated'
+import { tokenSenderFixture } from '../fixtures/TokenSenderFixture'
+import { smockTestERC20Fixture } from '../fixtures/TestERC20Fixture'
+import { grantAndAcceptRole } from '../utils'
+import { fakeTestUintValueFixture } from '../fixtures/TestUintValueFixture'
+import { fakeAccountListFixture } from '../fixtures/HookFixture'
+import { AccountList, TestERC20, TestUintValue, TokenSender } from '../../types/generated'
 
 chai.use(smock.matchers)
 

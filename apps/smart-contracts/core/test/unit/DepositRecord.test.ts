@@ -3,9 +3,9 @@ import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { id, parseEther } from 'ethers/lib/utils'
 import { DEFAULT_ADMIN_ROLE } from 'prepo-constants'
-import { depositRecordFixture } from './fixtures/DepositRecordFixture'
-import { grantAndAcceptRole } from './utils'
-import { DepositRecord } from '../types/generated'
+import { depositRecordFixture } from '../fixtures/DepositRecordFixture'
+import { grantAndAcceptRole } from '../utils'
+import { DepositRecord } from '../../types/generated'
 
 describe('=> DepositRecord', () => {
   let depositRecord: DepositRecord

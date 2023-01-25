@@ -6,11 +6,11 @@ import { formatBytes32String } from 'ethers/lib/utils'
 import { FakeContract, smock } from '@defi-wonderland/smock'
 import { DEFAULT_ADMIN_ROLE, ZERO_ADDRESS } from 'prepo-constants'
 import { utils } from 'prepo-hardhat'
-import { testERC20Fixture } from './fixtures/TestERC20Fixture'
-import { LongShortTokenAttachFixture } from './fixtures/LongShortTokenFixture'
-import { prePOMarketAttachFixture } from './fixtures/PrePOMarketFixture'
-import { prePOMarketFactoryFixture } from './fixtures/PrePOMarketFactoryFixture'
-import { fakeMintHookFixture } from './fixtures/HookFixture'
+import { testERC20Fixture } from '../fixtures/TestERC20Fixture'
+import { LongShortTokenAttachFixture } from '../fixtures/LongShortTokenFixture'
+import { prePOMarketAttachFixture } from '../fixtures/PrePOMarketFixture'
+import { prePOMarketFactoryFixture } from '../fixtures/PrePOMarketFactoryFixture'
+import { fakeMintHookFixture } from '../fixtures/HookFixture'
 import {
   MAX_PAYOUT,
   calculateFee,
@@ -20,10 +20,10 @@ import {
   batchGrantAndAcceptRoles,
   revertsIfNotRoleHolder,
   testRoleConstants,
-} from './utils'
-import { createMarket } from '../helpers'
-import { CreateMarketParams } from '../types'
-import { PrePOMarketFactory, PrePOMarket, LongShortToken, TestERC20 } from '../types/generated'
+} from '../utils'
+import { createMarket } from '../../helpers'
+import { CreateMarketParams } from '../../types'
+import { PrePOMarketFactory, PrePOMarket, LongShortToken, TestERC20 } from '../../types/generated'
 
 chai.use(smock.matchers)
 

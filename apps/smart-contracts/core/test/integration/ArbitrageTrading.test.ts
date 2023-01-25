@@ -6,24 +6,24 @@ import { BigNumber } from 'ethers'
 import { getPrePOAddressForNetwork } from 'prepo-constants'
 import { utils } from 'prepo-hardhat'
 import { parseEther } from '@ethersproject/units'
-import { arbitrageBrokerFixture } from './fixtures/ArbitrageBrokerFixture'
-import { create2DeployerFixture } from './fixtures/Create2DeployerFixtures'
+import { arbitrageBrokerFixture } from '../fixtures/ArbitrageBrokerFixture'
+import { create2DeployerFixture } from '../fixtures/Create2DeployerFixtures'
 import {
   attachUniV3Factory,
   attachNonfungiblePositionManager,
   attachSwapRouter,
-} from './fixtures/UniswapFixtures'
-import { Snapshotter } from './snapshots'
-import { batchGrantAndAcceptRoles } from './utils'
-import { MockCore } from '../harnesses/mock'
-import { assignCollateralRoles } from '../helpers/roles'
+} from '../fixtures/UniswapFixtures'
+import { Snapshotter } from '../snapshots'
+import { batchGrantAndAcceptRoles } from '../utils'
+import { MockCore } from '../../harnesses/mock'
+import { assignCollateralRoles } from '../../helpers/roles'
 import {
   mintLiquidityForLongShort,
   getAmountInForExactOutputSingle,
   getAmountOutForExactInputSingle,
   getNearestSqrtX96FromWei,
-} from '../helpers/uniswap'
-import { PrePOMarketParams } from '../types'
+} from '../../helpers/uniswap'
+import { PrePOMarketParams } from '../../types'
 import {
   Create2Deployer,
   UniswapV3Factory,
@@ -32,7 +32,7 @@ import {
   IArbitrageBroker,
   ERC20,
   SwapRouter,
-} from '../types/generated'
+} from '../../types/generated'
 
 const { nowPlusMonths } = utils
 
@@ -161,7 +161,7 @@ describe('=> Arbitrage Trading', () => {
     await snapshotter.saveSnapshot()
   })
 
-  describe('# ArbitrageBroker Functional Testing', () => {
+  describe('# ArbitrageBroker Integration Testing', () => {
     describe('# buyAndRedeem', () => {
       it('reverts if profit < 0', async () => {
         // initialize pools at 0.5 so buying will occur at a loss

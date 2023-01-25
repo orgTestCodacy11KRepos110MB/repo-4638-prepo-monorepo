@@ -12,7 +12,7 @@
         "compile": "yarn typechain && npx hardhat compile",
         "l": "yarn prettier --write './deploy/*.ts' './hardhat.config.ts' './harnesses/*.ts' './helpers/*.ts' './tasks/*.ts' './test/**/*.ts' './utils/*.ts'",
         "pret": "yarn c && yarn l",
-        "t": "npx hardhat test",
+        "t": "npx hardhat test test/unit/*.ts",
         "core:test:ci": "yarn t",
         "typechain": "TS_NODE_TRANSPILE_ONLY=1 npx hardhat typechain",
         "pret:coverage": "yarn c && yarn l",

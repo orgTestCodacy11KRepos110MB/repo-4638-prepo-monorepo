@@ -2,8 +2,8 @@ import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { utils } from 'prepo-hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
-import { LongShortTokenFixture } from './fixtures/LongShortTokenFixture'
-import { LongShortToken } from '../types/generated'
+import { LongShortTokenFixture } from '../fixtures/LongShortTokenFixture'
+import { LongShortToken } from '../../types/generated'
 
 describe('=> LongShortToken', () => {
   let longShort: LongShortToken

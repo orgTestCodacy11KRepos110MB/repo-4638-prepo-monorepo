@@ -6,12 +6,12 @@ import { BigNumber } from 'ethers'
 import { FakeContract, smock } from '@defi-wonderland/smock'
 import { utils } from 'prepo-hardhat'
 import { JUNK_ADDRESS } from 'prepo-constants'
-import { getPermitFromSignature } from './utils'
-import { depositTradeHelperFixture } from './fixtures/DepositTradeHelperFixture'
-import { fakeSwapRouterFixture } from './fixtures/UniswapFixtures'
-import { MockCore } from '../harnesses/mock'
-import { DepositTradeHelper, IDepositTradeHelper, SwapRouter } from '../types/generated'
-import { getCollateralAmount } from '../helpers'
+import { getPermitFromSignature } from '../utils'
+import { depositTradeHelperFixture } from '../fixtures/DepositTradeHelperFixture'
+import { fakeSwapRouterFixture } from '../fixtures/UniswapFixtures'
+import { MockCore } from '../../harnesses/mock'
+import { DepositTradeHelper, IDepositTradeHelper, SwapRouter } from '../../types/generated'
+import { getCollateralAmount } from '../../helpers'
 
 const { getLastTimestamp, setNextTimestamp } = utils
 

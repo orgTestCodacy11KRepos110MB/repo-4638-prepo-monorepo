@@ -4,14 +4,14 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-wit
 import { parseEther } from 'ethers/lib/utils'
 import { FakeContract, MockContract, smock } from '@defi-wonderland/smock'
 import { ZERO_ADDRESS } from 'prepo-constants'
-import { depositHookFixture, fakeAccountListFixture } from './fixtures/HookFixture'
-import { setAccountBalance, grantAndAcceptRole, testRoleConstants } from './utils'
-import { fakeTokenSenderFixture } from './fixtures/TokenSenderFixture'
-import { smockTestERC20Fixture } from './fixtures/TestERC20Fixture'
-import { fakeCollateralFixture } from './fixtures/CollateralFixture'
-import { Snapshotter } from './snapshots'
-import { fakeDepositRecordFixture } from './fixtures/DepositRecordFixture'
-import { testERC721Fixture } from './fixtures/TestERC721Fixture'
+import { depositHookFixture, fakeAccountListFixture } from '../fixtures/HookFixture'
+import { setAccountBalance, grantAndAcceptRole, testRoleConstants } from '../utils'
+import { fakeTokenSenderFixture } from '../fixtures/TokenSenderFixture'
+import { smockTestERC20Fixture } from '../fixtures/TestERC20Fixture'
+import { fakeCollateralFixture } from '../fixtures/CollateralFixture'
+import { Snapshotter } from '../snapshots'
+import { fakeDepositRecordFixture } from '../fixtures/DepositRecordFixture'
+import { testERC721Fixture } from '../fixtures/TestERC721Fixture'
 import {
   AccountList,
   Collateral,
@@ -20,7 +20,7 @@ import {
   TestERC20,
   TestERC721,
   TokenSender,
-} from '../types/generated'
+} from '../../types/generated'
 
 chai.use(smock.matchers)
 const snapshotter = new Snapshotter()

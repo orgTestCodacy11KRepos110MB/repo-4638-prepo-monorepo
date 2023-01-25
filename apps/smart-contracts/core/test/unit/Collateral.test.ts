@@ -10,17 +10,17 @@ import {
   fakeDepositHookFixture,
   fakeWithdrawHookFixture,
   fakeManagerWithdrawHookFixture,
-} from './fixtures/HookFixture'
-import { collateralFixture } from './fixtures/CollateralFixture'
-import { testERC20Fixture } from './fixtures/TestERC20Fixture'
-import { fakeTokenSenderFixture } from './fixtures/TokenSenderFixture'
+} from '../fixtures/HookFixture'
+import { collateralFixture } from '../fixtures/CollateralFixture'
+import { testERC20Fixture } from '../fixtures/TestERC20Fixture'
+import { fakeTokenSenderFixture } from '../fixtures/TokenSenderFixture'
 import {
   FEE_DENOMINATOR,
   COLLATERAL_FEE_LIMIT,
   grantAndAcceptRole,
   PERCENT_DENOMINATOR,
   batchGrantAndAcceptRoles,
-} from './utils'
+} from '../utils'
 import {
   AccountList,
   Collateral,
@@ -29,7 +29,7 @@ import {
   TestERC20,
   TokenSender,
   WithdrawHook,
-} from '../types/generated'
+} from '../../types/generated'
 
 chai.use(smock.matchers)
 

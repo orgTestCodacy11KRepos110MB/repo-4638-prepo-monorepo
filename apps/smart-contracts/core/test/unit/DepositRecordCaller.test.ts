@@ -2,8 +2,8 @@ import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { ZERO_ADDRESS } from 'prepo-constants'
-import { depositRecordCallerFixture } from './fixtures/DepositRecordCallerFixture'
-import { DepositRecordCaller } from '../types/generated'
+import { depositRecordCallerFixture } from '../fixtures/DepositRecordCallerFixture'
+import { DepositRecordCaller } from '../../types/generated'
 
 describe('=> AccountListCaller', () => {
   let depositRecordCaller: DepositRecordCaller
