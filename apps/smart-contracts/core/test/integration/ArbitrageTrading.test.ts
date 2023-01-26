@@ -3,25 +3,25 @@ import { ethers, network } from 'hardhat'
 import { smock } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { BigNumber } from 'ethers'
-import { getPrePOAddressForNetwork } from 'prepo-constants'
+import { getPrePOAddressForNetwork, POOL_FEE_TIER } from 'prepo-constants'
 import { utils } from 'prepo-hardhat'
 import { parseEther } from '@ethersproject/units'
 import { arbitrageBrokerFixture } from '../fixtures/ArbitrageBrokerFixture'
 import { create2DeployerFixture } from '../fixtures/Create2DeployerFixtures'
-import {
-  attachUniV3Factory,
-  attachNonfungiblePositionManager,
-  attachSwapRouter,
-} from '../fixtures/UniswapFixtures'
 import { Snapshotter } from '../snapshots'
 import { batchGrantAndAcceptRoles } from '../utils'
 import { MockCore } from '../../harnesses/mock'
 import { assignCollateralRoles } from '../../helpers/roles'
 import {
+  attachNonfungiblePositionManager,
+  attachSwapRouter,
+  attachUniV3Factory,
+  attachUniV3Pool,
   mintLiquidityForLongShort,
   getAmountInForExactOutputSingle,
   getAmountOutForExactInputSingle,
   getNearestSqrtX96FromWei,
+  getPoolPriceInWei,
 } from '../../helpers/uniswap'
 import { PrePOMarketParams } from '../../types'
 import {
@@ -33,6 +33,13 @@ import {
   ERC20,
   SwapRouter,
 } from '../../types/generated'
+import {
+  ArbitrageStrategy,
+  getPoolsFromTokens,
+  getStrategyToUse,
+  getTokensFromMarket,
+  getWeiPricesFromPools,
+} from '../../scripts/ArbitragePools'
 
 const { nowPlusMonths } = utils
 
@@ -484,6 +491,123 @@ describe('=> Arbitrage Trading', () => {
 
         expect(await core.collateral.balanceOf(arbitrageBroker.address)).eq(
           brokerBalanceBefore.add(expectedProfit)
+        )
+      })
+    })
+  })
+
+  describe('Arbitrage Script Integration Testing', () => {
+    const TEST_SPREAD = parseEther('0.01')
+    describe('# getTokensFromMarket', () => {
+      it('returns market tokens', async () => {
+        const tokens = await getTokensFromMarket(
+          ethers.provider,
+          core.markets[TEST_NAME_SUFFIX].address
+        )
+
+        expect(tokens.longToken.address).eq(await core.markets[TEST_NAME_SUFFIX].longToken.address)
+        expect(tokens.shortToken.address).eq(
+          await core.markets[TEST_NAME_SUFFIX].shortToken.address
+        )
+      })
+    })
+
+    describe('# getWeiPricesFromPools', () => {
+      beforeEach(async () => {
+        // Use different prices to prevent false positives
+        await core.deployPoolsForMarket(
+          TEST_NAME_SUFFIX,
+          univ3Factory,
+          parseEther('0.49'),
+          parseEther('0.5')
+        )
+      })
+
+      it('returns wei prices for pools', async () => {
+        const expectedLongPoolPrice = await getPoolPriceInWei(
+          univ3Factory,
+          core.markets[TEST_NAME_SUFFIX].longToken.address,
+          core.collateral.address
+        )
+        const expectedShortPoolPrice = await getPoolPriceInWei(
+          univ3Factory,
+          core.markets[TEST_NAME_SUFFIX].shortToken.address,
+          core.collateral.address
+        )
+        const pools = await getPoolsFromTokens(
+          ethers.provider,
+          core.collateral.address,
+          core.markets[TEST_NAME_SUFFIX].longToken.address,
+          core.markets[TEST_NAME_SUFFIX].shortToken.address
+        )
+
+        const prices = await getWeiPricesFromPools(pools)
+
+        expect(prices.longPoolPrice).eq(expectedLongPoolPrice)
+        expect(prices.shortPoolPrice).eq(expectedShortPoolPrice)
+      })
+    })
+
+    describe('# getStrategyToUse', () => {
+      it('selects BUY_AND_REDEEM if L + S < (1 - spread)', () => {
+        const longPoolPrice = parseEther('0.5')
+        const shortPoolPrice = parseEther('1').sub(TEST_SPREAD).sub(longPoolPrice).sub(1)
+        expect(longPoolPrice.add(shortPoolPrice)).lt(parseEther('1').sub(TEST_SPREAD))
+
+        expect(getStrategyToUse(longPoolPrice, shortPoolPrice, TEST_SPREAD)).eq(
+          ArbitrageStrategy.BUY_AND_REDEEM
+        )
+      })
+
+      it('reports insufficient spread if L + S = (1 - spread)', () => {
+        const longPoolPrice = parseEther('0.5')
+        const shortPoolPrice = parseEther('1').sub(TEST_SPREAD).sub(longPoolPrice)
+        expect(longPoolPrice.add(shortPoolPrice)).eq(parseEther('1').sub(TEST_SPREAD))
+
+        expect(getStrategyToUse(longPoolPrice, shortPoolPrice, TEST_SPREAD)).eq(
+          ArbitrageStrategy.INSUFFICIENT_SPREAD
+        )
+      })
+
+      it('selects MINT_AND_SELL if L + S > (1 + spread)', () => {
+        const longPoolPrice = parseEther('0.5')
+        const shortPoolPrice = parseEther('1').add(TEST_SPREAD).sub(longPoolPrice).add(1)
+        expect(longPoolPrice.add(shortPoolPrice)).gt(parseEther('1').add(TEST_SPREAD))
+
+        expect(getStrategyToUse(longPoolPrice, shortPoolPrice, TEST_SPREAD)).eq(
+          ArbitrageStrategy.MINT_AND_SELL
+        )
+      })
+
+      it('reports insufficient spread if L + S = (1 + spread)', () => {
+        const longPoolPrice = parseEther('0.5')
+        const shortPoolPrice = parseEther('1').add(TEST_SPREAD).sub(longPoolPrice)
+        expect(longPoolPrice.add(shortPoolPrice)).eq(parseEther('1').add(TEST_SPREAD))
+
+        expect(getStrategyToUse(longPoolPrice, shortPoolPrice, TEST_SPREAD)).eq(
+          ArbitrageStrategy.INSUFFICIENT_SPREAD
+        )
+      })
+
+      it('reports insufficient spread if L + S exactly above (1 - spread)', () => {
+        const longPoolPrice = parseEther('0.5')
+        const shortPoolPrice = parseEther('1').sub(TEST_SPREAD).sub(longPoolPrice).add(1)
+        expect(longPoolPrice.add(shortPoolPrice)).gt(parseEther('1').sub(TEST_SPREAD))
+        expect(longPoolPrice.add(shortPoolPrice)).lt(parseEther('1').add(TEST_SPREAD))
+
+        expect(getStrategyToUse(longPoolPrice, shortPoolPrice, TEST_SPREAD)).eq(
+          ArbitrageStrategy.INSUFFICIENT_SPREAD
+        )
+      })
+
+      it('reports insufficient spread if L + S exactly below (1 + spread)', () => {
+        const longPoolPrice = parseEther('0.5')
+        const shortPoolPrice = parseEther('1').add(TEST_SPREAD).sub(longPoolPrice).sub(1)
+        expect(longPoolPrice.add(shortPoolPrice)).gt(parseEther('1').sub(TEST_SPREAD))
+        expect(longPoolPrice.add(shortPoolPrice)).lt(parseEther('1').add(TEST_SPREAD))
+
+        expect(getStrategyToUse(longPoolPrice, shortPoolPrice, TEST_SPREAD)).eq(
+          ArbitrageStrategy.INSUFFICIENT_SPREAD
         )
       })
     })

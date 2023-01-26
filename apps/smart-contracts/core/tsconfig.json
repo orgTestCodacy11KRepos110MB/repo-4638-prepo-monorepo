@@ -4,6 +4,7 @@
     "./deploy/**/*.ts",
     "./harnesses/**/*.ts",
     "./helpers/**/*.ts",
+    "./scripts/**/*.ts",
     "./types/**/*.ts",
     "./tasks/**/*.ts",
     "./test/**/*.ts",

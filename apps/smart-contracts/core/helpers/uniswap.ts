@@ -6,6 +6,10 @@ import { utils } from 'prepo-hardhat'
 import { MockContract } from '@defi-wonderland/smock'
 import { parseEther } from '@ethersproject/units'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
+import { abi as UNIV3_FACTORY_ABI } from '@uniswap/v3-core/artifacts/contracts/UniswapV3Factory.sol/UniswapV3Factory.json'
+import { abi as UNIV3_POOL_ABI } from '@uniswap/v3-core/artifacts/contracts/UniswapV3Pool.sol/UniswapV3Pool.json'
+import { abi as SWAP_ROUTER_ABI } from '@uniswap/v3-periphery/artifacts/contracts/SwapRouter.sol/SwapRouter.json'
+import { abi as POSITION_MANAGER_ABI } from '@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json'
 import { encodeSqrtRatioX96, nearestUsableTick, TickMath, TICK_SPACINGS } from '@uniswap/v3-sdk'
 import { findIncreaseLiquidityEvent } from './events'
 import {
@@ -15,10 +19,30 @@ import {
   ISwapRouter,
   NonfungiblePositionManager,
   SwapRouter,
+  UniswapV3Factory,
+  UniswapV3Pool,
 } from '../types/generated'
 import { IncreaseLiquidityEvent } from '../types/generated/externalArtifacts/INonfungiblePositionManager'
 
 const { nowPlusMonths } = utils
+
+export function attachUniV3Factory(address: string): Promise<UniswapV3Factory> {
+  return ethers.getContractAt(UNIV3_FACTORY_ABI, address)
+}
+
+export function attachUniV3Pool(address: string): Promise<UniswapV3Pool> {
+  return ethers.getContractAt(UNIV3_POOL_ABI, address)
+}
+
+export function attachNonfungiblePositionManager(
+  address: string
+): Promise<NonfungiblePositionManager> {
+  return ethers.getContractAt(POSITION_MANAGER_ABI, address)
+}
+
+export function attachSwapRouter(address: string): Promise<SwapRouter> {
+  return ethers.getContractAt(SWAP_ROUTER_ABI, address)
+}
 
 /**
  * These CLP math helpers are used to convert between the various units used by pools and the
@@ -169,6 +193,26 @@ export async function getAmountInForExactOutputSingle(
     await tokenIn.connect(funder).approve(swapRouter.address, ethers.constants.MaxUint256)
   }
   return swapRouter.connect(funder).callStatic.exactOutputSingle(simulationParams)
+}
+
+export async function getPoolPriceInSqrtX96(
+  univ3Factory: UniswapV3Factory,
+  token0: string,
+  token1: string
+): Promise<BigNumber> {
+  const poolAddress = await univ3Factory.getPool(token0, token1, POOL_FEE_TIER)
+  const pool = await attachUniV3Pool(poolAddress)
+  const slot0 = await pool.slot0()
+  return slot0.sqrtPriceX96
+}
+
+export async function getPoolPriceInWei(
+  univ3Factory: UniswapV3Factory,
+  token0: string,
+  token1: string
+): Promise<BigNumber> {
+  const sqrtPriceX96 = await getPoolPriceInSqrtX96(univ3Factory, token0, token1)
+  return getWeiFromSqrtX96(sqrtPriceX96)
 }
 
 export async function mintLiquidityForLongShort(

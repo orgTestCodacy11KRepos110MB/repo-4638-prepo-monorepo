@@ -5,8 +5,7 @@ import { BigNumber } from 'ethers'
 import { POOL_FEE_TIER } from 'prepo-constants'
 import { Create2Address, utils } from 'prepo-hardhat'
 import { mintCollateralFromBaseToken, mintLSFromCollateral, mintLSFromBaseToken } from '../helpers'
-import { getNearestSqrtX96FromWei } from '../helpers/uniswap'
-import { attachUniV3Pool } from '../test/fixtures/UniswapFixtures'
+import { attachUniV3Pool, getNearestSqrtX96FromWei } from '../helpers/uniswap'
 import {
   CollateralWithHooks,
   MockCollateralWithHooks,
