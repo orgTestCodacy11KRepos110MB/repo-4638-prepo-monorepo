@@ -20,11 +20,13 @@ const DEFAULT_DIRECTION = 'long'
 
 export class TradeStore {
   action: TradeAction = 'open'
+  approving = false
   closeTradeHash?: string
   direction: Direction = DEFAULT_DIRECTION
   openTradeAmount = ''
   openTradeAmountOutBN?: BigNumber
   openTradeHash?: string
+  openingTrade = false
   selectedMarket?: MarketEntity
   slideUpContent?: SlideUpContent = undefined
   showChart = false
@@ -57,18 +59,46 @@ export class TradeStore {
         this.openTradeAmountOutBN = undefined // clean up while new amountOut gets loaded
         const openTradeAmountOutBN = await this.quoteExactInput(selectedMarket)
         runInAction(() => {
-          this.openTradeAmountOutBN = openTradeAmountOutBN
+          if (openTradeAmountOutBN !== undefined) this.openTradeAmountOutBN = openTradeAmountOutBN
         })
       }
     )
   }
 
-  openTradeUILoading(selectedMarket?: MarketEntity): boolean {
-    if (selectedMarket === undefined) return false
+  get insufficientBalanceForOpenTrade(): boolean | undefined {
+    if (!this.root.web3Store.connected) return false
+    const { balanceOfSigner } = this.root.preCTTokenStore
+    if (balanceOfSigner === undefined || this.openTradeAmountBN === undefined) return undefined
+    return this.openTradeAmountBN.gt(balanceOfSigner)
+  }
+
+  // initial loading states can only be true if user has interacted with input
+  get openTradeButtonInitialLoading(): boolean {
+    if (this.openTradeAmount === '') return false
     return (
-      selectedMarket[`${this.direction}TokenPrice`] === undefined ||
-      this.openTradeAmountOutBN === undefined
+      this.needApproval === undefined ||
+      this.openTradeAmountBN === undefined ||
+      this.insufficientBalanceForOpenTrade === undefined
     )
+  }
+
+  get openTradeButtonLoading(): boolean {
+    // user triggered actions that forces button to show spinner
+    if (this.approving || this.openingTrade) return true
+
+    // Don't need to show spinner, even if data is being loaded in the background, when:
+    // - allowance is required (button will show "Approve")
+    // - no market is selected (button will show "Select a Market")
+    // - insufficient balance
+    if (
+      this.needApproval ||
+      this.selectedMarket === undefined ||
+      this.insufficientBalanceForOpenTrade
+    )
+      return false
+
+    // initial loading states, not affected by user's interaction
+    return this.openTradeButtonInitialLoading
   }
 
   setAction(action: TradeAction): string {
@@ -122,7 +152,14 @@ export class TradeStore {
     this.openTradeHash = hash
   }
 
+  get needApproval(): boolean | undefined {
+    if (!this.root.web3Store.connected) return false
+    return this.root.preCTTokenStore.needToAllowFor(this.openTradeAmount, 'UNISWAP_SWAP_ROUTER')
+  }
+
   get openTradeAmountOut(): string | undefined {
+    // amountOut will always be 0 if input is 0
+    if (this.openTradeAmountBN?.eq(0)) return '0'
     if (!this.selectedMarket || this.openTradeAmountOutBN === undefined) return undefined
     const token = this.selectedMarket[`${this.direction}Token`]
     return token?.formatUnits(this.openTradeAmountOutBN)
@@ -183,31 +220,6 @@ export class TradeStore {
 
     return inRange || this.openTradeAmountBN.eq(0)
   }
-  // TODO: this is only used in trade summary modal which will be deleted soon
-  // delete this when we delete trade summary modal
-  get valuation(): { raw?: number | undefined; afterSlippage?: number | undefined } {
-    if (!this.selectedMarket || this.openTradeAmountOut === undefined) return {}
-    const { payoutRange, valuationRange } = this.selectedMarket
-    if (!valuationRange || !payoutRange) return {}
-
-    const price = +this.openTradeAmount / +this.openTradeAmountOut
-    const longTokenPrice = this.direction === 'long' ? price : 1 - price
-
-    const { slippage } = this.root.advancedSettingsStore
-    const amountOutAfterSlippage = +this.openTradeAmountOut * (1 - slippage)
-    const priceAfterSlippage = +this.openTradeAmount / amountOutAfterSlippage
-    const longTokenPriceAfterSlippage =
-      this.direction === 'long' ? priceAfterSlippage : 1 - priceAfterSlippage
-
-    return {
-      raw: calculateValuation({ longTokenPrice, payoutRange, valuationRange }),
-      afterSlippage: calculateValuation({
-        longTokenPrice: longTokenPriceAfterSlippage,
-        payoutRange,
-        valuationRange,
-      }),
-    }
-  }
 
   quoteExactInput = debounce(
     async (selectedMarket: MarketEntity): Promise<BigNumber | undefined> => {
@@ -215,7 +227,14 @@ export class TradeStore {
       const pool = selectedMarket[`${this.direction}Pool`]
       const state = pool?.poolState
       const fee = pool?.poolImmutables?.fee
-      if (!fee || !selectedToken || !state || !this.openTradeAmount || !selectedToken.address) {
+      if (
+        !fee ||
+        !selectedToken ||
+        !state ||
+        !this.openTradeAmountBN ||
+        this.openTradeAmountBN.eq(0) ||
+        !selectedToken.address
+      ) {
         return undefined
       }
       const tokenAddressFrom = this.root.preCTTokenStore.uniswapToken.address
@@ -227,14 +246,17 @@ export class TradeStore {
       )
 
       try {
+        const cachedOpenAmountBN = this.openTradeAmountBN // cache amount at time when check is fired
         const sqrtPriceLimitX96 = 0 // The price limit of the pool that cannot be exceeded by the swap
-        return await quoterContract.callStatic.quoteExactInputSingle(
+        const output = await quoterContract.callStatic.quoteExactInputSingle(
           tokenAddressFrom,
           tokenAddressTo,
           fee,
           this.openTradeAmountBN,
           sqrtPriceLimitX96
         )
+        // only update openTradeAmountOutBN if amount hasn't changed since last check was fired
+        return cachedOpenAmountBN.eq(this.openTradeAmountBN) ? output : undefined
       } catch (e) {
         this.root.toastStore.errorToast('Error calculating output amount', e)
         return undefined
@@ -243,13 +265,24 @@ export class TradeStore {
     400
   )
 
+  async approve(): Promise<void> {
+    this.approving = true
+    await this.root.preCTTokenStore.unlockPermanently('UNISWAP_SWAP_ROUTER')
+    runInAction(() => {
+      this.approving = false
+    })
+  }
+
   // eslint-disable-next-line require-await
-  async openTrade(selectedMarket: MarketEntity): Promise<{ success: boolean; error?: string }> {
-    const selectedToken = selectedMarket[`${this.direction}Token`]
-    const price = selectedMarket[`${this.direction}TokenPrice`]
-    const fee = selectedMarket[`${this.direction}Pool`]?.poolImmutables?.fee
+  async openTrade(): Promise<void> {
+    if (!this.selectedMarket) return
+
+    const selectedToken = this.selectedMarket[`${this.direction}Token`]
+    const price = this.selectedMarket[`${this.direction}TokenPrice`]
+    const fee = this.selectedMarket[`${this.direction}Pool`]?.poolImmutables?.fee
     const { swap } = this.root.swapStore
     const { uniswapToken } = this.root.preCTTokenStore
+
     if (
       !selectedToken?.address ||
       price === undefined ||
@@ -257,10 +290,11 @@ export class TradeStore {
       this.openTradeAmountBN === undefined ||
       this.openTradeAmountOutBN === undefined
     )
-      return { success: false }
+      return
 
     this.setOpenTradeHash(undefined)
-    return swap({
+    this.openingTrade = true
+    const { error } = await swap({
       fee,
       fromAmount: this.openTradeAmountBN,
       fromTokenAddress: uniswapToken.address,
@@ -268,6 +302,18 @@ export class TradeStore {
       toTokenAddress: selectedToken.address,
       type: TradeType.EXACT_INPUT,
       onHash: (hash) => this.setOpenTradeHash(hash),
+    })
+
+    if (error) {
+      this.root.toastStore.errorToast('Trade failed', error)
+    } else {
+      this.root.toastStore.successToast('Trade was successful 🎉')
+    }
+
+    runInAction(() => {
+      this.openingTrade = false
+      // reset input amount if trade was successful
+      if (!error) this.openTradeAmount = ''
     })
   }
 
@@ -298,10 +344,17 @@ export class TradeStore {
   }
 
   get tradeDisabled(): boolean {
-    const { preCTTokenStore } = this.root
-    const { tokenBalanceRaw } = preCTTokenStore
-    return this.openTradeAmountBN && tokenBalanceRaw
-      ? this.openTradeAmountBN.gt(tokenBalanceRaw)
-      : false
+    // only if input is greater than 0
+    const loadingValuationPrice =
+      Boolean(this.openTradeAmountBN?.gt(0)) && this.openTradeAmountOutBN === undefined
+
+    return Boolean(
+      !this.selectedMarket ||
+        this.openTradeAmountBN === undefined ||
+        this.openTradeAmountBN.eq(0) ||
+        !this.withinBounds ||
+        this.insufficientBalanceForOpenTrade ||
+        loadingValuationPrice
+    )
   }
 }

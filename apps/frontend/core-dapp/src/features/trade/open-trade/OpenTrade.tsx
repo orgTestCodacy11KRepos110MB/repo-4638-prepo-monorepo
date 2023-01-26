@@ -3,8 +3,8 @@ import styled from 'styled-components'
 import { observer } from 'mobx-react-lite'
 import DirectionRadio from './DirectionRadio'
 import MarketSlideUp from './MarketSlideUp'
+import OpenTradeButton from './OpenTradeButton'
 import OpenTradeSummary from './OpenTradeSummary'
-import TradeTransactionSummary from '../TradeTransactionSummary'
 import Link from '../../../components/Link'
 import { useRootStore } from '../../../context/RootStoreProvider'
 import { Routes } from '../../../lib/routes'
@@ -35,10 +35,10 @@ const Message = styled.div`
 `
 
 const OpenTrade: React.FC = () => {
-  const { tradeStore, web3Store, preCTTokenStore } = useRootStore()
-  const { openTradeAmount, openTradeAmountBN, setOpenTradeAmount, selectedMarket } = tradeStore
+  const { tradeStore, preCTTokenStore } = useRootStore()
+  const { openingTrade, openTradeAmount, openTradeAmountBN, setOpenTradeAmount, selectedMarket } =
+    tradeStore
   const { balanceOfSigner, tokenBalanceFormat } = preCTTokenStore
-  const { isNetworkSupported } = web3Store
 
   return (
     <Wrapper>
@@ -47,15 +47,15 @@ const OpenTrade: React.FC = () => {
       <CurrencyInput
         balance={tokenBalanceFormat}
         isBalanceZero={balanceOfSigner?.eq(0)}
-        disabled={!isNetworkSupported || !selectedMarket}
+        disabled={!selectedMarket || openingTrade}
         currency={{ icon: 'cash', text: 'USD' }}
         onChange={setOpenTradeAmount}
         value={openTradeAmount}
         placeholder="0"
         showBalance
       />
+      <OpenTradeButton />
       <OpenTradeSummary />
-      <TradeTransactionSummary />
       {openTradeAmountBN !== undefined &&
         (balanceOfSigner?.lt(openTradeAmountBN) || balanceOfSigner?.eq(0)) && (
           <AlertWrapper>

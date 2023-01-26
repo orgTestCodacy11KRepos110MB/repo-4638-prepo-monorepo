@@ -149,7 +149,7 @@ export const NETWORKS: Networks = {
     blockExplorer: 'https://goerli.etherscan.io',
     iconName: 'weth',
     rpcUrls: [`https://goerli.infura.io/v3/${METAMASK_INFURA_ID}`],
-    gasPrice: utils.parseUnits('4', 'gwei'),
+    gasPrice: utils.parseUnits('30', 'gwei'),
     type: 'ethereum',
     testNetwork: true,
   },

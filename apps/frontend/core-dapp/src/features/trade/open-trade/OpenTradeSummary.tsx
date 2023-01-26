@@ -22,7 +22,7 @@ const OpenTradeSummary: React.FC = () => {
   const loading = tradingValuation === undefined || withinBounds === undefined
 
   return (
-    <Flex width="100%" px={12}>
+    <Flex width="100%" px={12} pb={8}>
       <SummaryRecord label="Estimated Valuation Price" tooltip={<EstimatedValuation />}>
         {loading ? (
           <Skeleton height="22px" width="64px" />

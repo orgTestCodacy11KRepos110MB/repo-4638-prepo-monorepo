@@ -2,11 +2,11 @@ import { Layout } from 'antd'
 import styled from 'styled-components'
 import { coreDappTheme, Flex, media, spacingIncrement } from 'prepo-ui'
 import Navigation from '../Navigation'
-import ConnectButton from '../../features/connect/ConnectButton'
 import TestnetBanner from '../../features/testnet-onboarding/TestnetBanner'
 import DynamicBanner from '../../features/testnet-onboarding/DynamicBanner'
 import SettingsMenu from '../SettingsMenu'
 import PrePOLogo from '../PrePOLogo'
+import ConnectButton from '../../features/connect/ConnectButton'
 
 const { Z_INDEX } = coreDappTheme
 

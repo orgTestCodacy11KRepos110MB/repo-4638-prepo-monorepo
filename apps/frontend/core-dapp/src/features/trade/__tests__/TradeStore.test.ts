@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { BigNumber } from 'ethers'
-import { parseEther } from 'ethers/lib/utils'
+import { parseEther, parseUnits } from 'ethers/lib/utils'
 import { configure } from 'mobx'
 import { markets } from '../../../lib/markets'
 import { Erc20Store } from '../../../stores/entities/Erc20.entity'
@@ -24,7 +24,7 @@ beforeAll(() => {
 describe('TradeStore tests', () => {
   let spyPreCTTokenBalance: jest.SpyInstance
   let spyPreCTDecimalsNumber: jest.SpyInstance
-  let spyPreCTTokenBalanceRaw: jest.SpyInstance
+  let spyPreCTBalanceOfSigner: jest.SpyInstance
   beforeAll(() => {
     spyPreCTTokenBalance = jest
       .spyOn(rootStore.preCTTokenStore, 'tokenBalanceFormat', 'get')
@@ -34,18 +34,16 @@ describe('TradeStore tests', () => {
       .spyOn(rootStore.preCTTokenStore, 'decimalsNumber', 'get')
       .mockReturnValue(PRECT_DECIMALS)
 
-    const PRECT_BALANCE_BIGNUMBER = rootStore.preCTTokenStore.parseUnits(
-      `${PRECT_BALANCE}`
-    ) as BigNumber
+    const PRECT_BALANCE_BIGNUMBER = parseUnits(PRECT_BALANCE, PRECT_DECIMALS)
 
-    spyPreCTTokenBalanceRaw = jest
-      .spyOn(rootStore.preCTTokenStore, 'tokenBalanceRaw', 'get')
+    spyPreCTBalanceOfSigner = jest
+      .spyOn(rootStore.preCTTokenStore, 'balanceOfSigner', 'get')
       .mockReturnValue(PRECT_BALANCE_BIGNUMBER)
   })
 
   afterAll(() => {
     spyPreCTTokenBalance.mockRestore()
-    spyPreCTTokenBalanceRaw.mockRestore()
+    spyPreCTBalanceOfSigner.mockRestore()
     spyPreCTDecimalsNumber.mockRestore()
   })
 
@@ -78,7 +76,7 @@ describe('TradeStore tests', () => {
 
   it('should not disable button if amount is smaller than balance', () => {
     rootStore.tradeStore.setOpenTradeAmount('100')
-    expect(rootStore.tradeStore.tradeDisabled).toBe(false)
+    expect(rootStore.tradeStore.insufficientBalanceForOpenTrade).toBe(false)
   })
 
   describe('opening a trade', () => {
@@ -96,7 +94,7 @@ describe('TradeStore tests', () => {
     })
 
     it('should call UniswapRouter exactInput when opening a trade', () => {
-      rootStore.tradeStore.openTrade(selectedMarket)
+      rootStore.tradeStore.openTrade()
       expect(rootStore.uniswapRouterStore.exactInput).toHaveBeenCalledTimes(1)
     })
 
