@@ -23,7 +23,7 @@ const useTradePage = (): void => {
 
       // handle direction selection
       if (typeof direction === 'string') {
-        tradeStore.setDirection(direction === 'short' ? 'short' : 'long')
+        tradeStore.setDirection(direction.toLowerCase() === 'short' ? 'short' : 'long')
       }
 
       // TODO: add support for market selection by market address

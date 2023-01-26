@@ -1,5 +1,5 @@
 import styled from 'styled-components'
-import { Button, Flex, Icon, spacingIncrement, Typography } from 'prepo-ui'
+import { Button, Flex, Icon, media, spacingIncrement } from 'prepo-ui'
 
 type Props = {
   title?: React.ReactNode
@@ -25,13 +25,23 @@ const RelativeWrapper = styled.div`
   width: 100%;
 `
 
+const Title = styled.p`
+  color: ${({ theme }): string => theme.color.secondary};
+  font-size: ${({ theme }): string => theme.fontSize.base};
+  font-weight: ${({ theme }): number => theme.fontWeight.semiBold};
+`
+
 const InnerWrapper = styled.div`
   display: flex;
   flex: 1;
   flex-direction: column;
   height: 100%;
-  padding: ${spacingIncrement(24)};
+  padding: ${spacingIncrement(24)} ${spacingIncrement(16)};
   padding-bottom: 0;
+  width: 100%;
+  ${media.phone`
+    padding: ${spacingIncrement(24)};
+  `}
 `
 
 const OverflowGradient = styled.div`
@@ -74,13 +84,7 @@ const SlideUpCard: React.FC<Props> = ({ children, onClose, show, title }) => {
       <RelativeWrapper>
         <InnerWrapper>
           <Flex justifyContent="space-between" mb={12}>
-            {typeof title === 'string' || title === undefined ? (
-              <Typography variant="text-semiBold-base" color="secondary">
-                {title}
-              </Typography>
-            ) : (
-              title
-            )}{' '}
+            {typeof title === 'string' || title === undefined ? <Title>{title}</Title> : title}
             <CloseButton
               onClick={handleClose}
               icon={<Icon name="cross" height="16" width="16" />}

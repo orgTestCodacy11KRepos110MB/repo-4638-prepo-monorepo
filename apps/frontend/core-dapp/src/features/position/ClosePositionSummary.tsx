@@ -83,7 +83,7 @@ const ClosePositionSummary: React.FC<Props> = ({ position }) => {
       label: 'Market',
       market: {
         name: position.market.name,
-        position: position.position,
+        position: position.direction,
       },
     },
     {

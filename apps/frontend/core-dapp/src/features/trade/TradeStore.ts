@@ -11,6 +11,7 @@ import { ChartTimeframe } from '../../types/market.types'
 import { debounce } from '../../utils/debounce'
 import { makeQueryString } from '../../utils/makeQueryString'
 import { calculateValuation } from '../../utils/market-utils'
+import { Position } from '../portfolio/PortfolioStore'
 
 export type Direction = 'long' | 'short'
 export type TradeAction = 'open' | 'close'
@@ -356,5 +357,23 @@ export class TradeStore {
         this.insufficientBalanceForOpenTrade ||
         loadingValuationPrice
     )
+  }
+
+  get attemptingToSelectPosition(): boolean {
+    return Boolean(
+      this.direction && this.selectedMarket && this.root.portfolioStore.isLoadingPositions
+    )
+  }
+
+  get selectedPosition(): Position | undefined {
+    const { positions } = this.root.portfolioStore
+    if (!this.direction || !this.selectedMarket) return undefined
+
+    const position = positions.find(
+      ({ direction, market }) =>
+        direction === this.direction && this.selectedMarket?.urlId === market.urlId
+    )
+
+    return position
   }
 }

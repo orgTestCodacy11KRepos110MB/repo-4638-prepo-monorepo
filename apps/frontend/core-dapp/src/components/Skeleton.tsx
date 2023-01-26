@@ -2,6 +2,7 @@ import LoadingSkeleton from 'react-loading-skeleton'
 import styled, { useTheme } from 'styled-components'
 
 type Props = {
+  circle?: boolean
   height?: string | number
   width?: string | number
 }

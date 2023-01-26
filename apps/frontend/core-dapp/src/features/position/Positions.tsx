@@ -34,16 +34,15 @@ const Positions: React.FC = () => {
 
   return (
     <Box position="relative">
-      {positions.map(({ position, market, data }) => {
-        const key = `${position}_${market.urlId}`
-        if (!data) return <RecordSkeleton key={key} />
+      {positions.map(({ id, direction, market, data }) => {
+        if (!data) return <RecordSkeleton key={id} />
         return (
           <Record
-            key={key}
+            key={id}
             iconName={market.iconName}
             name={market.name}
             nameRedirectUrl={`/markets/${market.urlId}/trade`}
-            position={position}
+            position={direction}
             buttonLabel={t`Close Position`}
             buttonStyles={{
               backgroundColor: 'primaryAccent',
@@ -61,7 +60,7 @@ const Positions: React.FC = () => {
                 usd: true,
               },
             ]}
-            onButtonClicked={(): void => setSelectedPosition({ position, market, data })}
+            onButtonClicked={(): void => setSelectedPosition({ id, direction, market, data })}
           />
         )
       })}

@@ -18,11 +18,31 @@ const Wrapper = styled.button<{ showShadow?: boolean }>`
   color: ${({ theme }): string => theme.color.neutral1};
   cursor: pointer;
   display: flex;
+  gap: ${spacingIncrement(8)};
   justify-content: space-between;
   min-height: ${spacingIncrement(60)};
   padding: ${spacingIncrement(10)} ${spacingIncrement(16)};
+  > div {
+    display: contents;
+    width: 100%;
+    > div {
+      width: calc(100% - 16px);
+    }
+  }
   :hover {
     border-color: ${({ theme }): string => theme.color.neutral5};
+  }
+  :disabled {
+    background-color: ${({ theme }): string => theme.color.neutral12};
+    box-shadow: none;
+    cursor: not-allowed;
+    opacity: 0.7;
+    :hover {
+      border-color: ${({ theme }): string => theme.color.neutral7};
+    }
+    * {
+      cursor: not-allowed;
+    }
   }
 `
 

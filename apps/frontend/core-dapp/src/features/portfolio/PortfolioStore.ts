@@ -9,7 +9,6 @@ import { HistoricalEventsFilter } from '../../stores/graphs/CoreGraphStore'
 import { RootStore } from '../../stores/RootStore'
 import { Position as PositionFromGraph } from '../../types/user.types'
 import { normalizeDecimalPrecision } from '../../utils/number-utils'
-import { PositionType } from '../../utils/prepo.types'
 import {
   formatHistoricalEvent,
   KNOWN_HISTORY_EVENTS,
@@ -19,8 +18,9 @@ import { HistoryTransaction } from '../history/history.types'
 import { Direction } from '../trade/TradeStore'
 
 export type Position = {
+  id: string
   market: MarketEntity
-  position: PositionType
+  direction: Direction
   data?: {
     costBasis?: number
     price: number
@@ -53,7 +53,7 @@ export class PortfolioStore {
     const tokenBalance = market[`${direction}TokenBalance`]
     const tokenBalanceBN = market[`${direction}TokenBalanceBN`]
     const price = market[`${direction}TokenPrice`]
-    const defaultValue = { market, position: direction }
+    const defaultValue = { id: `${market.urlId}_${direction}`, market, direction }
 
     const loading =
       !token ||
@@ -145,6 +145,14 @@ export class PortfolioStore {
       createdAtTimestamp_gte: start ? Math.floor(start.getTime() / 1000) : undefined,
       createdAtTimestamp_lte: end ? Math.floor(end.getTime() / 1000) : undefined,
     }
+  }
+
+  get isLoadingPositions(): boolean {
+    if (!this.root.web3Store.connected) return false
+    // find any position that is still loading data
+    const loadingIndex = this.positions.findIndex(({ data }) => data === undefined)
+    // loading is true if loadingIndex is a valid index, (e.g. 0, 1, 2, ...)
+    return loadingIndex > -1
   }
 
   get tradingPositions(): Position[] {

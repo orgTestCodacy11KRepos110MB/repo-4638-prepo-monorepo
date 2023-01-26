@@ -118,3 +118,10 @@ export function formatUsd(amount: number | string | undefined, decimals = true):
 
   return usd.split('.')[0]
 }
+
+export function compactNumber(value: number): string {
+  return Intl.NumberFormat(undefined, {
+    notation: 'compact',
+    maximumFractionDigits: 2,
+  }).format(value)
+}
