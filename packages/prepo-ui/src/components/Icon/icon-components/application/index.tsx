@@ -58,6 +58,7 @@ import DocsOutlinedIcon from './DocsOutlinedIcon'
 import GovernOutlinedIcon from './GovernOutlinedIcon'
 import ExclamationTriangle from './ExclamationTriangle'
 import CopyIcon from './CopyIcon'
+import ChevronLeftIcon from './ChevronLeftIcon'
 import ChevronRightIcon from './ChevronRightIcon'
 import ChevronUpIcon from './ChevronUpIcon'
 import ChevronDownIcon from './ChevronDownIcon'
@@ -79,6 +80,7 @@ export const applicationIcons = {
   'charts-line': ChartsLineIcon,
   check: CheckIcon,
   'chevron-down': ChevronDownIcon,
+  'chevron-left': ChevronLeftIcon,
   'chevron-right': ChevronRightIcon,
   'chevron-up': ChevronUpIcon,
   'colored-bond': ColoredBond,
