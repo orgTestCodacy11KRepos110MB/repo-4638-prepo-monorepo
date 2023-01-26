@@ -1,12 +1,15 @@
 import chai, { expect } from 'chai'
 import { ethers, network } from 'hardhat'
-import { smock } from '@defi-wonderland/smock'
+import { FakeContract, smock } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { BigNumber } from 'ethers'
 import { getPrePOAddressForNetwork, POOL_FEE_TIER } from 'prepo-constants'
 import { utils } from 'prepo-hardhat'
 import { parseEther } from '@ethersproject/units'
-import { arbitrageBrokerFixture } from '../fixtures/ArbitrageBrokerFixture'
+import {
+  arbitrageBrokerFixture,
+  fakeArbitrageBrokerFixture,
+} from '../fixtures/ArbitrageBrokerFixture'
 import { create2DeployerFixture } from '../fixtures/Create2DeployerFixtures'
 import { Snapshotter } from '../snapshots'
 import { batchGrantAndAcceptRoles } from '../utils'
@@ -35,6 +38,8 @@ import {
 } from '../../types/generated'
 import {
   ArbitrageStrategy,
+  attachArbitrageBroker,
+  getEstimateGivenTradeSize,
   getPoolsFromTokens,
   getStrategyToUse,
   getTokensFromMarket,
@@ -609,6 +614,85 @@ describe('=> Arbitrage Trading', () => {
         expect(getStrategyToUse(longPoolPrice, shortPoolPrice, TEST_SPREAD)).eq(
           ArbitrageStrategy.INSUFFICIENT_SPREAD
         )
+      })
+    })
+
+    describe('# getEstimateGivenTradeSize', () => {
+      let fakeArbitrageBroker: FakeContract<ArbitrageBroker>
+      beforeEach(async () => {
+        fakeArbitrageBroker = await fakeArbitrageBrokerFixture()
+      })
+
+      it('returns `buyAndRedeem()` estimate if BUY_AND_REDEEM selected', async () => {
+        const expectedTradeSize = parseEther('1')
+        const expectedProfit = parseEther('2')
+        const expectedCollateralToBuyLong = parseEther('3')
+        const expectedCollateralToBuyShort = parseEther('4')
+        fakeArbitrageBroker.buyAndRedeem.returns({
+          profit: expectedProfit,
+          collateralToBuyLong: expectedCollateralToBuyLong,
+          collateralToBuyShort: expectedCollateralToBuyShort,
+        })
+
+        const estimateReturnValues = await getEstimateGivenTradeSize(
+          ArbitrageStrategy.BUY_AND_REDEEM,
+          attachArbitrageBroker(ethers.provider, fakeArbitrageBroker.address),
+          core.markets[TEST_NAME_SUFFIX].address,
+          expectedTradeSize
+        )
+
+        // Verification must be done value by value because equality between structs is not supported
+        expect(estimateReturnValues.tradeSize).eq(expectedTradeSize)
+        expect(estimateReturnValues.profit).eq(expectedProfit)
+        expect(estimateReturnValues.collateralToBuyLong).eq(expectedCollateralToBuyLong)
+        expect(estimateReturnValues.collateralToBuyShort).eq(expectedCollateralToBuyShort)
+        expect(typeof estimateReturnValues.collateralFromSellingLong).eq('undefined')
+        expect(typeof estimateReturnValues.collateralFromSellingShort).eq('undefined')
+      })
+
+      it('returns `mintAndSell()` estimate if MINT_AND_SELL selected', async () => {
+        // Reverse values to ensure we're not just returning the same thing
+        const expectedTradeSize = parseEther('4')
+        const expectedProfit = parseEther('3')
+        const expectedCollateralFromSellingLong = parseEther('2')
+        const expectedCollateralFromSellingShort = parseEther('1')
+        fakeArbitrageBroker.mintAndSell.returns({
+          profit: expectedProfit,
+          collateralFromSellingLong: expectedCollateralFromSellingLong,
+          collateralFromSellingShort: expectedCollateralFromSellingShort,
+        })
+
+        const estimateReturnValues = await getEstimateGivenTradeSize(
+          ArbitrageStrategy.MINT_AND_SELL,
+          attachArbitrageBroker(ethers.provider, fakeArbitrageBroker.address),
+          core.markets[TEST_NAME_SUFFIX].address,
+          expectedTradeSize
+        )
+
+        expect(estimateReturnValues.tradeSize).eq(expectedTradeSize)
+        expect(estimateReturnValues.profit).eq(expectedProfit)
+        expect(estimateReturnValues.collateralFromSellingLong).eq(expectedCollateralFromSellingLong)
+        expect(estimateReturnValues.collateralFromSellingShort).eq(
+          expectedCollateralFromSellingShort
+        )
+        expect(typeof estimateReturnValues.collateralToBuyLong).eq('undefined')
+        expect(typeof estimateReturnValues.collateralToBuyShort).eq('undefined')
+      })
+
+      it('throw error if INSUFFICIENT_SPREAD selected', async () => {
+        await expect(
+          getEstimateGivenTradeSize(
+            ArbitrageStrategy.INSUFFICIENT_SPREAD,
+            attachArbitrageBroker(ethers.provider, fakeArbitrageBroker.address),
+            core.markets[TEST_NAME_SUFFIX].address,
+            parseEther('1')
+          )
+        ).rejectedWith('Cannot get estimate for INSUFFICIENT_SPREAD')
+      })
+
+      afterEach(() => {
+        fakeArbitrageBroker.buyAndRedeem.reset()
+        fakeArbitrageBroker.mintAndSell.reset()
       })
     })
   })

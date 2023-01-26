@@ -38,17 +38,29 @@ contract ArbitrageBroker is IArbitrageBroker, SafeAccessControlEnumerable {
     override
     onlyRole(BUY_AND_REDEEM_ROLE)
     onlyValidMarkets(market)
-    returns (uint256)
+    returns (
+      uint256 profit,
+      uint256 collateralToBuyLong,
+      uint256 collateralToBuyShort
+    )
   {
     uint256 collateralBefore = _collateral.balanceOf(address(this));
-    _buyLongOrShort(tradeParams, market.getLongToken(), true);
-    _buyLongOrShort(tradeParams, market.getShortToken(), false);
+    collateralToBuyLong = _buyLongOrShort(
+      tradeParams,
+      market.getLongToken(),
+      true
+    );
+    collateralToBuyShort = _buyLongOrShort(
+      tradeParams,
+      market.getShortToken(),
+      false
+    );
     market.redeem(tradeParams.longShortAmount, tradeParams.longShortAmount);
     uint256 collateralAfter = _collateral.balanceOf(address(this));
     if (collateralBefore >= collateralAfter) {
       revert UnprofitableTrade(collateralBefore, collateralAfter);
     }
-    return collateralAfter - collateralBefore;
+    profit = collateralAfter - collateralBefore;
   }
 
   function mintAndSell(
@@ -59,17 +71,29 @@ contract ArbitrageBroker is IArbitrageBroker, SafeAccessControlEnumerable {
     override
     onlyRole(MINT_AND_SELL_ROLE)
     onlyValidMarkets(market)
-    returns (uint256)
+    returns (
+      uint256 profit,
+      uint256 collateralFromSellingLong,
+      uint256 collateralFromSellingShort
+    )
   {
     uint256 collateralBefore = _collateral.balanceOf(address(this));
     market.mint(tradeParams.longShortAmount);
-    _sellLongOrShort(tradeParams, market.getLongToken(), true);
-    _sellLongOrShort(tradeParams, market.getShortToken(), false);
+    collateralFromSellingLong = _sellLongOrShort(
+      tradeParams,
+      market.getLongToken(),
+      true
+    );
+    collateralFromSellingShort = _sellLongOrShort(
+      tradeParams,
+      market.getShortToken(),
+      false
+    );
     uint256 collateralAfter = _collateral.balanceOf(address(this));
     if (collateralBefore >= collateralAfter) {
       revert UnprofitableTrade(collateralBefore, collateralAfter);
     }
-    return collateralAfter - collateralBefore;
+    profit = collateralAfter - collateralBefore;
   }
 
   function setMarketValidity(address market, bool validity)
@@ -118,7 +142,7 @@ contract ArbitrageBroker is IArbitrageBroker, SafeAccessControlEnumerable {
     OffChainTradeParams calldata tradeParams,
     ILongShortToken longShortToken,
     bool long
-  ) private {
+  ) private returns (uint256) {
     uint256 amountInMaximum = long
       ? tradeParams.collateralLimitForLong
       : tradeParams.collateralLimitForShort;
@@ -133,14 +157,14 @@ contract ArbitrageBroker is IArbitrageBroker, SafeAccessControlEnumerable {
         amountInMaximum,
         0 // sqrtPriceLimitX96
       );
-    _swapRouter.exactOutputSingle(exactOutputSingleParams);
+    return _swapRouter.exactOutputSingle(exactOutputSingleParams);
   }
 
   function _sellLongOrShort(
     OffChainTradeParams calldata tradeParams,
     ILongShortToken longShortToken,
     bool long
-  ) private {
+  ) private returns (uint256) {
     uint256 amountOutMinimum = long
       ? tradeParams.collateralLimitForLong
       : tradeParams.collateralLimitForShort;
@@ -155,6 +179,6 @@ contract ArbitrageBroker is IArbitrageBroker, SafeAccessControlEnumerable {
         amountOutMinimum,
         0 // sqrtPriceLimitX96
       );
-    _swapRouter.exactInputSingle(exactInputSingleParams);
+    return _swapRouter.exactInputSingle(exactInputSingleParams);
   }
 }

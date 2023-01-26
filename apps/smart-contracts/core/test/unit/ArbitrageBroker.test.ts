@@ -293,12 +293,23 @@ describe('=> ArbitrageBroker', () => {
       expect(market.redeem).calledWith(tradeParams.longShortAmount, tradeParams.longShortAmount)
     })
 
-    it('returns profit earned', async () => {
-      expect(
-        await arbitrageBroker
-          .connect(governance)
-          .callStatic.buyAndRedeem(market.address, tradeParams)
-      ).eq(tradingCapitalAfter.sub(tradingCapitalBefore))
+    it('returns profit earned and swap input values', async () => {
+      const testAmountInForLongSwap = parseEther('1')
+      const testAmountInForShortSwap = parseEther('2')
+      swapRouter.exactOutputSingle
+        .whenCalledWith(correctBuyLongArgs)
+        .returns(testAmountInForLongSwap)
+      swapRouter.exactOutputSingle
+        .whenCalledWith(correctBuyShortArgs)
+        .returns(testAmountInForShortSwap)
+
+      const buyAndRedeemReturnValues = await arbitrageBroker
+        .connect(governance)
+        .callStatic.buyAndRedeem(market.address, tradeParams)
+
+      expect(buyAndRedeemReturnValues.profit).eq(tradingCapitalAfter.sub(tradingCapitalBefore))
+      expect(buyAndRedeemReturnValues.collateralToBuyLong).eq(testAmountInForLongSwap)
+      expect(buyAndRedeemReturnValues.collateralToBuyShort).eq(testAmountInForShortSwap)
     })
 
     afterEach(() => {
@@ -401,12 +412,23 @@ describe('=> ArbitrageBroker', () => {
       })
     })
 
-    it('returns profit earned', async () => {
-      expect(
-        await arbitrageBroker
-          .connect(governance)
-          .callStatic.mintAndSell(market.address, tradeParams)
-      ).eq(tradingCapitalAfter.sub(tradingCapitalBefore))
+    it('returns profit earned and swap output values', async () => {
+      const testAmountOutForLongSwap = parseEther('1')
+      const testAmountOutForShortSwap = parseEther('2')
+      swapRouter.exactInputSingle
+        .whenCalledWith(correctSellLongArgs)
+        .returns(testAmountOutForLongSwap)
+      swapRouter.exactInputSingle
+        .whenCalledWith(correctSellShortArgs)
+        .returns(testAmountOutForShortSwap)
+
+      const mintAndSellReturnValues = await arbitrageBroker
+        .connect(governance)
+        .callStatic.mintAndSell(market.address, tradeParams)
+
+      expect(mintAndSellReturnValues.profit).eq(tradingCapitalAfter.sub(tradingCapitalBefore))
+      expect(mintAndSellReturnValues.collateralFromSellingLong).eq(testAmountOutForLongSwap)
+      expect(mintAndSellReturnValues.collateralFromSellingShort).eq(testAmountOutForShortSwap)
     })
 
     afterEach(() => {

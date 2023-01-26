@@ -29,13 +29,25 @@ interface IArbitrageBroker {
   function buyAndRedeem(
     IPrePOMarket market,
     OffChainTradeParams calldata tradeParams
-  ) external returns (uint256);
+  )
+    external
+    returns (
+      uint256 profit,
+      uint256 collateralToBuyLong,
+      uint256 collateralToBuyShort
+    );
 
   /// @dev Assumes contract already has collateral needed for a trade.
   function mintAndSell(
     IPrePOMarket market,
     OffChainTradeParams calldata tradeParams
-  ) external returns (uint256);
+  )
+    external
+    returns (
+      uint256 profit,
+      uint256 collateralFromSellingLong,
+      uint256 collateralFromSellingShort
+    );
 
   function setMarketValidity(address market, bool valid) external;
 
