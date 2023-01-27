@@ -73,7 +73,6 @@ const PositionsSlideUp: React.FC = () => {
         />
       )
 
-    // user attempts to select a position via url parameters but positions aren't loaded yet
     if (positions === undefined) return <PositionLoadingSkeleton noPadding />
 
     return positions.length === 0 ? 'No Opened Position' : 'Select a Position'
@@ -107,16 +106,14 @@ const PositionsSlideUp: React.FC = () => {
             )}
             {positions
               .filter(({ id }) => id !== selectedPosition?.id)
-              .map((position) =>
-                position.totalValueBN?.eq(0) ? null : (
-                  <SlideUpRow
-                    key={position.id}
-                    market={position.market}
-                    onClick={(): void => handleSelectPosition(position)}
-                    position={position}
-                  />
-                )
-              )}
+              .map((position) => (
+                <SlideUpRow
+                  key={position.id}
+                  market={position.market}
+                  onClick={(): void => handleSelectPosition(position)}
+                  position={position}
+                />
+              ))}
           </>
         )}
       </SlideUpCard>
