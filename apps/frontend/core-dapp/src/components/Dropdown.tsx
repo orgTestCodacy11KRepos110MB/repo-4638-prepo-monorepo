@@ -111,7 +111,7 @@ const Dropdown: React.FC<DropDownProps & Props> = ({
     <ADropdown trigger={['click']} {...props}>
       <DropdownButton customStyles={customStyles} variant={variant} size={size}>
         <Content>{children}</Content>
-        {!hideArrow && <Icon name="arrow-down" height="24" width="24" />}
+        {!hideArrow && <Icon name="chevron-down" height="24" width="24" />}
       </DropdownButton>
     </ADropdown>
   </Wrapper>

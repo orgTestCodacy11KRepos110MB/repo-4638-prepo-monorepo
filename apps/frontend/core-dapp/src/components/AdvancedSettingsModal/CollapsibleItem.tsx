@@ -49,7 +49,7 @@ const CollapsibleItem: React.FC<Props> = ({ title, description, onChange }) => {
       <TitleWrapper>
         {typeof title === 'string' ? <Title>{title}</Title> : title}
         <IconWrapper
-          name="arrow-down"
+          name="chevron-down"
           color="neutral2"
           height="24"
           width="24"

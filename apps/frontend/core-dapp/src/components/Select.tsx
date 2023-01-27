@@ -108,7 +108,7 @@ const Select: React.FC<SelectProps> = ({
           {...props}
           options={iconOptions ? transformIcons(iconOptions) : options}
           dropdownStyle={dropdownStyle}
-          suffixIcon={<Icon name="arrow-down" color="neutral5" height="24" width="24" />}
+          suffixIcon={<Icon name="chevron-down" color="neutral5" height="24" width="24" />}
         >
           {children}
         </ASelect>

@@ -80,7 +80,7 @@ const CurrencySelectionComponent: React.FC = () => {
           <IconTitleWrapper iconName={currency.iconName}>{currency.name}</IconTitleWrapper>
         ) : null}
         {currencies.length > 1 && (
-          <IconWrapper name="arrow-down" color="neutral2" height={iconSize} width={iconSize} />
+          <IconWrapper name="chevron-down" color="neutral2" height={iconSize} width={iconSize} />
         )}
       </SelectionWrapper>
     </>
