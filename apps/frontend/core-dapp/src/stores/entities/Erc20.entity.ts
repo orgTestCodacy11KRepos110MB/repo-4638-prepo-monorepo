@@ -1,8 +1,7 @@
 import { makeObservable, observable, runInAction, computed, action } from 'mobx'
 import { BigNumber, utils } from 'ethers'
-import { parseUnits } from 'ethers/lib/utils'
 import { UNLIMITED_AMOUNT_APPROVAL } from 'prepo-constants'
-import { displayDecimals, safeStringBN } from 'prepo-utils'
+import { displayDecimals, parseUnits } from 'prepo-utils'
 import { ContractReturn, ContractStore, Factory } from 'prepo-stores'
 import { RootStore } from '../RootStore'
 import { SupportedContracts, SupportedContractsNames } from '../../lib/contract.types'
@@ -152,10 +151,11 @@ export class Erc20Store extends ContractStore<RootStore, SupportedContracts> {
       )
       return
     }
-    if (this.decimalsNumber === undefined) return
+    const amountBN = parseUnits(amount, this.decimalsNumber)
+    if (amountBN === undefined) return
     const approved = await this.approve(
       contractAddresses[this.root.web3Store.network.name] ?? '',
-      parseUnits(safeStringBN(amount), this.decimalsNumber)
+      amountBN
     )
     if (approved) {
       this.root.toastStore.successToast(
@@ -229,11 +229,9 @@ export class Erc20Store extends ContractStore<RootStore, SupportedContracts> {
     spenderContractName: SupportedContractsNames = 'UNISWAP_SWAP_ROUTER'
   ): boolean | undefined {
     const contractAddresses = supportedContracts[spenderContractName]
-    if (!contractAddresses || this.decimalsNumber === undefined) return undefined
-    return this.needsToAllowTokens(
-      contractAddresses[this.root.web3Store.network.name],
-      parseUnits(safeStringBN(amount), this.decimalsNumber)
-    )
+    const amountBN = parseUnits(amount, this.decimalsNumber)
+    if (!contractAddresses || amountBN === undefined) return undefined
+    return this.needsToAllowTokens(contractAddresses[this.root.web3Store.network.name], amountBN)
   }
 
   signerAllowance(spenderAddress: string): BigNumber | undefined {
@@ -259,7 +257,6 @@ export class Erc20Store extends ContractStore<RootStore, SupportedContracts> {
   }
 
   parseUnits(value: string): BigNumber | undefined {
-    if (this.decimalsNumber === undefined) return undefined
-    return utils.parseUnits(safeStringBN(value), this.decimalsNumber)
+    return parseUnits(value, this.decimalsNumber)
   }
 }

@@ -11,8 +11,7 @@ export class DepositStore {
   }
 
   setDepositAmount(amount: string): void {
-    if (validateStringToBN(amount, this.root.baseTokenStore.decimalsNumber))
-      this.depositAmount = amount
+    if (validateStringToBN(amount)) this.depositAmount = amount
   }
 
   // eslint-disable-next-line require-await

@@ -7,7 +7,6 @@ const fromRoot = (d): string => path.join(__dirname, d)
 const config: Config.InitialOptions = {
   ...base,
   roots: [fromRoot('.')],
-  name: 'prepo-utils',
   displayName: 'prepo-utils tests',
   coverageThreshold: {
     global: {

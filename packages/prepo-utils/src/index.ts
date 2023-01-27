@@ -5,6 +5,7 @@ import { getContractAddress } from './getContractAddress'
 import { formatNumber } from './formatNumber'
 import { sleep } from './sleep'
 import { makeError } from './makeError'
+import { parseUnits } from './parseUnits'
 import { truncateAmountString } from './truncateAmountString'
 import { validateNumber } from './validateNumber'
 import { chainIdToHexString } from './chainIdToHexString'
@@ -21,6 +22,7 @@ export {
   formatNumber,
   sleep,
   makeError,
+  parseUnits,
   truncateAmountString,
   validateNumber,
   chainIdToHexString,

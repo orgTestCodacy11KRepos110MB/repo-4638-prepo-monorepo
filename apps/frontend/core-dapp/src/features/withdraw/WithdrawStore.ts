@@ -18,8 +18,7 @@ export class WithdrawStore {
   }
 
   setWithdrawalAmount(amount: string): void {
-    if (validateStringToBN(amount, this.root.preCTTokenStore.decimalsNumber))
-      this.withdrawalAmount = amount
+    if (validateStringToBN(amount)) this.withdrawalAmount = amount
   }
 
   // eslint-disable-next-line require-await

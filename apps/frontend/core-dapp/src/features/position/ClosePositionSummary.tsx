@@ -136,7 +136,7 @@ const ClosePositionSummary: React.FC<Props> = ({ position }) => {
           connected={connected}
           hideBalance
           onChange={(value): void => {
-            if (validateStringToBN(value, position.data.decimals)) setCloseValue(value)
+            if (validateStringToBN(value)) setCloseValue(value)
           }}
           max={position.data.totalValue}
           showSlider

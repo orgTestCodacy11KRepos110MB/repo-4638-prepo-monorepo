@@ -145,8 +145,7 @@ export class TradeStore {
   }
 
   setOpenTradeAmount(amount: string): void {
-    if (validateStringToBN(amount, this.root.preCTTokenStore.decimalsNumber))
-      this.openTradeAmount = amount
+    if (validateStringToBN(amount)) this.openTradeAmount = amount
   }
 
   setOpenTradeHash(hash?: string): void {
