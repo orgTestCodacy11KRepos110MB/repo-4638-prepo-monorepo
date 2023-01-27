@@ -30,7 +30,7 @@ export class PositionEntity {
   }
 
   get hasPosition(): boolean | undefined {
-    if (this.totalValueBN === undefined) return undefined
+    if (this.totalValueBN === undefined || this.totalValue === undefined) return undefined
     return this.totalValueBN.gt(0)
   }
 
