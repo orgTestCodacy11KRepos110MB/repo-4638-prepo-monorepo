@@ -137,7 +137,7 @@ export const Header: FC<{ isMobileMenuOpen: boolean; toggleMobileMenu: () => voi
       isMobileMenuOpen && 'fixed top-0 right-0 z-20 h-screen bg-background'
     )}
   >
-    <Banner />
+    {/* <Banner /> */}
     <div className="flex justify-between items-center mx-8 mt-14 mb-7 max-w-6xl lg:my-9 lg:mx-auto">
       <img
         src="/prepo-logo.svg"
