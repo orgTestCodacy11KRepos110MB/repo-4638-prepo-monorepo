@@ -8,7 +8,7 @@ import SlideUpCard from '../SlideUpCard'
 import { useRootStore } from '../../../context/RootStoreProvider'
 import SlideUpButton from '../SlideUpButton'
 import SlideUpRow from '../SlideUpRow'
-import { Direction } from '../TradeStore'
+import { PositionEntity } from '../../../stores/entities/Position.entity'
 
 const SelectedPosition = styled(SlideUpRow)`
   border: none;
@@ -36,15 +36,14 @@ const PositionsSlideUp: React.FC = () => {
   const router = useRouter()
   const { portfolioStore, tradeStore, web3Store } = useRootStore()
   const { connected } = web3Store
-  const { isLoadingPositions, positions } = portfolioStore
-  const { attemptingToSelectPosition, slideUpContent, setSlideUpContent, selectedPosition } =
-    tradeStore
+  const { positions } = portfolioStore
+  const { slideUpContent, setSlideUpContent, selectedPosition } = tradeStore
 
-  const noPosition = !isLoadingPositions && positions.length === 0
+  const noPosition = positions !== undefined && positions.length === 0
 
-  const handleSelectPosition = (newMarketUrlId: string, newDirection: Direction): void => {
-    tradeStore.setSelectedMarket(newMarketUrlId)
-    tradeStore.setDirection(newDirection)
+  const handleSelectPosition = (position: PositionEntity): void => {
+    tradeStore.setSelectedMarket(position.market.urlId)
+    tradeStore.setDirection(position.direction)
     tradeStore.setSlideUpContent()
     router.push(tradeStore.tradeUrl)
   }
@@ -75,10 +74,10 @@ const PositionsSlideUp: React.FC = () => {
       )
 
     // user attempts to select a position via url parameters but positions aren't loaded yet
-    if (attemptingToSelectPosition) return <PositionLoadingSkeleton noPadding />
+    if (positions === undefined) return <PositionLoadingSkeleton noPadding />
 
-    return noPosition ? 'No Opened Position' : 'Select a Position'
-  }, [attemptingToSelectPosition, noPosition, selectedPosition])
+    return positions.length === 0 ? 'No Opened Position' : 'Select a Position'
+  }, [positions, selectedPosition])
 
   return (
     <>
@@ -94,7 +93,7 @@ const PositionsSlideUp: React.FC = () => {
         onClose={(): void => setSlideUpContent(undefined)}
         title="Select a Position"
       >
-        {isLoadingPositions ? (
+        {positions === undefined ? (
           <PositionLoadingSkeletons />
         ) : (
           <>
@@ -102,28 +101,22 @@ const PositionsSlideUp: React.FC = () => {
               <SlideUpRow
                 market={selectedPosition.market}
                 selected
-                onClick={(): void =>
-                  handleSelectPosition(selectedPosition.market.urlId, selectedPosition.direction)
-                }
-                position={{
-                  direction: selectedPosition.direction,
-                  totalValue:
-                    selectedPosition.data === undefined
-                      ? undefined
-                      : +selectedPosition.data.totalValue,
-                }}
+                onClick={(): void => handleSelectPosition(selectedPosition)}
+                position={selectedPosition}
               />
             )}
             {positions
               .filter(({ id }) => id !== selectedPosition?.id)
-              .map(({ id, market, data, direction }) => (
-                <SlideUpRow
-                  key={id}
-                  market={market}
-                  onClick={(): void => handleSelectPosition(market.urlId, direction)}
-                  position={data ? { direction, totalValue: +data.totalValue } : undefined}
-                />
-              ))}
+              .map((position) =>
+                position.totalValueBN?.eq(0) ? null : (
+                  <SlideUpRow
+                    key={position.id}
+                    market={position.market}
+                    onClick={(): void => handleSelectPosition(position)}
+                    position={position}
+                  />
+                )
+              )}
           </>
         )}
       </SlideUpCard>
