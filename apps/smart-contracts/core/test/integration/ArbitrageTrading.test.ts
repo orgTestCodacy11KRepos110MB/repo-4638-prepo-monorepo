@@ -834,6 +834,12 @@ describe('=> Arbitrage Trading', () => {
         }).throws(Error, 'Invalid growth factor')
       })
 
+      it('reverts if growth factor < 0', () => {
+        expect(() => {
+          getNextTradeSize(parseEther('1'), '-0.001')
+        }).throws(Error, 'Invalid growth factor')
+      })
+
       it('reverts if growth factor right below 1', () => {
         expect(() => {
           getNextTradeSize(parseEther('1'), '0.999')
