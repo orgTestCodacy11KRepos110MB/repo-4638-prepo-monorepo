@@ -39,8 +39,11 @@ import {
 import {
   ArbitrageStrategy,
   attachArbitrageBroker,
+  getAdjustedEstimate,
   getEstimateGivenTradeSize,
+  getNextTradeSize,
   getPoolsFromTokens,
+  getSlippageFactor,
   getStrategyToUse,
   getTokensFromMarket,
   getWeiPricesFromPools,
@@ -693,6 +696,158 @@ describe('=> Arbitrage Trading', () => {
       afterEach(() => {
         fakeArbitrageBroker.buyAndRedeem.reset()
         fakeArbitrageBroker.mintAndSell.reset()
+      })
+    })
+
+    describe('# getSlippageFactor', () => {
+      it('throws error if INSUFFICIENT_SPREAD selected', () => {
+        expect(() => {
+          getSlippageFactor(ArbitrageStrategy.INSUFFICIENT_SPREAD, '0.001')
+        }).throws(Error, 'Cannot get estimate for INSUFFICIENT_SPREAD')
+      })
+
+      it('throws error if slippage < 0% and BUY_AND_REDEEM selected', () => {
+        expect(() => {
+          getSlippageFactor(ArbitrageStrategy.BUY_AND_REDEEM, '-0.001')
+        }).throws(Error, 'Invalid slippage factor')
+      })
+
+      it('throws error if slippage < 0% and MINT_AND_SELL selected', () => {
+        expect(() => {
+          getSlippageFactor(ArbitrageStrategy.MINT_AND_SELL, '-0.001')
+        }).throws(Error, 'Invalid slippage factor')
+      })
+
+      it('throws error if slippage > 100% and MINT_AND_SELL selected', () => {
+        expect(() => {
+          getSlippageFactor(ArbitrageStrategy.MINT_AND_SELL, '1.001')
+        }).throws(Error, 'Invalid slippage factor')
+      })
+
+      it('returns 1 + slippage if BUY_AND_REDEEM selected', () => {
+        expect(getSlippageFactor(ArbitrageStrategy.BUY_AND_REDEEM, '0.001')).eq(
+          parseEther('1').add(parseEther('0.001'))
+        )
+      })
+
+      it('returns 1 - slippage if MINT_AND_SELL selected', () => {
+        expect(getSlippageFactor(ArbitrageStrategy.MINT_AND_SELL, '0.001')).eq(
+          parseEther('1').sub(parseEther('0.001'))
+        )
+      })
+
+      it('returns 1 + slippage if slippage > 100% and BUY_AND_REDEEM selected', () => {
+        expect(getSlippageFactor(ArbitrageStrategy.BUY_AND_REDEEM, '1.001')).eq(
+          parseEther('1').add(parseEther('1.001'))
+        )
+      })
+    })
+
+    describe('# getAdjustedEstimate', () => {
+      const TEST_MAX_SLIPPAGE = '0.01' // 1%
+      const TEST_GAS_COST_BUFFER = parseEther('0.5') // $0.5 (0.5 Collateral)
+
+      it('returns estimate with adjusted cost if BUY_AND_REDEEM selected', () => {
+        /**
+         * Values chosen to represent profit = tradeSize - collateralToBuyLong
+         * - collateralToBuyShort and to ensure values are all different.
+         */
+        const unadjustedEstimate = {
+          tradeSize: parseEther('7'),
+          profit: parseEther('4'),
+          collateralToBuyLong: parseEther('2'),
+          collateralToBuyShort: parseEther('1'),
+        }
+
+        const adjustedEstimate = getAdjustedEstimate(
+          ArbitrageStrategy.BUY_AND_REDEEM,
+          unadjustedEstimate,
+          TEST_GAS_COST_BUFFER,
+          TEST_MAX_SLIPPAGE
+        )
+
+        expect(adjustedEstimate.tradeSize).eq(unadjustedEstimate.tradeSize)
+        expect(adjustedEstimate.profit).lt(unadjustedEstimate.profit)
+        // Ensure adjusted cost to purchase is > than unadjusted cost
+        expect(adjustedEstimate.collateralToBuyLong).gt(unadjustedEstimate.collateralToBuyLong)
+        expect(adjustedEstimate.collateralToBuyShort).gt(unadjustedEstimate.collateralToBuyShort)
+        expect(typeof adjustedEstimate.collateralFromSellingLong).eq('undefined')
+        expect(typeof adjustedEstimate.collateralFromSellingShort).eq('undefined')
+      })
+
+      it('returns estimate with adjusted proceeds if MINT_AND_SELL selected', () => {
+        /**
+         * Values chosen to represent profit = collateralFromSellingLong + collateralFromSellingShort
+         * - tradeSize and to ensure values are all different.
+         */
+        const unadjustedEstimate = {
+          tradeSize: parseEther('5'),
+          profit: parseEther('2'),
+          collateralFromSellingLong: parseEther('4'),
+          collateralFromSellingShort: parseEther('3'),
+        }
+
+        const adjustedEstimate = getAdjustedEstimate(
+          ArbitrageStrategy.MINT_AND_SELL,
+          unadjustedEstimate,
+          TEST_GAS_COST_BUFFER,
+          TEST_MAX_SLIPPAGE
+        )
+
+        expect(adjustedEstimate.tradeSize).eq(unadjustedEstimate.tradeSize)
+        expect(adjustedEstimate.profit).lt(unadjustedEstimate.profit)
+        // Ensure floor on proceeds from selling is < than unadjusted proceeds
+        expect(adjustedEstimate.collateralFromSellingLong).lt(
+          unadjustedEstimate.collateralFromSellingLong
+        )
+        expect(adjustedEstimate.collateralFromSellingShort).lt(
+          unadjustedEstimate.collateralFromSellingShort
+        )
+        expect(typeof adjustedEstimate.collateralToBuyLong).eq('undefined')
+        expect(typeof adjustedEstimate.collateralToBuyShort).eq('undefined')
+      })
+
+      it('throws error if INSUFFICIENT_SPREAD selected', () => {
+        const unadjustedEstimate = {
+          tradeSize: parseEther('5'),
+          profit: parseEther('2'),
+          collateralFromSellingLong: parseEther('4'),
+          collateralFromSellingShort: parseEther('3'),
+        }
+        const testGasBuffer = parseEther('0.5') // $0.5
+
+        expect(() => {
+          getAdjustedEstimate(
+            ArbitrageStrategy.INSUFFICIENT_SPREAD,
+            unadjustedEstimate,
+            testGasBuffer,
+            TEST_MAX_SLIPPAGE
+          )
+        }).throws(Error, 'Cannot get estimate for INSUFFICIENT_SPREAD')
+      })
+    })
+
+    describe('# getNextTradeSize', () => {
+      it('reverts if growth factor = 0', () => {
+        expect(() => {
+          getNextTradeSize(parseEther('1'), '0')
+        }).throws(Error, 'Invalid growth factor')
+      })
+
+      it('reverts if growth factor right below 1', () => {
+        expect(() => {
+          getNextTradeSize(parseEther('1'), '0.999')
+        }).throws(Error, 'Invalid growth factor')
+      })
+
+      it('reverts if growth factor = 1', () => {
+        expect(() => {
+          getNextTradeSize(parseEther('1'), '1')
+        }).throws(Error, 'Invalid growth factor')
+      })
+
+      it("doesn't revert if growth factor > 1", () => {
+        getNextTradeSize(parseEther('1'), '1.0001')
       })
     })
   })

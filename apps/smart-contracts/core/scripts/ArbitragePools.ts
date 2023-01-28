@@ -1,3 +1,4 @@
+import { parseEther } from '@ethersproject/units'
 import { BigNumber, Contract, ethers } from 'ethers'
 import IArbitrageBrokerArtifact from './exportedArtifacts/ArbitrageBroker.json'
 import IERC20Artifact from './exportedArtifacts/IERC20.json'
@@ -190,4 +191,107 @@ export const getEstimateGivenTradeSize = async (
    * sizing altogether and move to the next market.
    */
   throw new Error('Cannot get estimate for INSUFFICIENT_SPREAD')
+}
+
+/**
+ * `maxSlippage` is a string because BigNumber does not support decimal
+ * inputs for calculations. Instead, we convert a float string,
+ * e.g. '0.05'(5%), to a 18 decimal factor.
+ */
+export const getSlippageFactor = (
+  arbitrageStrategy: ArbitrageStrategy,
+  maxSlippage: string
+): BigNumber => {
+  if (parseEther(maxSlippage).lt(0)) {
+    throw new Error('Invalid slippage factor')
+  }
+  if (arbitrageStrategy === ArbitrageStrategy.BUY_AND_REDEEM) {
+    /**
+     * The slippage factor applied is 100% + maxSlippage, since we want
+     * to limit the cost of buying L/S tokens.
+     */
+    return parseEther('1').add(parseEther(maxSlippage))
+  }
+  if (arbitrageStrategy === ArbitrageStrategy.MINT_AND_SELL) {
+    /**
+     * The slippage factor applied is 100% - maxSlippage, since we want
+     * to put a floor on the proceeds from selling L/S tokens.
+     */
+    if (parseEther(maxSlippage).gt(parseEther('1'))) {
+      throw new Error('Invalid slippage factor')
+    }
+    return parseEther('1').sub(parseEther(maxSlippage))
+  }
+  throw new Error('Cannot get estimate for INSUFFICIENT_SPREAD')
+}
+
+/**
+ * `gasCostBuffer` is the Collateral-denominated gas fee to be accounted
+ * for e.g. 1 ether would be 1 Collateral in gas cost buffer
+ */
+export const getAdjustedEstimate = (
+  arbitrageStrategy: ArbitrageStrategy,
+  estimate: ArbitrageEstimate,
+  gasCostBuffer: BigNumber,
+  maxSlippage: string
+): ArbitrageEstimate => {
+  if (arbitrageStrategy === ArbitrageStrategy.BUY_AND_REDEEM) {
+    const slippageFactor = getSlippageFactor(arbitrageStrategy, maxSlippage)
+    const adjustedCollateralToBuyLong = estimate.collateralToBuyLong
+      .mul(slippageFactor)
+      .div(parseEther('1'))
+    const adjustedCollateralToBuyShort = estimate.collateralToBuyShort
+      .mul(slippageFactor)
+      .div(parseEther('1'))
+    return {
+      tradeSize: estimate.tradeSize,
+      /**
+       * Profit is L/S amount bought for redemption (trade size) minus
+       * adjusted cost and gas cost buffer.
+       */
+      profit: estimate.tradeSize
+        .sub(adjustedCollateralToBuyLong)
+        .sub(adjustedCollateralToBuyShort)
+        .sub(gasCostBuffer),
+      // Pass along adjusted costs to use as slippage parameters
+      collateralToBuyLong: adjustedCollateralToBuyLong,
+      collateralToBuyShort: adjustedCollateralToBuyShort,
+    }
+  }
+  if (arbitrageStrategy === ArbitrageStrategy.MINT_AND_SELL) {
+    const slippageFactor = parseEther('1').sub(parseEther(maxSlippage))
+    const adjustedCollateralFromSellingLong = estimate.collateralFromSellingLong
+      .mul(slippageFactor)
+      .div(parseEther('1'))
+    const adjustedCollateralFromSellingShort = estimate.collateralFromSellingShort
+      .mul(slippageFactor)
+      .div(parseEther('1'))
+    return {
+      tradeSize: estimate.tradeSize,
+      /**
+       * Profit is adjusted proceeds minus L/S amount minted to be sold
+       * (trade size) and gas cost buffer.
+       */
+      profit: adjustedCollateralFromSellingLong
+        .add(adjustedCollateralFromSellingShort)
+        .sub(estimate.tradeSize)
+        .sub(gasCostBuffer),
+      // Pass along adjusted proceeds to use as slippage parameters
+      collateralFromSellingLong: adjustedCollateralFromSellingLong,
+      collateralFromSellingShort: adjustedCollateralFromSellingShort,
+    }
+  }
+  throw new Error('Cannot get estimate for INSUFFICIENT_SPREAD')
+}
+
+/**
+ * `growthFactor` is a string because BigNumber does not support decimal
+ * inputs for calculations. Instead, we convert a float string,
+ * e.g. '1.05'(1.05x), to a 18 decimal factor.
+ */
+export const getNextTradeSize = (currentTradeSize: BigNumber, growthFactor: string): BigNumber => {
+  if (parseEther(growthFactor).lte(parseEther('1'))) {
+    throw new Error('Invalid growth factor')
+  }
+  return currentTradeSize.mul(parseEther(growthFactor)).div(parseEther('1'))
 }
