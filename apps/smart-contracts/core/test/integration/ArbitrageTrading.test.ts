@@ -1,5 +1,6 @@
 import chai, { expect } from 'chai'
 import { ethers, network } from 'hardhat'
+import { stub, SinonStub } from 'sinon'
 import { FakeContract, smock } from '@defi-wonderland/smock'
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address'
 import { BigNumber } from 'ethers'
@@ -36,11 +37,18 @@ import {
   ERC20,
   SwapRouter,
 } from '../../types/generated'
+/**
+ * Import entire module just for Sinon mocking since Sinon
+ * requires whole module when creating a fake.
+ */
+import * as ArbitragePools from '../../scripts/ArbitragePools'
 import {
   ArbitrageStrategy,
   attachArbitrageBroker,
+  executeTrade,
   getAdjustedEstimate,
   getEstimateGivenTradeSize,
+  getIdealTradeSize,
   getNextTradeSize,
   getPoolsFromTokens,
   getSlippageFactor,
@@ -854,6 +862,304 @@ describe('=> Arbitrage Trading', () => {
 
       it("doesn't revert if growth factor > 1", () => {
         getNextTradeSize(parseEther('1'), '1.0001')
+      })
+    })
+
+    describe('# getIdealTradeSize', () => {
+      let fakeArbitrageBroker: FakeContract<ArbitrageBroker>
+      let mockGetEstimateGivenTradeSize: SinonStub
+      let mockGetAdjustedEstimate: SinonStub
+      let mockGetNextTradeSize: SinonStub
+      const TEST_GAS_COST_BUFFER = parseEther('0.5') // $0.5
+      const TEST_MAX_SLIPPAGE = '0.01' // 1%
+      const TEST_GROWTH_FACTOR = '1.2' // 20%
+      const TEST_MAX_TRADE_SIZE = parseEther('2')
+      /**
+       * Since the only value that really matters for testing this
+       * function is the profit, I am storing the object here, and
+       * then only the profit returned will be changed for each test.
+       */
+      const TEST_ESTIMATE = {
+        tradeSize: parseEther('1'),
+        profit: parseEther('2'),
+        collateralToBuyLong: parseEther('3'),
+        collateralToBuyShort: parseEther('4'),
+      }
+      before(() => {
+        mockGetEstimateGivenTradeSize = stub(ArbitragePools, 'getEstimateGivenTradeSize')
+        mockGetAdjustedEstimate = stub(ArbitragePools, 'getAdjustedEstimate')
+        mockGetNextTradeSize = stub(ArbitragePools, 'getNextTradeSize')
+      })
+
+      beforeEach(async () => {
+        fakeArbitrageBroker = await fakeArbitrageBrokerFixture()
+      })
+
+      it('returns 0 profit if immediately new profit < previous profit', async () => {
+        mockGetAdjustedEstimate.returns({
+          ...TEST_ESTIMATE,
+          /**
+           * Return a negative profit so that new profit is
+           * immediately less than the starting profit of 0.
+           *
+           * Other parameters here are irrelevant to this
+           * function's logic, they are just passed along.
+           */
+          profit: parseEther('-0.1'),
+        })
+        const initialTradeSize = parseEther('1')
+
+        const estimate = await getIdealTradeSize(
+          initialTradeSize,
+          TEST_MAX_TRADE_SIZE,
+          ArbitrageStrategy.BUY_AND_REDEEM,
+          attachArbitrageBroker(ethers.provider, fakeArbitrageBroker.address),
+          core.markets[TEST_NAME_SUFFIX].address,
+          TEST_GAS_COST_BUFFER,
+          TEST_MAX_SLIPPAGE,
+          TEST_GROWTH_FACTOR
+        )
+
+        // Verify estimate values
+        expect(estimate.tradeSize).eq(0)
+        expect(estimate.profit).eq(0)
+        expect(typeof estimate.collateralToBuyLong).eq('undefined')
+        expect(typeof estimate.collateralToBuyShort).eq('undefined')
+        expect(typeof estimate.collateralFromSellingLong).eq('undefined')
+        expect(typeof estimate.collateralFromSellingShort).eq('undefined')
+        // Verify function call counts
+        expect(mockGetEstimateGivenTradeSize.callCount).eq(1)
+        expect(mockGetAdjustedEstimate.callCount).eq(1)
+        expect(mockGetNextTradeSize.callCount).eq(0)
+      })
+
+      it('returns 0 profit if initial trade size > max', async () => {
+        mockGetAdjustedEstimate.returns(TEST_ESTIMATE)
+        const initialTradeSize = TEST_MAX_TRADE_SIZE.add(1)
+
+        const estimate = await getIdealTradeSize(
+          /**
+           * Pass in a trade size immediately exceeding
+           * the max so that it exits with profit osf 0.
+           */
+          initialTradeSize,
+          TEST_MAX_TRADE_SIZE,
+          ArbitrageStrategy.BUY_AND_REDEEM,
+          attachArbitrageBroker(ethers.provider, fakeArbitrageBroker.address),
+          core.markets[TEST_NAME_SUFFIX].address,
+          TEST_GAS_COST_BUFFER,
+          TEST_MAX_SLIPPAGE,
+          TEST_GROWTH_FACTOR
+        )
+
+        // Verify estimate values
+        expect(estimate.tradeSize).eq(0)
+        expect(estimate.profit).eq(0)
+        expect(typeof estimate.collateralToBuyLong).eq('undefined')
+        expect(typeof estimate.collateralToBuyShort).eq('undefined')
+        expect(typeof estimate.collateralFromSellingLong).eq('undefined')
+        expect(typeof estimate.collateralFromSellingShort).eq('undefined')
+        // Verify function call counts
+        expect(mockGetEstimateGivenTradeSize.callCount).eq(0)
+        expect(mockGetAdjustedEstimate.callCount).eq(0)
+        expect(mockGetNextTradeSize.callCount).eq(0)
+      })
+
+      it('returns last estimate if trade size > max after a size increase', async () => {
+        mockGetAdjustedEstimate.returns(TEST_ESTIMATE)
+        /**
+         * Placing both the exact max and max + 1 allows us to concisely test
+         * the comparison logic here.
+         */
+        mockGetNextTradeSize.onCall(0).returns(TEST_MAX_TRADE_SIZE)
+        mockGetNextTradeSize.onCall(1).returns(TEST_MAX_TRADE_SIZE.add(1))
+        mockGetAdjustedEstimate.onCall(0).returns(TEST_ESTIMATE)
+        /**
+         * Modify estimate to ensure the one returned is the one
+         * prior to the trade size exceeding the max.
+         */
+        const expectedLastEstimate = {
+          tradeSize: TEST_ESTIMATE.tradeSize.add(1),
+          profit: TEST_ESTIMATE.profit.add(1),
+          collateralToBuyLong: TEST_ESTIMATE.collateralToBuyLong.add(1),
+          collateralToBuyShort: TEST_ESTIMATE.collateralToBuyShort.add(1),
+        }
+        mockGetAdjustedEstimate.onCall(1).returns(expectedLastEstimate)
+        const initialTradeSize = parseEther('1')
+
+        const estimate = await getIdealTradeSize(
+          initialTradeSize,
+          TEST_MAX_TRADE_SIZE,
+          ArbitrageStrategy.BUY_AND_REDEEM,
+          attachArbitrageBroker(ethers.provider, fakeArbitrageBroker.address),
+          core.markets[TEST_NAME_SUFFIX].address,
+          TEST_GAS_COST_BUFFER,
+          TEST_MAX_SLIPPAGE,
+          TEST_GROWTH_FACTOR
+        )
+
+        // Verify estimate values
+        expect(estimate.tradeSize).eq(expectedLastEstimate.tradeSize)
+        expect(estimate.profit).eq(expectedLastEstimate.profit)
+        expect(estimate.collateralToBuyLong).eq(expectedLastEstimate.collateralToBuyLong)
+        expect(estimate.collateralToBuyShort).eq(expectedLastEstimate.collateralToBuyShort)
+        expect(typeof estimate.collateralFromSellingLong).eq('undefined')
+        expect(typeof estimate.collateralFromSellingShort).eq('undefined')
+        // Verify function call counts
+        expect(mockGetEstimateGivenTradeSize.callCount).eq(2)
+        expect(mockGetAdjustedEstimate.callCount).eq(2)
+        expect(mockGetNextTradeSize.callCount).eq(2)
+      })
+
+      it('returns last estimate if new profit < previous profit after a profit increase', async () => {
+        /**
+         * Trigger calls with increasing profit and end with a final call
+         * that returns a smaller profit. Expect that the estimate returned
+         * was one obtained before profit decreased.
+         */
+        const initialProfit = parseEther('1')
+        mockGetAdjustedEstimate.onCall(0).returns({
+          ...TEST_ESTIMATE,
+          profit: initialProfit,
+        })
+        let nextProfit = initialProfit.add(1)
+        const expectedLastEstimate = {
+          tradeSize: TEST_ESTIMATE.tradeSize.add(1),
+          profit: nextProfit,
+          collateralToBuyLong: TEST_ESTIMATE.collateralToBuyLong.add(1),
+          collateralToBuyShort: TEST_ESTIMATE.collateralToBuyShort.add(1),
+        }
+        mockGetAdjustedEstimate.onCall(1).returns(expectedLastEstimate)
+        // Decrease profit next call to cause it to exit
+        nextProfit = nextProfit.sub(1)
+        mockGetAdjustedEstimate.onCall(2).returns({
+          ...expectedLastEstimate,
+          profit: nextProfit,
+        })
+        const initialTradeSize = parseEther('1')
+        /**
+         * For simplicity, return the initial trade size, since we are verifying
+         * exit on profit, rather than trade size.
+         */
+        mockGetNextTradeSize.returns(initialTradeSize)
+
+        const estimate = await getIdealTradeSize(
+          initialTradeSize,
+          TEST_MAX_TRADE_SIZE,
+          ArbitrageStrategy.BUY_AND_REDEEM,
+          attachArbitrageBroker(ethers.provider, fakeArbitrageBroker.address),
+          core.markets[TEST_NAME_SUFFIX].address,
+          TEST_GAS_COST_BUFFER,
+          TEST_MAX_SLIPPAGE,
+          TEST_GROWTH_FACTOR
+        )
+
+        // Verify estimate values
+        expect(estimate.tradeSize).eq(expectedLastEstimate.tradeSize)
+        expect(estimate.profit).eq(expectedLastEstimate.profit)
+        expect(estimate.collateralToBuyLong).eq(expectedLastEstimate.collateralToBuyLong)
+        expect(estimate.collateralToBuyShort).eq(expectedLastEstimate.collateralToBuyShort)
+        expect(typeof estimate.collateralFromSellingLong).eq('undefined')
+        expect(typeof estimate.collateralFromSellingShort).eq('undefined')
+        // Verify function call counts
+        expect(mockGetEstimateGivenTradeSize.callCount).eq(3)
+        expect(mockGetAdjustedEstimate.callCount).eq(3)
+        expect(mockGetNextTradeSize.callCount).eq(2)
+      })
+
+      afterEach(() => {
+        mockGetEstimateGivenTradeSize.reset()
+        mockGetAdjustedEstimate.reset()
+        mockGetNextTradeSize.reset()
+      })
+    })
+
+    describe('# executeTrade', () => {
+      let fakeArbitrageBroker: FakeContract<ArbitrageBroker>
+      beforeEach(async () => {
+        fakeArbitrageBroker = await fakeArbitrageBrokerFixture()
+      })
+
+      it("calls 'buyAndRedeem()' if BUY_AND_REDEEM selected", async () => {
+        const testBuyAndRedeemEstimate = {
+          tradeSize: parseEther('1'),
+          profit: parseEther('2'),
+          collateralToBuyLong: parseEther('3'),
+          collateralToBuyShort: parseEther('4'),
+        }
+
+        await executeTrade(
+          ArbitrageStrategy.BUY_AND_REDEEM,
+          // Wrap mock in a standalone ethers Contact object
+          attachArbitrageBroker(ethers.provider, fakeArbitrageBroker.address),
+          governance,
+          core.markets[TEST_NAME_SUFFIX].address,
+          testBuyAndRedeemEstimate
+        )
+
+        const buyAndRedeemArgs = fakeArbitrageBroker.buyAndRedeem.atCall(0).callHistory[0].args
+        expect(buyAndRedeemArgs.market).eq(core.markets[TEST_NAME_SUFFIX].address)
+        expect(buyAndRedeemArgs.tradeParams.longShortAmount).eq(testBuyAndRedeemEstimate.tradeSize)
+        expect(buyAndRedeemArgs.tradeParams.collateralLimitForLong).eq(
+          testBuyAndRedeemEstimate.collateralToBuyLong
+        )
+        expect(buyAndRedeemArgs.tradeParams.collateralLimitForShort).eq(
+          testBuyAndRedeemEstimate.collateralToBuyShort
+        )
+      })
+
+      it("calls 'mintAndSell' if MINT_AND_SELL selected", async () => {
+        const testMintAndSellEstimate = {
+          tradeSize: parseEther('1'),
+          profit: parseEther('2'),
+          collateralFromSellingLong: parseEther('3'),
+          collateralFromSellingShort: parseEther('4'),
+        }
+
+        await executeTrade(
+          ArbitrageStrategy.MINT_AND_SELL,
+          // Wrap mock in a standalone ethers Contact object
+          attachArbitrageBroker(ethers.provider, fakeArbitrageBroker.address),
+          governance,
+          core.markets[TEST_NAME_SUFFIX].address,
+          testMintAndSellEstimate
+        )
+
+        const mintAndSellArgs = fakeArbitrageBroker.mintAndSell.atCall(0).callHistory[0].args
+        expect(mintAndSellArgs.market).eq(core.markets[TEST_NAME_SUFFIX].address)
+        expect(mintAndSellArgs.tradeParams.longShortAmount).eq(testMintAndSellEstimate.tradeSize)
+        expect(mintAndSellArgs.tradeParams.collateralLimitForLong).eq(
+          testMintAndSellEstimate.collateralFromSellingLong
+        )
+        expect(mintAndSellArgs.tradeParams.collateralLimitForShort).eq(
+          testMintAndSellEstimate.collateralFromSellingShort
+        )
+      })
+
+      it('throws error if INSUFFICIENT_SPREAD selected', async () => {
+        // Reuse BUY_AND_REDEEM estimate since it doesn't really matter for this test
+        const testBuyAndRedeemEstimate = {
+          tradeSize: parseEther('1'),
+          profit: parseEther('2'),
+          collateralToBuyLong: parseEther('3'),
+          collateralToBuyShort: parseEther('4'),
+        }
+
+        await expect(
+          executeTrade(
+            ArbitrageStrategy.INSUFFICIENT_SPREAD,
+            // Wrap mock in a standalone ethers Contact object
+            attachArbitrageBroker(ethers.provider, fakeArbitrageBroker.address),
+            governance,
+            core.markets[TEST_NAME_SUFFIX].address,
+            testBuyAndRedeemEstimate
+          )
+        ).rejectedWith('Cannot execute trade for INSUFFICIENT_SPREAD')
+      })
+
+      afterEach(() => {
+        fakeArbitrageBroker.buyAndRedeem.reset()
+        fakeArbitrageBroker.mintAndSell.reset()
       })
     })
   })

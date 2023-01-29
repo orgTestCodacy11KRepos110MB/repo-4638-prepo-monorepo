@@ -1,5 +1,5 @@
 import { parseEther } from '@ethersproject/units'
-import { BigNumber, Contract, ethers } from 'ethers'
+import { BigNumber, Contract, ethers, Signer } from 'ethers'
 import IArbitrageBrokerArtifact from './exportedArtifacts/ArbitrageBroker.json'
 import IERC20Artifact from './exportedArtifacts/IERC20.json'
 import IPrePOMarketArtifact from './exportedArtifacts/IPrePOMarket.json'
@@ -294,4 +294,69 @@ export const getNextTradeSize = (currentTradeSize: BigNumber, growthFactor: stri
     throw new Error('Invalid growth factor')
   }
   return currentTradeSize.mul(parseEther(growthFactor)).div(parseEther('1'))
+}
+
+export const getIdealTradeSize = async (
+  initialSize: BigNumber,
+  maxTradeSize: BigNumber,
+  arbitrageStrategy: ArbitrageStrategy,
+  arbitrageBroker: Contract,
+  marketAddress: string,
+  gasCostBuffer: BigNumber,
+  maxSlippage: string,
+  growthFactor: string
+): Promise<ArbitrageEstimate> => {
+  let currentTradeSize = initialSize
+  let previousEstimate: ArbitrageEstimate = {
+    tradeSize: BigNumber.from(0),
+    profit: BigNumber.from(0),
+  }
+  /* eslint-disable no-await-in-loop */
+  while (currentTradeSize.lte(maxTradeSize)) {
+    const unadjustedEstimate = await getEstimateGivenTradeSize(
+      arbitrageStrategy,
+      arbitrageBroker,
+      marketAddress,
+      currentTradeSize
+    )
+    const adjustedEstimate = getAdjustedEstimate(
+      arbitrageStrategy,
+      unadjustedEstimate,
+      gasCostBuffer,
+      maxSlippage
+    )
+    if (adjustedEstimate.profit.lt(previousEstimate.profit)) break
+    previousEstimate = adjustedEstimate
+    currentTradeSize = getNextTradeSize(currentTradeSize, growthFactor)
+  }
+  return previousEstimate
+}
+
+export const executeTrade = async (
+  arbitrageStrategy: ArbitrageStrategy,
+  arbitrageBroker: Contract,
+  signer: Signer,
+  marketAddress: string,
+  estimate: ArbitrageEstimate
+): Promise<void> => {
+  const deadline = nowPlusSeconds(10)
+  if (arbitrageStrategy === ArbitrageStrategy.BUY_AND_REDEEM) {
+    const tx = await arbitrageBroker.connect(signer).buyAndRedeem(marketAddress, {
+      deadline,
+      longShortAmount: estimate.tradeSize,
+      collateralLimitForLong: estimate.collateralToBuyLong,
+      collateralLimitForShort: estimate.collateralToBuyShort,
+    })
+    await tx.wait()
+  } else if (arbitrageStrategy === ArbitrageStrategy.MINT_AND_SELL) {
+    const tx = await arbitrageBroker.connect(signer).mintAndSell(marketAddress, {
+      deadline,
+      longShortAmount: estimate.tradeSize,
+      collateralLimitForLong: estimate.collateralFromSellingLong,
+      collateralLimitForShort: estimate.collateralFromSellingShort,
+    })
+    await tx.wait()
+  } else {
+    throw new Error('Cannot execute trade for INSUFFICIENT_SPREAD')
+  }
 }
