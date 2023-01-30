@@ -17,16 +17,15 @@ export class WithdrawStore {
 
   // eslint-disable-next-line require-await
   async withdraw(): Promise<void> {
-    const { preCTTokenStore } = this.root
     if (
       this.insufficientBalance ||
-      this.withdrawalAmount === '' ||
       this.withdrawalAmountBN === undefined ||
       this.withdrawalAmountBN.eq(0)
     )
       return
+
     this.withdrawing = true
-    const { error } = await preCTTokenStore.withdraw(this.withdrawalAmountBN)
+    const { error } = await this.root.preCTTokenStore.withdraw(this.withdrawalAmountBN)
 
     if (error) {
       this.root.toastStore.errorToast('Withdrawal failed', error)
@@ -59,13 +58,12 @@ export class WithdrawStore {
   }
 
   get withdrawalDisabled(): boolean {
-    const { tokenBalanceRaw } = this.root.preCTTokenStore
     return (
-      tokenBalanceRaw === undefined ||
       this.receivedAmountBN === undefined ||
       !this.withdrawalAmountBN ||
       this.withdrawalAmountBN.lte(0) ||
-      this.withdrawalAmountBN.gt(tokenBalanceRaw) ||
+      this.insufficientBalance === undefined ||
+      this.insufficientBalance ||
       this.withdrawUILoading
     )
   }
