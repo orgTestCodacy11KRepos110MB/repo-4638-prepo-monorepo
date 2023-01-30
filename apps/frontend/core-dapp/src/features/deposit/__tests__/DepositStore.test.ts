@@ -19,7 +19,15 @@ beforeAll(() => {
 
 describe('DepositStore tests', () => {
   let spyBaseTokenBalance: jest.SpyInstance
+  let spyNeedApproval: jest.SpyInstance
+  let spySuccessToast: jest.SpyInstance
   beforeAll(() => {
+    spySuccessToast = jest.spyOn(rootStore.toastStore, 'successToast').mockImplementation(jest.fn())
+
+    spyNeedApproval = jest
+      .spyOn(rootStore.depositStore, 'needApproval', 'get')
+      .mockReturnValue(false)
+
     spyBaseTokenBalance = jest
       .spyOn(rootStore.baseTokenStore, 'tokenBalance', 'get')
       .mockReturnValue(USDC_BALANCE)
@@ -29,12 +37,14 @@ describe('DepositStore tests', () => {
     ) as BigNumber
 
     jest
-      .spyOn(rootStore.baseTokenStore, 'tokenBalanceRaw', 'get')
+      .spyOn(rootStore.baseTokenStore, 'balanceOfSigner', 'get')
       .mockReturnValue(USDC_BALANCE_BIGNUMBER)
   })
 
   afterAll(() => {
     spyBaseTokenBalance.mockRestore()
+    spyNeedApproval.mockRestore()
+    spySuccessToast.mockRestore()
   })
 
   it('should set the amount', () => {

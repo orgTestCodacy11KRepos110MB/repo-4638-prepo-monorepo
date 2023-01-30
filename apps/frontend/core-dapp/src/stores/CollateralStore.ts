@@ -102,7 +102,6 @@ export class CollateralStore extends Erc20Store {
         success: true,
       }
     } catch (error) {
-      this.root.toastStore.errorToast(`Error calling transfer`, error)
       return {
         success: false,
         error: (error as Error).message,

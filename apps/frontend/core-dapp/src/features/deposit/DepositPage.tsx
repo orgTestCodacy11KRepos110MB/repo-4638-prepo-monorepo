@@ -2,7 +2,7 @@ import styled from 'styled-components'
 import { observer } from 'mobx-react-lite'
 import { Alert, CurrencyInput, Icon, media } from 'prepo-ui'
 import { useEffect } from 'react'
-import DepositTransactionSummary from './DepositTransactionSummary'
+import DepositButton from './DepositButton'
 import DepositSummary from './DepositSummary'
 import { useRootStore } from '../../context/RootStoreProvider'
 import { PREPO_TESTNET_FORM } from '../../lib/constants'
@@ -29,14 +29,14 @@ const Message = styled.div`
 
 const DepositPage: React.FC = () => {
   const {
-    depositStore: { depositAmount, setDepositAmount },
+    depositStore: { depositing, depositAmount, isLoadingBalance, setDepositAmount },
     preCTTokenStore,
     baseTokenStore: { balanceOfSigner, tokenBalanceFormat },
   } = useRootStore()
 
   useEffect(() => {
     if (tokenBalanceFormat) {
-      setDepositAmount(tokenBalanceFormat)
+      setDepositAmount(+tokenBalanceFormat > 0 ? tokenBalanceFormat : '')
     }
   }, [setDepositAmount, tokenBalanceFormat])
 
@@ -44,6 +44,7 @@ const DepositPage: React.FC = () => {
     <PageCard backUrl={Routes.Portfolio} title="Deposit">
       <CurrencyInput
         balance={tokenBalanceFormat}
+        disabled={depositing || isLoadingBalance}
         isBalanceZero={balanceOfSigner?.eq(0)}
         currency={{ icon: 'usdc', text: 'USDC' }}
         onChange={setDepositAmount}
@@ -51,7 +52,7 @@ const DepositPage: React.FC = () => {
         placeholder="0"
         showBalance
       />
-      <DepositTransactionSummary />
+      <DepositButton />
       <DepositSummary />
       {preCTTokenStore.balanceOfSigner?.eq(0) && balanceOfSigner?.eq(0) && (
         <AlertWrapper>
