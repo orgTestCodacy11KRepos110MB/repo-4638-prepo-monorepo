@@ -1,6 +1,8 @@
-import { spacingIncrement } from 'prepo-ui'
+import { observer } from 'mobx-react-lite'
+import { CurrencyInput, spacingIncrement } from 'prepo-ui'
 import styled from 'styled-components'
 import PositionsSlideUp from './PositionsSlideUp'
+import { useRootStore } from '../../../context/RootStoreProvider'
 
 const Wrapper = styled.div`
   display: flex;
@@ -11,13 +13,24 @@ const Wrapper = styled.div`
   width: 100%;
 `
 
-const CloseTrade: React.FC = () => (
-  <Wrapper>
-    <PositionsSlideUp />
-    <p>TODO: Input</p>
-    <p>TODO: Button</p>
-    <p>TODO: Summary</p>
-  </Wrapper>
-)
+const CloseTrade: React.FC = () => {
+  const { tradeStore, web3Store } = useRootStore()
+  const { selectedPosition } = tradeStore
+  const { connected } = web3Store
+  return (
+    <Wrapper>
+      <PositionsSlideUp />
+      <CurrencyInput
+        disabled={!selectedPosition || !connected}
+        isBalanceZero={selectedPosition?.totalValueBN?.eq(0)}
+        balance={selectedPosition?.totalValue}
+        currency={{ icon: 'cash', text: 'USD' }}
+        showBalance
+      />
+      <p>TODO: Button</p>
+      <p>TODO: Summary</p>
+    </Wrapper>
+  )
+}
 
-export default CloseTrade
+export default observer(CloseTrade)

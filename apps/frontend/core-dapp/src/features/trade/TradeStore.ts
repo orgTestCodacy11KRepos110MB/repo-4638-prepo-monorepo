@@ -23,6 +23,7 @@ export class TradeStore {
   action: TradeAction = 'open'
   approving = false
   closeTradeHash?: string
+  closePositionAmount = ''
   direction: Direction = DEFAULT_DIRECTION
   openTradeAmount = ''
   openTradeAmountOutBN?: BigNumber
