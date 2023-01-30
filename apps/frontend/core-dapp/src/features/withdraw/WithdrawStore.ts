@@ -1,9 +1,10 @@
 import { BigNumber } from 'ethers'
-import { makeAutoObservable } from 'mobx'
+import { makeAutoObservable, runInAction } from 'mobx'
 import { validateStringToBN } from 'prepo-utils'
 import { RootStore } from '../../stores/RootStore'
 
 export class WithdrawStore {
+  withdrawing = false
   withdrawalAmount = ''
 
   constructor(public root: RootStore) {
@@ -15,14 +16,37 @@ export class WithdrawStore {
   }
 
   // eslint-disable-next-line require-await
-  async withdraw(): Promise<{
-    success: boolean
-    error?: string | undefined
-  }> {
+  async withdraw(): Promise<void> {
     const { preCTTokenStore } = this.root
-    return this.withdrawalAmountBN !== undefined && this.withdrawalAmountBN.gt(0)
-      ? preCTTokenStore.withdraw(this.withdrawalAmountBN)
-      : { success: false }
+    if (
+      this.insufficientBalance ||
+      this.withdrawalAmount === '' ||
+      this.withdrawalAmountBN === undefined ||
+      this.withdrawalAmountBN.eq(0)
+    )
+      return
+    this.withdrawing = true
+    const { error } = await preCTTokenStore.withdraw(this.withdrawalAmountBN)
+
+    if (error) {
+      this.root.toastStore.errorToast('Withdrawal failed', error)
+    } else {
+      this.root.toastStore.successToast('Withdrawal was successful 🎉')
+    }
+
+    runInAction(() => {
+      this.withdrawing = false
+      this.withdrawalAmount = ''
+    })
+  }
+
+  get insufficientBalance(): boolean | undefined {
+    if (
+      this.withdrawalAmountBN === undefined ||
+      this.root.preCTTokenStore.balanceOfSigner === undefined
+    )
+      return undefined
+    return this.withdrawalAmountBN.gt(this.root.preCTTokenStore.balanceOfSigner)
   }
 
   get isLoadingBalance(): boolean {
@@ -38,9 +62,11 @@ export class WithdrawStore {
     const { tokenBalanceRaw } = this.root.preCTTokenStore
     return (
       tokenBalanceRaw === undefined ||
+      this.receivedAmountBN === undefined ||
       !this.withdrawalAmountBN ||
       this.withdrawalAmountBN.lte(0) ||
-      this.withdrawalAmountBN.gt(tokenBalanceRaw)
+      this.withdrawalAmountBN.gt(tokenBalanceRaw) ||
+      this.withdrawUILoading
     )
   }
 
@@ -71,18 +97,17 @@ export class WithdrawStore {
   }
 
   get withdrawUILoading(): boolean {
-    const { withdrawing } = this.root.preCTTokenStore
-    return (
-      withdrawing ||
-      this.receivedAmountBN === undefined ||
-      this.withdrawalAmountBN === undefined ||
-      this.isLoadingBalance
-    )
+    return this.withdrawing || this.withdrawButtonInitialLoading
   }
 
   get withdrawalFee(): number | undefined {
     const { redemptionFee, feeDenominator } = this.root.preCTTokenStore
     if (redemptionFee === undefined || feeDenominator === undefined) return undefined
     return redemptionFee.toNumber() / feeDenominator.toNumber()
+  }
+
+  get withdrawButtonInitialLoading(): boolean {
+    if (this.withdrawalAmount === '') return false
+    return Boolean(this.isLoadingBalance || this.insufficientBalance === undefined)
   }
 }
