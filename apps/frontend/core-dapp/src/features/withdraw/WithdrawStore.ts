@@ -1,20 +1,13 @@
 import { BigNumber } from 'ethers'
-import { parseEther } from 'ethers/lib/utils'
 import { makeAutoObservable } from 'mobx'
 import { validateStringToBN } from 'prepo-utils'
 import { RootStore } from '../../stores/RootStore'
 
 export class WithdrawStore {
-  donationPercentage: number
   withdrawalAmount = ''
 
   constructor(public root: RootStore) {
-    this.donationPercentage = 0
     makeAutoObservable(this, {}, { autoBind: true })
-  }
-
-  setDonationPercentage(percentage: number): void {
-    this.donationPercentage = percentage
   }
 
   setWithdrawalAmount(amount: string): void {
@@ -32,20 +25,9 @@ export class WithdrawStore {
       : { success: false }
   }
 
-  get amountForSharesBN(): BigNumber | undefined {
-    if (this.sharesForAmountBN === undefined) return undefined
-    const amountForShares = this.root.preCTTokenStore.getAmountForShares(this.sharesForAmountBN)
-    return amountForShares?.[0]
-  }
-
-  get donationAmount(): number {
-    return (+this.withdrawalAmount * this.donationPercentage) / 100
-  }
-
-  get sharesForAmountBN(): BigNumber | undefined {
-    if (this.withdrawalAmountBN === undefined) return undefined
-    const sharesForAmount = this.root.preCTTokenStore.getSharesForAmount(this.withdrawalAmountBN)
-    return sharesForAmount?.[0]
+  get isLoadingBalance(): boolean {
+    if (!this.root.web3Store.connected) return false
+    return this.root.preCTTokenStore.balanceOfSigner === undefined
   }
 
   get withdrawalAmountBN(): BigNumber | undefined {
@@ -62,28 +44,36 @@ export class WithdrawStore {
     )
   }
 
-  get withdrawalFees(): BigNumber {
+  // TODO: preCTTokenStore's abi is outdated. Update to use withdrawFee instead of redepmtionFee when we update collateral contract
+  // returns withdrawalAmount * fee in Collateral token's decimals
+  get withdrawalFees(): BigNumber | undefined {
     const { redemptionFee, feeDenominator } = this.root.preCTTokenStore
-    if (this.withdrawalAmountBN === undefined || feeDenominator === undefined)
-      return BigNumber.from(0)
-    return this.withdrawalAmountBN.mul(redemptionFee || 0).div(feeDenominator)
+    if (
+      this.withdrawalAmountBN === undefined ||
+      feeDenominator === undefined ||
+      redemptionFee === undefined
+    )
+      return undefined
+    return this.withdrawalAmountBN.mul(redemptionFee).div(feeDenominator)
   }
 
-  get withdrawalReceivedAmount(): string | undefined {
-    const { preCTTokenStore } = this.root
-    if (this.sharesForAmountBN === undefined || this.amountForSharesBN === undefined)
-      return undefined
-    const donationAmountBigNumber = parseEther(`${this.donationAmount}`)
-    const amountBeforeFee = this.amountForSharesBN.sub(donationAmountBigNumber)
-    return preCTTokenStore.formatUnits(amountBeforeFee.sub(this.withdrawalFees))
+  get receivedAmount(): string | undefined {
+    if (this.receivedAmountBN === undefined) return undefined
+    return this.root.preCTTokenStore.formatUnits(this.receivedAmountBN)
+  }
+
+  get receivedAmountBN(): BigNumber | undefined {
+    if (this.withdrawalAmountBN === undefined || this.withdrawalFees === undefined) return undefined
+    return this.withdrawalAmountBN.sub(this.withdrawalFees)
   }
 
   get withdrawUILoading(): boolean {
     const { withdrawing } = this.root.preCTTokenStore
     return (
       withdrawing ||
-      this.withdrawalReceivedAmount === undefined ||
-      this.withdrawalAmountBN === undefined
+      this.receivedAmountBN === undefined ||
+      this.withdrawalAmountBN === undefined ||
+      this.isLoadingBalance
     )
   }
 }

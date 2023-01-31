@@ -1,24 +1,15 @@
 import { observer } from 'mobx-react-lite'
 import { useRouter } from 'next/router'
-import { useMemo } from 'react'
 import TransactionSummary from '../../components/TransactionSummary/TransactionSummary'
 import { Callback } from '../../types/common.types'
 import { useRootStore } from '../../context/RootStoreProvider'
-import { balanceToNumber } from '../../utils/number-utils'
 import { RowData } from '../../components/Table'
-import { EstimatedWithdrawAmount, TransactionFee } from '../definitions'
+import { EstimatedWithdrawAmount } from '../definitions'
 
 const WithdrawTransactionSummary: React.FC = () => {
   const router = useRouter()
   const { preCTTokenStore, withdrawStore } = useRootStore()
-  const {
-    donationPercentage,
-    donationAmount,
-    withdrawalDisabled,
-    withdrawalFees,
-    withdrawalReceivedAmount,
-    withdrawUILoading,
-  } = withdrawStore
+  const { receivedAmount, withdrawalDisabled, withdrawUILoading } = withdrawStore
   const { withdrawHash } = preCTTokenStore
 
   const onCancel = (): void => {
@@ -41,29 +32,13 @@ const WithdrawTransactionSummary: React.FC = () => {
     }
   }
 
-  const withdrawTransactionSummary = useMemo(() => {
-    const data: RowData[] = [
-      {
-        label: 'Withdrawal Fees',
-        tooltip: <TransactionFee />,
-        amount: balanceToNumber(withdrawalFees),
-      },
-    ]
-    if (donationPercentage > 0) {
-      data.push({
-        label: 'Charity Donation',
-        tooltip: 'Some tooltip',
-        amount: donationAmount,
-        percent: donationPercentage / 100,
-      })
-    }
-    data.push({
+  const withdrawTransactionSummary: RowData[] = [
+    {
       label: 'Estimated Received Amount',
       tooltip: <EstimatedWithdrawAmount />,
-      amount: withdrawalReceivedAmount || '0',
-    })
-    return data
-  }, [donationAmount, donationPercentage, withdrawalFees, withdrawalReceivedAmount])
+      amount: receivedAmount || '0',
+    },
+  ]
 
   return (
     <TransactionSummary

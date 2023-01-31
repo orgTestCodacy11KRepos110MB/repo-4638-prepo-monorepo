@@ -38,10 +38,6 @@ describe('WithdrawStore tests', () => {
     spyPreCTDecimalsNumber.mockRestore()
   })
 
-  it('should set donation percentage to zero', () => {
-    expect(rootStore.withdrawStore.donationPercentage).toBe(0)
-  })
-
   it('should set the amount', () => {
     rootStore.withdrawStore.setWithdrawalAmount(amountToWithdraw)
     expect(rootStore.withdrawStore.withdrawalAmount).toBe(amountToWithdraw)

@@ -1,32 +1,25 @@
 import { observer } from 'mobx-react-lite'
-import { TokenInput } from 'prepo-ui'
+import { CurrencyInput } from 'prepo-ui'
 import WithdrawTransactionSummary from './WithdrawTransactionSummary'
 import { useRootStore } from '../../context/RootStoreProvider'
-import CurrenciesBreakdown from '../../components/CurrenciesBreakdown'
 import PageCard from '../../components/PageCard'
 import { Routes } from '../../lib/routes'
 
 const WithdrawPage: React.FC = () => {
-  const { web3Store, preCTTokenStore, withdrawStore } = useRootStore()
-  const { tokenBalanceFormat } = preCTTokenStore
-  const { connected } = web3Store
+  const { preCTTokenStore, withdrawStore } = useRootStore()
+  const { balanceOfSigner, tokenBalanceFormat } = preCTTokenStore
   const { setWithdrawalAmount, withdrawalAmount } = withdrawStore
 
   return (
     <PageCard backUrl={Routes.Portfolio} title="Withdraw">
-      <TokenInput
-        alignInput="right"
+      <CurrencyInput
         balance={tokenBalanceFormat}
-        connected={connected}
-        disableClickBalance
-        max={tokenBalanceFormat}
+        isBalanceZero={balanceOfSigner?.eq(0)}
+        currency={{ icon: 'cash', text: 'USD' }}
         onChange={setWithdrawalAmount}
-        shadowSuffix=""
-        symbol="USD"
-        usd
         value={withdrawalAmount}
+        showBalance
       />
-      <CurrenciesBreakdown />
       <WithdrawTransactionSummary />
     </PageCard>
   )
