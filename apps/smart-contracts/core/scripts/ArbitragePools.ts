@@ -19,6 +19,10 @@ const POOL_FEE_TIER = 10000
 const getWeiFromSqrtX96 = (sqrtX96Price: BigNumber): BigNumber =>
   sqrtX96Price.pow(2).mul(ethers.utils.parseEther('1')).div(BigNumber.from(2).pow(192))
 
+/* eslint-disable no-promise-executor-return */
+export const sleep = (delay: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, delay))
+
 export type MarketTokens = {
   longToken: Contract
   shortToken: Contract
@@ -64,15 +68,35 @@ export const attachArbitrageBroker = (
   arbitrageBrokerAddress: string
 ): Contract => new ethers.Contract(arbitrageBrokerAddress, IArbitrageBrokerArtifact.abi, provider)
 
+export const attachERC20 = (
+  provider: ethers.providers.BaseProvider,
+  erc20Address: string
+): Contract => new ethers.Contract(erc20Address, IERC20Artifact.abi, provider)
+
+export const attachMarket = (
+  provider: ethers.providers.BaseProvider,
+  marketAddress: string
+): Contract => new ethers.Contract(marketAddress, IPrePOMarketArtifact.abi, provider)
+
+export const attachPool = (
+  provider: ethers.providers.BaseProvider,
+  poolAddress: string
+): Contract => new ethers.Contract(poolAddress, IUniswapV3PoolArtifact.abi, provider)
+
+export const attachPoolFactory = (
+  provider: ethers.providers.BaseProvider,
+  factoryAddress: string
+): Contract => new ethers.Contract(factoryAddress, IUniswapV3FactoryArtifact.abi, provider)
+
 export const getTokensFromMarket = async (
   provider: ethers.providers.BaseProvider,
   marketAddress: string
 ): Promise<MarketTokens> => {
-  const market = new ethers.Contract(marketAddress, IPrePOMarketArtifact.abi, provider)
+  const market = attachMarket(provider, marketAddress)
   const longTokenAddress = await market.getLongToken()
   const shortTokenAddress = await market.getShortToken()
-  const longToken = new ethers.Contract(longTokenAddress, IERC20Artifact.abi, provider)
-  const shortToken = new ethers.Contract(shortTokenAddress, IERC20Artifact.abi, provider)
+  const longToken = attachERC20(provider, longTokenAddress)
+  const shortToken = attachERC20(provider, shortTokenAddress)
   return { longToken, shortToken }
 }
 
@@ -82,15 +106,15 @@ export const getPoolsFromTokens = async (
   longTokenAddress: string,
   shortTokenAddress: string
 ): Promise<MarketPools> => {
-  const factory = new ethers.Contract(UNIV3_FACTORY, IUniswapV3FactoryArtifact.abi, provider)
+  const factory = attachPoolFactory(provider, UNIV3_FACTORY)
   const longPoolAddress = await factory.getPool(longTokenAddress, collateralAddress, POOL_FEE_TIER)
   const shortPoolAddress = await factory.getPool(
     shortTokenAddress,
     collateralAddress,
     POOL_FEE_TIER
   )
-  const longPool = new ethers.Contract(longPoolAddress, IUniswapV3PoolArtifact.abi, provider)
-  const shortPool = new ethers.Contract(shortPoolAddress, IUniswapV3PoolArtifact.abi, provider)
+  const longPool = attachPool(provider, longPoolAddress)
+  const shortPool = attachPool(provider, shortPoolAddress)
   return { longPool, shortPool }
 }
 
@@ -333,9 +357,9 @@ export const getIdealTradeSize = async (
 }
 
 export const executeTrade = async (
+  signer: Signer,
   arbitrageStrategy: ArbitrageStrategy,
   arbitrageBroker: Contract,
-  signer: Signer,
   marketAddress: string,
   estimate: ArbitrageEstimate
 ): Promise<void> => {
@@ -358,5 +382,21 @@ export const executeTrade = async (
     await tx.wait()
   } else {
     throw new Error('Cannot execute trade for INSUFFICIENT_SPREAD')
+  }
+}
+
+export const executeTradeIfProfitable = async (
+  signer: Signer,
+  arbitrageStrategy: ArbitrageStrategy,
+  arbitrageBroker: Contract,
+  marketAddress: string,
+  estimate: ArbitrageEstimate,
+  minNetProfit: BigNumber,
+  delay: number
+): Promise<void> => {
+  if (estimate.profit.gte(minNetProfit)) {
+    executeTrade(signer, arbitrageStrategy, arbitrageBroker, marketAddress, estimate)
+  } else {
+    await sleep(delay)
   }
 }

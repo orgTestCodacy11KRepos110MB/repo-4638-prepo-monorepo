@@ -46,6 +46,7 @@ import {
   ArbitrageStrategy,
   attachArbitrageBroker,
   executeTrade,
+  executeTradeIfProfitable,
   getAdjustedEstimate,
   getEstimateGivenTradeSize,
   getIdealTradeSize,
@@ -1089,10 +1090,10 @@ describe('=> Arbitrage Trading', () => {
         }
 
         await executeTrade(
+          governance,
           ArbitrageStrategy.BUY_AND_REDEEM,
           // Wrap mock in a standalone ethers Contact object
           attachArbitrageBroker(ethers.provider, fakeArbitrageBroker.address),
-          governance,
           core.markets[TEST_NAME_SUFFIX].address,
           testBuyAndRedeemEstimate
         )
@@ -1117,10 +1118,10 @@ describe('=> Arbitrage Trading', () => {
         }
 
         await executeTrade(
+          governance,
           ArbitrageStrategy.MINT_AND_SELL,
           // Wrap mock in a standalone ethers Contact object
           attachArbitrageBroker(ethers.provider, fakeArbitrageBroker.address),
-          governance,
           core.markets[TEST_NAME_SUFFIX].address,
           testMintAndSellEstimate
         )
@@ -1147,10 +1148,10 @@ describe('=> Arbitrage Trading', () => {
 
         await expect(
           executeTrade(
+            governance,
             ArbitrageStrategy.INSUFFICIENT_SPREAD,
             // Wrap mock in a standalone ethers Contact object
             attachArbitrageBroker(ethers.provider, fakeArbitrageBroker.address),
-            governance,
             core.markets[TEST_NAME_SUFFIX].address,
             testBuyAndRedeemEstimate
           )
@@ -1160,6 +1161,109 @@ describe('=> Arbitrage Trading', () => {
       afterEach(() => {
         fakeArbitrageBroker.buyAndRedeem.reset()
         fakeArbitrageBroker.mintAndSell.reset()
+      })
+    })
+
+    describe('# executeTradeIfProfitable', () => {
+      let fakeArbitrageBroker: FakeContract<ArbitrageBroker>
+      let mockExecuteTrade: SinonStub
+      let mockSleep: SinonStub
+      const TEST_MIN_PROFIT = parseEther('1')
+      const TEST_DELAY = 5000
+      before(() => {
+        mockExecuteTrade = stub(ArbitragePools, 'executeTrade')
+        mockExecuteTrade.returns()
+        mockSleep = stub(ArbitragePools, 'sleep')
+        mockSleep.returns()
+      })
+
+      beforeEach(async () => {
+        fakeArbitrageBroker = await fakeArbitrageBrokerFixture()
+      })
+
+      it("calls 'executeTrade()' if profit > min", async () => {
+        const attachedBroker = attachArbitrageBroker(ethers.provider, fakeArbitrageBroker.address)
+        const testEstimate = {
+          tradeSize: parseEther('2'),
+          profit: TEST_MIN_PROFIT.add(1),
+          collateralToBuyLong: parseEther('3'),
+          collateralToBuyShort: parseEther('4'),
+        }
+
+        await executeTradeIfProfitable(
+          governance,
+          ArbitrageStrategy.BUY_AND_REDEEM,
+          attachedBroker,
+          core.markets[TEST_NAME_SUFFIX].address,
+          testEstimate,
+          TEST_MIN_PROFIT,
+          TEST_DELAY
+        )
+
+        expect(mockExecuteTrade.callCount).eq(1)
+        expect(mockExecuteTrade.firstCall.args[0]).eq(governance)
+        expect(mockExecuteTrade.firstCall.args[1]).eq(ArbitrageStrategy.BUY_AND_REDEEM)
+        expect(mockExecuteTrade.firstCall.args[2]).eq(attachedBroker)
+        expect(mockExecuteTrade.firstCall.args[3]).eq(core.markets[TEST_NAME_SUFFIX].address)
+        expect(mockExecuteTrade.firstCall.args[4]).eq(testEstimate)
+        expect(mockSleep.callCount).eq(0)
+      })
+
+      it("calls 'executeTrade()' if profit = min", async () => {
+        const attachedBroker = attachArbitrageBroker(ethers.provider, fakeArbitrageBroker.address)
+        const testEstimate = {
+          tradeSize: parseEther('2'),
+          profit: TEST_MIN_PROFIT,
+          collateralToBuyLong: parseEther('3'),
+          collateralToBuyShort: parseEther('4'),
+        }
+
+        await executeTradeIfProfitable(
+          governance,
+          ArbitrageStrategy.BUY_AND_REDEEM,
+          attachedBroker,
+          core.markets[TEST_NAME_SUFFIX].address,
+          testEstimate,
+          TEST_MIN_PROFIT,
+          TEST_DELAY
+        )
+
+        expect(mockExecuteTrade.callCount).eq(1)
+        expect(mockExecuteTrade.firstCall.args[0]).eq(governance)
+        expect(mockExecuteTrade.firstCall.args[1]).eq(ArbitrageStrategy.BUY_AND_REDEEM)
+        expect(mockExecuteTrade.firstCall.args[2]).eq(attachedBroker)
+        expect(mockExecuteTrade.firstCall.args[3]).eq(core.markets[TEST_NAME_SUFFIX].address)
+        expect(mockExecuteTrade.firstCall.args[4]).eq(testEstimate)
+        expect(mockSleep.callCount).eq(0)
+      })
+
+      it("calls 'sleep()' if profit < min", async () => {
+        const attachedBroker = attachArbitrageBroker(ethers.provider, fakeArbitrageBroker.address)
+        const testEstimate = {
+          tradeSize: parseEther('2'),
+          profit: TEST_MIN_PROFIT.sub(1),
+          collateralToBuyLong: parseEther('3'),
+          collateralToBuyShort: parseEther('4'),
+        }
+
+        await executeTradeIfProfitable(
+          governance,
+          ArbitrageStrategy.BUY_AND_REDEEM,
+          attachedBroker,
+          core.markets[TEST_NAME_SUFFIX].address,
+          testEstimate,
+          TEST_MIN_PROFIT,
+          TEST_DELAY
+        )
+
+        expect(mockExecuteTrade.callCount).eq(0)
+        expect(mockSleep.callCount).eq(1)
+        expect(mockSleep.firstCall.args[0]).eq(TEST_DELAY)
+      })
+
+      afterEach(() => {
+        mockExecuteTrade.reset()
+        mockSleep.reset()
       })
     })
   })
