@@ -1,0 +1,4 @@
+{
+  "extends": "tsconfig/smart-contracts.json",
+  "include": ["./exportedArtifacts/**/*.json", "./src/**/*.ts", "./*.js"]
+}
