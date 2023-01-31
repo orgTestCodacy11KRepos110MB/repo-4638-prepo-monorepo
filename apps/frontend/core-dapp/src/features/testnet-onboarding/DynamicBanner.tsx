@@ -23,7 +23,8 @@ const DynamicBanner: React.FC = () => {
 
   const userHasNotUsedAirdroppedTokens = baseTokenStore.balanceOfSigner?.eq(amountFakeUSD)
   const userHasBeenOnboarded =
-    portfolioStore.positions.length > 0 || preCTTokenStore.balanceOfSigner?.gt(0)
+    (portfolioStore.userPositions !== undefined && portfolioStore.userPositions.length > 0) ||
+    preCTTokenStore.balanceOfSigner?.gt(0)
 
   if (userHasBeenOnboarded) return null
   if (testNetwork && userHasNotUsedAirdroppedTokens) return <OnboardUserBanner />

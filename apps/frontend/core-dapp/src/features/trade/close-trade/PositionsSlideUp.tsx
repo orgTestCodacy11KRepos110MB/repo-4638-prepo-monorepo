@@ -8,7 +8,7 @@ import SlideUpCard from '../SlideUpCard'
 import { useRootStore } from '../../../context/RootStoreProvider'
 import SlideUpButton from '../SlideUpButton'
 import SlideUpRow from '../SlideUpRow'
-import { Direction } from '../TradeStore'
+import { PositionEntity } from '../../../stores/entities/Position.entity'
 
 const SelectedPosition = styled(SlideUpRow)`
   border: none;
@@ -36,15 +36,20 @@ const PositionsSlideUp: React.FC = () => {
   const router = useRouter()
   const { portfolioStore, tradeStore, web3Store } = useRootStore()
   const { connected } = web3Store
-  const { isLoadingPositions, positions } = portfolioStore
-  const { attemptingToSelectPosition, slideUpContent, setSlideUpContent, selectedPosition } =
-    tradeStore
+  const { userPositions } = portfolioStore
+  const { slideUpContent, setSlideUpContent, selectedPosition } = tradeStore
 
-  const noPosition = !isLoadingPositions && positions.length === 0
+  const hasNoPosition = userPositions !== undefined && userPositions.length === 0
+  // slide up is disabled if:
+  // - not connected: button shows "Connect Wallet"
+  // - loading posiitions: loading skeleton in button
+  // - user has no position and nothing selected: Show "No Opened Position"
+  const isSlideUpDisabled =
+    !connected || userPositions === undefined || (hasNoPosition && !selectedPosition)
 
-  const handleSelectPosition = (newMarketUrlId: string, newDirection: Direction): void => {
-    tradeStore.setSelectedMarket(newMarketUrlId)
-    tradeStore.setDirection(newDirection)
+  const handleSelectPosition = (position: PositionEntity): void => {
+    tradeStore.setSelectedMarket(position.market.urlId)
+    tradeStore.setDirection(position.direction)
     tradeStore.setSlideUpContent()
     router.push(tradeStore.tradeUrl)
   }
@@ -53,9 +58,9 @@ const PositionsSlideUp: React.FC = () => {
   useEffect(() => () => setSlideUpContent(), [setSlideUpContent])
 
   useEffect(() => {
-    // close SlideUp if user has no position to avoid weird behaviour when switching between addresses
-    if (noPosition && slideUpContent === 'ClosePosition') setSlideUpContent()
-  }, [noPosition, setSlideUpContent, slideUpContent])
+    // close SlideUp if user SlideUp should be disabled to avoid weird behaviour when switching between addresses
+    if (isSlideUpDisabled && slideUpContent === 'ClosePosition') setSlideUpContent()
+  }, [isSlideUpDisabled, setSlideUpContent, slideUpContent])
 
   const buttonContent = useMemo(() => {
     if (selectedPosition)
@@ -74,27 +79,26 @@ const PositionsSlideUp: React.FC = () => {
         />
       )
 
-    // user attempts to select a position via url parameters but positions aren't loaded yet
-    if (attemptingToSelectPosition) return <PositionLoadingSkeleton noPadding />
+    if (userPositions === undefined) return <PositionLoadingSkeleton noPadding />
 
-    return noPosition ? 'No Opened Position' : 'Select a Position'
-  }, [attemptingToSelectPosition, noPosition, selectedPosition])
+    return connected && userPositions.length === 0 ? 'No Opened Position' : 'Select a Position'
+  }, [connected, userPositions, selectedPosition])
 
   return (
     <>
       <SlideUpButton
-        disabled={!connected || noPosition}
+        disabled={isSlideUpDisabled}
         showShadow={!selectedPosition}
         onClick={(): void => setSlideUpContent('ClosePosition')}
       >
         {buttonContent}
       </SlideUpButton>
       <SlideUpCard
-        show={slideUpContent === 'ClosePosition' && !noPosition}
+        show={slideUpContent === 'ClosePosition' && !isSlideUpDisabled}
         onClose={(): void => setSlideUpContent(undefined)}
         title="Select a Position"
       >
-        {isLoadingPositions ? (
+        {userPositions === undefined ? (
           <PositionLoadingSkeletons />
         ) : (
           <>
@@ -102,26 +106,18 @@ const PositionsSlideUp: React.FC = () => {
               <SlideUpRow
                 market={selectedPosition.market}
                 selected
-                onClick={(): void =>
-                  handleSelectPosition(selectedPosition.market.urlId, selectedPosition.direction)
-                }
-                position={{
-                  direction: selectedPosition.direction,
-                  totalValue:
-                    selectedPosition.data === undefined
-                      ? undefined
-                      : +selectedPosition.data.totalValue,
-                }}
+                onClick={(): void => handleSelectPosition(selectedPosition)}
+                position={selectedPosition}
               />
             )}
-            {positions
+            {userPositions
               .filter(({ id }) => id !== selectedPosition?.id)
-              .map(({ id, market, data, direction }) => (
+              .map((position) => (
                 <SlideUpRow
-                  key={id}
-                  market={market}
-                  onClick={(): void => handleSelectPosition(market.urlId, direction)}
-                  position={data ? { direction, totalValue: +data.totalValue } : undefined}
+                  key={position.id}
+                  market={position.market}
+                  onClick={(): void => handleSelectPosition(position)}
+                  position={position}
                 />
               ))}
           </>

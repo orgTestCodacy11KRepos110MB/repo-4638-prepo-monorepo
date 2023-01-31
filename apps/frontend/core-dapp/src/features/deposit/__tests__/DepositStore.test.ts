@@ -2,20 +2,13 @@
 import { BigNumber, utils } from 'ethers'
 import { configure } from 'mobx'
 import { ERC20_UNITS } from '../../../lib/constants'
-import { MarketEntity } from '../../../stores/entities/MarketEntity'
-import { markets } from '../../../lib/markets'
 
 // This is needed to be able to mock mobx properties on a class
 configure({ safeDescriptors: false })
 
 const { rootStore } = global
-const selectedMarket = new MarketEntity(rootStore, markets[0])
 const amountToDeposit = '1000.0'
 const USDC_BALANCE = 2000
-
-beforeAll(() => {
-  selectedMarket.fetchPools()
-})
 
 describe('DepositStore tests', () => {
   let spyBaseTokenBalance: jest.SpyInstance

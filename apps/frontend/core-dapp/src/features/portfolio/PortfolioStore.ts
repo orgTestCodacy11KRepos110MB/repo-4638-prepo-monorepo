@@ -1,42 +1,18 @@
-import { BigNumber } from 'ethers'
-import { parseUnits } from 'ethers/lib/utils'
 import { action, makeAutoObservable } from 'mobx'
-import { ERC20_UNITS } from '../../lib/constants'
 import { supportedMarkets } from '../../lib/markets-contracts'
-import { Erc20Store } from '../../stores/entities/Erc20.entity'
-import { MarketEntity } from '../../stores/entities/MarketEntity'
 import { HistoricalEventsFilter } from '../../stores/graphs/CoreGraphStore'
 import { RootStore } from '../../stores/RootStore'
 import { Position as PositionFromGraph } from '../../types/user.types'
-import { normalizeDecimalPrecision } from '../../utils/number-utils'
 import {
   formatHistoricalEvent,
   KNOWN_HISTORY_EVENTS,
   KNOWN_HISTORY_EVENTS_MAP,
 } from '../history/history-utils'
 import { HistoryTransaction } from '../history/history.types'
-import { Direction } from '../trade/TradeStore'
-
-export type Position = {
-  id: string
-  market: MarketEntity
-  direction: Direction
-  data?: {
-    costBasis?: number
-    price: number
-    priceBN: BigNumber
-    pnl?: number
-    percentage?: number
-    token: Erc20Store
-    tokenBalance: string
-    totalValue: string
-    totalValueBN: BigNumber
-    decimals: number
-  }
-}
+import { PositionEntity } from '../../stores/entities/Position.entity'
 
 export class PortfolioStore {
-  selectedPosition?: Required<Position>
+  selectedPosition?: Required<PositionEntity>
 
   constructor(public root: RootStore) {
     makeAutoObservable(this, {
@@ -44,66 +20,8 @@ export class PortfolioStore {
     })
   }
 
-  setSelectedPosition(position?: Required<Position>): void {
+  setSelectedPosition(position?: Required<PositionEntity>): void {
     this.selectedPosition = position
-  }
-
-  hasPosition(market: MarketEntity, direction: Direction): Position | undefined {
-    const token = market[`${direction}Token`]
-    const tokenBalance = market[`${direction}TokenBalance`]
-    const tokenBalanceBN = market[`${direction}TokenBalanceBN`]
-    const price = market[`${direction}TokenPrice`]
-    const defaultValue = { id: `${market.urlId}_${direction}`, market, direction }
-
-    const loading =
-      !token ||
-      token.decimalsNumber === undefined ||
-      tokenBalance === undefined ||
-      tokenBalanceBN === undefined ||
-      price === undefined
-    if (loading) return defaultValue
-
-    const noPosition = tokenBalanceBN.lte(BigNumber.from(10))
-    if (noPosition) return undefined
-
-    const priceBN = parseUnits(`${price}`, ERC20_UNITS)
-    const totalValueBN = tokenBalanceBN.mul(priceBN).div(BigNumber.from(10).pow(ERC20_UNITS))
-    const totalValue = token.formatUnits(totalValueBN)
-    if (totalValueBN.eq(0) || totalValue === undefined) return undefined
-
-    let costBasis
-    let pnl
-    let percentage
-    if (this.signerCostBasis) {
-      const foundPosition = this.signerCostBasis.find(
-        ({ longShortToken: { id } }) => id === token.address?.toLowerCase()
-      )
-      if (foundPosition) {
-        costBasis = foundPosition.costBasis
-        // pnl is just an estimation so it doesn't require BigNumber level accuracy
-        pnl = +tokenBalance * (price - costBasis)
-        const capital = +totalValue - pnl
-        if (pnl > 0) percentage = pnl / capital
-      }
-    }
-
-    const returnValue = {
-      data: {
-        costBasis,
-        pnl,
-        percentage,
-        price,
-        priceBN,
-        token,
-        tokenBalance,
-        totalValue,
-        totalValueBN,
-        decimals: token.decimalsNumber,
-      },
-      ...defaultValue,
-    }
-
-    return returnValue
   }
 
   get historicalEvents(): HistoryTransaction[] | undefined {
@@ -147,32 +65,29 @@ export class PortfolioStore {
     }
   }
 
-  get isLoadingPositions(): boolean {
-    if (!this.root.web3Store.connected) return false
-    // find any position that is still loading data
-    const loadingIndex = this.positions.findIndex(({ data }) => data === undefined)
-    // loading is true if loadingIndex is a valid index, (e.g. 0, 1, 2, ...)
-    return loadingIndex > -1
-  }
-
-  get tradingPositions(): Position[] {
+  // all possible positions including those that user has 0 balance
+  get allPositions(): PositionEntity[] {
     const { marketStore } = this.root
     const { markets } = marketStore
 
-    const positions: Position[] = []
+    const positions: PositionEntity[] = []
     Object.values(markets).forEach((market) => {
-      const longPosition = this.hasPosition(market, 'long')
-      const shortPosition = this.hasPosition(market, 'short')
-
-      if (longPosition) positions.push(longPosition)
-      if (shortPosition) positions.push(shortPosition)
+      positions.push(new PositionEntity(this.root, market, 'long'))
+      positions.push(new PositionEntity(this.root, market, 'short'))
     })
 
     return positions
   }
 
-  get positions(): Position[] {
-    return [...this.tradingPositions]
+  // only positions where user has more than 0 balance
+  get userPositions(): PositionEntity[] | undefined {
+    let loading = false
+    const positions = this.allPositions.filter((position) => {
+      if (position.hasPosition === undefined) loading = true
+      return position.hasPosition
+    })
+
+    return loading ? undefined : positions
   }
 
   get portfolioValue(): string | undefined {
@@ -200,15 +115,11 @@ export class PortfolioStore {
   }
 
   get tradingPositionsValue(): number | undefined {
-    if (this.positions === undefined) return undefined
+    if (this.userPositions === undefined) return undefined
     let valueSum = 0
-    let minLoaded = false
-    this.positions.forEach(({ data }) => {
-      if (data) {
-        minLoaded = true
-        valueSum += Number(normalizeDecimalPrecision(`${data.totalValue}`))
-      }
+    this.userPositions.forEach(({ totalValue }) => {
+      valueSum += Number(totalValue ?? 0)
     })
-    return minLoaded || this.positions.length === 0 ? valueSum : undefined
+    return valueSum
   }
 }

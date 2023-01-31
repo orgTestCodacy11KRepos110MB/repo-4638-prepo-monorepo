@@ -6,15 +6,15 @@ import { useState } from 'react'
 import styled from 'styled-components'
 import { safeStringBN, validateStringToBN } from 'prepo-utils'
 import TransactionSummary from '../../components/TransactionSummary'
-import { Position } from '../portfolio/PortfolioStore'
 import { useRootStore } from '../../context/RootStoreProvider'
 import Table, { RowData } from '../../components/Table'
 import { Callback } from '../../types/common.types'
 import AdvancedSettingsModal from '../../components/AdvancedSettingsModal'
 import { ERC20_UNITS } from '../../lib/constants'
+import { PositionEntity } from '../../stores/entities/Position.entity'
 
 type Props = {
-  position: Required<Position>
+  position: Required<PositionEntity>
 }
 
 const FormItem = styled.div<{ showBorderTop?: boolean }>`
@@ -48,11 +48,13 @@ const ClosePositionSummary: React.FC<Props> = ({ position }) => {
   const { closeTrade, closeTradeHash, setCloseTradeHash } = tradeStore
   const { setSelectedPosition } = portfolioStore
   const { connected } = web3Store
-  const [closeValue, setCloseValue] = useState(position.data.totalValue)
-  const closeValueBN = parseUnits(safeStringBN(closeValue), position.data.decimals)
+  const [closeValue, setCloseValue] = useState(position.totalValue)
+  const closeValueBN = parseUnits(safeStringBN(closeValue), position.token.decimalsNumber)
   const closeAmountBN = closeValueBN
     .mul(BigNumber.from(10).pow(ERC20_UNITS))
-    .div(position.data.priceBN)
+    // if priceBN is undefined, position is not loaded and this component will never be rendered
+    // so priceBN will never be undefined
+    .div(position.priceBN ?? BigNumber.from(0))
 
   const onClickSettings = (): void => setIsSettingsOpen(true)
 
@@ -65,11 +67,7 @@ const ClosePositionSummary: React.FC<Props> = ({ position }) => {
     successCallback: Callback<string>,
     failedCallback: Callback<string>
   ): Promise<void> => {
-    const {
-      data: { token },
-    } = position
-
-    const { error } = await closeTrade(token, closeAmountBN, closeValueBN, position.market)
+    const { error } = await closeTrade(position.token, closeAmountBN, closeValueBN, position.market)
 
     if (error) {
       failedCallback(error)
@@ -88,7 +86,7 @@ const ClosePositionSummary: React.FC<Props> = ({ position }) => {
     },
     {
       label: 'Position Value',
-      amount: position.data.totalValue,
+      amount: position.totalValue,
     },
   ]
 
@@ -96,13 +94,14 @@ const ClosePositionSummary: React.FC<Props> = ({ position }) => {
     {
       label: 'Estimated PNL',
       toolTip: 'Some tooltip',
-      amount: position.data.pnl,
-      percent: position.data.percentage,
+      amount: position.totalPnl,
+      percent: position.positionGrowthPercentage,
     },
   ]
 
   if (isSettingsOpen) return <AdvancedSettingsModal />
-  const insufficentBalance = closeValueBN.gt(position.data.totalValueBN)
+  const insufficentBalance =
+    position.totalValueBN !== undefined && closeValueBN.gt(position.totalValueBN)
   const buttonText = insufficentBalance ? 'Insufficent Position Value' : undefined
 
   return (
@@ -125,9 +124,9 @@ const ClosePositionSummary: React.FC<Props> = ({ position }) => {
       }
       transactionHash={closeTradeHash}
       unlock={{
-        amount: formatUnits(closeAmountBN, position.data.decimals),
+        amount: formatUnits(closeAmountBN, position.token.decimalsNumber),
         contentType: 'closeTrade',
-        token: position.data.token,
+        token: position.token,
       }}
       withoutModalButton
     >
@@ -138,7 +137,7 @@ const ClosePositionSummary: React.FC<Props> = ({ position }) => {
           onChange={(value): void => {
             if (validateStringToBN(value)) setCloseValue(value)
           }}
-          max={position.data.totalValue}
+          max={position.totalValue}
           showSlider
           usd
           value={closeValue}

@@ -17,10 +17,6 @@ const amountToTrade = '100'
 const PRECT_BALANCE = '2000'
 const PRECT_DECIMALS = 18
 
-beforeAll(() => {
-  selectedMarket.fetchPools()
-})
-
 describe('TradeStore tests', () => {
   let spyPreCTTokenBalance: jest.SpyInstance
   let spyPreCTDecimalsNumber: jest.SpyInstance

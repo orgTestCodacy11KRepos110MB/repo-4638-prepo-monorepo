@@ -5,13 +5,13 @@ import QuoterABI from '../../../abi/uniswapV3Quoter.abi.json'
 import { UNISWAP_QUOTER_ADDRESS } from '../../lib/external-contracts'
 import { Erc20Store } from '../../stores/entities/Erc20.entity'
 import { MarketEntity } from '../../stores/entities/MarketEntity'
+import { PositionEntity } from '../../stores/entities/Position.entity'
 import { RootStore } from '../../stores/RootStore'
 import { TradeType } from '../../stores/SwapStore'
 import { ChartTimeframe } from '../../types/market.types'
 import { debounce } from '../../utils/debounce'
 import { makeQueryString } from '../../utils/makeQueryString'
 import { calculateValuation } from '../../utils/market-utils'
-import { Position } from '../portfolio/PortfolioStore'
 
 export type Direction = 'long' | 'short'
 export type TradeAction = 'open' | 'close'
@@ -358,17 +358,11 @@ export class TradeStore {
     )
   }
 
-  get attemptingToSelectPosition(): boolean {
-    return Boolean(
-      this.direction && this.selectedMarket && this.root.portfolioStore.isLoadingPositions
-    )
-  }
-
-  get selectedPosition(): Position | undefined {
-    const { positions } = this.root.portfolioStore
+  get selectedPosition(): PositionEntity | undefined {
+    const { allPositions } = this.root.portfolioStore
     if (!this.direction || !this.selectedMarket) return undefined
 
-    const position = positions.find(
+    const position = allPositions.find(
       ({ direction, market }) =>
         direction === this.direction && this.selectedMarket?.urlId === market.urlId
     )

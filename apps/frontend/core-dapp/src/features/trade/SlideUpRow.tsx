@@ -3,8 +3,8 @@ import { Flex, Icon, media, spacingIncrement } from 'prepo-ui'
 import styled, { Color } from 'styled-components'
 import Skeleton from '../../components/Skeleton'
 import { MarketEntity } from '../../stores/entities/MarketEntity'
-import { PositionType } from '../../utils/prepo.types'
 import { compactNumber } from '../../utils/number-utils'
+import { PositionEntity } from '../../stores/entities/Position.entity'
 
 type Props = {
   afterName?: React.ReactNode
@@ -12,10 +12,7 @@ type Props = {
   onClick?: () => void
   selected?: boolean
   market: MarketEntity
-  position?: {
-    totalValue?: number
-    direction: PositionType
-  }
+  position?: PositionEntity
 }
 
 const Wrapper = styled.div<{ $selected?: boolean }>`
@@ -117,7 +114,7 @@ const SlideUpRow: React.FC<Props> = ({
     {position && (
       <Flex alignItems="end" flexDirection="column" paddingRight={4}>
         {position.totalValue !== undefined ? (
-          <Balance>${compactNumber(position.totalValue)}</Balance>
+          <Balance>${compactNumber(+position.totalValue)}</Balance>
         ) : (
           <Skeleton width={60} height={20} />
         )}

@@ -90,14 +90,14 @@ export class MarketEntity
     tokenAddress: SupportedMarketTokens
     poolAddress: SupportedMarketPools
   }
-  longPool: UniswapPoolEntity | undefined
   short: {
     tokenAddress: SupportedMarketTokens
     poolAddress: SupportedMarketPools
   }
-  longToken: Erc20Store | undefined
-  shortPool: UniswapPoolEntity | undefined
-  shortToken: Erc20Store | undefined
+  longToken: Erc20Store
+  shortToken: Erc20Store
+  longPool: UniswapPoolEntity
+  shortPool: UniswapPoolEntity
   selectedPool: UniswapPoolEntity | undefined
 
   constructor(root: RootStore, data: Market) {
@@ -112,6 +112,19 @@ export class MarketEntity
     this.short = data.short
     this.type = data.type
 
+    this.longToken = new Erc20Store({
+      root: this.root,
+      symbolOverride: `${this.name} Long`,
+      tokenName: this.long.tokenAddress,
+    })
+    this.shortToken = new Erc20Store({
+      root: this.root,
+      symbolOverride: `${this.name} Short`,
+      tokenName: this.short.tokenAddress,
+    })
+    this.longPool = new UniswapPoolEntity(this.root, this.long.poolAddress)
+    this.shortPool = new UniswapPoolEntity(this.root, this.short.poolAddress)
+
     makeObservable(this, {
       cachedHistoricalData: observable,
       getLongTokenPayout: action.bound,
@@ -119,14 +132,6 @@ export class MarketEntity
       getProfitLossOnExit: action.bound,
     })
     this.cacheHistoricalData()
-  }
-
-  init = (): void => {
-    try {
-      this.fetchPools()
-    } catch (e) {
-      this.root.toastStore.errorToast(`Error fetching pools for market ${this.name}`, e)
-    }
   }
 
   cacheHistoricalData(): void {
@@ -150,24 +155,6 @@ export class MarketEntity
         })
       }
     )
-  }
-
-  fetchPools(): void {
-    runInAction(() => {
-      this.longToken = new Erc20Store({
-        root: this.root,
-        symbolOverride: `${this.name} Long`,
-        tokenName: this.long.tokenAddress,
-      })
-      this.shortToken = new Erc20Store({
-        root: this.root,
-        symbolOverride: `${this.name} Short`,
-        tokenName: this.short.tokenAddress,
-      })
-      this.longPool = new UniswapPoolEntity(this.root, this.long.poolAddress)
-      this.shortPool = new UniswapPoolEntity(this.root, this.short.poolAddress)
-      this.setSelectedPool('long')
-    })
   }
 
   getDataByPeriod(

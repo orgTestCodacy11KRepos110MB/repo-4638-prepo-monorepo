@@ -1,4 +1,4 @@
-import { action, makeAutoObservable, observable, runInAction } from 'mobx'
+import { action, makeAutoObservable, observable } from 'mobx'
 import { RootStore } from './RootStore'
 import { MarketEntity } from './entities/MarketEntity'
 import { markets } from '../lib/markets'
@@ -15,47 +15,17 @@ export class MarketStore {
   constructor(root: RootStore) {
     this.root = root
     this.searchQuery = ''
+    this.markets = markets.reduce(
+      (value, market) => ({
+        ...value,
+        [market.urlId]: new MarketEntity(this.root, market),
+      }),
+      {}
+    )
     makeAutoObservable(this, {
       searchQuery: observable,
       setSearchQuery: action.bound,
     })
-    this.init()
-  }
-
-  init(): void {
-    try {
-      this.fetchMarkets()
-    } catch (e) {
-      this.root.toastStore.errorToast('Error initializing markets', e)
-    }
-  }
-
-  async fetchMarkets(): Promise<void> {
-    try {
-      runInAction(() => {
-        this.fetchingMarkets = true
-      })
-      // Change to object
-      const entities = markets.map((market) => new MarketEntity(this.root, market))
-
-      await Promise.all(entities.map((entity) => entity.fetchPools()))
-
-      runInAction(() => {
-        this.markets = entities.reduce(
-          (value, market) => ({
-            ...value,
-            [market.urlId]: market,
-          }),
-          {}
-        )
-      })
-    } catch (e) {
-      this.root.toastStore.errorToast('Error fetching markets', e)
-    } finally {
-      runInAction(() => {
-        this.fetchingMarkets = false
-      })
-    }
   }
 
   setSearchQuery(query: string): void {

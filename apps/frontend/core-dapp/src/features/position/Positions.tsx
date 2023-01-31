@@ -8,7 +8,7 @@ import Record, { RecordSkeleton } from '../portfolio/Record'
 
 const Positions: React.FC = () => {
   const { portfolioStore, web3Store } = useRootStore()
-  const { positions, selectedPosition, setSelectedPosition } = portfolioStore
+  const { userPositions, selectedPosition, setSelectedPosition } = portfolioStore
   const { connected } = web3Store
 
   if (!connected)
@@ -20,7 +20,16 @@ const Positions: React.FC = () => {
       </Flex>
     )
 
-  if (positions.length === 0)
+  if (userPositions === undefined)
+    return (
+      <Box position="relative">
+        <RecordSkeleton />
+        <RecordSkeleton />
+        <RecordSkeleton />
+      </Box>
+    )
+
+  if (userPositions.length === 0)
     return (
       <Flex p={24} flexDirection="column">
         <Typography color="neutral3" mb={12} variant="text-regular-base">
@@ -34,36 +43,33 @@ const Positions: React.FC = () => {
 
   return (
     <Box position="relative">
-      {positions.map(({ id, direction, market, data }) => {
-        if (!data) return <RecordSkeleton key={id} />
-        return (
-          <Record
-            key={id}
-            iconName={market.iconName}
-            name={market.name}
-            nameRedirectUrl={`/markets/${market.urlId}/trade`}
-            position={direction}
-            buttonLabel={t`Close Position`}
-            buttonStyles={{
-              backgroundColor: 'primaryAccent',
-              color: 'primaryWhite',
-            }}
-            data={[
-              {
-                label: 'PNL',
-                amount: data.pnl,
-                percent: data.percentage,
-              },
-              {
-                label: t`Total Value`,
-                amount: data.totalValue,
-                usd: true,
-              },
-            ]}
-            onButtonClicked={(): void => setSelectedPosition({ id, direction, market, data })}
-          />
-        )
-      })}
+      {userPositions.map((position) => (
+        <Record
+          key={position.id}
+          iconName={position.market.iconName}
+          name={position.market.name}
+          nameRedirectUrl={`/markets/${position.market.urlId}/trade`}
+          position={position.direction}
+          buttonLabel={t`Close Position`}
+          buttonStyles={{
+            backgroundColor: 'primaryAccent',
+            color: 'primaryWhite',
+          }}
+          data={[
+            {
+              label: 'PNL',
+              amount: position.totalPnl,
+              percent: position.positionGrowthPercentage,
+            },
+            {
+              label: t`Total Value`,
+              amount: position.totalValue,
+              usd: true,
+            },
+          ]}
+          onButtonClicked={(): void => setSelectedPosition(position)}
+        />
+      ))}
       {selectedPosition && <ClosePositionSummary position={selectedPosition} />}
     </Box>
   )
