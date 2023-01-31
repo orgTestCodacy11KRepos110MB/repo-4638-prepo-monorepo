@@ -24,7 +24,7 @@ export const EstimatedReceivedAmount: React.FC = () => (
   </Paragraph>
 )
 
-export const EstimatedWithdrawAmount: React.FC<{ fee?: number }> = ({ fee }) => (
+export const EstimatedWithdrawalReceivedAmount: React.FC<{ fee?: number }> = ({ fee }) => (
   <Paragraph>
     <Trans>
       Estimated USD amount withdrawn after {fee === undefined ? '...' : fee.toFixed(2)}% fee
