@@ -400,3 +400,58 @@ export const executeTradeIfProfitable = async (
     await sleep(delay)
   }
 }
+
+export const arbitragePools = async (
+  provider: ethers.providers.BaseProvider,
+  signer: Signer,
+  collateralAddress: string,
+  arbitrageBrokerAddress: string,
+  markets: string[],
+  minStartingSpread: BigNumber,
+  minNetProfit: BigNumber,
+  initialSize: BigNumber,
+  gasCostBuffer: BigNumber,
+  maxSlippage: string,
+  growthFactor: string,
+  delay: number
+): Promise<void> => {
+  const collateral = attachERC20(provider, collateralAddress)
+  const arbitrageBroker = attachArbitrageBroker(provider, arbitrageBrokerAddress)
+  /* eslint-disable no-await-in-loop */
+  for (let i = 0; i < markets.length; i++) {
+    const marketAddress = markets[i]
+    const marketTokens = await getTokensFromMarket(provider, marketAddress)
+    const marketPools = await getPoolsFromTokens(
+      provider,
+      collateralAddress,
+      marketTokens.longToken.address,
+      marketTokens.shortToken.address
+    )
+    const marketWeiPrices = await getWeiPricesFromPools(marketPools)
+    const strategyToUse = getStrategyToUse(
+      marketWeiPrices.longPoolPrice,
+      marketWeiPrices.shortPoolPrice,
+      minStartingSpread
+    )
+    const maxTradeSize = await collateral.balanceOf(arbitrageBroker.address)
+    const idealTradeSize = await getIdealTradeSize(
+      initialSize,
+      maxTradeSize,
+      strategyToUse,
+      arbitrageBroker,
+      marketAddress,
+      gasCostBuffer,
+      maxSlippage,
+      growthFactor
+    )
+    await executeTradeIfProfitable(
+      signer,
+      strategyToUse,
+      arbitrageBroker,
+      marketAddress,
+      idealTradeSize,
+      minNetProfit,
+      delay
+    )
+  }
+}
